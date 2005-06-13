@@ -1,0 +1,830 @@
+(* parser/rml.grm -- ML-Yacc grammar for RML *)
+
+fun mymax(x:int, y:int, z:int) =
+    (print (Int.toString x); print ":"; print(Int.toString y); print (":");  print(Int.toString(z)); print("\n");
+     if ((x>y) andalso (x>z)) then x
+     else (if (y>z) then y else z));
+
+fun mklst(xlst, xnil, xcons) =
+  let fun loop([], rest) = rest
+	| loop(x::xlst, rest) = loop(xlst, xcons(x,rest))
+  in
+    loop(rev xlst, xnil)
+  end
+
+fun makeInfo myLoc (left, right) =
+	let val {fileName, sline, scolumn, eline, ecolumn} = myLoc (left, right)
+		val loc_ref = ref(Absyn.LOC(sline, scolumn, eline, ecolumn))
+	in
+	(*
+	print (fileName);print ":";
+	print(Int.toString sline);print ":";
+	print(Int.toString scolumn);print ":";
+	print(Int.toString eline);print ":";
+	print(Int.toString ecolumn);print "\n";
+	*) 
+	ref(Absyn.INFO(fileName, left, right, loc_ref))
+	end
+
+
+val modidRML = SOME(Absyn.rmlIdent "RML")
+val id_cons = Absyn.LONGID(modidRML, Absyn.rmlIdent "cons", ref(Absyn.dummyInfo))
+val ctor_cons = SOME id_cons
+val id_nil = Absyn.LONGID(modidRML, Absyn.rmlIdent "nil", ref(Absyn.dummyInfo))
+
+(* operators *)
+(* ///////--- int operators ---////////*)
+val op_add_int = Absyn.LONGID(modidRML, Absyn.rmlIdent "int_add", ref(Absyn.dummyInfo))
+val op_sub_int = Absyn.LONGID(modidRML, Absyn.rmlIdent "int_sub", ref(Absyn.dummyInfo))
+val op_neg_int = Absyn.LONGID(modidRML, Absyn.rmlIdent "int_neg", ref(Absyn.dummyInfo))
+val op_mul_int = Absyn.LONGID(modidRML, Absyn.rmlIdent "int_mul", ref(Absyn.dummyInfo))
+val op_div_int = Absyn.LONGID(modidRML, Absyn.rmlIdent "int_div", ref(Absyn.dummyInfo))
+val op_mod_int = Absyn.LONGID(modidRML, Absyn.rmlIdent "int_mod", ref(Absyn.dummyInfo))
+val op_eq_int = Absyn.LONGID(modidRML, Absyn.rmlIdent "int_eq", ref(Absyn.dummyInfo))
+val op_ge_int = Absyn.LONGID(modidRML, Absyn.rmlIdent "int_ge", ref(Absyn.dummyInfo))
+val op_gt_int = Absyn.LONGID(modidRML, Absyn.rmlIdent "int_gt", ref(Absyn.dummyInfo))
+val op_le_int = Absyn.LONGID(modidRML, Absyn.rmlIdent "int_le", ref(Absyn.dummyInfo))
+val op_lt_int = Absyn.LONGID(modidRML, Absyn.rmlIdent "int_lt", ref(Absyn.dummyInfo))
+val op_ne_int = Absyn.LONGID(modidRML, Absyn.rmlIdent "int_ne", ref(Absyn.dummyInfo))
+(* ///////--- real operators ---////////*)
+val op_add_real = Absyn.LONGID(modidRML, Absyn.rmlIdent "real_add", ref(Absyn.dummyInfo))
+val op_sub_real = Absyn.LONGID(modidRML, Absyn.rmlIdent "real_sub", ref(Absyn.dummyInfo))
+val op_neg_real = Absyn.LONGID(modidRML, Absyn.rmlIdent "real_neg", ref(Absyn.dummyInfo))
+val op_mul_real = Absyn.LONGID(modidRML, Absyn.rmlIdent "real_mul", ref(Absyn.dummyInfo))
+val op_div_real = Absyn.LONGID(modidRML, Absyn.rmlIdent "real_div", ref(Absyn.dummyInfo))
+val op_mod_real = Absyn.LONGID(modidRML, Absyn.rmlIdent "real_mod", ref(Absyn.dummyInfo))
+val op_pow_real = Absyn.LONGID(modidRML, Absyn.rmlIdent "real_pow", ref(Absyn.dummyInfo))
+val op_eq_real = Absyn.LONGID(modidRML, Absyn.rmlIdent "real_eq", ref(Absyn.dummyInfo))
+val op_ge_real = Absyn.LONGID(modidRML, Absyn.rmlIdent "real_ge", ref(Absyn.dummyInfo))
+val op_gt_real = Absyn.LONGID(modidRML, Absyn.rmlIdent "real_gt", ref(Absyn.dummyInfo))
+val op_le_real = Absyn.LONGID(modidRML, Absyn.rmlIdent "real_le", ref(Absyn.dummyInfo))
+val op_lt_real = Absyn.LONGID(modidRML, Absyn.rmlIdent "real_lt", ref(Absyn.dummyInfo))
+val op_ne_real = Absyn.LONGID(modidRML, Absyn.rmlIdent "real_ne", ref(Absyn.dummyInfo))
+(* ///////--- string operators ---////////*)
+val op_add_string = Absyn.LONGID(modidRML, Absyn.rmlIdent "string_append", ref(Absyn.dummyInfo))
+(* ///////--- list operators ---////////*)
+val op_add_list = Absyn.LONGID(modidRML, Absyn.rmlIdent "list_append", ref(Absyn.dummyInfo))
+
+
+val exp_nil = Absyn.CONexp(id_nil, ref(Absyn.dummyInfo))
+fun exp_cons(e,es) = Absyn.STRUCTexp(ctor_cons, [e,es], ref(Absyn.dummyInfo))
+fun mkexplst lst = mklst(lst, exp_nil, exp_cons)
+
+val pat_nil = Absyn.CONpat(id_nil, ref(Absyn.dummyInfo))
+fun pat_cons(p,ps) = Absyn.STRUCTpat(ctor_cons, [p,ps], ref(Absyn.dummyInfo))
+fun mkpatlst lst = mklst(lst, pat_nil, pat_cons)
+
+fun mktuplety([ty]) = ty
+  | mktuplety(tyseq) = Absyn.TUPLEty(tyseq, ref(Absyn.dummyInfo))
+
+fun mkCtxInfo(Absyn.INFO(file1,loc1,loc2,ref(Absyn.LOC(sl1,sc1,el1,ec1))),
+              Absyn.INFO(file2,loc3,loc4,ref(Absyn.LOC(sl2,sc2,el2,ec2)))) =
+              ref(Absyn.INFO(file1,loc1,loc4,
+               ref(Absyn.LOC(sl1,sc1,el2,ec2))))
+
+fun join_default(c1, NONE) = c1
+  | join_default(c1, SOME(c2 as Absyn.CLAUSE1(_,_,_,_,ref(infoC2)))) =
+      let fun join(c1 as Absyn.CLAUSE1(_,_,_,_,ref(infoC1))) = 
+			Absyn.CLAUSE2(c1, c2, mkCtxInfo(infoC1,infoC2))
+	    | join(Absyn.CLAUSE2(c11,c12, ref(infoC1))) = 
+			Absyn.CLAUSE2(c11, join c12, mkCtxInfo(infoC1, infoC2))
+      in
+		join c1
+      end
+  | join_default(c1, SOME(c2 as Absyn.CLAUSE2(_,_,ref(infoC2)))) =
+      let fun join(c1 as Absyn.CLAUSE1(_,_,_,_,ref(infoC1))) = 
+			Absyn.CLAUSE2(c1, c2, mkCtxInfo(infoC1,infoC2))
+	    | join(Absyn.CLAUSE2(c11,c12, ref(infoC1))) = 
+			Absyn.CLAUSE2(c11, join c12, mkCtxInfo(infoC1, infoC2))
+      in
+		join c1
+      end      
+ 
+%%
+
+%name RML
+%header (functor RMLLrValsFn(structure Token : TOKEN
+			     structure Absyn : ABSYN
+			     structure LexArg : LEXARG) : RML_LRVALS)
+
+%nodefault
+
+%term	AMPERSAND		(* & *)
+	|	AND				(* and *)
+	|	AS				(* as *)
+	|	AXIOM			(* axiom *)
+	|	BAR				(* | *)
+	|	CCON of char	(* #"A" *)
+	|	COLON			(* : *)
+	|	COLONCOLON		(* :: *)
+	|	COMMA			(* , *)
+	|	DASHES			(* -(-)+ *)
+	|	DATATYPE		(* datatype *)
+	|	DEFAULT			(* default *)
+	|	DOT				(* . *)
+	|	END				(* end *)
+	|	EOF_HARD		(* <first eof> *)
+	|	EOF_SOFT		(* <second eof> *)
+	|	EQ				(* = *)
+	|	EQTYPE			(* eqtype *)
+	|	FAIL			(* fail *)
+	|	FATARROW		(* => *)
+	|	ICON of int		(* 34 *)
+	|	IDENT of string	(* eval *)
+	|	LBRACK			(* [ *)
+	|	LET				(* let *)
+	|	LPAREN			(* ( *)
+	|	MODULE			(* module *)
+	|	NOT				(* not *)
+	|	OF				(* of *)
+	|	RCON of real	(* 3.14 *)
+	|	RELATION		(* relation *)
+	|	RBRACK			(* ] *)
+	|	RPAREN			(* ) *)
+	|	RULE			(* rule *)
+	|	SCON of string	(* "foo" *)
+	|	STAR			(* * *)
+	|	START_MODULE	(* <start symbol: module> *)
+	|	START_INTERFACE	(* <start symbol: interface> *)
+	|	TYPE			(* type *)
+	|	TYVAR of string	(* 'a *)
+	|	VAL				(* val *)
+	|	WILD			(* _ *)
+	|	WITH			(* with *)
+	|	WITHTYPE		(* withtype *)
+	(* adrpo -- start *)
+	(* int operators *)
+	|	ADD_INT		(* + *)
+	|   SUB_INT     (* - *)
+	|   NEG_INT     (* ~ *)
+	(* |   MUL_INT     (* * *) *)
+	|   DIV_INT       (* / *)
+	|   MOD_INT     (* % *)
+	|   EQEQ_INT      (* == *)
+	|   GE_INT      (* >= *)
+	|   GT_INT      (* > *)
+	|   LE_INT      (* <= *)
+	|   LT_INT      (*  < *)
+	|   NE_INT      (* != OR <> *)
+	(* real operators *)
+	|	ADD_REAL	 (* +. *)
+	|   SUB_REAL     (* -. *)
+	|   NEG_REAL     (* ~. *)
+	|   MUL_REAL     (* * *)
+	|   DIV_REAL     (* /. *)
+	|   MOD_REAL     (* %. *)
+	|   POW_REAL      (* ^. *)				
+	|   EQ_REAL      (* ==. *)
+	|   GE_REAL      (* >=. *)
+	|   GT_REAL      (* >. *)
+	|   LE_REAL      (* <=. *)
+	|   LT_REAL      (*  <. *)
+	|   NE_REAL      (* !=. *)
+	(* string operators *)
+	|	ADD_STRING	 (* ^ *)	
+	(* list operators *)
+	|	ADD_LIST	 (* @ *)
+	|	UNARY (* define to just assign precedence to +/- *)
+	(* adrpo -- end *)
+
+%keyword
+	AND
+	AS
+	AXIOM
+	DATATYPE
+	DEFAULT
+	END
+	EQTYPE
+	FAIL
+	LET
+	MODULE
+	NOT
+	OF
+	RELATION
+	RULE
+	TYPE
+	VAL
+	WITH
+	WITHTYPE
+
+%nonterm module of Absyn.module
+	|	interface of Absyn.interface
+	|	spec_star of Absyn.spec list
+	|	spec of Absyn.spec
+	|	dec_star of Absyn.dec list
+	|	dec of Absyn.dec
+	|	relbind of Absyn.relbind
+	|	relbind_plus of Absyn.relbind list
+	|	relbind_ty_opt of Absyn.ty option
+	|	withbind of Absyn.typbind list
+	|	typbind_plus of Absyn.typbind list
+	|	typbind of Absyn.typbind
+	|	datbind_plus of Absyn.datbind list
+	|	datbind of Absyn.datbind
+	|	conbind_plus of Absyn.conbind list
+	|	conbind of Absyn.conbind
+	|	default_opt of Absyn.clause option
+	|	clause_plus of Absyn.clause
+	|	clause of Absyn.clause
+	|	result of Absyn.result
+	|	conjunctive_goal_opt of Absyn.goal option
+	|	conjunctive_goal of Absyn.goal
+	|	atomic_goal of Absyn.goal
+	|	exp of Absyn.exp
+	|	exp_a of Absyn.exp
+	|	exp_b of Absyn.exp
+	|	exp_c of Absyn.exp
+	|	exp_d of Absyn.exp
+	|	seq_exp of Absyn.exp list
+	|	exp_star of Absyn.exp list
+	|	exp_comma_star of Absyn.exp list
+	|	exp_comma_plus of Absyn.exp list
+	|	pat of Absyn.pat
+	|	pat_a of Absyn.pat
+	|	pat_b of Absyn.pat
+	|	pat_c of Absyn.pat
+	|	pat_d of Absyn.pat
+	|	pat_e of Absyn.pat
+	|	res_pat of Absyn.pat list
+	|	seq_pat of Absyn.pat list
+	|	pat_star of Absyn.pat list
+	|	pat_comma_star of Absyn.pat list
+	|	pat_comma_plus of Absyn.pat list
+	|	literal of Absyn.lit
+	|	ty of Absyn.ty
+	|	tuple_ty of Absyn.ty list
+	|	ty_sans_star of Absyn.ty
+	|	ty_comma_seq2 of Absyn.ty list
+	|	seq_ty of Absyn.ty list
+	|	tyvarseq of Absyn.ident list
+	|	tyvar_comma_plus of Absyn.ident list
+	|	longid of Absyn.longid
+	|	longorshortid of Absyn.longid
+	|	ident of Absyn.ident
+	|	tyvar of Absyn.ident
+
+%eop EOF_HARD EOF_SOFT DATATYPE EQTYPE RELATION TYPE VAL WITH  
+%noshift EOF_HARD
+
+(* adrpo -- start *)			     
+%left ADD_INT SUB_INT ADD_STRING ADD_LIST
+%left STAR DIV_INT
+
+%left ADD_REAL SUB_REAL
+%left MUL_REAL DIV_REAL
+
+%right POW_REAL
+%right UNARY
+(* adrpo -- end *)	     
+
+%pos LexArg.pos
+%arg (myLoc) :  
+	   (LexArg.pos*LexArg.pos) -> 
+	   {fileName: string, sline:LexArg.pos, scolumn:LexArg.pos, eline:LexArg.pos, ecolumn:LexArg.pos}
+(*%pure*)
+%verbose
+%start module
+
+%%
+
+module
+	: START_MODULE interface dec_star EOF_SOFT
+		( Absyn.MODULE(interface, dec_star, 
+			makeInfo myLoc (interfaceleft, dec_starright)) )
+	| START_INTERFACE interface
+		( Absyn.MODULE(interface, [], 
+			makeInfo myLoc (START_INTERFACEleft, interfaceright)) )
+interface
+	: MODULE ident COLON spec_star END
+		( Absyn.INTERFACE({modid=ident, specs=spec_star, source=Absyn.Source.dummy},
+		  makeInfo myLoc (COLONleft, ENDright)) )
+
+(* INTERFACE SPECIFICATIONS *)
+
+spec_star
+	: (*empty*)
+		( [] )
+	| spec spec_star
+		( spec :: spec_star )
+
+spec
+	: WITH SCON
+		( Absyn.WITHspec(SCON, ref(Absyn.dummyInterface), 
+			makeInfo myLoc (WITHleft, SCONright)) )
+	| TYPE tyvarseq ident
+		( Absyn.ABSTYPEspec(false, tyvarseq, ident,
+			makeInfo myLoc (TYPEleft, identright)) )
+	| EQTYPE tyvarseq ident
+		( Absyn.ABSTYPEspec(true, tyvarseq, ident, 
+			makeInfo myLoc (EQTYPEleft, identright)) )
+	| TYPE typbind_plus
+		( Absyn.TYPEspec(typbind_plus,
+			makeInfo myLoc (TYPEleft, typbind_plusright)) )
+	| DATATYPE datbind_plus withbind
+		( Absyn.DATAspec(datbind_plus, withbind,
+			makeInfo myLoc (DATATYPEleft, withbindright)) )
+	| VAL ident COLON ty
+		( Absyn.VALspec(ident, ty,
+			makeInfo myLoc (VALleft, tyright)) )
+	| RELATION ident COLON ty
+		( Absyn.RELspec(ident, ty,
+			makeInfo myLoc (RELATIONleft, tyright)) )
+
+(* DECLARATIONS *)
+
+dec_star
+	: (*empty*)
+		( [] )
+	| dec dec_star
+		( dec :: dec_star )
+
+dec
+	: WITH SCON
+		( Absyn.WITHdec(SCON, ref(Absyn.dummyInterface),
+			makeInfo myLoc (WITHleft, SCONright)) )
+	| TYPE typbind_plus
+		( Absyn.TYPEdec(typbind_plus,
+			makeInfo myLoc (TYPEleft, typbind_plusright)) )
+	| DATATYPE datbind_plus withbind
+		( Absyn.DATAdec(datbind_plus, withbind,
+			makeInfo myLoc (DATATYPEleft, withbindright)) )
+	| VAL ident EQ exp
+		( Absyn.VALdec(ident, exp,
+			makeInfo myLoc (VALleft, expright)) )
+	| RELATION relbind_plus
+		( Absyn.RELdec(relbind_plus,
+			makeInfo myLoc (RELATIONleft, relbind_plusright)) )
+
+(* Constructor, datatype, type, withtype, and relation bindings *)
+
+relbind_plus
+	: relbind AND relbind_plus
+		( relbind :: relbind_plus )
+	| relbind
+		( [relbind] )
+
+relbind
+	: ident relbind_ty_opt EQ clause_plus default_opt END
+		( Absyn.RELBIND(ident, relbind_ty_opt, join_default(clause_plus,default_opt),
+			makeInfo myLoc (identleft, ENDright)) )
+
+relbind_ty_opt
+	: COLON ty
+		( SOME(ty) )
+	| (*empty*)
+		( NONE )
+
+withbind
+	: (*empty*)
+		( [] )
+	| WITHTYPE typbind_plus
+		( typbind_plus )
+
+typbind_plus
+	: typbind AND typbind_plus
+		( typbind :: typbind_plus )
+	| typbind
+		( [typbind] )
+
+typbind
+	: tyvarseq ident EQ ty
+		( Absyn.TYPBIND(tyvarseq, ident, ty,
+			makeInfo myLoc (tyvarseqleft, tyright)) )
+
+datbind_plus
+	: datbind AND datbind_plus
+		( datbind :: datbind_plus )
+	| datbind
+		( [datbind] )
+
+datbind
+	: tyvarseq ident EQ conbind_plus
+		( Absyn.DATBIND(tyvarseq, ident, conbind_plus,
+			makeInfo myLoc (tyvarseqleft, conbind_plusright)) )
+
+conbind_plus
+	: conbind BAR conbind_plus
+		( conbind :: conbind_plus )
+	| conbind
+		( [conbind] )
+
+conbind
+	: ident
+		( Absyn.CONcb(ident,
+			makeInfo myLoc (identleft, identright)) )
+	| ident OF tuple_ty
+		( Absyn.CTORcb(ident, tuple_ty,
+			makeInfo myLoc (identleft, tuple_tyright)) )
+
+(* DEFAULT CLAUSES *)
+
+default_opt
+	: (*empty*)
+		( NONE )
+	| DEFAULT clause_plus
+		( SOME(clause_plus) )
+
+(* CLAUSES *)
+
+clause_plus
+	: clause
+		( clause )
+	| clause clause_plus
+		( Absyn.CLAUSE2(clause, clause_plus,
+			makeInfo myLoc (clauseleft, clause_plusright)) )
+
+clause
+	: RULE conjunctive_goal_opt DASHES ident seq_pat result
+		( Absyn.CLAUSE1(conjunctive_goal_opt, ident, seq_pat, result,
+			makeInfo myLoc (RULEleft, resultright)) )
+	| AXIOM ident seq_pat result
+		( Absyn.CLAUSE1(NONE, ident, seq_pat, result,
+			makeInfo myLoc (AXIOMleft, resultright)) )
+
+result
+	: (*empty*)
+		( Absyn.RETURN([], makeInfo myLoc (0, 0)) )
+	| FATARROW seq_exp
+		( Absyn.RETURN(seq_exp, 
+			makeInfo myLoc (FATARROWleft, seq_expright)) )
+	| FATARROW FAIL
+		( Absyn.FAIL (makeInfo myLoc (FATARROWleft, FAILright)) )
+
+(* GOALS *)
+
+conjunctive_goal_opt
+	: (*empty*)
+		( NONE )
+	| conjunctive_goal
+		( SOME(conjunctive_goal) )
+
+conjunctive_goal
+	: atomic_goal
+		( atomic_goal )
+	| atomic_goal AMPERSAND conjunctive_goal
+		( Absyn.ANDgoal(atomic_goal, conjunctive_goal,
+			makeInfo myLoc (atomic_goalleft, conjunctive_goalright)) )
+
+atomic_goal
+	: (* adrpo -- start *)
+	  (* /////////------ integer operators ------///////// *)
+	   exp_d ADD_INT exp_d res_pat
+		( Absyn.CALLgoal(op_add_int, [exp_d1, exp_d2], res_pat,
+			makeInfo myLoc (exp_d1left, res_patright)) )			
+	| exp_d SUB_INT exp_d res_pat
+		( Absyn.CALLgoal(op_sub_int, [exp_d1, exp_d2], res_pat,
+			makeInfo myLoc (exp_d1left, res_patright)) )			
+	| SUB_INT exp_d res_pat %prec UNARY
+		( Absyn.CALLgoal(op_neg_int, [exp_d1], res_pat,
+			makeInfo myLoc (SUB_INTleft, res_patright)) )			
+	| exp_d STAR exp_d res_pat
+		( Absyn.CALLgoal(op_mul_int, [exp_d1, exp_d2], res_pat,
+			makeInfo myLoc (exp_d1left, res_patright)) )			
+	| exp_d DIV_INT exp_d res_pat
+		( Absyn.CALLgoal(op_div_int, [exp_d1, exp_d2], res_pat,
+			makeInfo myLoc (exp_d1left, res_patright)) )			
+	| exp_d MOD_INT exp_d res_pat
+		( Absyn.CALLgoal(op_mod_int, [exp_d1, exp_d2], res_pat,
+			makeInfo myLoc (exp_d1left, res_patright)) )			
+	| exp_d EQEQ_INT exp_d res_pat
+		( Absyn.CALLgoal(op_eq_int, [exp_d1, exp_d2], res_pat,
+			makeInfo myLoc (exp_d1left, res_patright)) )			
+	| exp_d GE_INT exp_d res_pat
+		( Absyn.CALLgoal(op_ge_int, [exp_d1, exp_d2], res_pat,
+			makeInfo myLoc (exp_d1left, res_patright)) )			
+	| exp_d GT_INT exp_d res_pat
+		( Absyn.CALLgoal(op_gt_int, [exp_d1, exp_d2], res_pat,
+			makeInfo myLoc (exp_d1left, res_patright)) )			
+	| exp_d LE_INT exp_d res_pat
+		( Absyn.CALLgoal(op_le_int, [exp_d1, exp_d2], res_pat,
+			makeInfo myLoc (exp_d1left, res_patright)) )			
+	| exp_d LT_INT exp_d res_pat
+		( Absyn.CALLgoal(op_lt_int, [exp_d1, exp_d2], res_pat,
+			makeInfo myLoc (exp_d1left, res_patright)) )			
+	| exp_d NE_INT exp_d res_pat
+		( Absyn.CALLgoal(op_ne_int, [exp_d1, exp_d2], res_pat,
+			makeInfo myLoc (exp_d1left, res_patright)) )			
+	(* /////////------ real operators ------/////////*)
+	| exp_d ADD_REAL exp_d res_pat
+		( Absyn.CALLgoal(op_add_real, [exp_d1, exp_d2], res_pat,
+			makeInfo myLoc (exp_d1left, res_patright)) )			
+	| exp_d SUB_REAL exp_d res_pat
+		( Absyn.CALLgoal(op_sub_real, [exp_d1, exp_d2], res_pat,
+			makeInfo myLoc (exp_d1left, res_patright)) )			
+	| SUB_REAL exp_d res_pat %prec UNARY
+		( Absyn.CALLgoal(op_neg_real, [exp_d1], res_pat,
+			makeInfo myLoc (SUB_REALleft, res_patright)) )			
+	| exp_d MUL_REAL exp_d res_pat
+		( Absyn.CALLgoal(op_mul_real, [exp_d1, exp_d2], res_pat,
+			makeInfo myLoc (exp_d1left, res_patright)) )			
+	| exp_d DIV_REAL exp_d res_pat
+		( Absyn.CALLgoal(op_div_real, [exp_d1, exp_d2], res_pat,
+			makeInfo myLoc (exp_d1left, res_patright)) )			
+	| exp_d MOD_REAL exp_d res_pat
+		( Absyn.CALLgoal(op_mod_real, [exp_d1, exp_d2], res_pat,
+			makeInfo myLoc (exp_d1left, res_patright)) )			
+	| exp_d POW_REAL exp_d res_pat
+		( Absyn.CALLgoal(op_pow_real, [exp_d1, exp_d2], res_pat,
+			makeInfo myLoc (exp_d1left, res_patright)) )						
+	| exp_d EQ_REAL exp_d res_pat
+		( Absyn.CALLgoal(op_eq_real, [exp_d1, exp_d2], res_pat,
+			makeInfo myLoc (exp_d1left, res_patright)) )			
+	| exp_d GE_REAL exp_d res_pat
+		( Absyn.CALLgoal(op_ge_real, [exp_d1, exp_d2], res_pat,
+			makeInfo myLoc (exp_d1left, res_patright)) )			
+	| exp_d GT_REAL exp_d res_pat
+		( Absyn.CALLgoal(op_gt_real, [exp_d1, exp_d2], res_pat,
+			makeInfo myLoc (exp_d1left, res_patright)) )			
+	| exp_d LE_REAL exp_d res_pat
+		( Absyn.CALLgoal(op_le_real, [exp_d1, exp_d2], res_pat,
+			makeInfo myLoc (exp_d1left, res_patright)) )			
+	| exp_d LT_REAL exp_d res_pat
+		( Absyn.CALLgoal(op_lt_real, [exp_d1, exp_d2], res_pat,
+			makeInfo myLoc (exp_d1left, res_patright)) )			
+	| exp_d NE_REAL exp_d res_pat
+		( Absyn.CALLgoal(op_ne_real, [exp_d1, exp_d2], res_pat,
+			makeInfo myLoc (exp_d1left, res_patright)) )			
+	(* /////////------ string operators ------/////////*)
+	| exp_d ADD_STRING exp_d res_pat
+		( Absyn.CALLgoal(op_add_string, [exp_d1, exp_d2], res_pat,
+			makeInfo myLoc (exp_d1left, res_patright)) )			
+	(* /////////------ list operators ------/////////*)
+	| exp_d ADD_LIST exp_d res_pat
+		( Absyn.CALLgoal(op_add_list, [exp_d1, exp_d2], res_pat,
+			makeInfo myLoc (exp_d1left, res_patright)) )						
+	(* adrpo -- end *)			
+	| longorshortid seq_exp res_pat
+		( Absyn.CALLgoal(longorshortid, seq_exp, res_pat,
+			makeInfo myLoc (longorshortidleft, seq_expright)) )
+	| ident EQ exp
+		( Absyn.EQUALgoal(ident, exp,
+			makeInfo myLoc (identleft, expright)) )
+	| LET pat EQ exp
+		( Absyn.LETgoal(pat, exp,
+			makeInfo myLoc (LETleft, expright)) )
+	| NOT atomic_goal
+		( Absyn.NOTgoal(atomic_goal,
+			makeInfo myLoc (NOTleft, atomic_goalright)) )	
+	| LPAREN conjunctive_goal RPAREN
+		( conjunctive_goal )
+
+(* EXPRESSIONS *)
+
+exp	(* expressions possibly starting with LPAREN *)
+	: exp_a COLONCOLON exp
+		( Absyn.STRUCTexp(ctor_cons, [exp_a, exp], 
+			makeInfo myLoc (exp_aleft, expright)) )
+	| exp_a
+		( exp_a )
+
+exp_a	(* simple expressions possibly starting with LPAREN *)
+	: LPAREN RPAREN
+		( Absyn.STRUCTexp(NONE, [],
+			makeInfo myLoc (LPARENleft, RPARENright)) )
+	| LPAREN exp RPAREN
+		( exp )
+	| LPAREN exp COMMA exp_comma_plus RPAREN
+		( Absyn.STRUCTexp(NONE, exp :: exp_comma_plus,
+			makeInfo myLoc (LPARENleft, RPARENright)) )
+	| exp_c
+		( exp_c )
+
+exp_b	(* expressions not starting with LPAREN *)
+	: exp_c COLONCOLON exp_b
+		( Absyn.STRUCTexp(ctor_cons, [exp_c, exp_b],
+			makeInfo myLoc (exp_cleft, exp_bright)) )
+	| exp_c
+		( exp_c )
+
+exp_c	(* simple expressions not starting with LPAREN *)
+	: longorshortid exp_star
+		( Absyn.STRUCTexp(SOME longorshortid, exp_star,
+			makeInfo myLoc (longorshortidleft, exp_starright)) )
+	| longorshortid exp_d
+		( Absyn.STRUCTexp(SOME longorshortid, [exp_d],
+			makeInfo myLoc (longorshortidleft, exp_dright)) )
+	| exp_d
+		( exp_d )
+
+exp_d	(* atomic expressions not starting with LPAREN *)
+	: literal
+		( Absyn.LITexp(literal, 
+			makeInfo myLoc (literal1left, literal1right)) )
+	| longorshortid
+		( Absyn.IDENTexp(longorshortid, ref(Absyn.STRUCTexp(NONE,[], ref(Absyn.dummyInfo))),
+			makeInfo myLoc (longorshortidleft, longorshortidright)) )
+	| LBRACK exp_comma_star RBRACK
+		( mkexplst(exp_comma_star) )
+
+seq_exp
+	: (*empty*)
+		( [] )
+	| exp_b		(* cannot start with LPAREN *)
+		( [exp_b] )
+	| exp_star
+		( exp_star )
+
+exp_star
+	: LPAREN exp_comma_star RPAREN
+		( exp_comma_star )
+
+exp_comma_star
+	: (*empty*)
+		( [] )
+	| exp_comma_plus
+		( exp_comma_plus )
+
+exp_comma_plus
+	: exp
+		( [exp] )
+	| exp COMMA exp_comma_plus
+		( exp :: exp_comma_plus )
+
+(* PATTERNS *)
+
+pat	(* patterns possibly starting with LPAREN *)
+	: ident AS pat
+		( Absyn.BINDpat(ident, pat,
+			makeInfo myLoc (identleft, patright)))
+	| pat_a
+		( pat_a )
+
+pat_a
+	: pat_b COLONCOLON pat_a
+		( Absyn.STRUCTpat(ctor_cons, [pat_b, pat_a], 
+			makeInfo myLoc (pat_bleft, pat_aright)) )
+	| pat_b
+		( pat_b )
+
+pat_b	(* simple patterns possibly starting with LPAREN *)
+	: LPAREN RPAREN
+		( Absyn.STRUCTpat(NONE, [],
+			makeInfo myLoc (LPARENleft, RPARENright)) )
+	| LPAREN pat RPAREN
+		( pat )
+	| LPAREN pat COMMA pat_comma_plus RPAREN
+		( Absyn.STRUCTpat(NONE, pat :: pat_comma_plus,
+			makeInfo myLoc (LPARENleft, RPARENright)) )
+	| pat_d
+		( pat_d )
+
+pat_c	(* patterns not starting with LPAREN *)
+	: pat_d COLONCOLON pat_c
+		( Absyn.STRUCTpat(ctor_cons, [pat_d, pat_c],
+			makeInfo myLoc (pat_dleft, pat_cright)) )
+	| pat_d
+		( pat_d )
+
+pat_d	(* simple patterns not starting with LPAREN *)
+	: longorshortid pat_star
+		( Absyn.STRUCTpat(SOME longorshortid, pat_star,
+			makeInfo myLoc (longorshortidleft, pat_starright)) )
+	| longorshortid pat_e
+		( Absyn.STRUCTpat(SOME longorshortid, [pat_e],
+			makeInfo myLoc (longorshortidleft, pat_eright)) )
+	| pat_e
+		( pat_e )
+
+pat_e	(* atomic patterns not starting with LPAREN *)
+	: WILD
+		( Absyn.WILDpat(makeInfo myLoc (WILDleft, WILDright)) )
+	| literal
+		( Absyn.LITpat(literal, 
+			makeInfo myLoc (literalleft, literalright)) )
+	| longid
+		( Absyn.CONpat(longid,
+			makeInfo myLoc (longidleft, longidright)) )
+	| ident
+		( Absyn.IDENTpat(ident, ref(Absyn.WILDpat(ref(Absyn.dummyInfo))),
+			makeInfo myLoc (identleft, identright)) )
+	| LBRACK pat_comma_star RBRACK
+		( mkpatlst(pat_comma_star) )
+
+res_pat
+	: (*empty*)
+		( [] )
+	| FATARROW seq_pat
+		( seq_pat )
+
+seq_pat
+	: (*empty*)
+		( [] )
+	| pat_c		(* cannot start with LPAREN *)
+		( [pat_c] )
+	| pat_star
+		( pat_star )
+
+pat_star
+	: LPAREN pat_comma_star RPAREN
+		( pat_comma_star )
+
+pat_comma_star
+	: (*empty*)
+		( [] )
+	| pat_comma_plus
+		( pat_comma_plus )
+
+pat_comma_plus
+	: pat
+		( [pat] )
+	| pat COMMA pat_comma_plus
+		( pat :: pat_comma_plus )
+
+(* LITERALS *)
+
+literal
+	: CCON
+		( Absyn.CCONlit(CCON,
+			makeInfo myLoc (CCONleft, CCONright)) )
+	| ICON
+		( Absyn.ICONlit(ICON,
+			makeInfo myLoc (ICONleft, ICONright)) )
+	| RCON
+		( Absyn.RCONlit(RCON,
+			makeInfo myLoc (RCONleft, RCONright)) )
+	| SCON
+		( Absyn.SCONlit(SCON,
+			makeInfo myLoc (SCONleft, SCONright)) )
+
+(* TYPES *)
+
+ty
+	: seq_ty FATARROW seq_ty
+		( Absyn.RELty(seq_ty1, seq_ty2,
+			makeInfo myLoc (seq_ty1left, seq_ty2right)) )
+	| tuple_ty
+		( mktuplety(tuple_ty) )
+
+tuple_ty
+	: ty_sans_star STAR tuple_ty
+		( ty_sans_star :: tuple_ty )
+	| ty_sans_star
+		( [ty_sans_star] )
+
+ty_sans_star
+	: ty_sans_star longorshortid
+		( Absyn.CONSty([ty_sans_star], longorshortid,
+			makeInfo myLoc (ty_sans_starleft, longorshortidright)) )
+	| LPAREN ty_comma_seq2 RPAREN longorshortid
+		( Absyn.CONSty(ty_comma_seq2, longorshortid,
+			makeInfo myLoc (LPARENleft, longorshortidright)) )
+	| LPAREN ty RPAREN
+		( ty )
+	| tyvar
+		( Absyn.VARty(tyvar, makeInfo myLoc (tyvarleft, tyvarright)) )
+	| longorshortid
+		( Absyn.CONSty([], longorshortid,
+			makeInfo myLoc (longorshortidleft, longorshortidright)) )
+
+ty_comma_seq2
+	: ty COMMA ty_comma_seq2
+		( ty :: ty_comma_seq2 )
+	| ty COMMA ty
+		( [ty1, ty2] )
+
+seq_ty
+	: LPAREN RPAREN
+		( [] )
+	| LPAREN ty_comma_seq2 RPAREN
+		( ty_comma_seq2 )
+	| tuple_ty
+		( [mktuplety(tuple_ty)] )
+
+tyvarseq
+	: (*empty*)
+		( [] )
+	| tyvar
+		( [tyvar] )
+	| LPAREN tyvar_comma_plus RPAREN
+		( tyvar_comma_plus )
+
+tyvar_comma_plus
+	: tyvar COMMA tyvar_comma_plus
+		( tyvar :: tyvar_comma_plus )
+	| tyvar
+		( [tyvar] )
+
+(* LONG IDENTIFIERS *)
+
+longid
+	: ident DOT ident
+		( Absyn.LONGID(SOME ident1, ident2,
+			makeInfo myLoc (ident1left, ident2right)) )
+
+longorshortid
+	: longid
+		( longid )
+	| ident
+		( Absyn.LONGID(NONE, ident, 
+			makeInfo myLoc (identleft, identright)) )
+			
+(* SHORT IDENTIFIERS *)
+ident
+	: IDENT
+		( Absyn.makeIdent(IDENT, 
+			makeInfo myLoc (IDENTleft, IDENTright)) )
+
+tyvar
+	: TYVAR
+		( Absyn.makeIdent(TYVAR, 
+			makeInfo myLoc (TYVARleft, TYVARright)) )

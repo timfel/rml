@@ -1,0 +1,417 @@
+% def-syntax.tex
+%
+\section{Syntactic Structure}
+\seclab{syntax}
+
+This section defines the syntax of RML.
+
+\subsection{Derived Forms, Full and Core Grammar}
+
+First the \emph{full} (concrete) syntax is defined in figures~\figref{full-first}
+to~\figref{full-last}.
+In these rules, standard \emph{derived} forms are marked with (*).
+Such forms are subject to term--rewriting transformations
+specified in figures~\figref{derived-first} to~\figref{derived-last}.
+The resulting \emph{core} syntax is defined in
+figures~\figref{core-first} to~\figref{core-last}.
+Figure~\figref{grm-modseq} defines the implicit syntax of programs,
+i.e. sequences of modules.
+
+The derived forms for \verb@with@ specifications and
+declarations use string literals to indicate the names of the files
+in which the intended external modules are located. In the
+core syntax, the interface of such an external module is made
+explicit (figure~\figref{derived-with}).
+
+\subsection{Ambiguity}
+
+The full grammar as given is highly ambiguous: the reasons are that an identifier
+may stand either for a (short) constructor or a variable binding in a pattern, and
+in an expression it may stand for a constructor or a variable reference.
+Environment information is in general necessary
+to determine the meaning of an identifier in these contexts.
+
+A parser could produce an ambiguous syntax tree where these possibilities
+have been joined to a single `unknown identifier' case. A type checker
+could then construct an unambiguous syntax tree using the type information
+it has access to.
+
+The static semantics rules given later assume an unambiguous core syntax tree,
+but also verify that the identifier classification was correct.
+
+\begin{figure}[htbp]
+\begin{boxedminipage}[htbp]{\textwidth}
+\begin{tabular*}{\linewidth}{@{}r@{~}c@{~}l@{~}r@{~}l@{\extracolsep{\fill}}r}
+\mem{tycon} & \elem & TyCon & ::= & \mem{id} & type constructor\\
+\mem{con} & \elem & Con & ::= & \mem{id} & value constructor\\
+\mem{var} & \elem & Var & ::= & \mem{id} & value variable\\
+\mem{modid} & \elem & ModId & ::= & \mem{id} & module name\\
+\mem{longtycon} & \elem & longTyCon & ::= & $\langle\mem{modid}\mtt{.}\rangle\mem{tycon}$ & long type constructor\\
+\mem{longcon} & \elem & longCon & ::= & $\langle\mem{modid}\mtt{.}\rangle\mem{con}$ & long value constructor\\
+\mem{longvar} & \elem & longVar & ::= & $\langle\mem{modid}\mtt{.}\rangle\mem{var}$ & long value variable\\
+\mem{lit} & \elem & Lit & ::= & \mem{ccon} & character constant\\
+& & & \BAR & \mem{icon} & integer constant\\
+& & & \BAR & \mem{rcon} & real constant\\
+& & & \BAR & \mem{scon} & string constant
+\end{tabular*}
+\end{boxedminipage}
+\caption{Full grammar: Auxiliaries}
+\figlab{full-first}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{boxedminipage}[htbp]{\textwidth}
+\begin{tabular*}{\linewidth}{@{}r@{~}c@{~}l@{~}r@{~}l@{\extracolsep{\fill}}r}
+\mem{tyvarseq} & \elem & TyVarSeq & ::= & $\EMPTY$ & empty (*)\\
+& & & \BAR & \mem{tyvar} & singleton (*)\\
+& & & \BAR & $\mtt{(}\mem{tyvar}_1\mtt{,}~\cdots\mtt{,}~\mem{tyvar}_n\mtt{)}$ & $n \geq 1$\\
+\mem{ty} & \elem & Ty & ::= & \mem{tyvar} & variable\\
+& & & \BAR & $\langle\mem{tyseq}\rangle~\mem{longtycon}$ & construction (*)\\
+& & & \BAR & $\mem{ty}_1~\mtt{*}~\cdots~\mtt{*}~\mem{ty}_n$ & tuple, $n \geq 2$\\
+& & & \BAR & $\mem{tyseq}_1~\mtt{=>}~\mem{tyseq}_2$ & relation\\
+& & & \BAR & \mtt{(}\mem{ty}\mtt{)} & (*)\\
+\mem{tyseq} & \elem & TySeq & ::= & \mtt{()} & empty\\
+& & & \BAR & \mem{ty} & singleton (*)\\
+& & & \BAR & $\mtt{(}\mem{ty}_1\mtt{,}~\cdots\mtt{,}~\mem{ty}_n\mtt{)}$ & sequence, $n \geq 1$
+\end{tabular*}
+\end{boxedminipage}
+\caption{Full grammar: Types}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{boxedminipage}[htbp]{\textwidth}
+\begin{tabular*}{\linewidth}{@{}r@{~}c@{~}l@{~}r@{~}l@{\extracolsep{\fill}}r}
+\mem{pat} & \elem & Pat & ::= & \verb@_@ & wildcard\\
+& & & \BAR & \mem{lit} & literal\\
+& & & \BAR & $\mtt{[}\mem{pat}_1\mtt{,}~\cdots\mtt{,}~\mem{pat}_n\mtt{]}$ & list, $n \geq 0$ (*)\\
+& & & \BAR & \mem{longcon} & constant\\
+& & & \BAR & \mem{var} & variable (*)\\
+& & & \BAR & \mem{longcon~patseq} & structure\\
+& & & \BAR & $\mtt{(}\mem{pat}_1\mtt{,}~\cdots\mtt{,}~\mem{pat}_n\mtt{)}$ & tuple, $n \neq 1$\\
+& & & \BAR & $\mem{pat}_1~\mtt{::}~\mem{pat}_2$ & cons, R (*)\\
+& & & \BAR & \mem{var}~\mtt{as}~\mem{pat} & binding\\
+& & & \BAR & \mtt{(}\mem{pat}\mtt{)} & (*)\\
+\mem{patseq} & \elem & PatSeq & ::= & \mtt{()} & empty\\
+& & & \BAR & \mem{pat} & singleton (*)\\
+& & & \BAR & $\mtt{(}\mem{pat}_1\mtt{,}~\cdots\mtt{,}~\mem{pat}_n\mtt{)}$ & sequence, $n \geq 1$\\
+\end{tabular*}
+\end{boxedminipage}
+\caption{Full grammar: Patterns}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{boxedminipage}[htbp]{\textwidth}
+\begin{tabular*}{\linewidth}{@{}r@{~}c@{~}l@{~}r@{~}l@{\extracolsep{\fill}}r}
+\mem{exp} & \elem & Exp & ::= & \mem{lit} & literal\\
+& & & \BAR & $\mtt{[}\mem{exp}_1\mtt{,}~\cdots\mtt{,}\mem{exp}_n\mtt{]}$ & list, $n \geq 0$ (*)\\
+& & & \BAR & \mem{longcon} & constant\\
+& & & \BAR & \mem{longvar} & variable\\
+& & & \BAR & \mem{longcon~expseq} & structure\\
+& & & \BAR & $\mtt{(}\mem{exp}_1\mtt{,}~\cdots\mtt{,}~\mem{exp}_n\mtt{)}$ & tuple, $n \neq 1$\\
+& & & \BAR & $\mem{exp}_1~\mtt{::}~\mem{exp}_2$ & cons, R (*)\\
+& & & \BAR & \mtt{(}\mem{exp}\mtt{)} & (*)\\
+\mem{expseq} & \elem & ExpSeq & ::= & \mtt{()} & empty\\
+& & & \BAR & \mem{exp} & singleton (*)\\
+& & & \BAR & $\mtt{(}\mem{exp}_1\mtt{,}~\cdots\mtt{,}~\mem{exp}_n\mtt{)}$ & sequence, $n \geq 1$\\
+\end{tabular*}
+\end{boxedminipage}
+\caption{Full grammar: Expressions}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{boxedminipage}[htbp]{\textwidth}
+\begin{tabular*}{\linewidth}{@{}r@{~}c@{~}l@{~}r@{~}l@{\extracolsep{\fill}}r}
+\mem{goal} & \elem & Goal & ::= & $\mem{longvar}~\langle\mem{expseq}\rangle~\langle\mtt{=>}~\langle\mem{patseq}\rangle\rangle$ & call (*)\\
+& & & \BAR & \mem{var}~\mtt{=}~\mem{exp} & equality\\
+& & & \BAR & \mtt{let}~\mem{pat}~\mtt{=}~\mem{exp} & binding\\
+& & & \BAR & \verb@not@~\mem{goal} & negation\\
+& & & \BAR & $\mem{goal}_1~\mtt{\&}~\mem{goal}_2$ & sequence\\
+& & & \BAR & \mtt{(}\mem{goal}\mtt{)} & (*)\\
+\mem{result} & \elem & Result & ::= & $\langle\mem{expseq}\rangle$ & return (*)\\
+& & & \BAR & \mtt{fail} & fail\\
+\mem{clause} & \elem & Clause & ::= & \multicolumn{2}{@{}l}{$\mtt{rule}~\langle\mem{goal}\rangle~\mtt{{-}{-}}~\mem{var}~\langle\mem{patseq}\rangle~\langle\mtt{=>}~\mem{result}\rangle$ \hfill rule (*)}\\
+& & & \BAR & $\mtt{axiom}~\mem{var}~\langle\mem{patseq}\rangle~\langle\mtt{=>}~\mem{result}\rangle$ & axiom (*)\\
+& & & \BAR & $\mem{clause}_1 ~ \mem{clause}_2$ & sequence\\
+\mem{rule} & \elem & Rule & ::= & $\mem{clause}~\langle\mtt{default}~\mem{clause}\rangle$ & rules (*)
+\end{tabular*}
+\end{boxedminipage}
+\caption{Full grammar: Goals, Clauses, and Rules}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{boxedminipage}[htbp]{\textwidth}
+\begin{tabular*}{\linewidth}{@{}r@{~}c@{~}l@{~}r@{~}l@{\extracolsep{\fill}}r}
+\mem{conbind} & \elem & ConBind & ::= & $\mem{con}~\langle\mtt{of}~\mem{ty}_1~\mtt{*}~\cdots~\mtt{*}~\mem{ty}_n\rangle$ & $\langle n \geq 1\rangle$\\
+& & & \BAR & $\mem{conbind}_1~\mtt{|}~\mem{conbind}_2$\\
+\mem{datbind} & \elem & DatBind & ::= & \mem{tyvarseq~tycon}~\mtt{=}~\mem{conbind}&\\
+& & & \BAR & $\mem{datbind}_1~\mtt{and}~\mem{datbind}_2$\\
+\mem{typbind} & \elem & TypBind & ::= & \mem{tyvarseq~tycon}~\mtt{=}~\mem{ty} &\\
+& & & \BAR & $\mem{typbind}_1~\mtt{and}~\mem{typbind}_2$ &\\
+\mem{withbind} & \elem & WithBind & ::= & $\langle\mtt{withtype}~\mem{typbind}\rangle$ &\\
+\mem{relbind} & \elem & RelBind & ::= & $\mem{var}~\langle\mtt{:}~\mem{ty}\rangle~\mtt{=}~\mem{rule}$ & (*)\\
+& & & \BAR & $\mem{relbind}_1~\mtt{and}~\mem{relbind}_2$ &\\
+\mem{spec} & \elem & Spec & ::= & \mtt{with}~\mem{scon} & (*)\\
+& & & \BAR & \mtt{type}~\mem{tyvarseq~tycon} &\\
+& & & \BAR & \mtt{eqtype}~\mem{tyvarseq~tycon} &\\
+& & & \BAR & \mtt{type}~\mem{typbind} &\\
+& & & \BAR & \mtt{datatype}~\mem{datbind~withbind} &\\
+& & & \BAR & $\mtt{val}~\mem{var}~\mtt{:}~\mem{ty}$\\
+& & & \BAR & $\mtt{relation}~\mem{var}~\mtt{:}~\mem{ty}$\\
+& & & \BAR & $\mem{spec}_1 ~ \mem{spec}_2$ &\\
+\mem{dec} & \elem & Dec & ::= & \mtt{with}~\mem{scon} & (*)\\
+& & & \BAR & \mtt{type}~\mem{typbind} &\\
+& & & \BAR & \mtt{datatype}~\mem{datbind~withbind} &\\
+& & & \BAR & $\mtt{val}~\mem{var}~\mtt{=}~\mem{exp}$\\
+& & & \BAR & \mtt{relation}~\mem{relbind} &\\
+& & & \BAR & $\mem{dec}_1 ~ \mem{dec}_2$ &\\
+\mem{interface} & \elem & Interface & ::= & \mtt{module}~\mem{modid}~\mtt{:}~\mem{spec}~\mtt{end} &\\
+\mem{module} & \elem & Module & ::= & \mem{interface~dec} &\\
+\end{tabular*}
+\end{boxedminipage}
+\caption{Full grammar: Declarations}
+\figlab{full-last}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{center}
+\begin{tabular}{|@{~}l|@{~}l|@{}l}
+\multicolumn{1}{@{}c}{Derived Form} & \multicolumn{1}{@{}c}{Equivalent Form} &\\
+\multicolumn{3}{@{}c}{}\\
+\multicolumn{3}{@{~}l}{{\bf Type Variable Sequences} \mem{tyvarseq}}\\
+\cline{1-2}
+$\EMPTY$ & \mtt{()} &\\
+\cline{1-2}
+\mem{tyvar} & \mtt{(}\mem{tyvar}\mtt{)} &\\
+\cline{1-2}
+\multicolumn{3}{@{}c}{}\\
+\multicolumn{3}{@{~}l}{{\bf Types} \mem{ty}}\\
+\cline{1-2}
+\mem{longtycon} & \mtt{()}~\mem{longtycon} &\\
+\cline{1-2}
+\multicolumn{3}{@{}c}{}\\
+\multicolumn{3}{@{~}l}{{\bf Type Sequences} \mem{tyseq}}\\
+\cline{1-2}
+\mem{ty} & \mtt{(}\mem{ty}\mtt{)}\\
+\cline{1-2}
+\end{tabular}
+\end{center}
+\caption{Derived forms of Type Variable Sequences, Types, and Type Sequences}
+\figlab{derived-first}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{center}
+\begin{tabular}{|@{~}l|@{~}l|@{}l}
+\multicolumn{1}{@{}c}{Derived Form} & \multicolumn{1}{@{}c}{Equivalent Form} &\\
+\multicolumn{3}{@{}c}{}\\
+\multicolumn{3}{@{~}l}{{\bf Patterns} \mem{pat}}\\
+\cline{1-2}
+\mem{var} & \mem{var}~\verb@as _@ &\\
+\cline{1-2}
+$\mem{pat}_1~\mtt{::}~\mem{pat}_2$ & $\mtt{RML.cons(}\mem{pat}_1\mtt{,}~\mem{pat}_2\mtt{)}$ &\\
+\cline{1-2}
+\mtt{[]} & \mtt{RML.nil} &\\
+\cline{1-2}
+$\mtt{[}\mem{pat}_1\mtt{,}~\cdots\mtt{,}~\mem{pat}_n\mtt{]}$ & $\mem{pat}_1~\mtt{::}~\cdots~\mtt{::}~pat_n~\mtt{::\ []}$ & ~$(n \geq 1)$\\
+\cline{1-2}
+\mtt{(}\mem{pat}\mtt{)} & \mem{pat} &\\
+\cline{1-2}
+\multicolumn{3}{@{}c}{}\\
+\multicolumn{3}{@{~}l}{{\bf Pattern Sequences} \mem{patseq}}\\
+\cline{1-2}
+\mem{pat} & \mtt{(}\mem{pat}\mtt{)} &\\
+\cline{1-2}
+\multicolumn{3}{@{}c}{}\\
+\multicolumn{3}{@{~}l}{{\bf Pattern Sequences} $\langle\mem{patseq}\rangle$}\\
+\cline{1-2}
+$\EMPTY$ & \mtt{()} &\\
+\cline{1-2}
+\end{tabular}
+\end{center}
+\caption{Derived forms of Patterns and Pattern Sequences}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{center}
+\begin{tabular}{|@{~}l|@{~}l|@{}l}
+\multicolumn{1}{@{}c}{Derived Form} & \multicolumn{1}{@{}c}{Equivalent Form} &\\
+\multicolumn{3}{@{}c}{}\\
+\multicolumn{3}{@{~}l}{{\bf Expressions} \mem{exp}}\\
+\cline{1-2}
+$\mem{exp}_1~\mtt{::}~\mem{exp}_2$ & $\mtt{RML.cons(}\mem{exp}_1\mtt{,}~\mem{exp}_2\mtt{)}$ &\\
+\cline{1-2}
+\mtt{[]} & \mtt{RML.nil} &\\
+\cline{1-2}
+$\mtt{[}\mem{exp}_1\mtt{,}~\cdots\mtt{,}~\mem{exp}_n\mtt{]}$ & $\mem{exp}_1~\mtt{::}~\cdots~\mtt{::}~\mem{exp}_n~\mtt{::\ []}$ & ~$(n \geq 1)$\\
+\cline{1-2}
+\mtt{(}\mem{exp}\mtt{)} & \mem{exp} &\\
+\cline{1-2}
+\multicolumn{3}{@{}c}{}\\
+\multicolumn{3}{@{~}l}{{\bf Expression Sequences} \mem{expseq}}\\
+\cline{1-2}
+\mem{exp} & \mtt{(}\mem{exp}\mtt{)} &\\
+\cline{1-2}
+\multicolumn{3}{@{}c}{}\\
+\multicolumn{3}{@{~}l}{{\bf Expression Sequences} $\langle\mem{expseq}\rangle$}\\
+\cline{1-2}
+$\EMPTY$ & \mtt{()} &\\
+\cline{1-2}
+\end{tabular}
+\end{center}
+\caption{Derived forms of Expressions and Expression Sequences}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{center}
+\begin{tabular}{|@{~}l|@{~}l|@{}l}
+\multicolumn{1}{@{}c}{Derived Form} & \multicolumn{1}{@{}c}{Equivalent Form} &\\
+\multicolumn{3}{@{}c}{}\\
+\multicolumn{3}{@{~}l}{{\bf Goals} \mem{goal}}\\
+\cline{1-2}
+$\mem{longvar}~\langle\mem{expseq}\rangle$ & $\mem{longvar}~\langle\mem{expseq}\rangle~\mtt{=> ()}$ &\\
+\cline{1-2}
+\mtt{(}\mem{goal}\mtt{)} & \mem{goal} &\\
+\cline{1-2}
+\multicolumn{3}{@{}c}{}\\
+\multicolumn{3}{@{~}l}{{\bf Clauses} \mem{clause}}\\
+\cline{1-2}
+$\mtt{rule}~\langle\mem{goal}\rangle~\mtt{{-}{-}}~\mem{var}~\langle\mem{patseq}\rangle$ & $\mtt{rule}~\langle\mem{goal}\rangle~\mtt{{-}{-}}~\mem{var}~\langle\mem{patseq}\rangle~\mtt{=>}~\mtt{()}$ &\\
+\cline{1-2}
+$\mtt{axiom}~\mem{var}~\langle\mem{patseq}\rangle~\langle\mtt{=>}~\mem{result}\rangle$ & $\mtt{rule}~\mtt{{-}{-}}~\mem{var}~\langle\mem{patseq}\rangle~\langle\mtt{=>}~\mem{result}\rangle$ &\\
+\cline{1-2}
+\multicolumn{3}{@{}c}{}\\
+\multicolumn{1}{@{~}l}{{\bf Rules}~\mem{rule}} & \multicolumn{2}{@{}l}{{\bf Clauses}~\mem{clause}}\\
+\cline{1-2}
+$\mem{clause}_1~\mtt{default}~\mem{clause}_2$ & $\mem{clause}_1~\mem{clause}_2$ &\\
+\cline{1-2}
+\end{tabular}
+\end{center}
+\caption{Derived forms of Goals, Clauses, and Rules}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{center}
+\begin{tabular}{|@{~}l|@{~}l|@{}l}
+\multicolumn{1}{@{}c}{Derived Form} & \multicolumn{1}{@{}c}{Equivalent Form} &\\
+\multicolumn{3}{@{}c}{}\\
+\multicolumn{3}{@{~}l}{{\bf Specifications} \mem{spec}}\\
+\cline{1-2}
+\mtt{with}~\mem{scon} & \mtt{with}~\mem{interface} &\\
+\cline{1-2}
+\multicolumn{3}{@{}c}{}\\
+\multicolumn{3}{@{~}l}{{\bf Declarations} \mem{dec}}\\
+\cline{1-2}
+\mtt{with}~\mem{scon} & \mtt{with}~\mem{interface} &\\
+\cline{1-2}
+\end{tabular}
+\end{center}
+\caption{Derived forms of Specifications and Declarations}
+\figlab{derived-with}
+\figlab{derived-last}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{boxedminipage}[htbp]{\textwidth}
+\begin{tabular*}{\linewidth}{@{}r@{~}c@{~}l@{~}r@{~}l@{\extracolsep{\fill}}r}
+\mem{tyvarseq} & \elem & TyVarSeq & ::= & $\mtt{(}\mem{tyvar}_1\mtt{,}~\cdots\mtt{,}~\mem{tyvar}_n\mtt{)}$ & $n \geq 0$\\
+\mem{ty} & \elem & Ty & ::= & \mem{tyvar} & variable\\
+& & & \BAR & \mem{tyseq~longtycon} & construction\\
+& & & \BAR & $\mem{ty}_1~\mtt{*}~\cdots~\mtt{*}~\mem{ty}_n$ & tuple, $n \geq 2$\\
+& & & \BAR & $\mem{tyseq}_1~\mtt{=>}~\mem{tyseq}_2$ & relation\\
+\mem{tyseq} & \elem & TySeq & ::= & $\mtt{(}\mem{ty}_1\mtt{,}~\cdots\mtt{,}~\mem{ty}_n\mtt{)}$ & sequence, $n \geq 0$
+\end{tabular*}
+\end{boxedminipage}
+\caption{Core grammar: Types}
+\figlab{core-first}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{boxedminipage}[htbp]{\textwidth}
+\begin{tabular*}{\linewidth}{@{}r@{~}c@{~}l@{~}r@{~}l@{\extracolsep{\fill}}r}
+\mem{pat} & \elem & Pat & ::= & \verb@_@ & wildcard\\
+& & & \BAR & \mem{lit} & literal\\
+& & & \BAR & \mem{longcon} & constant\\
+& & & \BAR & \mem{longcon~patseq} & structure\\
+& & & \BAR & $\mtt{(}\mem{pat}_1\mtt{,}~\cdots\mtt{,}~\mem{pat}_n\mtt{)}$ & tuple, $n \neq 1$\\
+& & & \BAR & \mem{var}~\mtt{as}~\mem{pat} & binding\\
+\mem{patseq} & \elem & PatSeq & ::= & $\mtt{(}\mem{pat}_1\mtt{,}~\cdots\mtt{,}~\mem{pat}_n\mtt{)}$ & sequence, $n \geq 0$\\
+\end{tabular*}
+\end{boxedminipage}
+\caption{Core grammar: Patterns}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{boxedminipage}[htbp]{\textwidth}
+\begin{tabular*}{\linewidth}{@{}r@{~}c@{~}l@{~}r@{~}l@{\extracolsep{\fill}}r}
+\mem{exp} & \elem & Exp & ::= & \mem{lit} & literal\\
+& & & \BAR & \mem{longcon} & constant\\
+& & & \BAR & \mem{longvar} & variable\\
+& & & \BAR & \mem{longcon~expseq} & structure\\
+& & & \BAR & $\mtt{(}\mem{exp}_1\mtt{,}~\cdots\mtt{,}~\mem{exp}_n\mtt{)}$ & tuple, $n \neq 1$\\
+\mem{expseq} & \elem & ExpSeq & ::= & $\mtt{(}\mem{exp}_1\mtt{,}~\cdots\mtt{,}~\mem{exp}_n\mtt{)}$ & sequence, $n \geq 0$\\
+\end{tabular*}
+\end{boxedminipage}
+\caption{Core grammar: Expressions}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{boxedminipage}[htbp]{\textwidth}
+\begin{tabular*}{\linewidth}{@{}r@{~}c@{~}l@{~}r@{~}l@{\extracolsep{\fill}}r}
+\mem{goal} & \elem & Goal & ::= & \mem{longvar~expseq}~\mtt{=>}~\mem{patseq} & call\\
+& & & \BAR & \mem{var}~\mtt{=}~\mem{exp} & equality\\
+& & & \BAR & \mtt{let}~\mem{pat}~\mtt{=}~\mem{exp} & binding\\
+& & & \BAR & \verb@not@~\mem{goal} & negation\\
+& & & \BAR & $\mem{goal}_1~\mtt{\&}~\mem{goal}_2$ & sequence\\
+\mem{result} & \elem & Result & ::= & \mem{expseq} & return\\
+& & & \BAR & \mtt{fail} & fail\\
+\mem{clause} & \elem & Clause & ::= & $\mtt{rule}~\langle\mem{goal}\rangle~\mtt{{-}{-}}~\mem{var}~\mem{patseq}~\mtt{=>}~\mem{result}$ & rule\\
+& & & \BAR & $\mem{clause}_1 ~ \mem{clause}_2$ & sequence\\
+\end{tabular*}
+\end{boxedminipage}
+\caption{Core grammar: Goals and Clauses}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{boxedminipage}[htbp]{\textwidth}
+\begin{tabular*}{\linewidth}{@{}r@{~}c@{~}l@{~}r@{~}l@{\extracolsep{\fill}}r}
+\mem{conbind} & \elem & ConBind & ::= & $\mem{con}~\langle\mtt{of}~\mem{ty}_1~\mtt{*}~\cdots~\mtt{*}~\mem{ty}_n\rangle$ & $\langle n \geq 1\rangle$\\
+& & & \BAR & $\mem{conbind}_1~\mtt{|}~\mem{conbind}_2$\\
+\mem{datbind} & \elem & DatBind & ::= & \mem{tyvarseq~tycon}~\mtt{=}~\mem{conbind}&\\
+& & & \BAR & $\mem{datbind}_1~\mtt{and}~\mem{datbind}_2$\\
+\mem{typbind} & \elem & TypBind & ::= & \mem{tyvarseq~tycon}~\mtt{=}~\mem{ty} &\\
+& & & \BAR & $\mem{typbind}_1~\mtt{and}~\mem{typbind}_2$ &\\
+\mem{withbind} & \elem & WithBind & ::= & $\langle\mtt{withtype}~\mem{typbind}\rangle$ &\\
+\mem{relbind} & \elem & RelBind & ::= & $\mem{var}~\langle\mtt{:}~\mem{ty}\rangle~\mtt{=}~\mem{clause}$ &\\
+& & & \BAR & $\mem{relbind}_1~\mtt{and}~\mem{relbind}_2$ &\\
+\mem{spec} & \elem & Spec & ::= & \mtt{with}~\mem{interface} &\\
+& & & \BAR & \mtt{type}~\mem{tyvarseq~tycon} &\\
+& & & \BAR & \mtt{eqtype}~\mem{tyvarseq~tycon} &\\
+& & & \BAR & \mtt{type}~\mem{typbind} &\\
+& & & \BAR & \mtt{datatype}~\mem{datbind~withbind} &\\
+& & & \BAR & $\mtt{val}~\mem{var}~\mtt{:}~\mem{ty}$\\
+& & & \BAR & $\mtt{relation}~\mem{var}~\mtt{:}~\mem{ty}$\\
+& & & \BAR & $\mem{spec}_1 ~ \mem{spec}_2$ &\\
+\mem{dec} & \elem & Dec & ::= & \mtt{with}~\mem{interface} &\\
+& & & \BAR & \mtt{type}~\mem{typbind} &\\
+& & & \BAR & \mtt{datatype}~\mem{datbind~withbind} &\\
+& & & \BAR & $\mtt{val}~\mem{var}~\mtt{=}~\mem{exp}$\\
+& & & \BAR & \mtt{relation}~\mem{relbind} &\\
+& & & \BAR & $\mem{dec}_1 ~ \mem{dec}_2$ &\\
+\mem{interface} & \elem & Interface & ::= & \mtt{module}~\mem{modid}~\mtt{:}~\mem{spec}~\mtt{end} &\\
+\mem{module} & \elem & Module & ::= & \mem{interface~dec} &\\
+\end{tabular*}
+\end{boxedminipage}
+\caption{Core grammar: Declarations}
+\figlab{core-last}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{boxedminipage}[htbp]{\textwidth}
+\begin{tabular*}{\linewidth}{@{}r@{~}c@{~}l@{~}r@{~}l@{\extracolsep{\fill}}r}
+\mem{modseq} & \elem & ModSeq & ::= & \mem{module} &\\
+& & & \BAR & $\mem{modseq}_1 ~ \mem{modseq}_2$ &\\
+\end{tabular*}
+\end{boxedminipage}
+\caption{Auxiliary grammar: Programs}
+\figlab{grm-modseq}
+\end{figure}

@@ -1,0 +1,19 @@
+#!/bin/sh
+# usage:	which program
+# result:	outputs full path and exits 0 if program is found in $PATH,
+#		exits 1 otherwise
+
+program=$1
+if [ -z "$program" ]; then
+	exit 1
+fi
+
+for dir in `echo $PATH | tr : ' '` ; do
+	fullpath=$dir/$program
+	if [ -x $fullpath -a ! -d $fullpath ]; then
+		echo $fullpath
+		exit 0
+	fi
+done
+
+exit 1

@@ -1,0 +1,55 @@
+% def-intro.tex
+%
+\section{Introduction}
+This document formally defines RML -- the Relational Meta-Language --
+using Natural Semantics as the specification formalism.
+
+RML is intended as an executable specification language for
+experimenting with and implementing Natural Semantics.
+The rationale for the design of the language, and hints
+on how it may be implemented, are not included here,
+but may be found in the author's thesis~\cite{Pettersson95:thesis}.
+
+The style of this document was greatly influenced by the
+formal definition of the Standard ML language and
+notation used in denotational semantics.
+See~\cite{MTH90,MT91,MTHM97} for further examples
+on the kind of Natural Semantics used here.
+
+\subsection{Differences to SML}
+RML is heavily influenced by Standard ML, both in the language
+itself and in its definition.
+Below we summarize some of the technical differences between these languages.
+
+RML's relations are $n$-to-$m$-ary, not 1-to-1 as functions in SML are.
+Also, RML's \texttt{datatype} constructors are $n$-ary rather than just unary.
+
+The \texttt{withtype} construct can introduce a number of type aliases
+together with a \texttt{datatype} declaration.
+RML expands these \emph{sequentially} instead of simultaneously,
+which allows limited dependencies between aliases.
+
+The RML module system is much simpler than that in SML.
+A module is an environment of type and value bindings.
+At the top level of a module, no type identifier, data constructor, or variable
+may be multiply bound, and
+in a program, no module identifier may be multiply bound.
+For stand-alone applications, RML defines the entry point to
+be module \texttt{Main}'s relation \texttt{main}, which must
+be of type \texttt{string list => ()}.
+
+Both SML and RML introduce a unique tag to represent each user-level
+\texttt{datatype} in the type system. Such a tag is known as a \emph{type name},
+but is \emph{not} the type identifier used in the \texttt{datatype} declaration.
+In RML, type names are (essentially) pairs $(\emph{module id},\emph{type id})$.
+Due to its simpler module system, these pairs are guaranteed to
+be unique.
+
+In several cases, the definition of RML uses explicit inference rules
+to define features, where the definition of SML relies on comments in
+the accompanying text.
+
+Like Haskell, but unlike SML, RML allows declarations to written
+in any order. A reordering phase is used to recover, when possible,
+the corresponding SML-style program with definitions before uses,
+and explicitly marked groups of mutually dependent declarations.

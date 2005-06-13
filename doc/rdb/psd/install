@@ -1,0 +1,12 @@
+How to install psd?
+
+	* copy all the *.scm files to a directory such as
+	  /usr/local/lib/psd
+
+	* copy the psd.el file to a directory where Emacs can
+	  find it, for example /usr/local/lib/emacs/site-lisp
+
+	* edit the first few lines of psd.el to reflect your
+	  installation
+
+That's it! See the manual on how to use psd.

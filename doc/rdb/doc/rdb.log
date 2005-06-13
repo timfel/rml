@@ -1,0 +1,153 @@
+This is TeXk, Version 3.14159 (Web2C 7.4.5) (format=latex 2003.9.29)  9 MAR 2004 04:23
+ %&-line parsing enabled.
+**rdb.tex
+(./rdb.tex
+LaTeX2e <2001/06/01>
+Babel <v3.7h> and hyphenation patterns for american, french, german, ngerman, n
+ohyphenation, loaded.
+(/usr/share/texmf/tex/latex/base/article.cls
+Document Class: article 2001/04/21 v1.4e Standard LaTeX document class
+(/usr/share/texmf/tex/latex/base/size12.clo
+File: size12.clo 2001/04/21 v1.4e Standard LaTeX file (size option)
+)
+\c@part=\count79
+\c@section=\count80
+\c@subsection=\count81
+\c@subsubsection=\count82
+\c@paragraph=\count83
+\c@subparagraph=\count84
+\c@figure=\count85
+\c@table=\count86
+\abovecaptionskip=\skip41
+\belowcaptionskip=\skip42
+\bibindent=\dimen102
+)
+No file rdb.aux.
+\openout1 = `rdb.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 4.
+LaTeX Font Info:    ... okay on input line 4.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 4.
+LaTeX Font Info:    ... okay on input line 4.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 4.
+LaTeX Font Info:    ... okay on input line 4.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 4.
+LaTeX Font Info:    ... okay on input line 4.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 4.
+LaTeX Font Info:    ... okay on input line 4.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 4.
+LaTeX Font Info:    ... okay on input line 4.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <14.4> on input line 11.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <7> on input line 11.
+[1
+
+]
+
+LaTeX Warning: Citation `TolmachA95' on page 2 undefined on input line 71.
+
+
+LaTeX Warning: Citation `Tolmach92' on page 2 undefined on input line 71.
+
+
+LaTeX Warning: Citation `Kellomaki93' on page 2 undefined on input line 71.
+
+[2]
+
+LaTeX Warning: Citation `AdamsM86' undefined on input line 121.
+
+
+LaTeX Warning: Citation `AppelDM88' undefined on input line 121.
+
+
+LaTeX Warning: Citation `AralGS89' undefined on input line 121.
+
+
+LaTeX Warning: Citation `Beander83' undefined on input line 121.
+
+
+LaTeX Warning: Citation `Cargill85' undefined on input line 121.
+
+
+LaTeX Warning: Citation `Gondzio87' undefined on input line 121.
+
+
+LaTeX Warning: Citation `HansonR96' undefined on input line 121.
+
+
+LaTeX Warning: Citation `Hennessy82' undefined on input line 121.
+
+
+LaTeX Warning: Citation `Heymann93' undefined on input line 121.
+
+
+LaTeX Warning: Citation `Johnson82' undefined on input line 121.
+
+
+LaTeX Warning: Citation `JohnsonK83' undefined on input line 121.
+
+
+LaTeX Warning: Citation `Kellomaki93' undefined on input line 121.
+
+
+LaTeX Warning: Citation `Klint79' undefined on input line 121.
+
+
+LaTeX Warning: Citation `O'DonnellH88' undefined on input line 121.
+
+
+LaTeX Warning: Citation `Paxon90' undefined on input line 121.
+
+
+LaTeX Warning: Citation `Redell89' undefined on input line 121.
+
+
+LaTeX Warning: Citation `Tolmach92' undefined on input line 121.
+
+
+LaTeX Warning: Citation `TolmachA95' undefined on input line 121.
+
+
+LaTeX Warning: Citation `Tsien93' undefined on input line 121.
+
+
+LaTeX Warning: Citation `Zellweger83' undefined on input line 121.
+
+
+LaTeX Warning: Citation `Appel89:notags' undefined on input line 122.
+
+
+LaTeX Warning: Citation `Goldberg91:pldi' undefined on input line 122.
+
+
+LaTeX Warning: Citation `Goldberg92:esop' undefined on input line 122.
+
+
+LaTeX Warning: Citation `GoldbergG92:lfp' undefined on input line 122.
+
+
+LaTeX Warning: Citation `AdityaC93:fpca' undefined on input line 122.
+
+
+LaTeX Warning: Citation `AdityaFH94:lfp' undefined on input line 122.
+
+
+LaTeX Warning: Citation `Tolmach94:lfp' undefined on input line 122.
+
+No file rdb.bbl.
+[3] (./rdb.aux)
+
+LaTeX Warning: There were undefined references.
+
+ ) 
+Here is how much of TeX's memory you used:
+ 251 strings out of 10847
+ 2611 string characters out of 1195948
+ 47590 words of memory out of 1000001
+ 3261 multiletter control sequences out of 10000+50000
+ 7524 words of font info for 28 fonts, out of 500000 for 1000
+ 14 hyphenation exceptions out of 1000
+ 22i,7n,22p,234b,236s stack positions out of 300i,100n,500p,50000b,4000s
+
+Output written on rdb.dvi (3 pages, 7456 bytes).

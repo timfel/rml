@@ -1,0 +1,121 @@
+RML INSTALLATION GUIDE
+======================
+
+1. You must have a recent (110 or later) version of SML/NJ installed.
+   The RML compiler is written for the new SML '97 dialect of Standard ML;
+   it will not compile in the ancient 0.93 release of SML/NJ.
+
+   The SML/NJ web page, ftp://cm.bell-labs.com/cm/cs/what/smlnj/index.html,
+   contains all necessary information about obtaining and installing SML/NJ.
+
+2. In the RML root directory, execute:
+
+	./configure
+
+   This performs a few checks, and then writes a number of variable=value
+   bindings to the file "config.cache". Some of these bindings are:
+
+	TARGET		Platform for runtime systems and generated C code.
+			This is computed based on the Unix version and CPU
+			type of the current host.
+
+	PREFIX		Directory under which generated files will be installed.
+			Executables are placed in $PREFIX/bin, include files
+			in $PREFIX/include, and other files in $PREFIX/lib.
+			The default for PREFIX is `/bin/pwd`/$TARGET.
+
+	SMLCM, MLLEX, MLYACC
+			Paths to the SML/NJ tools sml-cm (or sml), ml-lex,
+			and ml-yacc. These tools must be in your $PATH.
+
+	HEAP_SUFFIX	The suffix appended by SML/NJ to exported heap images.
+
+3. The configure script automatically executes 'make configure' after non-trivial
+   changes in the configuration parameters, using config.cache to tailor the
+   sources and makefiles to your setup.
+
+4. Now you can:
+
+	* make
+	  compiles the rmlc compiler driver, rml translator and interpreter,
+	  and all supported runtime systems
+	* make install
+	  installs scripts, SML/NJ heap images, include files, and runtime
+	  libraries
+	* make clean
+	  removes temporary files
+	* make realclean
+	  like 'clean', but also removes the generated targets
+	* make distclean
+	  like 'realclean', but also removes all configuration-dependent files
+
+5. Once 'make install' has been done, you can try out the example
+   specifications in the examples directory.
+   Simply 'make' in the appropriate subdirectory to build that example.
+
+
+Non-standard configurations
+===========================
+
+6. The most common reason to re-configure is to choose different locations
+   for installed binaries etc. This is achieved by executing:
+
+	./configure --prefix=$PREFIX
+	make install
+
+   This works since ./configure starts by reading config.cache if it exists,
+   before parsing options and updating config.cache.
+
+   IMPORTANT: Only PREFIX can be updated without recompiling the software.
+   If any other parameter is changed, then a complete rebuild (from step 3)
+   is required. The reconfiguration is done automatically.
+
+7. In some cases, you may want to supply a different value for TARGET than that
+   assumed by the configure script. A common case is when you want to use "cc"
+   instead of "gcc" to compile C code. To achieve this, replace the "-gcc"
+   part of TARGET with "-cc", and execute:
+
+	./configure --build=$TARGET
+
+   The configure script will complain if this TARGET is not supported.
+
+8. If you want to cross-compile the runtime libraries for a different
+   target than the current host, and have the rmlc compiler driver generate
+   code for this target, then you will have to go through these steps:
+
+   a) Invent a new name for this TARGET, say NEW.
+   b) Create the directory config/$NEW.
+   c) Populate config/$NEW/ with the files config.h, labtab.h, and variables.mk.
+      The required contents of these files is described in config/README.*.
+   d) Execute: ./configure --build=$NEW
+
+   The targets rs6000-parix-{cc,gcc} show how I build a cross-compiler executing
+   on a sparc-sol2 host, generating code for a parallel machine with PowerPC 601
+   processors and a bare-bones micro-kernel OS.
+
+9. In some cases, SML/NJ may not be available for a particular target, even though
+   the runtime libraries and generated code can be compiled. The targets
+   mips-ultrix-* fall into this category. Such targets are generally only useful
+   for compiler/runtime development and performance measurements.
+
+   The configure script will complain if it cannot find the SML/NJ installation.
+   If you only want to build the runtime libraries and rmlc compiler driver,
+   go through the following steps:
+
+   a) ./configure --nosmlnj [other options]
+      This forces configure to accept the absence of SML/NJ, but you will
+      not be able to compile the RML translator.
+   b) cd runtime; make; make install; cd ..
+      This compiles and installs the runtime libraries.
+   c) cd etc; make install; cd ..
+      This installs the rmlc compiler driver.
+   d) On some other fully supported host, translate the RML code to C using the
+      command "rmlc +C <file>.rml"; then transfer (if necessary) the generated
+      C code to the partially supported host.
+   e) On the partially supported host, compile the C code using rmlc as usual.
+
+10. The default is to build standard, debug-enabled, and profile-enabled
+    versions of the runtime library for every supported runtime system.
+    The `--disable-debug' and `--disable-profile' options to ./configure
+    allow you to control whether the debug-enabled and profile-enabled
+    runtime libraries are to be built or not.

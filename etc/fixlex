@@ -1,0 +1,3 @@
+#!/bin/sh
+sed -e 's/^FILE \*yyin = {stdin}, \*yyout = {stdout};$/#define yyin (stdin)\
+#define yyout (stdout)/g' -e 's|^\(#ident.*\)|/*\1*/|g' -e 's|^\(#pragma ident.*\)|/*\1*/|g' -e 's|(int)yyt|yyt|g' -e 's|(int)yycrank|yycrank|g'

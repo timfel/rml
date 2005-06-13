@@ -1,0 +1,796 @@
+% def-static.tex
+%
+\def\relarrow{\lceil\Rightarrow\rceil}
+\def\CE{\mem{CE}}
+%
+\section{Static Semantics}
+\seclab{static}
+This section presents the rules for the static semantics of RML.
+First the semantic objects involved are defined.
+Then inference rules (written in the style
+of Natural Semantics) are given.
+%
+\subsection{Simple Objects}
+All semantic objects in the static semantics are built from
+syntactic identifiers and two further kinds of simple objects:
+booleans and value binding kinds.
+In the static semantics, we let $\alpha$ range over TyVar.
+
+\begin{figure}[hbt]
+\begin{center}
+\begin{tabular}{@{}r@{~}c@{~}l@{~}c@{~}l}
+& & Bool & $=$ & $\{\mathrm{true},\mathrm{false}\}$\\
+\emph{vk} & \elem & ValKind & $=$ & $\{\mathrm{con},\mathrm{var},\mathrm{rel}\}$
+\end{tabular}
+\end{center}
+\caption{Simple Semantic Objects}
+\figlab{simple}
+\end{figure}
+%
+\subsection{Compound Objects}
+The compound objects for the static semantics are shown in Figure~\figref{compound}.
+
+For notational convenience, we identify TyVarSeq with $\mathrm{TyVar}^*$,
+TySeq with $\mathrm{Ty}^*$, PatSeq with $\mathrm{Pat}^*$, and ExpSeq
+with $\mathrm{Exp}^*$.
+
+\begin{figure}[hbt]
+\begin{center}
+\begin{tabular}{@{}r@{~}c@{~}l}
+\emph{t} & \elem & $\mathrm{TyName} = \mathrm{ModId}\times\mathrm{TyCon}\times\mathrm{Bool}$\\
+$\tau$ & \elem & $\mathrm{Type} = \mathrm{TyVar}\cup\mathrm{TupleType}\cup\mathrm{RelType}\cup\mathrm{ConsType}$\\
+& & $\mathrm{TypeSeq} = \cup_{k\geq 0}\mathrm{Type}^{k}$\\
+& & $\mathrm{TupleType} = \mathrm{TypeSeq}$\\
+$\tau^{(k)} \relarrow \tau'^{(k')}$ & \elem & $\mathrm{RelType} = \mathrm{TypeSeq} \times \mathrm{TypeSeq}$\\
+$\tau^{(k)}t$ & \elem & $\mathrm{ConsType} = \cup_{k\geq 0}(\mathrm{Type}^k \times \mathrm{TyName})$\\
+$\theta$ or $\Lambda\alpha^{(k)}.\tau$ & \elem & $\mathrm{TypeFcn} = \cup_{k\geq 0}(\mathrm{TyVar}^k \times\mathrm{Type})$\\
+$\sigma$ or $\forall\alpha^{(k)}.\tau$ & \elem & $\mathrm{TypeScheme} = \cup_{k\geq 0}(\mathrm{TyVar}^k \times\mathrm{Type})$\\
+\CE{} or \VE & \elem & $\mathrm{ValEnv} = (\mathrm{Var}\cup\mathrm{Con}) \finmap (\mathrm{ValKind}\times\mathrm{TypeScheme})$\\
+$(\theta,\CE_{\mathrm{opt}})$ & \elem & $\mathrm{TyStr} = \mathrm{TypeFcn}\times\mathrm{ValEnv}$\\
+\TE & \elem & $\mathrm{TyEnv} = \mathrm{TyCon} \finmap \mathrm{TyStr}$\\
+\ME & \elem & $\mathrm{ModEnv} = \mathrm{ModId} \finmap (\mathrm{TyEnv}\times\mathrm{ValEnv})$\\
+\end{tabular}
+\end{center}
+\caption{Compound Semantic Objects}
+\figlab{compound}
+\end{figure}
+
+Type names are constructed from module names and type constructors.
+This is used to uniquely identify all constructed types, since modules may
+not be redefined, and type constructors may not
+have multiple bindings within modules.
+The only exception to this rule concerns abstract type specifications.
+However, their implementations are guaranteed to have
+type names and type functions compatible with
+those inferred from their specifications.
+
+Every type name $t$ also possesses a boolean equality attribute, which
+determines whether or not it admits equality.
+As usual, the expression $\tau_1 = \tau_2$ asserts the structural
+equality of the two types, but with the modification that the
+equality attributes of all type names $t$ are ignored.
+
+Value environments map variables and data constructors to type schemes
+marked with value binding kinds.
+The kinds distinguish constructors from non-constructors,
+since these classes behave differently in patterns.
+They also distinguish variables arising from relation bindings from other
+variables.
+
+Since the only polymorphic objects in RML are globally declared
+(relations, variables, and data constructors), type schemes bind either
+all or none of their type variables.
+This subsumes Wright's~\cite{Wright95} approach for typing references;
+hence RML does not use SML-style imperative types.
+
+Type environments map type constructors to type structures: tuples
+of type functions and optional constructor environments.
+An absent $\CE$ signifies that the type is \emph{abstract}, i.e. it is the
+skeletal type structure from an abstract type specification.
+Abstract types \emph{must} be rebound in the module's body,
+whereas other types \emph{may not} be rebound.
+%
+\subsection{Type Structures and Type Environments}
+A type structure $(\theta,\CE_{\mathrm{opt}})$ is \emph{well-formed} if either
+$\CE_{\mathrm{opt}} = \EMPTY$, or $\CE_{\mathrm{opt}} = \{\}$,
+or $\theta$ is of the form $\Lambda\alpha^{*}.\alpha^{*}t$,
+abbreviated as $t$.
+(The latter case arises, with $\CE_{\mathrm{opt}}$ being a non-empty environment,
+in \texttt{datatype} specifications and declarations.)
+All type structures occurring in elaborations are assumed to be well-formed.
+
+A type structure $(t,\CE)$ is said to \emph{respect equality} if,
+whenever $t$ admits equality, then for each $\CE(\mem{con})$ of the form
+$\forall\alpha^{(k)}.(\tau^{*}\relarrow[\alpha^{(k)}t])$, the type function
+$\Lambda\alpha^{(k)}.\tau^{*}$ also admits equality.
+(This ensures that the equality goal \verb@=@ will be applicable
+to a constructed value $(\mem{con},v^{*})$ of type $\tau^{(k)}t$
+only when it is applicable to the tuple $v^{*}$ itself, whose
+type is $\tau^{*}\{\alpha_i\mapsto\tau_i ~;~ 1\leq i\leq k\}$.)
+A type environment $\TE$ \emph{respects equality} if all its
+type structures do so.
+
+Let $\TE$ be a type environment, and let $T$ be the set of type names
+$t$ such that $(t,\CE)$ occurs in $\TE$ for some $\CE \neq \{\}$.
+Then $\TE$ is said to \emph{maximise equality} if (a) $\TE$ respects equality,
+and also (b) if any larger subset of $T$ were to admit equality
+(without any change in the equality attribute of any type names not in $T$)
+then $\TE$ would cease to respect equality.
+%
+\subsection{Initial Static Objects}
+The initial static environments $\ME_{\mathrm{init}}$, $\TE_{\mathrm{init}}$,
+$\VE_{\mathrm{init}}$, types $\tau_{\mathrm{char}}$, $\tau_{\mathrm{int}}$,
+$\tau_{\mathrm{real}}$, $\tau_{\mathrm{string}}$,
+type name $t_{\mathrm{list}}$, and set MutTyName,
+are defined in Section~\secref{static0}.
+%
+\subsection{Equality}
+The notion of equality permeates every aspect of the type discipline.
+The goal $\mem{var}~\mtt{=}~\mem{exp}$ performs an equality
+test of the values of \emph{var} and \emph{exp} at runtime.
+Equality is defined for literals, nullary constructors, locations,
+and values built out of such by tuple formation and constructor application.
+Equality is \emph{not} defined for relations, or aggregates thereof.
+However, mutable aggregates (e.g. $\alpha~\mtt{lvar}$) are
+represented by their locations in the store, and thus \emph{do} admit
+equality, even if they reference values that do not.
+
+Every type name $t$ has a boolean equality attribute,
+which determines whether or not it admits equality.
+If $t$ admits equality, then a type $\tau^{(k)}t$ also admits equality,
+but only if every $\tau_i ~(1\leq i\leq k)$ does so.
+Most built-in types, such as \texttt{int} and \texttt{'a list}, behave this way.
+The set MutTyName contains the type names for the standard mutable types.
+When $t$ is in MutTyName, then a type $\tau^{(k)}t$ admits equality,
+even if some $\tau_i$ does not.
+If $t$ does not admit equality, then no type $\tau^{(k)}t$ can do so.
+This is the case if (a) $t$ is the type name for a \texttt{datatype},
+some of whose constructors reference types that do not admit equality,
+or (b) $t$ is the type name from a \texttt{type} rather than \texttt{eqtype}
+specification in a module's interface.
+
+To permit polymorphism for relations that require equality types,
+type variables are partitioned in two sets: those that admit equality
+(EtyVar) and those that do not.
+When a bound type variable $\alpha$ in a type scheme is instantiated to
+a type $\tau$, if $\alpha$ is in EtyVar, then $\tau$ is constrained
+to admit equality.
+
+When a set of new type names are constructed by a \texttt{datatype} declaration,
+as many as possible are set to admit equality. This is expressed by the
+\emph{maximises equality} property defined for type environments $\TE$.
+%
+\subsection{Inference Rules}
+
+\begin{relation}{Types}{\mem{tyvars}~\tau = \alpha^{*}}
+\rrule	{}
+	{\mem{tyvars}~\alpha = [\alpha]}
+\rruleskip
+\rrule	{\mem{tyvars}^{*}~\tau^{*} = \alpha^{*}}
+	{\mem{tyvars}~\tau^{*} = \alpha^{*}}
+\rruleskip
+\rrule	{\mem{tyvars}^{*}~\tau_1^{*} = \alpha_1^{*} \quad
+	 \mem{tyvars}^{*}~\tau_2^{*} = \alpha_2^{*}}
+	{\mem{tyvars}~\tau_1^{*}\relarrow\tau_2^{*} = \alpha_1^{*}\cup\alpha_2^{*}}
+\rruleskip
+\rrule	{\mem{tyvars}^{*}~\tau^{*} = \alpha^{*}}
+	{\mem{tyvars}~\tau^{*}t = \alpha^{*}}
+\end{relation}
+
+\begin{relation}{}{\mem{tyvars}^{*}~\tau^{*} = \alpha^{*}}
+\rrule	{\mem{tyvars}~\tau_i = \alpha_i^{*} ~(1\leq i\leq k) \quad
+	 \bigcup_{1\leq i\leq k}\alpha_i^{*} = \alpha'^{*}}
+	{\mem{tyvars}^{*}~\tau^{(k)} = \alpha'^{*}}
+\end{relation}
+
+\par\noindent\emph{Comment}: For conciseness, we identify finite sets
+and non-repeating sequences.
+
+\begin{relation}{}{\tau ~ \mem{admitsEq}}
+\rrule	{\alpha \in \mathrm{EtyVar}}
+	{\alpha ~ \mem{admitsEq}}
+\rruleskip
+\rrule	{\tau^{*} ~ \mem{admitsEq}}
+	{\tau^{*} ~ \mem{admitsEq}}
+\rruleskip
+\rrule	{t ~ \mem{admits equality} \quad
+	 t \in \mathrm{MutTyName}}
+	{\tau^{*}t ~ \mem{admitsEq}}
+\rruleskip
+\rrule	{t ~ \mem{admits equality} \quad
+	 \tau^{*} ~ \mem{admitsEq}}
+	{\tau^{*}t ~ \mem{admitsEq}}
+\end{relation}
+
+\par\noindent\emph{Comment}: Constructed types whose type names do not
+admit equality, as well as relation types, never admit equality.
+
+\begin{relation}{}{\tau^{*} ~ \mem{admitsEq}}
+\rrule	{\tau_i ~ \mem{admitsEq} ~(1\leq i\leq k)}
+	{\tau^{(k)} ~ \mem{admitsEq}}
+\end{relation}
+
+\begin{relation}{Type Functions}{\mem{applyTypeFcn}(\theta,\tau^{(k)}) = \tau'}
+\rrule	{k = k' \quad
+	 \tau\{\alpha_i\mapsto\tau_i ~;~ 1\leq i\leq k\}=\tau'}
+	{\mem{applyTypeFcn}(\Lambda\alpha^{(k)}.\tau,\tau^{(k')}) = \tau'}
+\end{relation}
+
+\begin{relation}{}{\theta ~ \mem{admitsEq}}
+\rrule	{\tau\{\alpha_i\mapsto\alpha'_i ~;~ \alpha'_i \in \mathrm{EtyVar},~1\leq i\leq k\} = \tau' \quad \tau' ~ \mem{admitsEq}}
+	{\Lambda\alpha^{(k)}.\tau ~ \mem{admitsEq}}
+\end{relation}
+
+\par\noindent\emph{Comment}: When determining if a type function admits equality,
+the equality status of its bound type variables is ignored.
+
+\begin{relation}{Type Schemes}{\mem{Close}~\tau = \sigma}
+\rrule	{\mem{tyvars}~\tau = \alpha^{*}}
+	{\mem{Close}~\tau = \forall\alpha^{*}.\tau}
+\end{relation}
+
+\par\noindent\emph{Comment}: This operation closes $\tau$ by
+abstracting all of its type variables.
+
+\begin{relation}{}{\alpha\succ\tau}
+\rrule	{\alpha \in \mathrm{EtyVar} \quad \tau ~ \mem{admitsEq}}
+	{\alpha \succ \tau}
+\rruleskip
+\rrule	{\alpha \notin \mathrm{EtyVar}}
+	{\alpha \succ \tau}
+\end{relation}
+
+\begin{relation}{}{\sigma\succ\tau}
+\rrule	{\tau\{\alpha_i\mapsto\tau'_i ~;~ \alpha_i\succ\tau'_i,~1\leq i\leq k\} = \tau''}
+	{\forall\alpha^{(k)}.\tau\succ\tau''}
+\end{relation}
+
+\par\noindent\emph{Comment}: This operation instantiates a type scheme
+by substituting permissible types for the abstracted type variables.
+
+\begin{relation}{Long Type Constructors}{\ME,\TE\vdash\mem{longtycon}\Rightarrow\theta}
+\rrule	{(\TE_{\mathrm{init}} + \TE)(\mem{tycon}) = (\theta,\rmunder)}
+	{\ME,\TE \vdash \mem{tycon} \Rightarrow \theta}
+\rruleskip
+\rrule	{\ME(\mem{modid})=(\TE',\rmunder) \quad
+	 \TE'(\mem{tycon}) = (\theta,\rmunder)}
+	{\ME,\TE \vdash \mem{modid}\mtt{.}\mem{tycon} \Rightarrow \theta}
+\end{relation}
+
+\begin{relation}{Type Expressions}{\ME,\TE\langle,\alpha^{*}\rangle\vdash\mem{ty}\Rightarrow\tau}
+\rrule	{\langle\alpha\in\alpha^{*}\rangle\rulelab{alpha-opt}}
+	{\ME,\TE\langle,\alpha^{*}\rangle\vdash\alpha\Rightarrow\alpha}
+\rruleskip
+\rrule	{\begin{array}{c}
+	 \ME,\TE\langle,\alpha^{*}\rangle\vdash\mem{tyseq}\Rightarrow\tau^{*} \quad
+	 \ME,\TE \vdash longtycon \Rightarrow \theta \\
+	 \mem{applyTypeFcn}(\theta,\tau^{*}) = \tau
+	 \end{array}}
+	{\ME,\TE\langle,\alpha^{*}\rangle\vdash\mem{tyseq~longtycon}\Rightarrow\tau}
+\rruleskip
+\rrule	{\ME,\TE\langle,\alpha^{*}\rangle\vdash\mem{ty}^{(k)}\Rightarrow\tau^{(k)}}
+	{\ME,\TE\langle,\alpha^{*}\rangle\vdash\mem{ty}_1~\mtt{*}~\cdots~\mtt{*}~\mem{ty}_{k}\Rightarrow\tau^{(k)}~\mathrm{in~Type}}
+\rruleskip
+\rrule	{\ME,\TE\langle,\alpha^{*}\rangle\vdash\mem{tyseq}_1\Rightarrow\tau_1^{*} \quad
+	 \ME,\TE\langle,\alpha^{*}\rangle\vdash\mem{tyseq}_2\Rightarrow\tau_2^{*}}
+	{\ME,\TE\langle,\alpha^{*}\rangle\vdash\mem{tyseq}_1~\mtt{=>}~\mem{tyseq}_2\Rightarrow\tau_1^{*}\relarrow\tau_2^{*}}
+\end{relation}
+
+\par\noindent\emph{Comment}: \ruleref{alpha-opt}
+When present, $\alpha^{*}$ serves to constrain type expressions
+to only have type variables
+in $\alpha^{*}$. This is used when elaborating \emph{typbinds}
+and \emph{datbinds}. It does \emph{not} suffice to elaborate a type
+expression to a type $\tau$, and then check that
+$\mem{tyvars}~\tau = \alpha'^{*}$ and $\alpha'^{*}\subseteq\alpha^{*}$,
+since type functions $\theta$
+may `forget' some of their type variables. The following example
+does not elaborate: \texttt{type 'a t = int type tt = 'b t}.
+
+\begin{relation}{Type Expression Sequences}{\ME,\TE\langle,\alpha^{*}\rangle\vdash\mem{ty}^{(k)}\Rightarrow\tau^{(k)}}
+\rrule	{\ME,\TE\langle,\alpha^{*}\rangle\vdash\mem{ty}_i\Rightarrow\tau_i ~(1\leq i\leq k)}
+	{\ME,\TE\langle,\alpha^{*}\rangle\vdash\mem{ty}^{(k)}\Rightarrow\tau^{(k)}}
+\end{relation}
+
+\begin{relation}{Type Variable Sequences}{\mem{nodups}~\alpha^{*}}
+\rrule	{}
+	{\mem{nodups}~[]}
+\rruleskip
+\rrule	{\alpha \notin \alpha^{*} \quad
+	 \mem{nodups}~\alpha^{*}}
+	{\mem{nodups}~\alpha::\alpha^{*}}
+\end{relation}
+
+\par\noindent\emph{Comment}: $\mem{nodups}~\alpha^{*}$ verifies that
+$\alpha^{*}$ contains no duplicates, as required when
+elaborating type specifications and declarations.
+
+\begin{relation}{Type Bindings}{\ME,\TE,\TE_1\vdash\mem{typbind}\Rightarrow\TE_2}
+\rrule	{\begin{array}{c}
+	 \mem{tycon} \notin \mathrm{Dom}~\TE \quad
+	 \mem{tycon} \notin \mathrm{Dom}~\TE_1 \quad
+	 \mem{nodups}~\alpha^{*} \\
+	 \ME,\TE+\TE_1,\alpha^{*}\vdash\mem{ty}\Rightarrow\tau \quad
+	 \theta = \Lambda\alpha^{*}.\tau
+	 \end{array}}
+	{\ME,\TE,\TE_1 \vdash \alpha^{*}~\mem{tycon}~\mtt{=}~\mem{ty} \Rightarrow \TE_1 + \{\mem{tycon}\mapsto(\theta,\{\})\}}
+\rruleskip
+\rrule	{\begin{array}{c}
+	 \ME,\TE,\TE_1 \vdash \mem{typbind}_1 \Rightarrow \TE_2 \\
+	 \ME,\TE,\TE_2 \vdash \mem{typbind}_2 \Rightarrow \TE_3
+	 \end{array}}
+	{\ME,\TE,\TE_1 \vdash \mem{typbind}_1~\mtt{and}~\mem{typbind}_2\Rightarrow\TE_3}
+\end{relation}
+
+\begin{relation}{}{\ME,\TE\vdash\mem{withbind}\Rightarrow\TE}
+\rrule	{}
+	{\ME,\TE\vdash \EMPTY \Rightarrow \{\}}
+\rruleskip
+\rrule	{\ME,\TE,\{\}\vdash\mem{typbind}\Rightarrow\TE'}
+	{\ME,\TE\vdash\mtt{withtype}~\mem{typbind}\Rightarrow\TE'}
+\end{relation}
+
+\par\noindent\emph{Comment}: As implied by the sequential elaboration of
+a \emph{typbind}, the type aliases after \texttt{withtype} are expanded
+sequentially. This is intensional.
+
+\begin{relation}{Datatype Bindings}{\TE,\TE_{\mathrm{skel}},\mem{modid}\vdash\mem{datbind}\Rightarrow\TE'_{\mathrm{skel}}}
+\rrule	{\begin{array}{c}
+	 (\mem{tycon}\notin\mathrm{Dom}~\TE~\vee~\TE(\mem{tycon}) = (\rmunder,\EMPTY)) \quad
+	 \mem{tycon} \notin \mathrm{Dom}~\TE_{\mathrm{skel}} \\
+	 \mem{nodups}~\alpha^{*} \quad
+	 t = (\mem{modid},\mem{tycon},\mem{eq}) \quad
+	 \theta = \Lambda\alpha^{*}.\alpha^{*}t \rulelab{rebind-tycon}
+	 \end{array}}
+	{\TE,\TE_{\mathrm{skel}},\mem{modid}\vdash\alpha^{*}~\mem{tycon}~\mtt{=}~\rmunder\Rightarrow\TE_{\mathrm{skel}}+\{\mem{tycon}\mapsto(\theta,\{\})\}}
+\rruleskip
+\rrule	{\begin{array}{c}
+	 \TE,\TE^1_{\mathrm{skel}},\mem{modid}\vdash\mem{datbind}_1\Rightarrow\TE^2_{\mathrm{skel}} \\
+	 \TE,\TE^2_{\mathrm{skel}},\mem{modid}\vdash\mem{datbind}_2\Rightarrow\TE^3_{\mathrm{skel}}
+	 \end{array}}
+	{\TE,\TE^1_{\mathrm{skel}},\mem{modid}\vdash\mem{datbind}_1~\mtt{and}~\mem{datbind}_2\Rightarrow\TE^3_{\mathrm{skel}}}
+\end{relation}
+
+\par\noindent\emph{Comments}:
+\begin{itemize}
+\item[\ruleref{rebind-tycon}]
+Normally, once an identifier has been bound in an environment, it may not be rebound.
+This is the only place where this does not hold: an abstract type declared
+in an interface can (indeed must) be rebound in the module's body
+by a \emph{datbind}. This relies critically on the fact that
+the \emph{datbind} will produce a compatible type name and type function. See also
+rules~\ruleref{spec-abstype}, \ruleref{spec-eqtype}, \ruleref{check-abstype},
+and \ruleref{check-eqtype}.
+\item[\ruleref{rebind-tycon}]
+The equality attribute of the new type name is determined by
+the \emph{maximises equality} condition in rule~\ruleref{elab-datatype}.
+\end{itemize}
+
+\begin{relation}{Constructor Bindings}{\ME,\TE,\VE,\CE,\alpha^{*},\tau\vdash\mem{conbind}\Rightarrow\CE'}
+\rrule	{\mem{con} \notin \mathrm{Dom}~\VE \quad
+	 \mem{con} \notin \mathrm{Dom}~\CE \quad
+	 \mem{Close}~\tau = \sigma}
+	{\ME,\TE,\VE,\CE,\alpha^{*},\tau\vdash\mem{con}\Rightarrow\CE+\{\mem{con}\mapsto(\mathrm{con},\sigma)\}}
+\rruleskip
+\rrule	{\begin{array}{c}
+	 \mem{con} \notin \mathrm{Dom}~\VE \quad
+	 \mem{con} \notin \mathrm{Dom}~\CE \quad
+	 \ME,\TE,\alpha^{*}\vdash\mem{ty}^{(k)}\Rightarrow\tau'^{(k)} \\
+	 \mem{Close}~\tau'^{(k)}\relarrow[\tau] = \sigma \quad
+	 \CE' = \CE+\{\mem{con}\mapsto(\mathrm{con},\sigma)\}
+	 \end{array}}
+	{\ME,\TE,\VE,\CE,\alpha^{*},\tau\vdash\mem{con}~\mtt{of}~\mem{ty}_1~\mtt{*}~\cdots~\mtt{*}~\mem{ty}_{k}\Rightarrow\CE'}
+\rruleskip
+\rrule	{\begin{array}{c}
+	 \ME,\TE,\VE,\CE,\alpha^{*},\tau\vdash\mem{conbind}_1\Rightarrow\CE_1 \\
+	 \ME,\TE,\VE,\CE_1,\alpha^{*},\tau\vdash\mem{conbind}_2\Rightarrow\CE_2
+	 \end{array}}
+	{\ME,\TE,\VE,\CE,\alpha^{*},\tau\vdash\mem{conbind}_1~\mtt{|}~\mem{conbind}_2\Rightarrow\CE_2}
+\end{relation}
+
+\begin{relation}{}{\ME,\TE,\VE\vdash\mem{datbind}\Rightarrow\TE',\VE'}
+\rrule	{\begin{array}{c}
+	 \TE(\mem{tycon}) = (\theta,\rmunder) \quad
+	 \mem{applyTypeFcn}(\theta,\alpha^{*}) = \tau \\
+	 \ME,\TE,\VE,\{\},\alpha^{*},\tau\vdash\mem{conbind}\Rightarrow\CE \quad
+	 \VE' = \VE + \CE
+	 \end{array}}
+	{\ME,\TE,\VE\vdash\alpha^{*}~\mem{tycon}~\mtt{=}~\mem{conbind}\Rightarrow\{\mem{tycon}\mapsto(\theta,\CE)\},\VE'}
+\rruleskip
+\rrule	{\begin{array}{c}
+	 \ME,\TE,\VE\vdash\mem{datbind}_1\Rightarrow\TE_1,\VE_1 \\
+	 \ME,\TE,\VE_1\vdash\mem{datbind}_2\Rightarrow\TE_2,\VE_2
+	 \end{array}}
+	{\ME,\TE,\VE\vdash\mem{datbind}_1~\mtt{and}~\mem{datbind}_2\Rightarrow\TE_1+\TE_2,\VE_2}
+\end{relation}
+
+\begin{relation}{}{\ME,\TE,\VE,\mem{modid}\vdash\mem{datbind},\mem{withbind}\Rightarrow\TE,\VE}
+\rrule	{\begin{array}{c}
+	 \TE,\{\},\mem{modid}\vdash\mem{datbind}\Rightarrow\TE_{\mathrm{skel}} \\
+	 \ME,\TE+\TE_{\mathrm{skel}}\vdash\mem{withbind}\Rightarrow\TE_{\mathrm{with}} \\
+	 \ME,\TE+\TE_{\mathrm{skel}}+\TE_{\mathrm{with}},\VE\vdash\mem{datbind}\Rightarrow\TE_{\mathrm{data}},\VE' \\
+	 \TE_{\mathrm{data}} ~ \mem{maximises equality} \\
+	 \TE' = \TE + \TE_{\mathrm{data}} + \TE_{\mathrm{with}}
+	 \rulelab{elab-datatype}
+	 \end{array}}
+	{\ME,\TE,\VE,\mem{modid}\vdash\mem{datbind},\mem{withbind}\Rightarrow\TE',\VE'}
+\end{relation}
+
+\begin{relation}{Variables}{\VE_{\mathrm{outer}},\VE_{\mathrm{inner}}\vdash\mem{var}}
+\rrule	{\begin{array}{c}
+	 \mem{var} \notin \mathrm{Dom}~\VE_{\mathrm{inner}} \\
+	 (\mem{var} \notin \mathrm{Dom}~\VE_{\mathrm{outer}} ~\vee~ \VE_{\mathrm{outer}}(\mem{var}) \neq (\mathrm{con},\rmunder)) \\
+	 (\mem{var} \notin \mathrm{Dom}~\VE_{\mathrm{init}} ~\vee~ \VE_{\mathrm{init}}(\mem{var}) \neq (\mathrm{con},\rmunder))
+	 \end{array}}
+	{\VE_{\mathrm{outer}},\VE_{\mathrm{inner}}\vdash\mem{var}}
+\end{relation}
+
+\par\noindent\emph{Comment}: This rule checks that a value identifier
+may be bound as a variable, at a point where the visible value environment is
+$\VE_{\mathrm{init}}+\VE_{\mathrm{outer}}+\VE_{\mathrm{inner}}$.
+The first premiss prevents multiple bindings of the same identifier in
+a given ``scope.''
+The following premisses ensure that an identifier cannot be bound
+as a variable if it already has a visible binding as a value constructor.
+
+\begin{relation}{Specifications}{\ME,\TE,\VE,\mem{modid}\vdash\mem{spec}\Rightarrow\ME,\TE,\VE}
+\rrule	{\begin{array}{c}
+	 \ME\vdash\mem{interface}\Rightarrow\rmunder,\TE',\VE',\mem{modid}' \\
+	 \ME' = \ME+\{\mem{modid}'\mapsto(\TE',\VE')\}
+	 \end{array}\rulelab{interface-done}}
+	{\ME,\TE,\VE,\mem{modid}\vdash\mtt{with}~\mem{interface}\Rightarrow\ME',\TE,\VE}
+\rruleskip
+\rrule	{\begin{array}{c}
+	 \mem{tycon} \notin \mathrm{Dom}~\TE \quad
+	 \mem{nodups}~\alpha^{*} \quad
+	 t = (\mem{modid},\mem{tycon},\mathrm{false}) \\
+	 \TE' = \TE+\{\mem{tycon}\mapsto(\Lambda\alpha^{*}.\alpha^{*}t,\EMPTY)\}
+	 \end{array} \rulelab{spec-abstype}}
+	{\ME,\TE,\VE,\mem{modid}\vdash\mtt{type}~\alpha^{*}~\mem{tycon}\Rightarrow\ME,\TE',\VE}
+\rruleskip
+\rrule	{\begin{array}{c}
+	 \mem{tycon} \notin \mathrm{Dom}~\TE \quad
+	 \mem{nodups}~\alpha^{*} \quad
+	 t = (\mem{modid},\mem{tycon},\mathrm{true}) \\
+	 \TE' = \TE+\{\mem{tycon}\mapsto(\Lambda\alpha^{*}.\alpha^{*}t,\EMPTY)\}
+	 \end{array} \rulelab{spec-eqtype}}
+	{\ME,\TE,\VE,\mem{modid}\vdash\mtt{eqtype}~\alpha^{*}~\mem{tycon}\Rightarrow\ME,\TE',\VE}
+\rruleskip
+\rrule	{\ME,\{\},\TE\vdash\mem{typbind}\Rightarrow\TE'}
+	{\ME,\TE,\VE,\mem{modid}\vdash\mtt{type}~\mem{typbind}\Rightarrow\ME,\TE',\VE}
+\rruleskip
+\rrule	{\ME,\TE,\VE,\mem{modid}\vdash\mem{datbind},\mem{withbind}\Rightarrow\TE',\VE'}
+	{\ME,\TE,\VE,\mem{modid}\vdash\mtt{datatype}~\mem{datbind~withbind}\Rightarrow\ME,\TE',\VE'}
+\rruleskip
+\rrule	{\begin{array}{c}
+	 \{\},\VE\vdash\mem{var} \quad
+	 \ME,\TE\vdash\mem{ty}\Rightarrow\tau \\
+	 \mem{Close}~\tau = \sigma \quad
+	 \VE' = \VE+\{\mem{var}\mapsto(\mathrm{var},\sigma)\}
+	 \end{array}}
+	{\ME,\TE,\VE,\mem{modid}\vdash\mtt{val}~\mem{var}~\mtt{:}~\mem{ty}\Rightarrow\ME,\TE,\VE'}
+\rruleskip
+\rrule	{\begin{array}{c}
+	 \{\},\VE\vdash\mem{var} \quad
+	 \ME,\TE\vdash\mem{ty}\Rightarrow\tau \\
+	 \tau = \tau_1^{*}\relarrow\tau_2^{*} \quad
+	 \mem{Close}~\tau = \sigma \quad
+	 \VE' = \VE+\{\mem{var}\mapsto(\mathrm{rel},\sigma)\}
+	 \end{array}}
+	{\ME,\TE,\VE,\mem{modid}\vdash\mtt{relation}~\mem{var}~\mtt{:}~\mem{ty}\Rightarrow\ME,\TE,\VE'}
+\rruleskip
+\rrule	{\begin{array}{c}
+	 \ME,\TE,\VE,\mem{modid}\vdash\mem{spec}_1\Rightarrow\ME_1,\TE_1,\VE_1\\
+	 \ME_1,\TE_1,\VE_1,\mem{modid}\vdash\mem{spec}_2\Rightarrow\ME_2,\TE_2,\VE_2
+	 \end{array}}
+	{\ME,\TE,\VE,\mem{modid}\vdash\mem{spec}_1~\mem{spec}_2\Rightarrow\ME_2,\TE_2,\VE_2}
+\end{relation}
+
+\begin{relation}{Interfaces}{\ME\vdash\mem{interface}\Rightarrow\ME,\TE,\VE,\mem{modid}}
+\rrule	{\mem{modid} \notin \mathrm{Dom}~\ME \quad
+	 \ME_{\mathrm{init}},\{\},\{\},\mem{modid}\vdash\mem{spec}\Rightarrow\ME',\TE,\VE}
+	{\ME\vdash\mtt{module}~\mem{modid}~\mtt{:}~\mem{spec}~\mtt{end}\Rightarrow\ME',\TE,\VE,\mem{modid}}
+\end{relation}
+
+\begin{relation}{Literals}{\mem{lit}\Rightarrow\tau}
+\rrule	{}
+	{\mem{ccon}\Rightarrow\tau_{\mathrm{char}}}
+\rruleskip
+\rrule	{}
+	{\mem{icon}\Rightarrow\tau_{\mathrm{int}}}
+\rruleskip
+\rrule	{}
+	{\mem{rcon}\Rightarrow\tau_{\mathrm{real}}}
+\rruleskip
+\rrule	{}
+	{\mem{scon}\Rightarrow\tau_{\mathrm{string}}}
+\end{relation}
+
+\begin{relation}{Long Value Constructors}{\ME,\VE\vdash\mem{longcon}\Rightarrow\sigma}
+\rrule	{(\VE_{\mathrm{init}} + \VE)(\mem{con}) = (\mathrm{con},\sigma)}
+	{\ME,\VE \vdash \mem{con} \Rightarrow \sigma}
+\rruleskip
+\rrule	{\ME(\mem{modid})=(\rmunder,\VE') \quad
+	 \VE'(\mem{con}) = (\mathrm{con},\sigma)}
+	{\ME,\VE \vdash \mem{modid}\mtt{.}\mem{con} \Rightarrow \sigma}
+\end{relation}
+
+\begin{relation}{Patterns}{\ME,\VE,\VE_{\mathrm{pat}}\vdash\mem{pat}\Rightarrow\VE'_{\mathrm{pat}},\tau}
+\rrule	{}
+	{\ME,\VE,\VE_{\mathrm{pat}}\vdash\ttunder\Rightarrow\VE_{\mathrm{pat}},\tau}
+\rruleskip
+\rrule	{\mem{lit}\Rightarrow\tau}
+	{\ME,\VE,\VE_{\mathrm{pat}}\vdash\mem{lit}\Rightarrow\VE_{\mathrm{pat}},\tau}
+\rruleskip
+\rrule	{\ME,\VE\vdash\mem{longcon}\Rightarrow\sigma \quad
+	 \sigma\succ\tau^{*}t}
+	{\ME,\VE,\VE_{\mathrm{pat}}\vdash\mem{longcon}\Rightarrow\VE_{\mathrm{pat}},\tau^{*}t}
+\rruleskip
+\rrule	{\begin{array}{c}
+	 \ME,\VE\vdash\mem{longcon}\Rightarrow\sigma \quad
+	 \ME,\VE,\VE_{\mathrm{pat}}\vdash\mem{patseq}\Rightarrow\VE'_{\mathrm{pat}},\tau^{*} \\
+	 \sigma\succ\tau^{*}\relarrow[\tau]
+	 \end{array}}
+	{\ME,\VE,\VE_{\mathrm{pat}}\vdash\mem{longcon~patseq}\Rightarrow\VE'_{\mathrm{pat}},\tau}
+\rruleskip
+\rrule	{\ME,\VE,\VE_{\mathrm{pat}}\vdash\mem{pat}^{(k)}\Rightarrow\VE'_{\mathrm{pat}},\tau^{(k)}}
+	{\ME,\VE,\VE_{\mathrm{pat}}\vdash\mtt{(}\mem{pat}_1\mtt{,}\cdots\mtt{,}\mem{pat}_k\mtt{)}\Rightarrow\VE'_{\mathrm{pat}},\tau^{(k)}~\mathrm{in~Type}}
+\rruleskip
+\rrule	{\ME,\VE,\VE_{\mathrm{pat}}\vdash\mem{pat}\Rightarrow\VE'_{\mathrm{pat}},\tau \quad
+	 \VE,\VE'_{\mathrm{pat}}\vdash\mem{var}}
+	{\ME,\VE,\VE_{\mathrm{pat}}\vdash\mem{var}~\mtt{as}~\mem{pat}\Rightarrow\VE'_{\mathrm{pat}}+\{\mem{var}\mapsto(\mathrm{var},\forall[].\tau)\},\tau}
+\end{relation}
+
+\par\noindent{Comment}: $\VE_{\mathrm{pat}}$ is the environment being built for
+the current pattern, while $\VE$ is the environment in which this is taking place.
+This split is used to allow pattern variables to shadow previous bindings.
+
+\begin{relation}{Pattern Sequences}{\ME,\VE,\VE_{\mathrm{pat}}\vdash\mem{pat}^{(k)}\Rightarrow\VE'_{\mathrm{pat}},\tau^{(k)}}
+\rrule	{\ME,\VE,\VE^i_{\mathrm{pat}}\vdash\mem{pat}_i\Rightarrow\VE^{i+1}_{\mathrm{pat}},\tau_i ~(1\leq i\leq k)}
+	{\ME,\VE,\VE^1_{\mathrm{pat}}\vdash\mem{pat}^{(k)}\Rightarrow\VE^{k+1}_{\mathrm{pat}},\tau^{(k)}}
+\end{relation}
+
+\begin{relation}{Long Variables}{\ME,\VE\vdash\mem{longvar}\Rightarrow\sigma}
+\rrule	{(\VE_{\mathrm{init}} + \VE)(\mem{var}) = (\mem{vk},\sigma) \quad \mem{vk}\neq\mathrm{con}}
+	{\ME,\VE \vdash \mem{var} \Rightarrow \sigma}
+\rruleskip
+\rrule	{\ME(\mem{modid})=(\rmunder,\VE') \quad
+	 \VE'(\mem{var}) = (\mem{vk},\sigma) \quad \mem{vk}\neq\mathrm{con}}
+	{\ME,\VE \vdash \mem{modid}\mtt{.}\mem{var} \Rightarrow \sigma}
+\end{relation}
+
+\begin{relation}{Expressions}{\ME,\VE\vdash\mem{exp}\Rightarrow\tau}
+\rrule	{\mem{lit}\Rightarrow\tau}
+	{\ME,\VE\vdash\mem{lit}\Rightarrow\tau}
+\rruleskip
+\rrule	{\ME,\VE\vdash\mem{longcon}\Rightarrow\sigma \quad
+	 \sigma\succ\tau^{*}t\rulelab{expr-longcon}}
+	{\ME,\VE\vdash\mem{longcon}\Rightarrow\tau^{*}t}
+\rruleskip
+\rrule	{\ME,\VE\vdash\mem{longvar}\Rightarrow\sigma \quad
+	 \sigma\succ\tau}
+	{\ME,\VE\vdash\mem{longvar}\Rightarrow\tau}
+\rruleskip
+\rrule	{\ME,\VE\vdash\mem{longcon}\Rightarrow\sigma \quad
+	 \ME,\VE\vdash\mem{expseq}\Rightarrow\tau^{*} \quad
+	 \sigma\succ\tau^{*}\relarrow[\tau]}
+	{\ME,\VE\vdash\mem{longcon~expseq}\Rightarrow\tau}
+\rruleskip
+\rrule	{\ME,\VE\vdash\mem{exp}^{(k)}\Rightarrow\tau^{(k)}}
+	{\ME,\VE\vdash\mtt{(}\mem{exp}_1\mtt{,}\cdots\mtt{,}\mem{exp}_k\mtt{)}\Rightarrow\tau^{(k)}~\mathrm{in~Type}}
+\end{relation}
+
+\par\noindent\emph{Comment}:
+\ruleref{expr-longcon} Non-constant data constructors are excluded here.
+
+\begin{relation}{Expression Sequences}{\ME,\VE\vdash\mem{exp}^{(k)}\Rightarrow\tau^{(k)}}
+\rrule	{\ME,\VE\vdash\mem{exp}_i\Rightarrow\tau_i ~(1\leq i\leq k)}
+	{\ME,\VE\vdash\mem{exp}^{(k)}\Rightarrow\tau^{(k)}}
+\end{relation}
+
+\begin{relation}{Goals}{\ME,\VE\vdash\mem{goal}\Rightarrow\VE}
+\rrule	{\begin{array}{c}
+	 \ME,\VE\vdash\mem{longvar}\Rightarrow\sigma \quad
+	 \ME,\VE\vdash\mem{expseq}\Rightarrow\tau^{*}_1 \\
+	 \ME,\VE,\{\}\vdash\mem{patseq}\Rightarrow\VE_{\mathrm{pat}},\tau^{*}_2 \quad
+	 \sigma\succ\tau^{*}_1\relarrow\tau^{*}_2
+	 \end{array}}
+	{\ME,\VE\vdash\mem{longvar~expseq}~\mtt{=>}~\mem{patseq}\Rightarrow\VE+\VE_{\mathrm{pat}}}
+\rruleskip
+\rrule	{\ME,\VE\vdash\mem{exp}\Rightarrow\tau \quad
+	 \VE(\mem{var}) = (\rmunder,\sigma) \quad
+	 \sigma\succ\tau \quad
+	 \tau ~ \mem{admitsEq}}
+	{\ME,\VE\vdash\mem{var}~\mtt{=}~\mem{exp}\Rightarrow\VE}
+\rruleskip
+\rrule	{\ME,\VE\vdash\mem{exp}\Rightarrow\tau \quad
+	 \ME,\VE,\{\}\vdash\mem{pat}\Rightarrow\VE_{\mathrm{pat}},\tau' \quad
+	 \tau = \tau'}
+	{\ME,\VE\vdash\mtt{let}~\mem{pat}~\mtt{=}~\mem{exp}\Rightarrow\VE+\VE_{\mathrm{pat}}}
+\rruleskip
+\rrule	{\ME,\VE\vdash\mem{goal}\Rightarrow\VE'\rulelab{not-goal}}
+	{\ME,\VE\vdash\mtt{not}~\mem{goal}\Rightarrow\VE}
+\rruleskip
+\rrule	{\ME,\VE\vdash\mem{goal}_1\Rightarrow\VE_1 \quad
+	 \ME,\VE_1\vdash\mem{goal}_2\Rightarrow\VE_2}
+	{\ME,\VE\vdash\mem{goal}_1~\mtt{\&}~\mem{goal}_2\Rightarrow\VE_2}
+\end{relation}
+
+\par\noindent\emph{Comment}: \ruleref{not-goal} A negative goal produces
+no visible bindings.
+
+\begin{relation}{}{\ME,\VE~\acute{\vdash}~\langle\mem{goal}\rangle\Rightarrow\VE}
+\rrule	{\ME,\VE\vdash\mem{goal}\Rightarrow\VE'}
+	{\ME,\VE~\acute{\vdash}~\mem{goal}\Rightarrow\VE'}
+\rruleskip
+\rrule	{}
+	{\ME,\VE~\acute{\vdash}~\EMPTY\Rightarrow\VE}
+\end{relation}
+
+\begin{relation}{Results}{\ME,\VE\vdash\mem{result}\Rightarrow\tau^{*}}
+\rrule	{\ME,\VE\vdash\mem{expseq}\Rightarrow\tau^{*}}
+	{\ME,\VE\vdash\mem{expseq}\Rightarrow\tau^{*}}
+\rruleskip
+\rrule	{\rulelab{result-fail}}
+	{\ME,\VE\vdash\mtt{fail}\Rightarrow\tau^{*}}
+\end{relation}
+
+\par\noindent\emph{Comment}: \ruleref{result-fail}
+The type sequence $\tau^{*}$ is determined by the other clauses in
+the relation being checked.
+
+\begin{relation}{Clauses}{\ME,\VE,\mem{var}_{\mathrm{rel}},\tau\vdash\mem{clause}}
+\rrule	{\begin{array}{c}
+	 \ME,\VE,\{\}\vdash\mem{patseq}\Rightarrow\VE_{\mathrm{pat}},\tau^{*}_1 \quad
+	 \ME,\VE+\VE_{\mathrm{pat}}~\acute{\vdash}~\langle\mem{goal}\rangle\Rightarrow\VE' \\
+	 \ME,\VE'\vdash\mem{result}\Rightarrow\tau^{*}_2 \quad
+	 \tau = \tau^{*}_1\relarrow\tau^{*}_2 \quad
+	 \mem{var}_{\mathrm{rel}} = \mem{var}
+	 \end{array}}
+	{\ME,\VE,\mem{var}_{\mathrm{rel}},\tau\vdash\mtt{rule}~\langle\mem{goal}\rangle~\mtt{{-}{-}}~\mem{var}~\mem{patseq}~\mtt{=>}~\mem{result}}
+\rruleskip
+\rrule	{\ME,\VE,\mem{var}_{\mathrm{rel}},\tau\vdash\mem{clause}_1 \quad
+	 \ME,\VE,\mem{var}_{\mathrm{rel}},\tau\vdash\mem{clause}_2}
+	{\ME,\VE,\mem{var}_{\mathrm{rel}},\tau\vdash\mem{clause}_1~\mem{clause}_2}
+\end{relation}
+
+\begin{relation}{Relation Bindings}{\ME,\VE\vdash\mem{relbind}}
+\rrule	{\VE(\mem{var})=(\mathrm{rel},\forall\rmunder.\tau) \quad
+	 \ME,\VE,\mem{var},\tau\vdash\mem{clause}}
+	{\ME,\VE\vdash\mem{var}~\langle\mtt{:}~\mem{ty}\rangle~\mtt{=}~\mem{clause}}
+\rruleskip
+\rrule	{\ME,\VE\vdash\mem{relbind}_1 \quad
+	 \ME,\VE\vdash\mem{relbind}_2}
+	{\ME,\VE\vdash\mem{relbind}_1~\mtt{and}~\mem{relbind}_2}
+\end{relation}
+
+\begin{relation}{}{\ME,\TE,\VE,\VE_{\mathrm{rel}}\vdash\mem{relbind}\Rightarrow\VE'_{\mathrm{rel}}}
+\rrule	{\{\},\VE+\VE_{\mathrm{rel}}\vdash\mem{var} \\
+	 \langle\ME,\TE\vdash\mem{ty}\Rightarrow\tau\rangle \quad
+	 \sigma = \forall[].\tau}
+	{\ME,\TE,\VE,\VE_{\mathrm{rel}}\vdash\mem{var}~\langle\mtt{:}~\mem{ty}\rangle~\mtt{=}~\rmunder\Rightarrow\VE_{\mathrm{rel}}+\{\mem{var}\mapsto(\mathrm{rel},\sigma)\}}
+\rruleskip
+\rrule	{\begin{array}{c}
+	 \ME,\TE,\VE,\VE^1_{\mathrm{rel}}\vdash\mem{relbind}_1\Rightarrow\VE^2_{\mathrm{rel}} \\
+	 \ME,\TE,\VE,\VE^2_{\mathrm{rel}}\vdash\mem{relbind}_2\Rightarrow\VE^3_{\mathrm{rel}}
+	 \end{array}}
+	{\ME,\TE,\VE,\VE^1_{\mathrm{rel}}\vdash\mem{relbind}_1~\mtt{and}~\mem{relbind}_2\Rightarrow\VE^3_{\mathrm{rel}}}
+\end{relation}
+
+\begin{relation}{Variable Environments}{\mem{Close}~\VE = \VE'}
+\rrule	{\VE' = \{\mem{var}_i\mapsto(\mathrm{rel},\sigma_i) ~;~ \mem{Close}~\tau_i = \sigma_i,~1\leq i\leq k\}}
+	{\mem{Close}~\{\mem{var}_i\mapsto(\rmunder,\forall\rmunder.\tau_i) ~;~ 1\leq i\leq k\} = \VE'}
+\end{relation}
+
+\begin{relation}{Declarations}{\ME,\TE,\VE,\mem{modid}\vdash\mem{dec}\Rightarrow\ME,\TE,\VE}
+\rrule	{\begin{array}{c}
+	 \ME\vdash\mem{interface}\Rightarrow\rmunder,\TE',\VE',\mem{modid}' \\
+	 \ME' = \ME+\{\mem{modid}'\mapsto(\TE',\VE')\}
+	 \end{array}}
+	{\ME,\TE,\VE,\mem{modid}\vdash\mtt{with}~\mem{interface}\Rightarrow\ME',\TE,\VE}
+\rruleskip
+\rrule	{\ME,\{\},\TE\vdash\mem{typbind}\Rightarrow\TE'}
+	{\ME,\TE,\VE,\mem{modid}\vdash\mtt{type}~\mem{typbind}\Rightarrow\ME,\TE',\VE}
+\rruleskip
+\rrule	{\ME,\TE,\VE,\mem{modid}\vdash\mem{datbind},\mem{withbind}\Rightarrow\TE',\VE'}
+	{\ME,\TE,\VE,\mem{modid}\vdash\mtt{datatype}~\mem{datbind~withbind}\Rightarrow\ME,\TE',\VE'}
+\rruleskip
+\rrule	{\begin{array}{c}
+	 \{\},\VE\vdash\mem{var} \quad
+	 \ME,\VE\vdash\mem{exp}\Rightarrow\tau \\
+	 \mem{Close}~\tau = \sigma \quad
+	 \VE' = \VE+\{\mem{var}\mapsto(\mathrm{var},\sigma)\}
+	 \end{array}}
+	{\ME,\TE,\VE,\mem{modid}\vdash\mtt{val}~\mem{var}~\mtt{=}~\mem{exp}\Rightarrow\ME,\TE,\VE'}
+\rruleskip
+\rrule	{\begin{array}{c}
+	 \ME,\TE,\VE,\{\}\vdash\mem{relbind}\Rightarrow\VE_{\mathrm{rel}} \\
+	 \ME,\VE+\VE_{\mathrm{rel}}\vdash\mem{relbind} \quad
+	 \mem{Close}~\VE_{\mathrm{rel}} = \VE'_{\mathrm{rel}}
+	 \end{array}}
+	{\ME,\TE,\VE,\mem{modid}\vdash\mtt{relation}~\mem{relbind}\Rightarrow\ME,\TE,\VE+\VE'_{\mathrm{rel}}}
+\rruleskip
+\rrule	{\begin{array}{c}
+	 \ME,\TE,\VE,\mem{modid}\vdash\mem{dec}_1\Rightarrow\ME_1,\TE_1,\VE_1\\
+	 \ME_1,\TE_1,\VE_1,\mem{modid}\vdash\mem{dec}_2\Rightarrow\ME_2,\TE_2,\VE_2
+	 \end{array}}
+	{\ME,\TE,\VE,\mem{modid}\vdash\mem{dec}_1~\mem{dec}_2\Rightarrow\ME_2,\TE_2,\VE_2}
+\end{relation}
+
+\begin{relation}{Specifications}{\TE_{\mathrm{dec}},\VE_{\mathrm{spec}},\VE_{\mathrm{dec}}\vdash\mem{spec}}
+\rrule	{\VE_{\mathrm{spec}}(\mem{var})=(\mathrm{var},\forall\rmunder.\tau_{\mathrm{spec}}) \quad
+	 \VE_{\mathrm{dec}}(\mem{var}) = (\rmunder,\sigma_{\mathrm{dec}}) \quad
+	 \sigma_{\mathrm{dec}}\succ\tau_{\mathrm{spec}}\rulelab{check-valspec}}
+	{\TE_{\mathrm{dec}},\VE_{\mathrm{spec}},\VE_{\mathrm{dec}}\vdash\mtt{val}~\mem{var}~\mtt{:}~\rmunder}
+\rruleskip
+\rrule	{\VE_{\mathrm{spec}}(\mem{var})=(\mathrm{rel},\forall\rmunder.\tau_{\mathrm{spec}}) \quad
+	 \VE_{\mathrm{dec}}(\mem{var}) = (\mathrm{rel},\sigma_{\mathrm{dec}}) \quad
+	 \sigma_{\mathrm{dec}}\succ\tau_{\mathrm{spec}}\rulelab{check-relspec}}
+	{\TE_{\mathrm{dec}},\VE_{\mathrm{spec}},\VE_{\mathrm{dec}}\vdash\mtt{relation}~\mem{var}~\mtt{:}~\rmunder}
+\rruleskip
+\rrule	{\TE_{\mathrm{dec}}(\mem{tycon})=(\Lambda\alpha^{*}.\tau,\CE) \quad
+	 \#\alpha^{*} = \#\alpha'^{*} \rulelab{check-abstype}}
+	{\TE_{\mathrm{dec}},\VE_{\mathrm{spec}},\VE_{\mathrm{dec}}\vdash\mtt{type}~\alpha'^{*}~\mem{tycon}}
+\rruleskip
+\rrule	{\TE_{\mathrm{dec}}(\mem{tycon})=(\Lambda\alpha^{*}.\tau,\CE) \quad
+	 \#\alpha^{*} = \#\alpha'^{*} \quad
+	 \Lambda\alpha^{*}.\tau ~ \mem{admitsEq} \rulelab{check-eqtype}}
+	{\TE_{\mathrm{dec}},\VE_{\mathrm{spec}},\VE_{\mathrm{dec}}\vdash\mtt{eqtype}~\alpha'^{*}~\mem{tycon}}
+\rruleskip
+\rrule	{\TE_{\mathrm{dec}},\VE_{\mathrm{spec}},\VE_{\mathrm{dec}}\vdash\mem{spec}_1 \quad
+	 \TE_{\mathrm{dec}},\VE_{\mathrm{spec}},\VE_{\mathrm{dec}}\vdash\mem{spec}_2}
+	{\TE_{\mathrm{dec}},\VE_{\mathrm{spec}},\VE_{\mathrm{dec}}\vdash\mem{spec}_1~\mem{spec}_2}
+\rruleskip
+\rrule	{\mem{spec} = \mtt{with}~\rmunder ~\vee~
+	 \mem{spec} = \mtt{type}~\mem{typbind} ~\vee~
+	 \mem{spec} = \mtt{datatype}~\rmunder}
+	{\TE_{\mathrm{dec}},\VE_{\mathrm{spec}},\VE_{\mathrm{dec}}\vdash\mem{spec}}
+\end{relation}
+
+\par\noindent\emph{Comments}:
+\begin{description}
+\item[\ruleref{check-relspec}~\ruleref{check-valspec}] Note that
+$\sigma_{\mathrm{dec}}$ cannot be more specific than $\tau_{\mathrm{spec}}$.
+\item[\ruleref{check-abstype}~\ruleref{check-eqtype}]
+Note that $\CE$ must be present.
+\end{description}
+
+\begin{relation}{Modules}{\mem{module}\Rightarrow\mem{modid},\VE}
+\rrule	{\begin{array}{c}
+	 \ME_{\mathrm{init}}\vdash\mtt{module}~\mem{modid}\mtt{:}~\mem{spec}~\mtt{end}\Rightarrow\ME,\TE,\VE,\mem{modid} \\
+	 \VE' = \{\mem{con}\mapsto\VE(\mem{con}) ~;~ \VE(\mem{con}) = (\mathrm{con},\rmunder)\} \\
+	  \ME,\TE,\VE',\mem{modid}\vdash\mem{dec}\Rightarrow\ME',\TE',\VE'' \quad
+	 \TE',\VE,\VE''\vdash\mem{spec}
+	 \end{array}}
+	{\mtt{module}~\mem{modid}~\mtt{:}~\mem{spec}~\mtt{end}~\mem{dec}\Rightarrow\mem{modid},\VE}
+\end{relation}
+
+\par\noindent\emph{Comment}: The \VE{} arising from the elaboration
+of the interface contains bindings for both constructors and non-constructors.
+Only the constructor bindings are retained (in $\VE'$) when the
+module body is elaborated.
+
+\begin{relation}{Module Sequences}{\ME\vdash\mem{modseq}\Rightarrow\ME'}
+\rrule	{\mem{module}\Rightarrow\mem{modid},\VE \quad
+	 \mem{modid} \notin \mathrm{Dom}~\ME}
+	{\ME\vdash\mem{module}\Rightarrow\ME+\{\mem{modid}\mapsto(\{\},\VE)\}}
+\rruleskip
+\rrule	{\ME\vdash\mem{modseq}_1\Rightarrow\ME_1 \quad
+	 \ME_1\vdash\mem{modseq}_2\Rightarrow\ME_2}
+	{\ME\vdash\mem{modseq}_1~\mem{modseq}_2\Rightarrow\ME_2}
+\end{relation}
+
+\begin{relation}{Programs}{\vdash\mem{modseq}}
+\rrule	{\begin{array}{c}
+	 \ME_{\mathrm{init}}\vdash\mem{modseq}\Rightarrow\ME \quad
+	 \ME(\mtt{Main}) = (\rmunder,\VE) \\
+	 \VE(\mtt{main}) = (\mathrm{rel},\sigma) \quad
+	 \sigma\succ[[\tau_{\mathrm{string}}]t_{\mathrm{list}}]\relarrow[]
+	 \end{array}\rulelab{programs}}
+	{\vdash\mem{modseq}}
+\end{relation}
+
+\par\noindent\emph{Comment}:
+A program is a collection of modules. The program's entry point is
+module \verb@Main@'s relation \verb@main@, which
+must have type \verb@string list => ()@.

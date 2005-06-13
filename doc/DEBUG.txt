@@ -1,0 +1,76 @@
+RML debugger crashcourse
+------------------------
+Look into RML/elisp directory to see how to set
+your .emacs so that rml-db.el is loaded at emacs
+startup.
+
+Adrian Pop, adrpo@ida.liu.se, 2005-03-01
+
+NOTE: in this version, rmlc -g doesn't send the -g to the
+      C compiler, use rmlc -g -Wc,-g for that
+
+=============================================================
+To debug a rml module follow these steps:
+=============================================================
+
+1. compiling the rml project again with -g to rmlc for the
+   modules you want to instrument. also you MUST link with
+   rml_g library of RML and -lreadline and -lfl
+
+2. if you need parameters to the debugged executable
+   you will have to wrap them in a file like: run-program.sh
+   #!/bin/sh
+   ./your_program parameters
+   #-- end here
+   chmod +x run-program.sh
+
+3. run the rmldb
+   M-x rmldb 
+   change run-program.sh to your executable name or leave
+   it like that if you have written a run-program.sh script.
+
+6. now you should get a prompt like: 
+   rmldb>
+
+7. go on the relation you want to stop (in your .rml file)
+   - you can stop on:
+     + rules
+     + axioms
+   hit C-x SPACE or C-x-a-b to set a breakpoint
+   hit C-x-a-d to delete a breakpoint
+
+8. hit C-x-a-s to step
+   hit C-x-a-r to run
+   
+9. type "help" to get info on commands
+
+=============================================================
+Notes:
+=============================================================
+The debugger:
+- will stop the program at init
+- will stop at the breakpoints
+- CTRL+C it will stop at the next available site 
+  if it is in 'run' mode.
+- if is in 'run' mode it won't display variables use
+  'step' for that
+- will show help if you type 'help' at the prompt
+
+
+=============================================================
+External Data Viewer
+=============================================================
+Look into RMLDataTree directory.
+There are several .bat files that give an idea on how you can
+run it. It goes like this:
+java -cp . RMLDataTree path_to_rml_files
+
+Then, from the debugger you just say 
+rmldb@>gr variable
+
+
+
+
+
+
+

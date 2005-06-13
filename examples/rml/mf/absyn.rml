@@ -1,0 +1,31 @@
+(* absyn.rml -- Mini-Freja Abstract Syntax *)
+module Absyn:
+    type var		= string
+
+    datatype prim1	= NOT | NEG
+    datatype prim2	= LT | LE | EQ | NE | GE | GT | AND
+			| OR | ADD | SUB | MUL | DIV | MOD
+
+    datatype const	= INTcnst of int
+			| BOOLcnst of bool
+			| NILcnst
+
+    datatype pat	= CONSTpat of const
+			| VARpat of var
+			| CONSpat of pat * pat
+
+    datatype exp	= CONSTexp of const
+			| VARexp of var
+			| CONSexp of exp * exp
+			| LAMexp of var * exp
+			| PRIM1exp of prim1 * exp
+			| PRIM2exp of prim2 * exp * exp
+			| IFexp of exp * exp * exp
+			| APPexp of exp * exp
+			| CASEexp of exp * crule list
+			| RECexp of (var * exp) list * exp
+    withtype crule	= pat * exp
+
+end (* interface *)
+
+(* no body *)

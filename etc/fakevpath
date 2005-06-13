@@ -1,0 +1,22 @@
+#!/bin/sh
+# usage: fakevpath ALTDIR OEXT COMMAND f1.c ... fn.c
+ALTDIR=$1
+OEXT=$2
+COMMAND=$3
+shift
+shift
+shift
+
+for FILEC
+do
+    if [ -f ${FILEC} ]; then
+	continue
+    elif [ -f ${ALTDIR}/${FILEC} ]; then
+	FILEC=${ALTDIR}/${FILEC}
+    else
+	continue
+    fi
+    FILEO=`basename ${FILEC} .c`.${OEXT}
+    echo ${FILEO}: ${FILEC}
+    echo "	${COMMAND} -o" ${FILEO} ${FILEC}
+done

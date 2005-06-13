@@ -1,0 +1,216 @@
+.\" rml.1
+.TH RML 1 "17 Mar 1998"
+.SH NAME
+rml \- compiler and interpreter for RML specifications
+.SH SYNOPSIS
+.B rml
+.RB [ \-Ofol ]
+.RB [ \-no-Ofol ]
+.RB [ \-Ocps ]
+.RB [ \-no-Ocps ]
+.RB [ \-Ocode ]
+.RB [ \-no-Ocode ]
+.RB [ \-O ]
+.RB [ \-no-O ]
+.RB [ \-East ]
+.RB [ \-no-East ]
+.RB [ \-Efol ]
+.RB [ \-no-Efol ]
+.RB [ \-Ecps ]
+.RB [ \-no-Ecps ]
+.RB [ \-Eplain ]
+.RB [ \-Eswitch ]
+.RB [ \-Ediff ]
+.RB [ \-Esml ]
+.RB [ \-Tonly ]
+.RB [ \-f(no-)implicit-let ]
+.RB [ \-f(no-)reorder ]
+.RB [ \-W(no-)non-exhaustive ]
+.RB [ \-v ]
+.RB \f2file\fP .rml " ..."
+.sp
+.B rml \-i
+.IB file .rml " ..."
+.RB [ -- " args...]"
+.SH DESCRIPTION
+.B rml
+compiles each named RML file to a C or SML file.
+The options allow optimizations to be turned on or off, and
+also allow inspection of intermediate data in the compiler.
+.PP
+When invoked with
+.B \-i
+as its first option,
+.B rml
+will parse and typecheck the given RML modules.
+They are then loaded by the RML interpreter, after which relation
+.BR Main.main
+will be invoked with a list of strings containing the remaining
+command-line options.
+.SH OPTIONS
+Options and file name arguments may be freely mixed.
+Arguments are processed from left to right.
+The options offered by the
+.B rml
+compiler are the following:
+.TP
+.BR \-Ofol \0( \-no-Ofol )
+Enables (disables) optimizations of the FOL (First-Order Logic)
+intermediate representation. Enabled by default.
+.TP
+.BR \-Ocps \0( \-no-Ocps )
+Enables (disables) optimizations of the CPS (Continuation-Passing Style)
+intermediate representation. Enabled by default.
+.TP
+.BR \-Ocode \0( \-no-Ocode )
+Enables (disables) optimizations of the low-level code
+intermediate representation. Enabled by default.
+.TP
+.BR \-O \0( \-no-O )
+Enables (disables) all optimizations.
+.TP
+.BR \-East \0( \-no-East )
+Enables (disables) output of the AST (Abstract Syntax Tree)
+intermediate representation. Disabled by default.
+.TP
+.BR \-Efol \0( \-no-Efol )
+Enables (disables) output of the FOL
+intermediate representation. Disabled by default.
+.TP
+.BR \-Ecps \0( -no-Ecps )
+Enables (disables) output of the CPS
+intermediate representation. Disabled by default.
+.TP
+.BR \-Eplain
+Default. Chooses `plain' code generation style.
+.TP
+.BR \-Eswitch
+Chooses `switch' code generation style.
+.TP
+.BR \-Ediff
+Chooses `diff' code generation style.
+.TP
+.BR \-Esml
+Instead of emitting C code, the intermediate CPS form is
+output as executable SML code. This backend supports most
+of the RML language, except logical variables or higher-order relations.
+The generated code takes the form of a number of signatures and functors,
+all of which depend on the
+.B rml
+runtime structure.
+.TP
+.B \-Tonly
+Only perform syntatic and semantics checks. Do not generate any code.
+.TP
+.BR \-fno-implicit-let \0( -fimplicit-let )
+Controls how a goal \f2var\fP
+.B =
+\f2exp\fP, where the left-hand-side variable
+is unbound, is interpreted.
+Under the old semantics, this was considered an implicit binding of that
+variable, whereas the new semantics considers it an error.
+Note that these ``implicit lets'' can easily be corrected by using the
+.B let
+\f2var\fP
+.B =
+\f2exp\fP
+goal instead.
+The default is to disallow ``implicit lets.''
+.TP
+.BR \-freorder \0( \-fno-reorder )
+Controls whether declarations in modules are reordered according to their
+dependencies before the static semantics checker is run.
+Reordering allows the traditional define-before-use rule to be ignored.
+The default is to perform reordering.
+.TP
+.BR \-Wno-non-exhaustive \0( \-Wnon-exhaustive )
+Controls whether warnings are generated for non-exhaustive pattern-matching
+constructs. The default is not to warn.
+.TP
+.B \-v
+Print the compiler's version and build information.
+.SH USAGE
+Users are expected to use the
+.B rmlc
+compiler driver interface to the RML compilation tools.
+.SH FILES
+.PD 0
+.TP 15
+.IB file .rml
+the source file containing an RML module
+.TP
+.IB file .c
+the generated C code
+.TP
+.IB file .h
+the generated C header file
+.TP
+.IB file .cps
+the intermediate CPS representation
+.TP
+.IB file .fol
+the intermediate FOL representation
+.TP
+.IB file .ast
+the intermediate AST representation
+.TP
+.B librml.a
+the RML runtime library
+.TP
+.B <rml.h>
+C include file for code using
+.B librml.a
+.TP
+.IB file .sig
+the generated signature (-Esml)
+.TP
+.IB file .sml
+the generated functor (-Esml)
+.TP
+.BR rml.sig , rml.sml
+the runtime structure (-Esml)
+.PD
+.SH "SEE ALSO"
+.BR cc (1),
+.BR rmlc (1),
+.BR librml (3x)
+.sp .2
+"The Definition of RML" for the official definition of
+the syntax and semantics of RML.
+.sp .2
+"Compiling Natural Semantics" for an explanation of
+the different intermediate representations and code generation styles.
+.SH NOTES
+.B rml
+allows a module
+.I M1
+using (via the
+.B with
+declaration) another module
+.I M2
+to be compiled, even if
+.I M2
+is not complete. This is because only the
+.B interface
+part of
+.I M2
+is needed to typecheck and compile
+.IR M1 .
+Although modules with recursive dependencies may be compiled and linked,
+runtime tests will terminate any attempt to run the executable.
+.SH BUGS
+It is imperative that the choice of code generation style is
+consistent with the choice of the
+.B <rml.h>
+include file (when compiling the generated C code) and
+.BR librml.a
+runtime library. This is one of the reasons why the
+.B rmlc
+compiler driver is the recommended user interface to the RML system.
+.sp
+The
+.B rml
+interpreter implements the entire base language, but not
+all of the RML standard library.
+.SH AUTHOR
+Mikael Pettersson (mpe@ida.liu.se, mikpe@sophia.inria.fr).

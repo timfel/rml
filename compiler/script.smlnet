@@ -1,0 +1,22 @@
+(* add compiler flags common to all configurations here *)
+export RML
+
+source c:\bin\cygwin\home\adrpo\rml-2.2\compiler\, c:\bin\cygwin\home\adrpo\rml-2.2\compiler\new\, c:\bin\sml.net\lib\parsing\
+
+@c:\bin\sml.net\lib\parsing\sources
+
+structure Tokens=rml.grm.sml
+signature RML_TOKENS=rml.grm.sig, RML_LRVALS=rml.grm.sig
+functor   RMLLrValsFn=rml.grm.sml, RMLLexFn=rml.lex.sml
+structure Tokens=mod.grm.sml
+signature MOD_TOKENS=mod.grm.sig, MOD_LRVALS=mod.grm.sig
+functor   MODLrValsFn=mod.grm.sml, MODLexFn=mod.lex.sml
+
+on debug.symFromLoc
+
+(*
+log log.txt
+on verbose
+on env.time
+on elab*
+*)

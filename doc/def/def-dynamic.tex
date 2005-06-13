@@ -1,0 +1,425 @@
+% def-dynamic.tex
+%
+\section{Dynamic Semantics}
+\seclab{dynamic}
+%
+\subsection{Simple Objects}
+All objects in the dynamic semantics are built from syntactic objects
+and the object classes shown in Figure~\figref{dyn-simple}.
+
+\begin{figure}[htbp]
+\begin{center}
+\begin{tabular}{@{}r@{~}c@{~}l@{~}l}
+\mem{a} & \elem & $\mathrm{Answer} = \{\mathrm{Yes},\mathrm{No}\}$ & final answers\\
+\mem{l} & \elem & Loc & denumerable set of locations\\
+\mem{prim} & \elem & PrimVal & primitive procedures and values\\
+& & \{FAIL\} & failure token
+\end{tabular}
+\end{center}
+\caption{Simple Semantic Objects}
+\figlab{dyn-simple}
+\end{figure}
+%
+\subsection{Compound Objects}
+The compound objects for the dynamic semantics are shown in
+Figures~\figref{dyn-compound} and~\figref{dyn-conts}.
+
+\begin{figure}[htbp]
+\begin{center}
+\begin{tabular}{@{}r@{~}c@{~}l}
+$v$ & \elem & $\mathrm{Val} = \mathrm{Lit} \cup \mathrm{PrimVal} \cup \mathrm{Val}^{*} \cup (\mathrm{Con} \times \mathrm{Val}^{*}) \cup \mathrm{Closure} \cup \mathrm{Loc}$\\
+& & $\mathrm{Closure} = \mathrm{Clause}\times\mathrm{MEnv}\times\mathrm{VEnv}\times\mathrm{VEnv}$\\
+\VE & \elem & $\mathrm{VEnv} = \mathrm{Var} \finmap \mathrm{Val}$\\
+\ME & \elem & $\mathrm{MEnv} = \mathrm{ModId} \finmap \mathrm{VEnv}$\\
+$\sigma$ & \elem & $\mathrm{Store} = \mathrm{Loc} \finmap (\mathrm{Val} \cup \{\mathrm{unbound}\})$\\
+\mem{s} & \elem & $\mathrm{State} = \mathrm{Store} \times \cdots$\\
+\mem{m} & \elem & $\mathrm{Marker} = \mathrm{Store}$\\
+\end{tabular}
+\end{center}
+\caption{Compound Semantic Objects}
+\figlab{dyn-compound}
+\end{figure}
+%
+\begin{figure}[htbp]
+\begin{boxedminipage}[htbp]{\textwidth}
+\begin{tabular*}{\linewidth}{@{}r@{~}c@{~}l@{~}r@{~}l@{\extracolsep{\fill}}r}
+\mem{fc} & \elem & FCont & ::= & \multicolumn{2}{@{}l}{\texttt{orhalt} \hfill failure continuations} \\
+& & & \BAR & $\mtt{orelse(}m\mtt{,}\mem{clause}\mtt{,}v^{*}\mtt{,}\ME\mtt{,}\VE\mtt{,}\mem{fc}\mtt{,}\mem{pc}\mtt{)}$ \\
+& & & \BAR & $\mtt{ornot(}m\mtt{,}\mem{gc}\mtt{,}\VE\mtt{,}\mem{fc}\mtt{)}$ \\
+\mem{gc} & \elem & GCont & ::= & \multicolumn{2}{@{}l}{\texttt{andhalt} \hfill goal continuations} \\
+& & & \BAR & $\mtt{andthen(}\mem{goal}\mtt{,}\ME\mtt{,}\mem{gc}\mtt{)}$ \\
+& & & \BAR & $\mtt{andnot(}\mem{fc}\mtt{)}$ \\
+& & & \BAR & $\mtt{andreturn(}\ME\mtt{,}\mem{result}\mtt{,}\mem{pc}\mtt{)}$ \\
+\mem{pc} & \elem & PCont & ::= & \multicolumn{2}{@{}l}{$\mtt{retmatch(}\mem{pat}^{*}\mtt{,}\VE\mtt{,}\mem{gc}\mtt{,}\mem{fc}\mtt{)}$ \hfill procedure continuations}
+\end{tabular*}
+\end{boxedminipage}
+\caption{Grammar of Continuation Terms}
+\figlab{dyn-conts}
+\end{figure}
+
+Expressible values are literals, primitive procedures and values,
+tuples, constructor applications, closures, or locations.
+
+Closures are clauses closed with the module and variable environments
+in effect when the closure (resulting from evaluating a \emph{relbind})
+was created. The last component of a closure describes the recursive part
+of the closure's environment. This component will be successively
+unfolded during recursions, giving each level of the recursion
+access to a `virtually recursive' environment without actually
+creating a recursive object.
+
+Logical variables behave like write-once references.
+A logical variable of type $\alpha~\mtt{lvar}$ is represented
+by a location, and the store maps that location either to
+a value (when the variable has been instantiated) or to the
+token `unbound' (before it has been instantiated).
+
+Markers are used to record whatever information is necessary to
+restore a store to an earlier configuration, viz. the configuration
+at the time the marker was created.
+
+The state is a tuple of a store $\sigma$ and some unspecified
+external component $X$.
+The external component is not recorded in markers, and thus
+not restored during backtracking.
+
+The backtracking control flow is
+% British English: two ``l''
+modelled
+using continuations.
+In contrast to denotational semantics, these continuations are encoded
+as first-order data structures that are interpreted by special-purpose relations.
+%
+\subsection{Initial Dynamic Objects}
+The initial dynamic objects $\ME_{\mathrm{init}}$, $\VE_{\mathrm{init}}$,
+and $s_{\mathrm{init}}$, and the contents of the
+set PrimVal are defined in Section~\secref{dynamic0}.
+
+The function
+$\mem{APPLY}(\mem{prim},v^{*},s)\Rightarrow(v'^{*},s')/(\mathrm{FAIL},s')$
+describes the effect of calling a primitive procedure.
+It is also defined in Section~\secref{dynamic0}.
+%
+\subsection{Inference Rules}
+
+\begin{relation}{States and Markers}{\mem{marker}~s \Rightarrow m}
+\rrule	{s = (\sigma,\rmunder)}
+	{\mem{marker}~s \Rightarrow \sigma}
+\end{relation}
+
+\begin{relation}{}{\mem{restore}(m,s) \Rightarrow s'}
+\rrule	{s' = (\sigma,X)}
+	{\mem{restore}(\sigma,(\rmunder,X)) \Rightarrow s'}
+\end{relation}
+
+\begin{relation}{Patterns}{\mem{match}(\mem{pat},v) \Rightarrow \VE/\mathrm{FAIL}}
+\rrule	{}
+	{\mem{match}(\ttunder,v) \Rightarrow \{\}}
+\rruleskip
+\rrule	{\mem{lit}_1 = \mem{lit}_2}
+	{\mem{match}(\mem{lit}_1,\mem{lit}_2) \Rightarrow \{\}}
+\rruleskip
+\rrule	{\mem{lit}_1 \neq \mem{lit}_2}
+	{\mem{match}(\mem{lit}_1,\mem{lit}_2) \Rightarrow \mathrm{FAIL}}
+\rruleskip
+\rrule	{\mem{con}_1 = \mem{con}_2}
+	{\mem{match}(\langle\rmunder\rangle\mem{con}_1,(\mem{con}_2,\rmunder)) \Rightarrow \{\}}
+\rruleskip
+\rrule	{\mem{con}_1 \neq \mem{con}_2}
+	{\mem{match}(\langle\rmunder\rangle\mem{con}_1,(\mem{con}_2,\rmunder)) \Rightarrow \mathrm{FAIL}}
+\rruleskip
+\rrule	{\mem{con}_1 = \mem{con}_2 \quad
+	 \mem{match}^{*}(\mem{pat}^{(k)},v^{*}) \Rightarrow \VE/\mathrm{FAIL}}
+	{\mem{match}(\langle\rmunder\rangle\mem{con}_1\mtt{(}\mem{pat}_1\mtt{,}\cdots\mtt{,}\mem{pat}_{k}\mtt{)},(\mem{con}_2,v^{*})) \Rightarrow \VE/\mathrm{FAIL}}
+\rruleskip
+\rrule	{\mem{con}_1 \neq \mem{con}_2}
+	{\mem{match}(\langle\rmunder\rangle\mem{con}_1\mtt{(}\mem{pat}_1\mtt{,}\cdots\mtt{,}\mem{pat}_{k}\mtt{)},(\mem{con}_2,v^{*})) \Rightarrow \mathrm{FAIL}}
+\rruleskip
+\rrule	{\mem{match}^{*}(\mem{pat}^{(k)},v^{*}) \Rightarrow \VE/\mathrm{FAIL}}
+	{\mem{match}(\mtt{(}\mem{pat}_1\mtt{,}\cdots\mtt{,}\mem{pat}_{k}\mtt{)},v^{*}) \Rightarrow \VE/\mathrm{FAIL}}
+\rruleskip
+\rrule	{\mem{match}(\mem{pat},v)\Rightarrow \VE}
+	{\mem{match}(\mem{var}~\mtt{as}~\mem{pat},v) \Rightarrow \VE+\{\mem{var}\mapsto v\}}
+\rruleskip
+\rrule	{\mem{match}(\mem{pat},v)\Rightarrow \mathrm{FAIL}}
+	{\mem{match}(\mem{var}~\mtt{as}~\mem{pat},v) \Rightarrow \mathrm{FAIL}}
+\end{relation}
+
+\begin{relation}{}{\mem{match}^{*}(\mem{pat}^{*},v^{*}) \Rightarrow \VE/\mathrm{FAIL}}
+\rrule	{}
+	{\mem{match}^{*}([],[]) \Rightarrow \{\}}
+\rruleskip
+\rrule	{\mem{match}(\mem{pat},v) \Rightarrow \mathrm{FAIL}}
+	{\mem{match}^{*}(\mem{pat}::\mem{pat}^{*},v::v^{*}) \Rightarrow \mathrm{FAIL}}
+\rruleskip
+\rrule	{\mem{match}(\mem{pat},v) \Rightarrow \VE \quad
+	 \mem{match}^{*}(\mem{pat}^{*},v^{*}) \Rightarrow \mathrm{FAIL}}
+	{\mem{match}^{*}(\mem{pat}::\mem{pat}^{*},v::v^{*}) \Rightarrow \mathrm{FAIL}}
+\rruleskip
+\rrule	{\mem{match}(\mem{pat},v) \Rightarrow \VE \quad
+	 \mem{match}^{*}(\mem{pat}^{*},v^{*}) \Rightarrow \VE'}
+	{\mem{match}^{*}(\mem{pat}::\mem{pat}^{*},v::v^{*}) \Rightarrow \VE+\VE'}
+\end{relation}
+
+\begin{relation}{Long Variables}{\mem{lookupLongVar}(\mem{longvar},\ME,\VE) \Rightarrow v}
+\rrule	{\VE(\mem{var}) = v}
+	{\mem{lookupLongVar}(\mem{var},\ME,\VE) \Rightarrow v}
+\rruleskip
+\rrule	{\ME(\mem{modid}) = \VE' \quad
+	 \VE'(\mem{var}) = v}
+	{\mem{lookupLongVar}(\mem{modid}\mtt{.}\mem{var},\ME,\VE) \Rightarrow v}
+\end{relation}
+
+\begin{relation}{Expressions}{\mem{eval}(\mem{exp},\ME,\VE)\Rightarrow v}
+\rrule	{}
+	{\mem{eval}(\mem{lit},\ME,\VE) \Rightarrow \mem{lit}~\mathrm{in~Val}}
+\rruleskip
+\rrule	{}
+	{\mem{eval}(\langle\mem{modid}\mtt{.}\rangle\mem{con},\ME,\VE) \Rightarrow (\mem{con},[])}
+\rruleskip
+\rrule	{\mem{lookupLongVar}(\mem{longvar},\ME,\VE) \Rightarrow v}
+	{\mem{eval}(\mem{longvar},\ME,\VE) \Rightarrow v}
+\rruleskip
+\rrule	{\mem{eval}^{*}(\mem{exp}^{(k)},\ME,\VE) \Rightarrow v^{(k)}}
+	{\mem{eval}(\langle\mem{modid}\mtt{.}\rangle\mem{con}\mtt{(}\mem{exp}_1\mtt{,}\cdots\mtt{,}\mem{exp}_k\mtt{)},\ME,\VE) \Rightarrow (\mem{con},v^{(k)})}
+\rruleskip
+\rrule	{\mem{eval}^{*}(\mem{exp}^{(k)},\ME,\VE) \Rightarrow v^{(k)}}
+	{\mem{eval}(\mtt{(}\mem{exp}_1\mtt{,}\cdots\mtt{,}\mem{exp}_k\mtt{)},\ME,\VE) \Rightarrow v^{(k)}~\mathrm{in~Val}}
+\end{relation}
+
+\begin{relation}{}{\mem{eval}^{*}(\mem{exp}^{(k)},\ME,\VE)\Rightarrow v^{(k)}}
+\rrule	{\mem{eval}(\mem{exp}_i,\ME,\VE) \Rightarrow v_i ~(1\leq i\leq k)}
+	{\mem{eval}^{*}(\mem{exp}^{(k)},\ME,\VE) \Rightarrow v^{(k)}}
+\end{relation}
+
+\begin{relation}{Recursive Values}{\mem{unfold}_{\mathrm{v}}(\VE_{\mathrm{rec}},v)\Rightarrow v'}
+\rrule	{\rulelab{unfold-v}}
+	{\mem{unfold}_{\mathrm{v}}(\VE_{\mathrm{rec}},(\mem{clause},\ME,\VE,\rmunder)) \Rightarrow (\mem{clause},\ME,\VE,\VE_{\mathrm{rec}})}
+\rruleskip
+\rrule	{v \notin \mathrm{Closure}}
+	{\mem{unfold}_{\mathrm{v}}(\VE_{\mathrm{rec}},v) \Rightarrow v}
+\end{relation}
+
+\par\noindent\emph{Comment}: \ruleref{unfold-v} $\VE_{\mathrm{rec}}$
+is the environment in which this closure was bound. The effect of this
+step is to create a new closure in which an additional level of recursion
+is available.
+
+\begin{relation}{Recursive Value Environments}{\mem{unfold}_{\mathrm{VE}}~\VE\Rightarrow\VE'}
+\rrule	{\begin{array}{c}
+	 \VE = \{\mem{var}_1\mapsto v_1,\cdots,\mem{var}_k\mapsto v_k\}\\
+	 \mem{unfold}_{\mathrm{v}}(\VE,v_i) \Rightarrow v'_i ~(1\leq i\leq k)
+	 \end{array}}
+	{\mem{unfold}_{\mathrm{VE}}~\VE\Rightarrow\{\mem{var}_1\mapsto v'_1,\cdots,\mem{var}_k\mapsto v'_k\}}
+\end{relation}
+
+\par\noindent\emph{Comment}: This rule unfolds every closure bound
+in the environment, thus enabling each of them to recurse one step.
+
+\begin{relation}{Failure Continuations}{\mem{fail}(\mem{fc},s) \Rightarrow a}
+\rrule	{\mem{restore}(m,s) \Rightarrow s' \quad
+	 \mem{invoke}(\mem{clause},v^{*},\ME,\VE,\mem{fc},\mem{pc},s') \Rightarrow a}
+	{\mem{fail}(\mtt{orelse(}m\mtt{,}\mem{clause}\mtt{,}v^{*}\mtt{,}\ME\mtt{,}\VE\mtt{,}\mem{fc}\mtt{,}\mem{pc}\mtt{)},s) \Rightarrow a}
+\rruleskip
+\rrule	{\mem{restore}(m,s) \Rightarrow s' \quad
+	 \mem{proceed}(\mem{gc},\VE,\mem{fc},s') \Rightarrow a}
+	{\mem{fail}(\mtt{ornot(}m\mtt{,}\mem{gc}\mtt{,}\VE\mtt{,}\mem{fc}\mtt{)},s) \Rightarrow a}
+\rruleskip
+\rrule	{}
+	{\mem{fail}(\mtt{orhalt},s) \Rightarrow \mathrm{No}}
+\end{relation}
+
+\begin{relation}{Goal Continuations}{\mem{proceed}(\mem{gc},\VE,\mem{fc},s) \Rightarrow a}
+\rrule	{\mem{exec}(\mem{goal},\ME,\VE,\mem{fc},\mem{gc},s) \Rightarrow a}
+	{\mem{proceed}(\mtt{andthen(}\mem{goal}\mtt{,}\ME\mtt{,}\mem{gc}\mtt{)},\VE,\mem{fc},s) \Rightarrow a}
+\rruleskip
+\rrule	{\mem{fail}(\mem{fc}',s) \Rightarrow a}
+	{\mem{proceed}(\mtt{andnot(}\mem{fc}'\mtt{)},\VE,\mem{fc},s) \Rightarrow a}
+\rruleskip
+\rrule	{\mem{eval}^{*}(\mem{exp}^{*},\ME,\VE) \Rightarrow v^{*} \quad
+	 \mem{return}(\mem{pc},v^{*},s) \Rightarrow a\rulelab{proceed-return}}
+	{\mem{proceed}(\mtt{andreturn(}\ME\mtt{,}\mem{exp}^{*}\mtt{,}\mem{pc}\mtt{)},\VE,\rmunder,s) \Rightarrow a}
+\rruleskip
+\rrule	{\mem{fail}(\mem{fc},s) \Rightarrow a}
+	{\mem{proceed}(\mtt{andreturn(}\ME\mtt{,}\mtt{fail}\mtt{,}\mem{pc}\mtt{)},\VE,\rmunder,s) \Rightarrow a}
+\rruleskip
+\rrule	{}
+	{\mem{proceed}(\mtt{andhalt},\VE,\mem{fc},s) \Rightarrow \mathrm{Yes}}
+\end{relation}
+
+\par\noindent\emph{Comment}: \ruleref{proceed-return} The failure continuation in
+effect at the time of the return is abandoned in favour of the one recorded
+in the procedure continuation \emph{pc}.
+This restricts relations to be determinate.
+
+\begin{relation}{Procedure Continuations}{\mem{return}(\mem{pc},v^{*},s) \Rightarrow a}
+\rrule	{\mem{match}^{*}(\mem{pat}^{*},v^{*}) \Rightarrow \VE' \quad
+	 \mem{proceed}(\mem{gc},\VE+\VE',\mem{fc},s) \Rightarrow a}
+	{\mem{return}(\mtt{retmatch(}\mem{pat}^{*}\mtt{,}\VE\mtt{,}\mem{gc}\mtt{,}\mem{fc}\mtt{)},v^{*},s) \Rightarrow a}
+\rruleskip
+\rrule	{\mem{match}^{*}(\mem{pat}^{*},v^{*})\Rightarrow \mathrm{FAIL} \quad
+	 \mem{fail}(\mem{fc},s) \Rightarrow a}
+	{\mem{return}(\mtt{retmatch(}\mem{pat}^{*}\mtt{,}\VE\mtt{,}\mem{gc}\mtt{,}\mem{fc}\mtt{)},v^{*},s) \Rightarrow a}
+\end{relation}
+
+\begin{relation}{Procedure Calls}{\mem{call}(v,v^{*},\mem{fc},\mem{pc},s) \Rightarrow a}
+\rrule	{\begin{array}{c}
+	 \mem{unfold}_{\mathrm{VE}}~\VE_{\mathrm{rec}} \Rightarrow \VE'_{\mathrm{rec}} \\
+	 \mem{invoke}(\mem{clause},v^{*},\ME,\VE+\VE'_{\mathrm{rec}},\mem{fc},\mem{pc},s) \Rightarrow a
+	 \end{array}}
+	{\mem{call}((\mem{clause},\ME,\VE,\VE_{\mathrm{rec}}),v^{*},\mem{fc},\mem{pc},s) \Rightarrow a}
+\rruleskip
+\rrule	{\mem{APPLY}(\mem{prim},v^{*},s)\Rightarrow(v'^{*},s') \quad
+	 \mem{return}(\mem{pc},v'^{*},s') \Rightarrow a}
+	{\mem{call}(\mem{prim},v^{*},\mem{fc},\mem{pc},s) \Rightarrow a}
+\rruleskip
+\rrule	{\mem{APPLY}(\mem{prim},v^{*},s)\Rightarrow(\mathrm{FAIL},s') \quad
+	 \mem{fail}(\mem{fc},s') \Rightarrow a}
+	{\mem{call}(\mem{prim},v^{*},\mem{fc},\mem{pc},s) \Rightarrow a}
+\end{relation}
+
+\begin{relation}{Goals}{\mem{exec}(\mem{goal},\ME,\VE,\mem{fc},\mem{gc},s)\Rightarrow a}
+\rrule	{\begin{array}{c}
+	 \mem{lookupLongVar}(\mem{longvar},\ME,\VE) \Rightarrow v \\
+	 \mem{eval}^{*}(\mem{exp}^{*},\ME,\VE) \Rightarrow v'^{*} \quad
+	 \mem{pc} = \mtt{retmatch(}\mem{pat}^{*}\mtt{,}\VE\mtt{,}\mem{gc}\mtt{,}\mem{fc}\mtt{)} \\
+	 \mem{call}(v,v'^{*},\mem{fc},\mem{pc},s) \Rightarrow a
+	 \end{array}}
+	{\mem{exec}(\mem{longvar}~\mem{exp}^{*}~\mtt{=>}~\mem{pat}^{*},\ME,\VE,\mem{fc},\mem{gc},s) \Rightarrow a}
+\rruleskip
+\rrule	{\begin{array}{c}
+	 \mem{eval}(\mem{exp},\ME,\VE) \Rightarrow v \quad
+	 \VE(\mem{var}) = v' \\
+	 v = v' \quad
+	 \mem{proceed}(\mem{gc},\VE,\mem{fc},s) \Rightarrow a
+	 \end{array}\rulelab{goal-equal}}
+	{\mem{exec}(\mem{var}~\mtt{=}~\mem{exp},\ME,\VE,\mem{fc},\mem{gc},s) \Rightarrow a}
+\rruleskip
+\rrule	{\mem{eval}(\mem{exp},\ME,\VE) \Rightarrow v \quad
+	 \VE(\mem{var}) = v' \quad
+	 v \neq v' \quad
+	 \mem{fail}(\mem{fc},s) \Rightarrow a}
+	{\mem{exec}(\mem{var}~\mtt{=}~\mem{exp},\ME,\VE,\mem{fc},\mem{gc},s) \Rightarrow a}
+\rruleskip
+\rrule	{\begin{array}{c}
+	 \mem{eval}(\mem{exp},\ME,\VE) \Rightarrow v \quad
+	 \mem{match}(\mem{pat},v) \Rightarrow \VE' \\
+	 \mem{proceed}(\mem{gc},\VE+\VE',\mem{fc},s) \Rightarrow a
+	 \end{array}}
+	{\mem{exec}(\mtt{let}~\mem{pat}~\mtt{=}~\mem{exp},\ME,\VE,\mem{fc},\mem{gc},s)\Rightarrow a}
+\rruleskip
+\rrule	{\mem{eval}(\mem{exp},\ME,\VE) \Rightarrow v \quad
+	 \mem{match}(\mem{pat},v) \Rightarrow \mathrm{FAIL} \quad
+	 \mem{fail}(\mem{fc},s) \Rightarrow a}
+	{\mem{exec}(\mtt{let}~\mem{pat}~\mtt{=}~\mem{exp},\ME,\VE,\mem{fc},\mem{gc},s)\Rightarrow a}
+\rruleskip
+\rrule	{\begin{array}{c}
+	 \mem{marker}~s \Rightarrow m \quad
+	 \mem{fc}' = \mtt{ornot(}m\mtt{,}\mem{gc}\mtt{,}\VE\mtt{,}\mem{fc}\mtt{)} \quad
+	 \mem{gc}' = \mtt{andnot(}\mem{fc}\mtt{)} \\
+	 \mem{exec}(\mem{goal},\ME,\VE,\mem{fc}',\mem{gc}',s) \Rightarrow a
+	 \end{array}}
+	{\mem{exec}(\mtt{not}~\mem{goal},\ME,\VE,\mem{fc},\mem{gc},s) \Rightarrow a}
+\rruleskip
+\rrule	{\mem{gc}' = \mtt{andthen(}\mem{goal}_2\mtt{,}\ME\mtt{,}\mem{gc}\mtt{)} \quad
+	 \mem{exec}(\mem{goal}_1,\ME,\VE,\mem{fc},\mem{gc}',s)\Rightarrow a}
+	{\mem{exec}(\mem{goal}_1~\mtt{\&}~\mem{goal}_2,\ME,\VE,\mem{fc},\mem{gc},s) \Rightarrow a}
+\rruleskip
+\end{relation}
+
+\par\noindent\emph{Comment}: \ruleref{goal-equal} Two values are equal if
+their representations are structurally identical. Since references are represented
+by their locations in the store, two references are equal if and only if they are
+in fact the same.
+The type discipline (in particular, the fact that relations do not
+admit equality) ensures that equality is only ever applied to literals,
+nullary constructors, locations, and values built out of such by tuple
+formation and constructor application.
+
+\begin{relation}{}{\mem{exec}'(\langle\mem{goal}\rangle,\ME,\VE,\mem{fc},\mem{gc},s) \Rightarrow a}
+\rrule	{\mem{exec}(\mem{goal},\ME,\VE,\mem{fc},\mem{gc},s) \Rightarrow a}
+	{\mem{exec}'(\mem{goal},\ME,\VE,\mem{fc},\mem{gc},s) \Rightarrow a}
+\rruleskip
+\rrule	{\mem{proceed}(\mem{gc},\VE,\mem{fc},s) \Rightarrow a}
+	{\mem{exec}'(\EMPTY,\ME,\VE,\mem{fc},\mem{gc},s) \Rightarrow a}
+\end{relation}
+
+\begin{relation}{Clauses}{\mem{invoke}(\mem{clause},v^{*},\ME,\VE,\mem{fc},\mem{pc},s) \Rightarrow a}
+\rrule	{\begin{array}{c}
+	 \mem{match}^{*}(\mem{pat}^{*},v^{*}) \Rightarrow \VE' \quad
+	 \mem{gc} = \mtt{andreturn(}\ME\mtt{,}\mem{result}\mtt{,}\mem{pc}\mtt{)} \\
+	 \mem{exec}'(\langle\mem{goal}\rangle,\ME,\VE+\VE',\mem{fc},\mem{gc},s) \Rightarrow a
+	 \end{array}}
+	{\mem{invoke}(\mtt{rule}~\langle\mem{goal}\rangle~\mtt{{-}{-}}~\rmunder~\mem{pat}^{*}~\mtt{=>}~\mem{result},v^{*},\ME,\VE,\mem{fc},\mem{pc},s) \Rightarrow a}
+\rruleskip
+\rrule	{\mem{match}^{*}(\mem{pat}^{*},v^{*})\Rightarrow \mathrm{FAIL} \quad
+	 \mem{fail}(\mem{fc},s) \Rightarrow a}
+	{\mem{invoke}(\mtt{rule}~\langle\mem{goal}\rangle~\mtt{{-}{-}}~\rmunder~\mem{pat}^{*}~\mtt{=>}~\mem{result},v^{*},\ME,\VE,\mem{fc},\mem{pc},s) \Rightarrow a}
+\rruleskip
+\rrule	{\begin{array}{c}
+	 \mem{marker}~s \Rightarrow m \quad
+	 \mem{fc}' = \mtt{orelse(}m\mtt{,}\mem{clause}_2\mtt{,}v^{*}\mtt{,}\ME\mtt{,}\VE\mtt{,}\mem{fc}\mtt{,}\mem{pc}\mtt{)} \\
+	 \mem{invoke}(\mem{clause}_1,v^{*},\ME,\VE,\mem{fc}',\mem{pc},s) \Rightarrow a
+	 \end{array}}
+	{\mem{invoke}(\mem{clause}_1~\mem{clause}_2,v^{*},\ME,\VE,\mem{fc},\mem{pc},s) \Rightarrow a}
+\end{relation}
+
+\begin{relation}{Relation Bindings}{\mem{evalRel}(\ME,\VE,\mem{relbind})\Rightarrow\VE'}
+\rrule	{\VE' = \{\mem{var}\mapsto(\mem{clause},\ME,\VE,\{\})\}}
+	{\mem{evalRel}(\ME,\VE,\mem{var}~\langle\mtt{:}~\mem{ty}\rangle~\mtt{=}~\mem{clause})\Rightarrow\VE'}
+\rruleskip
+\rrule	{\begin{array}{c}
+	 \mem{evalRel}(\ME,\VE,\mem{relbind}_1)\Rightarrow\VE_1 \\
+	 \mem{evalRel}(\ME,\VE,\mem{relbind}_2)\Rightarrow\VE_2
+	 \end{array}}
+	{\mem{evalRel}(\ME,\VE,\mem{relbind}_1~\mtt{and}~\mem{relbind}_2)\Rightarrow\VE_1+\VE_2}
+\end{relation}
+
+\begin{relation}{Declarations}{\mem{evalDec}(\ME,\VE,\mem{dec})\Rightarrow\VE'}
+\rrule	{\mem{eval}(\mem{exp},\ME,\VE)\Rightarrow v}
+	{\mem{evalDec}(\ME,\VE,\mtt{val}~\mem{var}~\mtt{=}~\mem{exp})\Rightarrow\VE+\{\mem{var}\mapsto v\}}
+\rruleskip
+\rrule	{\mem{evalRel}(\ME,\VE,\mem{relbind})\Rightarrow\VE' \quad
+	 \mem{unfold}_{\mathrm{VE}}~\VE' \Rightarrow \VE''}
+	{\mem{evalDec}(\ME,\VE,\mtt{relation}~\mem{relbind})\Rightarrow\VE+\VE''}
+\rruleskip
+\rrule	{\mem{evalDec}(\ME,\VE,\mem{dec}_1)\Rightarrow\VE_1 \quad
+	 \mem{evalDec}(\ME,\VE_1,\mem{dec}_2)\Rightarrow\VE_2}
+	{\mem{evalDec}(\ME,\VE,\mem{dec}_1~\mem{dec}_2)\Rightarrow\VE_2}
+\rruleskip
+\rrule	{\mem{dec} = \mtt{with}~\rmunder ~\vee~
+	 \mem{dec} = \mtt{type}~\rmunder ~\vee~
+	 \mem{dec} = \mtt{datatype}~\rmunder}
+	{\mem{evalDec}(\ME,\VE,\mem{dec})\Rightarrow\VE}
+\end{relation}
+
+\begin{relation}{Module Sequences}{\mem{load}(\ME,\mem{modseq})\Rightarrow\ME'}
+\rrule	{\mem{evalDec}(\ME,\VE_{\mathrm{init}},\mem{dec})\Rightarrow\VE}
+	{\mem{load}(\ME,\mtt{module}~\mem{modid}\mtt{:}~\rmunder~\mtt{end}~\mem{dec})\Rightarrow\ME+\{\mem{modid}\mapsto\VE\}}
+\rruleskip
+\rrule	{\mem{load}(\ME,\mem{modseq}_1)\Rightarrow\ME_1 \quad
+	 \mem{load}(\ME_1,\mem{modseq}_2)\Rightarrow\ME_2}
+	{\mem{load}(\ME,\mem{modseq}_1~\mem{modseq}_2)\Rightarrow\ME_2}
+\end{relation}
+
+\begin{relation}{Program Arguments}{\mem{cnvargv}~\mem{scon}^{*}\Rightarrow v}
+\rrule	{}
+	{\mem{cnvargv}~[]\Rightarrow(\mtt{nil},[])}
+\rruleskip
+\rrule	{v = (\mem{scon}~\mathrm{in~Lit})~\mathrm{in~Val} \quad
+	 \mem{cnvargv}~\mem{scon}^{*}\Rightarrow v'}
+	{\mem{cnvargv}~\mem{scon}::\mem{scon}^{*}\Rightarrow(\mtt{cons},[v,v'])}
+\end{relation}
+
+\begin{relation}{Programs}{\mem{run}(\mem{modseq},\mem{scon}^{*})\Rightarrow a}
+\rrule	{\begin{array}{c}
+	 \mem{load}(\ME_{\mathrm{init}},\mem{modseq})\Rightarrow\ME \quad
+	 \ME(\mtt{Main}) = \VE \quad
+	 \VE(\mtt{main}) = v \\
+	 \mem{cnvargv}~\mem{scon}^{*} \Rightarrow v' \quad
+	 \mem{fc} = \mtt{orhalt} \\
+	 \mem{pc} = \mtt{retmatch(}[]\mtt{,}\{\}\mtt{,}\mtt{andhalt}\mtt{,}\mem{fc}\mtt{)} \quad
+	 \mem{call}(v,[v'],\mem{fc},\mem{pc},s_{\mathrm{init}}) \Rightarrow a
+	 \end{array}}
+	{\mem{run}(\mem{modseq},\mem{scon}^{*})\Rightarrow a}
+\end{relation}

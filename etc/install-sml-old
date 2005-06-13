@@ -1,0 +1,22 @@
+#!/bin/sh
+# usage: install-sml APPNAME PREFIX SMLCM HEAP_SUFFIX GOROOT
+
+APPNAME=$1
+PREFIX=$2
+SMLCM=$3
+HEAP_SUFFIX=$4
+GOROOT=$5
+
+$GOROOT/etc/mkdirhier $PREFIX/bin
+$GOROOT/etc/mkdirhier $PREFIX/lib
+case "$HEAP_SUFFIX" in
+x86-win32)
+    RUN=`fgrep run.x86-win32.exe $SMLCM | sed -e 's+ @SMLload=.*$++' -e 's+\\\\+/+g'`
+    ;;
+*)
+    RUN="$SMLCM"
+    ;;
+esac
+(echo '#!/bin/sh'; echo exec $RUN @SMLquiet @SMLload=$PREFIX/lib/$APPNAME.$HEAP_SUFFIX '$*') > $PREFIX/bin/$APPNAME
+chmod +x $PREFIX/bin/$APPNAME
+cp $APPNAME.$HEAP_SUFFIX $PREFIX/lib

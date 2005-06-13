@@ -1,0 +1,133 @@
+module exp1:
+datatype Exp 
+	= INTconst of int
+	| ADDop of Exp*Exp
+	| SUBop of Exp*Exp
+	| MULop of Exp*Exp
+	| DIVop of Exp*Exp
+	| NEGop of Exp
+relation eval: (Exp) => (int)
+end
+
+relation eval: (Exp) => (int) =
+	rule	RML.debug_print("INTconst(ival)","<- match") => () &
+		RML.debug_print("ival",ival) => () &
+		RML.debug("exp1.rml",20,3,20,38,"eval","axiom:") => () &
+		RML.debug_print("ival",ival) => ()
+		----------------
+		eval(INTconst(ival)) => (ival)
+
+	rule	RML.debug_print("ADDop(e1,e2)","<- match") => () &
+		RML.debug_print("e1",e1) => () &
+		RML.debug_print("e2",e2) => () &
+		RML.debug("exp1.rml",28,9,28,22,"eval","call:eval(e1) => (v1)") => () &
+		RML.debug_print("e1",e1) => () &
+		eval(e1) => (v1) &
+		RML.debug_print("v1","<- match") => () &
+		RML.debug_print("v1",v1) => () &
+		RML.debug("exp1.rml",28,28,28,41,"eval","call:eval(e2) => (v2)") => () &
+		RML.debug_print("e2",e2) => () &
+		eval(e2) => (v2) &
+		RML.debug_print("v2","<- match") => () &
+		RML.debug_print("v2",v2) => () &
+		RML.debug("exp1.rml",28,47,28,66,"eval","call:int_add(v1,v2) => (v3)") => () &
+		RML.debug_print("v1",v1) => () &
+		RML.debug_print("v2",v2) => () &
+		int_add(v1,v2) => (v3) &
+		RML.debug_print("v3","<- match") => () &
+		RML.debug_print("v3",v3) => () &
+		RML.debug("exp1.rml",30,30,30,34,"eval","return:(v3)") => () &
+		RML.debug_print("v3",v3) => ()
+		----------------
+		eval(ADDop(e1,e2)) => (v3)
+
+	rule	RML.debug_print("SUBop(e1,e2)","<- match") => () &
+		RML.debug_print("e1",e1) => () &
+		RML.debug_print("e2",e2) => () &
+		RML.debug("exp1.rml",32,9,32,22,"eval","call:eval(e1) => (v1)") => () &
+		RML.debug_print("e1",e1) => () &
+		eval(e1) => (v1) &
+		RML.debug_print("v1","<- match") => () &
+		RML.debug_print("v1",v1) => () &
+		RML.debug("exp1.rml",32,28,32,41,"eval","call:eval(e2) => (v2)") => () &
+		RML.debug_print("e2",e2) => () &
+		eval(e2) => (v2) &
+		RML.debug_print("v2","<- match") => () &
+		RML.debug_print("v2",v2) => () &
+		RML.debug("exp1.rml",32,47,32,66,"eval","call:int_sub(v1,v2) => (v3)") => () &
+		RML.debug_print("v1",v1) => () &
+		RML.debug_print("v2",v2) => () &
+		int_sub(v1,v2) => (v3) &
+		RML.debug_print("v3","<- match") => () &
+		RML.debug_print("v3",v3) => () &
+		RML.debug("exp1.rml",34,30,34,34,"eval","return:(v3)") => () &
+		RML.debug_print("v3",v3) => ()
+		----------------
+		eval(SUBop(e1,e2)) => (v3)
+
+	rule	RML.debug_print("MULop(e1,e2)","<- match") => () &
+		RML.debug_print("e1",e1) => () &
+		RML.debug_print("e2",e2) => () &
+		RML.debug("exp1.rml",36,9,36,22,"eval","call:eval(e1) => (v1)") => () &
+		RML.debug_print("e1",e1) => () &
+		eval(e1) => (v1) &
+		RML.debug_print("v1","<- match") => () &
+		RML.debug_print("v1",v1) => () &
+		RML.debug("exp1.rml",36,28,36,41,"eval","call:eval(e2) => (v2)") => () &
+		RML.debug_print("e2",e2) => () &
+		eval(e2) => (v2) &
+		RML.debug_print("v2","<- match") => () &
+		RML.debug_print("v2",v2) => () &
+		RML.debug("exp1.rml",36,47,36,66,"eval","call:int_mul(v1,v2) => (v3)") => () &
+		RML.debug_print("v1",v1) => () &
+		RML.debug_print("v2",v2) => () &
+		int_mul(v1,v2) => (v3) &
+		RML.debug_print("v3","<- match") => () &
+		RML.debug_print("v3",v3) => () &
+		RML.debug("exp1.rml",38,30,38,34,"eval","return:(v3)") => () &
+		RML.debug_print("v3",v3) => ()
+		----------------
+		eval(MULop(e1,e2)) => (v3)
+
+	rule	RML.debug_print("DIVop(e1,e2)","<- match") => () &
+		RML.debug_print("e1",e1) => () &
+		RML.debug_print("e2",e2) => () &
+		RML.debug("exp1.rml",40,9,40,22,"eval","call:eval(e1) => (v1)") => () &
+		RML.debug_print("e1",e1) => () &
+		eval(e1) => (v1) &
+		RML.debug_print("v1","<- match") => () &
+		RML.debug_print("v1",v1) => () &
+		RML.debug("exp1.rml",40,28,40,41,"eval","call:eval(e2) => (v2)") => () &
+		RML.debug_print("e2",e2) => () &
+		eval(e2) => (v2) &
+		RML.debug_print("v2","<- match") => () &
+		RML.debug_print("v2",v2) => () &
+		RML.debug("exp1.rml",40,47,40,66,"eval","call:int_div(v1,v2) => (v3)") => () &
+		RML.debug_print("v1",v1) => () &
+		RML.debug_print("v2",v2) => () &
+		int_div(v1,v2) => (v3) &
+		RML.debug_print("v3","<- match") => () &
+		RML.debug_print("v3",v3) => () &
+		RML.debug("exp1.rml",42,30,42,34,"eval","return:(v3)") => () &
+		RML.debug_print("v3",v3) => ()
+		----------------
+		eval(DIVop(e1,e2)) => (v3)
+
+	rule	RML.debug_print("NEGop(e)","<- match") => () &
+		RML.debug_print("e",e) => () &
+		RML.debug("exp1.rml",44,9,44,21,"eval","call:eval(e) => (v1)") => () &
+		RML.debug_print("e",e) => () &
+		eval(e) => (v1) &
+		RML.debug_print("v1","<- match") => () &
+		RML.debug_print("v1",v1) => () &
+		RML.debug("exp1.rml",44,27,44,43,"eval","call:int_neg(v1) => (v2)") => () &
+		RML.debug_print("v1",v1) => () &
+		int_neg(v1) => (v2) &
+		RML.debug_print("v2","<- match") => () &
+		RML.debug_print("v2",v2) => () &
+		RML.debug("exp1.rml",46,26,46,30,"eval","return:(v2)") => () &
+		RML.debug_print("v2",v2) => ()
+		----------------
+		eval(NEGop(e)) => (v2)
+
+end

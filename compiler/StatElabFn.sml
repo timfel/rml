@@ -1,0 +1,1510 @@
+(* static/statelab.sml *)
+(* adrpo 2004-11-29 changed this file quite a lot for better type error locations *)
+
+functor StatElabFn(structure Util : UTIL
+		   structure RMLParse : PARSE
+		   structure MODParse : PARSE
+		   structure StatObj : STAT_OBJ
+		   structure Control : CONTROL
+		   sharing MODParse.Absyn = RMLParse.Absyn = StatObj.Absyn
+		     ) : STAT_ELAB =
+  struct
+
+    structure Absyn = RMLParse.Absyn
+    structure Absyn = MODParse.Absyn
+    structure IdentDict = StatObj.IdentDict
+    structure Ty = StatObj.Ty
+    structure TyFcn = StatObj.TyFcn
+    structure TyScheme = StatObj.TyScheme
+    
+    datatype cacheLine = CACHE of string *     (* file *)
+                                  Absyn.module (* the cached file *)
+                                  
+    type entireCache = cacheLine list   
+
+    fun bug s = Util.bug("StatElab."^s)
+    
+	val debugFlag = false	
+	fun debug s = if (debugFlag) then print ("StatElabFn."^s) else ()    
+
+    (* Maintaining a dynamically-bound "current source" object *)
+
+    val currentSource = ref Absyn.Source.dummy
+
+    fun withSource(newSource, f) =
+      let val oldSource = !currentSource
+	  val _ = currentSource := newSource
+      in
+		let val result = f()
+			val _ = currentSource := oldSource
+		in
+		 result
+		end handle exn => (currentSource := oldSource; raise exn)
+      end
+      
+    (* adrpo 2004-12-09 *)
+    fun printOs(SOME(os), s) = TextIO.output(os, s)
+      | printOs(NONE, s) = ()
+
+
+    (* Print plain error messages *)
+
+    fun sayErr s = TextIO.output(TextIO.stdErr, s)
+
+    (* Print error messages with source-file contexts *)
+
+    fun sayError'(source, msg, left, right) =
+      Absyn.Source.sayMsg source ("Error: "^msg, left, right)
+
+    fun sayIdError'(source, msg, name, Absyn.INFO(filename, left, right, _) ) =
+      sayError'(source, msg^name, left, right)
+
+    fun sayError(msg, left, right) = sayError'(!currentSource, msg, left, right)
+
+    fun sayIdError(msg, name, Absyn.INFO(filename, left, right, _) ) =
+      sayError(msg^name, left, right)
+
+    (* Generate error messages, then raise StaticElaborationError *)
+
+    exception StaticElaborationError
+
+    fun error'(source, msg, left, right) =
+      (sayError'(source, msg, left, right);
+       raise StaticElaborationError)
+
+    fun idError'(source, msg, name, ctxInfo) =
+      (sayIdError'(source, msg, name, ctxInfo);
+       raise StaticElaborationError)
+
+    fun error(msg, left, right) =
+      (sayError(msg, left, right);
+       raise StaticElaborationError)
+
+    fun idError(msg, name, ctxInfo) =
+      (sayIdError(msg, name, ctxInfo);
+       raise StaticElaborationError)
+
+    fun idUnboundError(kind, Absyn.IDENT(name, ref(ctxInfo))) = 
+		idError("unbound " ^ kind ^ " ", name, ctxInfo)
+
+    fun idRebindError(
+            kind, 
+            here as Absyn.IDENT(namehere, ref(ctxInfoHere)), 
+            there as Absyn.IDENT(namethere, ref(ctxInfoThere))) =
+      (sayIdError("rebinding of " ^ kind ^ " ", namehere, ctxInfoHere);
+       idError("this is the other binding of ", namethere, ctxInfoThere))
+
+    fun lidError(msg, Absyn.LONGID(SOME(Absyn.IDENT(name1,_)), Absyn.IDENT(name2,_), ref(ctxInfo))) 
+		= idError(msg, name1^name2, ctxInfo)
+    | lidError(msg, Absyn.LONGID(NONE, Absyn.IDENT(name,_), ref(ctxInfo))) 
+		= idError(msg, name, ctxInfo)
+
+    (* Add context to type errors *)
+
+    fun sayTyErrExplain(Ty.TY_ERROR(ty, why)) =
+	  (sayErr "type "; Ty.printType ty; sayErr " "; sayErr why)
+      | sayTyErrExplain(Ty.TY_INST(tyvar, ty, why)) =
+	  (sayErr "type variable "; Ty.printType(Ty.VAR tyvar);
+	   sayErr " cannot be bound to type "; Ty.printType' ty;
+	   sayErr "\nreason: "; sayErr why)
+      | sayTyErrExplain(Ty.TY_DIFFER(ty1, ty2, why)) =
+	  (sayErr "type "; Ty.printType ty1;
+	   sayErr " differs from type "; Ty.printType' ty2;
+	   sayErr "\nreason: different "; sayErr why)
+
+    (* adrpo added 2004-11-29 ctxInfo, for better type error locations *)
+    fun sayTyErr(explain, ctxKind, name, ctxInfo) =
+      (sayErr "\n";
+       sayIdError("while processing " ^ ctxKind ^ " ", name, ctxInfo);
+       sayTyErrExplain explain;
+       sayErr "\n")
+
+    fun strayExnBug(exn, name, ctxInfo) =
+      (sayErr "\n";
+       sayIdError("exception " ^ General.exnMessage exn ^ " while here: ", name, ctxInfo);
+       bug "strayExn")
+
+    (* some stuff.. *)
+
+    fun tyvarRigid tyvar = Ty.RIGID(Absyn.identName tyvar)
+
+    fun sameTyvar tyvar tyvar' = Absyn.identEqual(tyvar, tyvar')
+
+    (* Verify that the identifier isn't bound *)
+
+    fun assert_unbound(env, id, kind) =
+      case IdentDict.find'(env, id)
+		of NONE => ()
+		| SOME(id',_) => idRebindError(kind, id, id')
+
+    fun assert_unbound_tycon(TE,id) = assert_unbound(TE,id,"type constructor")
+    fun assert_unbound_con(VE,id) = assert_unbound(VE,id,"data constructor")
+    fun checkVarNotBound(VE,id) = assert_unbound(VE,id,"variable")
+    fun assert_unbound_modid(ME, id) = assert_unbound(ME,id,"module id")
+
+    (* Assert that an id is bound as a relation; return type scheme *)
+
+    fun assert_rel(id, StatObj.VALSTR{vk,sigma}) =
+      case vk
+		of StatObj.REL => sigma
+		| _ => idError("not a relation: ", 
+						Absyn.identName id, 
+						Absyn.identCtxInfo id)
+
+    (* Various short/longid lookup functions *)
+
+    fun lookup(env, id, kind) =
+      case IdentDict.find(env, id)
+		of SOME attr => (* print ("\nfound :"^(Absyn.identName id)^" as "^kind); *) attr
+		| NONE => idUnboundError(kind, id)
+
+    fun lookupVar(VE, var)     = (* print "\nsearch VE:"; *) lookup(VE, var, "variable")
+    fun lookupTycon(TE, tycon) = (* print "\nsearch TE:"; *) lookup(TE, tycon, "type constructor")
+    fun lookupModid(ME, modid) = (* print "\nsearch ME:"; *) lookup(ME, modid, "module id")
+
+    fun lookup_modid_VE(ME, modid) =
+      let val StatObj.MODSTR{VE,...} = lookupModid(ME, modid)
+      in
+		VE
+      end
+
+    fun lookup_longid(ME, VE, Absyn.LONGID(modid_opt, id, _)) =
+      case modid_opt
+		of NONE => (* instead of searching VE_init+VE, search them separately *)
+			(case IdentDict.find(VE, id)
+			of SOME attr => attr
+			| NONE => lookupVar(StatObj.VE_init, id))
+		| SOME modid => lookupVar(lookup_modid_VE(ME, modid), id)
+
+    (* Looking up (long) type constructors *)
+
+    fun lookup_longtycon(ME, TE, Absyn.LONGID(modid_opt, tycon, _)) =
+      let fun modstrTE(StatObj.MODSTR{TE,...}) = TE
+	  fun tystrTheta(StatObj.TYSTR{theta,...}) = theta
+      in
+		case modid_opt
+		of NONE => (* instead of searching TE_init+TE, search them separately *)
+			(case IdentDict.find(TE, tycon)
+			of SOME(StatObj.TYSTR{theta,...}) => theta
+			| NONE => tystrTheta(lookupTycon(StatObj.TE_init, tycon)))
+		| SOME modid =>
+			tystrTheta(lookupTycon(modstrTE(lookupModid(ME, modid)), tycon))
+      end
+
+    (* Elaborate an entire module *)
+    fun elab_module(os, module) =
+	let val cache = ref []
+	
+	fun find(f, []) = NONE
+	|	find(f, CACHE(fileCache, moduleCache)::rest) =
+		if (f = fileCache) 
+		then SOME(moduleCache)
+		else find(f, rest)
+	
+	fun lookupCache(file, cache) = find(file, !cache)
+	
+    (* Annotate "with" specifications and declarations with actual interfaces *)
+	(* do some caching here!!! XXX, FIXME, TODO! *)
+    fun annotate_with(file, ri) =
+      let  val module = 
+		   let val cachedModule = lookupCache(file, cache)
+		   in
+			case cachedModule of
+				NONE => (* no module in cache, parse the file and add it to the cache *)
+				let val m =
+						(
+						debug("annotate_with: parsing: "^file^"\n");  
+						case Control.fileType file
+						of Control.RML_FILE => RMLParse.parseInterface file
+						| Control.MO_FILE  => MODParse.parseInterface file
+						)
+				in				
+					debug("annotate_with: caching :"^file^"\n");
+					cache := CACHE(file, m)::(!cache);
+					m
+				end
+			|   SOME(m) => 
+				(
+				debug("annotate_with: using cached: "^file^"\n");
+				m
+				)
+		   end			   
+      val Absyn.MODULE(i as Absyn.INTERFACE({specs,...}, _), _, _) = module
+      in
+		ri := i;
+		List.app annotate_with_spec specs
+      end
+
+    and annotate_with_spec (Absyn.WITHspec(file, ri, _)) = annotate_with(file, ri)
+      | annotate_with_spec (_) = ()
+
+    fun annotate_with_dec (Absyn.WITHdec(file, ri, _)) = annotate_with(file, ri)
+      | annotate_with_dec (_) = ()
+
+    fun annotate_module(Absyn.MODULE(Absyn.INTERFACE({specs,...}, _), decs, _)) =
+      (
+      List.app annotate_with_spec specs;
+      List.app annotate_with_dec decs
+      )
+    (* Elaborate a type expression *)
+
+    fun elab_ty ME TE tyvarset_opt =
+      let fun elab(Absyn.VARty(tyvar, _)) =
+		(case tyvarset_opt
+		   of SOME tyvarset	=>
+			if List.exists (sameTyvar tyvar) tyvarset
+			  then Ty.VAR(tyvarRigid tyvar)
+			  else idUnboundError("type variable", tyvar)
+		    | NONE => Ty.VAR(tyvarRigid tyvar))
+	    | elab(Absyn.CONSty(tyseq, longtycon, _)) =
+		let val tyfcn = lookup_longtycon(ME, TE, longtycon)
+		in
+		  if length tyseq = TyFcn.arity tyfcn then
+		    TyFcn.apply(tyfcn, map elab tyseq)
+		  else
+		    lidError("wrong number of arguments to type function ",
+			     longtycon)
+		end
+	    | elab(Absyn.TUPLEty(tyseq, _)) = Ty.TUPLE(map elab tyseq)
+	    | elab(Absyn.RELty(domtys,codtys, _)) =
+			Ty.REL(map elab domtys, map elab codtys)
+      in
+		elab
+      end
+
+    (* Check that a tyvarseq contains no duplicates *)
+
+    fun nodups([]) = ()
+      | nodups(tyvar::tyvarseq) =
+	  if List.exists (sameTyvar tyvar) tyvarseq
+	    then idError("multiply bound type variable ", 
+					Absyn.identName tyvar, 
+					Absyn.identCtxInfo tyvar)
+	    else nodups tyvarseq
+
+    (* Elaborate a sequence of type bindings *)
+
+    fun elab_typbinds(ME, TE, TE1, typbinds) =
+      let fun elab(Absyn.TYPBIND(tyvarseq, tycon, ty, _), TE1) =
+	    let val _ = assert_unbound_tycon(TE, tycon)
+		val _ = assert_unbound_tycon(TE1, tycon)
+		val _ = nodups tyvarseq
+		val tau = elab_ty ME (IdentDict.plus(TE,TE1)) (SOME tyvarseq) ty
+		val theta = TyFcn.lambda(map tyvarRigid tyvarseq, tau)
+		val tystr = StatObj.TYSTR{theta=theta, abstract=false}
+	    in
+	      IdentDict.insert(TE1, tycon, tystr)
+	    end
+      in
+		List.foldl elab TE1 typbinds
+      end
+
+    (* Elaborate a withbind *)
+
+    fun elab_withbind(ME, TE, []) = IdentDict.empty
+      | elab_withbind(ME, TE, typbinds) =
+	  elab_typbinds(ME, TE, IdentDict.empty, typbinds)
+
+    (* Elaborate a datbind to a skeletal TE.
+     * Also build an annotated version of the datbinds, datbindsA,
+     * which is a list of tuples (datbind,t,tau,theta).
+     *)
+    fun elab_datbind_skel(TE, TE_skel, modid, datbinds) =
+      let fun assert_unbound_or_abstract(TE, tycon) =
+	    case IdentDict.find'(TE, tycon)
+	      of NONE => ()
+	       | SOME(_, StatObj.TYSTR{abstract=true,...}) => ()
+	       | SOME(tycon', StatObj.TYSTR{abstract=false,...}) =>
+		  idRebindError("type constructor", tycon, tycon')
+	  fun elab([], TE_skel, datbindsA) = (TE_skel, datbindsA)
+	    | elab(datb::datbinds, TE_skel, datbindsA) =
+		let val Absyn.DATBIND(tyvarseq, tycon, _, _) = datb
+		    val _ = assert_unbound_or_abstract(TE, tycon)
+		    val _ = assert_unbound_tycon(TE_skel, tycon)
+		    val _ = nodups tyvarseq
+		    val alphaseq = map tyvarRigid tyvarseq
+		    val t = Ty.TYNAME{modid=Absyn.identName modid,
+				      tycon=Absyn.identName tycon,
+				      eq=ref Ty.MAYBE}
+		    val tau = Ty.CONS(map Ty.VAR alphaseq, t)
+		    val theta = TyFcn.lambda(alphaseq, tau)
+		    val tystr = StatObj.TYSTR{theta=theta, abstract=false}
+		in
+		  elab(datbinds,
+		       IdentDict.insert(TE_skel, tycon, tystr),
+		       (datb,t,tau,theta) :: datbindsA)
+		end
+      in
+		elab(datbinds, TE_skel, [])
+      end
+
+    (* Elaborate a conbind to a CE.
+     * Also build a PreCE, which contains the argument types of every
+     * non-constant constructor. These are the types that must be checked
+     * later when determining if this datatype's tyname admits equality.
+     *)
+    fun elab_conbind(ME, TE, VE, CE, tyvarseq_opt, res_tau, conbinds) =
+      let fun conbind_con(Absyn.CONcb(con, _)) = con
+	    | conbind_con(Absyn.CTORcb(con, _, _)) = con
+	  fun conbind_tau(Absyn.CONcb _, PreCE) = (res_tau, PreCE)
+	    | conbind_tau(Absyn.CTORcb(_, tyseq, _), PreCE) =
+		let val domtaus = map (elab_ty ME TE tyvarseq_opt) tyseq
+		in
+		  (Ty.REL(domtaus, [res_tau]), domtaus::PreCE)
+		end
+	  fun elab(CE, PreCE, []) = (CE, PreCE)
+	    | elab(CE, PreCE, cb::conbind) =
+		let val con = conbind_con cb
+		    val (tau,PreCE) = conbind_tau(cb, PreCE)
+		    val _ = assert_unbound_con(VE, con)
+		    val _ = assert_unbound_con(CE, con)
+		    val sigma = TyScheme.genAll tau
+		    val bnd = StatObj.VALSTR{vk=StatObj.CON,sigma=sigma}
+		    val CE' = IdentDict.insert(CE, con, bnd)
+		in
+		  elab(CE', PreCE, conbind)
+		end
+      in
+		elab(CE, [], conbinds)
+      end
+
+    (* Elaborate a datbind to the final TE and VE.
+     * This actually uses an annotated datbind [(datbind,t,tau,theta) list]
+     * in order to save some work.
+     * Also build a new annotated datbind, datbindsB, which is a list
+     * of (t,PreCE)-pairs. These are later input to maximises_equality.
+     *)
+    fun elab_datbind_CE(ME, TE, VE, datbindsA) =
+      let fun elab(VE, [], TE_data, datbindsB) = (TE_data, VE, datbindsB)
+	    | elab(VE, datbA::datbindsA, TE_data, datbindsB) =
+		let val (datb,t,tau,theta) = datbA
+		    val Absyn.DATBIND(tyvarseq, tycon, conbind, _) = datb
+		    val (CE,PreCE) = elab_conbind(ME, TE, VE, IdentDict.empty,
+						  SOME tyvarseq, tau, conbind)
+		    val VE' = IdentDict.plus(VE, CE)
+		    val tystr = StatObj.TYSTR{theta=theta, abstract=false}
+		in
+		  elab(VE',
+		       datbindsA,
+		       IdentDict.insert(TE_data, tycon, tystr),
+		       (t,PreCE) :: datbindsB)
+		end
+      in
+		elab(VE, datbindsA, IdentDict.empty, [])
+      end
+
+    (* Verify that a new TE from a datbind maximises equality.
+     * Initially assume that all new type names may admit equality.
+     * (Done above in elab_datbind_skel.)
+     * For every (t,CE) bound in TE where t admits equality:
+     *   If there exists a constructor con in CE, such that CE(con)
+     *   does not admit equality, then set t to not admit equality.
+     * Repeat until no further changes occur.
+     *
+     * For simplicity and performance, this actually operates on a list
+     * of (t,PreCE)-pairs instead of the real TE.
+     *)
+    fun maximises_equality datbindsB =
+      let fun tauAdmitsEq tau = Ty.admitsEq(tau, true)
+	  fun domtausAdmitEq domtaus = List.all tauAdmitsEq domtaus
+	  fun constructorsAdmitEq PreCE = List.all domtausAdmitEq PreCE
+	  fun foundEq((Ty.TYNAME{eq,...},PreCE), othersFoundEq) =
+	    case !eq
+	      of Ty.MAYBE =>
+		  if constructorsAdmitEq PreCE then othersFoundEq
+		  else (eq := Ty.NEVER; false)
+	       | _ => othersFoundEq
+	  fun findFixPoint() =
+	    if List.foldl foundEq true datbindsB then ()
+	    else findFixPoint()
+      in
+		findFixPoint()
+      end
+
+    (* Elaborate a datatype declaration/specification *)
+
+    fun elab_datatype(ME, TE, VE, modid, datbinds, withbind) =
+      let val (TE_skel,datbindsA) = elab_datbind_skel(TE,IdentDict.empty,modid,datbinds)
+	  val TE_with = elab_withbind(ME, IdentDict.plus(TE,TE_skel), withbind)
+	  val (TE_data,VE',datbindsB) = elab_datbind_CE(ME, IdentDict.plus(IdentDict.plus(TE,TE_skel),TE_with), VE, datbindsA)
+	  val _ = maximises_equality datbindsB
+	  val TE' = IdentDict.plus(IdentDict.plus(TE,TE_data),TE_with)
+      in
+		(TE', VE')
+      end
+
+    (* Check that an identifier may be bound as a variable *)
+
+    fun checkNotCon(sourceVE, VE, var) =
+      case IdentDict.find'(VE, var)
+		of SOME(con, StatObj.VALSTR{vk=StatObj.CON,...}) =>
+	    (sayIdError("cannot bind constructor as variable: ", 
+					Absyn.identName var, 
+					Absyn.identCtxInfo var);
+	     idError'(sourceVE, "this is the binding of ", 
+	              Absyn.identName con, 
+	              Absyn.identCtxInfo con))
+		| _ => ()
+
+    fun checkVar(VE_outer, VE_inner, var) =
+      (checkVarNotBound(VE_inner, var);
+       checkNotCon(!currentSource, VE_outer, var);
+       checkNotCon(StatObj.sourceInit, StatObj.VE_init, var))
+
+    (* Elaborate a sequence of specifications *)
+
+    fun elab_specs(ME, TE, VE, modid, specs) =
+      let fun elab(ME, TE, VE, []) = (ME,TE,VE)
+	    | elab(ME, TE, VE, Absyn.WITHspec(_, interface, _)::specs) =
+		let val (_,TE',VE',modid') = elab_interface(ME, !interface)
+		    val Absyn.INTERFACE({source=source',...}, _) = !interface
+		    val modstr = StatObj.MODSTR{TE=TE', VE=VE', source=source'}
+		    val ME' = IdentDict.insert(ME, modid', modstr)
+		in
+		  elab(ME', TE, VE, specs)
+		end
+	    | elab(ME, TE, VE, Absyn.ABSTYPEspec(eq, tyvarseq, tycon, _)::specs) =
+		let val _ = assert_unbound_tycon(TE, tycon)
+		    val _ = nodups tyvarseq
+		    val alphaseq = map tyvarRigid tyvarseq
+		    val t = Ty.TYNAME{modid=Absyn.identName modid,
+				      tycon=Absyn.identName tycon,
+				      eq=ref(if eq then Ty.MAYBE else Ty.NEVER)}
+		    val tau = Ty.CONS(map Ty.VAR alphaseq, t)
+		    val theta = TyFcn.lambda(alphaseq, tau)
+		    val tystr = StatObj.TYSTR{theta=theta, abstract=true}
+		    val TE' = IdentDict.insert(TE, tycon, tystr)
+		in
+		  elab(ME, TE', VE, specs)
+		end
+	    | elab(ME, TE, VE, Absyn.TYPEspec(typbinds, _)::specs) =
+		let val TE' = elab_typbinds(ME, IdentDict.empty, TE, typbinds)
+		in
+		  elab(ME, TE', VE, specs)
+		end
+	    | elab(ME, TE, VE, Absyn.DATAspec(datbinds, withbind, _)::specs) =
+		let val (TE',VE') = elab_datatype(ME,TE,VE,modid,datbinds,withbind)
+		in
+		  elab(ME, TE', VE', specs)
+		end
+	    | elab(ME, TE, VE, Absyn.VALspec(var, ty, _)::specs) =
+		let val _ = checkVar(IdentDict.empty, VE, var)
+		    val tau = elab_ty ME TE NONE ty
+		    val sigma = TyScheme.genAll tau
+		    val bnd = StatObj.VALSTR{vk=StatObj.VAR, sigma=sigma}
+		    val VE' = IdentDict.insert(VE, var, bnd)
+		in
+		  elab(ME, TE, VE', specs)
+		end
+	    | elab(ME, TE, VE, Absyn.RELspec(var, ty, _)::specs) =
+		let val _ = checkVar(IdentDict.empty, VE, var)
+		    val tau = elab_ty ME TE NONE ty
+		    val _ =
+		      case tau
+				of Ty.REL(_,_) => ()
+				| _ => idError("relation specified to have non-relational type: ", 
+								Absyn.identName var,
+								Absyn.identCtxInfo var)
+		    val sigma = TyScheme.genAll tau
+		    val bnd = StatObj.VALSTR{vk=StatObj.REL, sigma=sigma}
+		    val VE' = IdentDict.insert(VE, var, bnd)
+		in
+		  elab(ME, TE, VE', specs)
+		end
+      in
+		elab(ME, TE, VE, specs)
+      end
+
+    (* Elaborate an interface *)
+
+    and elab_interface(ME, Absyn.INTERFACE({modid,specs,source}, _)) =
+      let val _ = assert_unbound_modid(ME, modid)
+	  fun elab() =
+	    let val (ME',TE,VE) = elab_specs(StatObj.ME_init, 
+	                                     IdentDict.empty, 
+	                                     IdentDict.empty,
+										 modid, 
+										 specs)
+	    in
+	      (ME',TE,VE,modid)
+	    end
+      in
+		withSource(source, elab)
+      end
+
+    (* Compute the type of a literal *)
+
+    fun elab_lit(Absyn.CCONlit _) = StatObj.tau_char
+      | elab_lit(Absyn.ICONlit _) = StatObj.tau_int
+      | elab_lit(Absyn.RCONlit _) = StatObj.tau_real
+      | elab_lit(Absyn.SCONlit _) = StatObj.tau_string
+
+    (* Assert that an id is bound as a constructor; return instantiated sigma *)
+
+    fun fresh_longcon(ME, VE, longcon as Absyn.LONGID(_, con, _)) =
+      let val StatObj.VALSTR{vk,sigma} = lookup_longid(ME, VE, longcon)
+      in
+		case vk
+		 of StatObj.CON => TyScheme.instFree sigma
+		 | _ => idError("not a data constructor: ", 
+						Absyn.identName con, 
+						Absyn.identCtxInfo con)
+      end
+
+    (* Assert that this is constant constructor *)
+
+    fun assert_constant(tau, longcon as Absyn.LONGID(_, con, _)) =
+      case tau
+		of Ty.CONS(_,_) => ()
+		| _ => idError("data constructor isn't constant: ",
+						Absyn.identName con, 
+						Absyn.identCtxInfo con)
+
+    (* Elaborate a pattern *)
+
+    fun elab_pat(ME, VE, VE_pat, pat) =
+      case pat
+		of Absyn.WILDpat _ => (VE_pat, Ty.VAR(Ty.newTyvar()))
+		| Absyn.LITpat(lit, _) => (VE_pat, elab_lit lit)
+		| Absyn.CONpat(longcon, _) =>
+			let val con_tau = fresh_longcon(ME, VE, longcon)
+			val _ = assert_constant(con_tau, longcon)
+			in
+			  (VE_pat, con_tau)
+			end
+		| Absyn.STRUCTpat(SOME longcon, patseq, ref(ctxInfo)) =>
+			let val con_tau = fresh_longcon(ME, VE, longcon)
+			val (VE'_pat, args_taus) = elab_patseq(ME, VE, VE_pat, patseq)
+			val res_tau = Ty.VAR(Ty.newTyvar())
+			val _ = Ty.unify(con_tau, Ty.REL(args_taus, [res_tau]))
+				   (* adrpo added 2004-11-29 *)
+				   handle exn =>
+					((case exn
+					of Ty.TypeError explain => 
+						sayTyErr(explain,"while elaborating pattern", "", ctxInfo)
+						| StaticElaborationError => () (* already explained *)
+						| _ => strayExnBug(exn, "", ctxInfo));
+					raise StaticElaborationError)			        
+			in
+			  (VE'_pat, res_tau)
+			end
+		| Absyn.STRUCTpat(NONE, patseq, _) =>
+			let val (VE'_pat, args_taus) = elab_patseq(ME, VE, VE_pat, patseq)
+			in
+			  (VE'_pat, Ty.TUPLE(args_taus))
+			end
+		| Absyn.BINDpat(var, pat, _) =>
+			let val (VE'_pat, tau) = elab_pat(ME, VE, VE_pat, pat)
+			val _ = checkVar(VE, VE'_pat, var)
+			val sigma = TyScheme.genNone tau
+			val bnd = StatObj.VALSTR{vk=StatObj.VAR, sigma=sigma}
+			in
+			 (IdentDict.insert(VE'_pat,var,bnd), tau)
+			end
+		| Absyn.IDENTpat(id, r, _) =>
+			(* If it's bound in VE_pat, that's an error.
+			* If it's bound as a CON in VE_init+VE, then it's a constant.
+			* Otherwise enter it as a freshly bound variable in VE_pat.
+			*)
+			let fun mkbinding() =
+			let val _ = 
+					r := Absyn.BINDpat(id, 
+						Absyn.WILDpat(ref(Absyn.dummyInfo)), 
+						ref(Absyn.dummyInfo))
+				val tau = Ty.VAR(Ty.newTyvar())
+				val sigma = TyScheme.genNone tau
+				val bnd = StatObj.VALSTR{vk=StatObj.VAR, sigma=sigma}
+			in
+				(IdentDict.insert(VE_pat,id,bnd), tau)
+			end
+			fun bound(StatObj.VALSTR{vk=StatObj.CON,sigma}) =
+				let val longcon = Absyn.LONGID(NONE, id, ref(Absyn.dummyInfo))
+				val _ = r := Absyn.CONpat (longcon, ref(Absyn.dummyInfo))
+				val con_tau = TyScheme.instFree sigma
+				val _ = assert_constant(con_tau, longcon)
+				in
+				  (VE_pat, con_tau)
+				end
+			| bound _ = mkbinding()
+			val _ = checkVarNotBound(VE_pat, id)
+			in
+			case IdentDict.find(VE, id)
+			of SOME valstr => bound valstr
+			| NONE =>
+				case IdentDict.find(StatObj.VE_init, id)
+				of SOME valstr => bound valstr
+				| NONE => mkbinding()
+			end
+
+    and elab_patseq(ME, VE, VE_pat, patseq) =
+      let fun loop([], VE_pat, rev_taus) = (VE_pat, rev rev_taus)
+	    | loop(pat::patseq, VE_pat, rev_taus) =
+		let val (VE_pat, tau) = elab_pat(ME, VE, VE_pat, pat)
+		in
+		  loop(patseq, VE_pat, tau::rev_taus)
+		end
+      in
+		loop(patseq, VE_pat, [])
+      end
+
+
+    fun elab_pat_os(relationId, ctxInfoClause, os, ME, VE, VE_pat, pat) =
+      case pat
+		of Absyn.WILDpat _ => (VE_pat, Ty.VAR(Ty.newTyvar()))
+		| Absyn.LITpat(lit, _) => (VE_pat, elab_lit lit)
+		| Absyn.CONpat(longcon, _) =>
+			let val con_tau = fresh_longcon(ME, VE, longcon)
+			val _ = assert_constant(con_tau, longcon)
+			in
+			  (VE_pat, con_tau)
+			end
+		| Absyn.STRUCTpat(SOME longcon, patseq, ref(ctxInfo)) =>
+			let val con_tau = fresh_longcon(ME, VE, longcon)
+			val (VE'_pat, args_taus) = elab_patseq(ME, VE, VE_pat, patseq)
+			val res_tau = Ty.VAR(Ty.newTyvar())
+			val _ = Ty.unify(con_tau, Ty.REL(args_taus, [res_tau]))
+				   (* adrpo added 2004-11-29 *)
+				   handle exn =>
+					((case exn
+					of Ty.TypeError explain => 
+						sayTyErr(explain,"while elaborating pattern", "", ctxInfo)
+						| StaticElaborationError => () (* already explained *)
+						| _ => strayExnBug(exn, "", ctxInfo));
+					raise StaticElaborationError)			        
+			in
+			  (VE'_pat, res_tau)
+			end
+		| Absyn.STRUCTpat(NONE, patseq, _) =>
+			let val (VE'_pat, args_taus) = elab_patseq(ME, VE, VE_pat, patseq)
+			in
+			  (VE'_pat, Ty.TUPLE(args_taus))
+			end
+		| Absyn.BINDpat(var, pat, _) =>
+			let val (VE'_pat, tau) = elab_pat(ME, VE, VE_pat, pat)
+			val _ = checkVar(VE, VE'_pat, var)
+			val sigma = TyScheme.genNone tau
+			val bnd = StatObj.VALSTR{vk=StatObj.VAR, sigma=sigma}
+			in
+			 (IdentDict.insert(VE'_pat,var,bnd), tau)
+			end
+		| Absyn.IDENTpat(id, r, _) =>
+			(* If it's bound in VE_pat, that's an error.
+			* If it's bound as a CON in VE_init+VE, then it's a constant.
+			* Otherwise enter it as a freshly bound variable in VE_pat.
+			*)
+			let fun mkbinding() =
+			let val _ = 
+					r := Absyn.BINDpat(id, 
+						Absyn.WILDpat(ref(Absyn.dummyInfo)), 
+						ref(Absyn.dummyInfo))
+				val tau = Ty.VAR(Ty.newTyvar())
+				val sigma = TyScheme.genNone tau
+				val bnd = StatObj.VALSTR{vk=StatObj.VAR, sigma=sigma}
+			in
+				(IdentDict.insert(VE_pat,id,bnd), tau)
+			end
+			fun bound(StatObj.VALSTR{vk=StatObj.CON,sigma}) =
+				let val longcon = Absyn.LONGID(NONE, id, ref(Absyn.dummyInfo))
+				val _ = r := Absyn.CONpat (longcon, ref(Absyn.dummyInfo))
+				val con_tau = TyScheme.instFree sigma
+				val _ = assert_constant(con_tau, longcon)
+				in
+				  (VE_pat, con_tau)
+				end
+			| bound _ = mkbinding()
+			val _ = checkVarNotBound(VE_pat, id)
+			in
+			case IdentDict.find(VE, id)
+			of SOME valstr => bound valstr
+			| NONE =>
+				case IdentDict.find(StatObj.VE_init, id)
+				of SOME valstr => bound valstr
+				| NONE => mkbinding()
+			end
+
+    and elab_patseq_os(relationId, ctxInfoClause, os, ME, VE, VE_pat, patseq) =
+      let fun loop([], VE_pat, rev_taus) = (VE_pat, rev rev_taus)
+	    | loop(pat::patseq, VE_pat, rev_taus) =
+		let val (VE_pat, tau) = elab_pat(ME, VE, VE_pat, pat)
+		in
+		  loop(patseq, VE_pat, tau::rev_taus)
+		end
+      in
+		loop(patseq, VE_pat, [])
+      end
+
+    (* Assert that an id is bound as a variable; return type scheme *)
+
+    fun assert_var(id, StatObj.VALSTR{vk,sigma}) =
+      case vk
+		of StatObj.CON => idError("not a variable: ",
+		                          Absyn.identName id, 
+		                          Absyn.identCtxInfo id)
+		| _ => sigma
+
+    fun lookup_longvar(ME, VE, longvar as Absyn.LONGID(_, var, _)) =
+      assert_var(var, lookup_longid(ME, VE, longvar))
+
+    (* Elaborate an expression.
+     * Disambiguate `IDENTexp's. Compute principal type.
+     *)
+
+    fun elab_exp(ME, VE, exp) =
+      case exp
+	of Absyn.LITexp(lit, _)		=> elab_lit lit
+	 | Absyn.CONexp(longcon, _)	=>
+	    let val con_tau = fresh_longcon(ME, VE, longcon)
+		val _ = assert_constant(con_tau, longcon)
+	    in
+	      con_tau
+	    end
+	 | Absyn.VARexp(_, _)		=> bug("elab_exp: VARexp")
+	 | Absyn.IDENTexp(longid, r, ctxInfo)	=>
+	    let val StatObj.VALSTR{vk,sigma} = lookup_longid(ME, VE, longid)
+		val tau = TyScheme.instFree sigma
+		(* val _ = print ("\nIDENTexp("^Absyn.lidentName longid^")") *)
+		val _ = case vk
+			  of StatObj.CON =>
+			      (r := Absyn.CONexp(longid, ctxInfo);
+			       assert_constant(tau, longid))
+			   | _ => r := Absyn.VARexp(longid, ctxInfo)
+	    in
+	      tau
+	    end
+	 | Absyn.STRUCTexp(SOME longcon, expseq, ref(ctxInfo))	=>
+	    let val con_tau = fresh_longcon(ME, VE, longcon)
+		val args_taus = elab_expseq(ME, VE, expseq)
+		val res_tau = Ty.VAR(Ty.newTyvar())
+		val _ = Ty.unify(con_tau, Ty.REL(args_taus, [res_tau]))
+				   (* adrpo added 2004-11-29 *)
+				   handle exn =>
+					((case exn
+					of Ty.TypeError explain => 
+						sayTyErr(explain,"while elaborating expression", "", ctxInfo)
+						| StaticElaborationError => () (* already explained *)
+						| _ => strayExnBug(exn, "", ctxInfo));
+					raise StaticElaborationError)
+		in
+	      res_tau
+	    end
+	 | Absyn.STRUCTexp(NONE, expseq, _)		=>
+	    let val args_taus = elab_expseq(ME, VE, expseq)
+	    in
+	      Ty.TUPLE(args_taus)
+	    end
+
+    and elab_expseq(ME, VE, expseq) =
+      map (fn exp => elab_exp(ME, VE, exp)) expseq
+
+	(*
+	  fun printVar(relationId, ctxInfoClause, os, var, tau) =
+		let val Absyn.INFO(file, _,_, ref(Absyn.LOC(sl,sc,el,ec))) = 
+				      Absyn.identCtxInfo var
+			val Absyn.INFO(_, _,_, ref(Absyn.LOC(sl_c,sc_c,el_c,ec_c))) = 
+				      ctxInfoClause	
+		in
+			printOs (os, "v:<");
+			printOs (os, file); 
+			printOs (os, ">:"); 
+			printOs (os, (Int.toString sl)^"."^
+				(Int.toString sc)^"."^
+				(Int.toString el)^"."^
+				(Int.toString ec)^"|[");
+			printOs (os, (Int.toString sl_c)^"."^
+				(Int.toString sc_c)^"."^
+				(Int.toString el_c)^"."^
+				(Int.toString ec_c)^"]|");				        
+			printOs (os, Absyn.identName relationId);
+			printOs (os, "[");
+			printOs (os, Absyn.identName var);
+			printOs (os, ":"); 
+			
+			if !Control.qualifiedRdb 
+			then Ty.printTypeOs(os, "", tau)
+			else Ty.printTypeOs(os, Absyn.identName modid, tau);
+			
+			printOs (os, "]\n")
+	   end
+
+	  fun printVarLong(relationId, ctxInfoClause, os, var, tau) =
+		let val Absyn.INFO(file, _,_, ref(Absyn.LOC(sl,sc,el,ec))) = 
+				      Absyn.lidentCtxInfo var 
+			val Absyn.INFO(file2, _,_, ref(Absyn.LOC(sl_c,sc_c,el_c,ec_c))) = 
+				      ctxInfoClause	
+		in
+			printOs (os, "v:<");
+			if (file = "RML") then printOs (os, file2) else printOs (os, file); 
+			printOs (os, ">:");
+			if (file = "RML") 
+			then 
+			 printOs (os, (Int.toString sl)^"."^
+				(Int.toString sc)^"."^
+				(Int.toString el)^"."^
+				(Int.toString ec)^"|[")
+			else 
+			 printOs (os, (Int.toString sl_c)^"."^
+				(Int.toString sc_c)^"."^
+				(Int.toString el_c)^"."^
+				(Int.toString ec_c)^"|[");					
+			printOs (os, (Int.toString sl_c)^"."^
+				(Int.toString sc_c)^"."^
+				(Int.toString el_c)^"."^
+				(Int.toString ec_c)^"]|");				        
+			printOs (os, Absyn.identName relationId);
+			printOs (os, "[");
+			printOs (os, Absyn.lidentName var);
+			printOs (os, ":"); 
+			
+			if !Control.qualifiedRdb 
+			then Ty.printTypeOs(os, "", tau)
+			else Ty.printTypeOs(os, Absyn.identName modid, tau);
+			
+			printOs (os, "]\n")
+	   end
+	   
+	*)
+
+    fun elab_exp_os(relationId, ctxInfoClause, os, ME, VE, exp) =
+    case exp
+	of Absyn.LITexp(lit, _)		=> elab_lit lit
+	 | Absyn.CONexp(longcon, _)	=>
+	    let val con_tau = fresh_longcon(ME, VE, longcon)
+		val _ = assert_constant(con_tau, longcon)
+	    in
+	      con_tau
+	    end
+	 | Absyn.VARexp(_, _)		=> bug("elab_exp: VARexp")
+	 | Absyn.IDENTexp(longid, r, ctxInfo)	=>
+	    let val StatObj.VALSTR{vk,sigma} = lookup_longid(ME, VE, longid)
+		val tau = TyScheme.instFree sigma
+		(*val _ = printVarLong(relationId, ctxInfoClause, os, longid, tau) *)
+		val _ = case vk
+			  of StatObj.CON =>
+			      (r := Absyn.CONexp(longid, ctxInfo);
+			       assert_constant(tau, longid))
+			   | _ => r := Absyn.VARexp(longid, ctxInfo)
+	    in
+	      tau
+	    end
+	 | Absyn.STRUCTexp(SOME longcon, expseq, ref(ctxInfo))	=>
+	    let val con_tau = fresh_longcon(ME, VE, longcon)
+		val args_taus = elab_expseq_os(relationId, ctxInfoClause, os, ME, VE, expseq)
+		val res_tau = Ty.VAR(Ty.newTyvar())
+		val _ = Ty.unify(con_tau, Ty.REL(args_taus, [res_tau]))
+				   (* adrpo added 2004-11-29 *)
+				   handle exn =>
+					((case exn
+					of Ty.TypeError explain => 
+						sayTyErr(explain,"while elaborating expression", "", ctxInfo)
+						| StaticElaborationError => () (* already explained *)
+						| _ => strayExnBug(exn, "", ctxInfo));
+					raise StaticElaborationError)
+		in
+	      res_tau
+	    end
+	 | Absyn.STRUCTexp(NONE, expseq, _)	=>
+	    let val args_taus = elab_expseq_os(relationId, ctxInfoClause, os, ME, VE, expseq)
+	    in
+	      Ty.TUPLE(args_taus)
+	    end
+
+    and elab_expseq_os(relationId, ctxInfoClause, os, ME, VE, expseq) =
+      map (fn exp => elab_exp_os(relationId, ctxInfoClause, os, ME, VE, exp)) expseq
+
+    (* Elaborate a goal, return updated VE *)
+
+    fun elab_goal(relationId, ctxInfoClause, os, ME, VE, goal) =
+    case goal
+	of Absyn.CALLgoal(longvar, expseq, patseq, ref(ctxInfo)) =>
+	   let val rel_sigma = lookup_longvar(ME, VE, longvar)
+		   (* val _ = printVarLong(relationId, ctxInfoClause, os, longvar, TyScheme.instFree rel_sigma) *)
+		   val exp_taus = elab_expseq_os(relationId, ctxInfoClause, os, ME, VE, expseq)
+		   val (VE_pat,pat_taus) = 
+				elab_patseq_os(relationId, ctxInfoClause, os, ME, VE, IdentDict.empty, patseq)
+    	   val _ = (Ty.unify(TyScheme.instFree rel_sigma, Ty.REL(exp_taus, pat_taus))) 
+				   (* adrpo added 2004-11-29 *)
+				   handle exn =>
+					((case exn
+					of Ty.TypeError explain => 
+						sayTyErr(explain,"this CALL goal: ", Absyn.lidentName longvar, ctxInfo)
+						| StaticElaborationError => () (* already explained *)
+						| _ => strayExnBug(exn, Absyn.lidentName longvar, ctxInfo));
+					raise StaticElaborationError)
+	   in
+	    IdentDict.plus(VE, VE_pat)
+	   end
+ 
+	 | Absyn.EQUALgoal(var, exp, ref(ctxInfo)) =>
+	    let val tau = elab_exp_os(relationId, ctxInfoClause, os, ME, VE, exp)
+	    in
+	      case IdentDict.find(VE, var)
+			of NONE =>
+				if !Control.allowImplicitLet then
+				 let val sigma = TyScheme.genNone tau
+				  val bnd = StatObj.VALSTR{vk=StatObj.VAR, sigma=sigma}
+				 in
+					IdentDict.insert(VE, var, bnd)
+				 end
+				else 
+				 idUnboundError("variable", var)
+			| SOME(StatObj.VALSTR{sigma,...}) =>
+				let val _ = (
+				             Ty.unify(TyScheme.instFree sigma, tau),
+				             Ty.mustAdmitEq tau
+				            )
+				           (* adrpo added 2004-11-29 *)
+							handle exn =>
+							((case exn
+							of Ty.TypeError explain => 
+									sayTyErr(explain,"this EQUAL goal: ", Absyn.identName var, ctxInfo)
+								| StaticElaborationError => () (* already explained *)
+								| _ => strayExnBug(exn, Absyn.identName var, ctxInfo));
+							raise StaticElaborationError)				
+				in
+				  VE
+				end
+	    end 
+	 | Absyn.LETgoal(pat, exp, ref(ctxInfo)) =>
+	    let val tau = elab_exp_os(relationId, ctxInfoClause, os, ME, VE, exp)
+		val (VE_pat, tau') = elab_pat_os(relationId, ctxInfoClause, os, ME, VE, IdentDict.empty, pat)
+		val _ = Ty.unify(tau, tau')
+			    (* adrpo added 2004-11-29 *)
+				handle exn =>
+				((case exn
+				of Ty.TypeError explain => sayTyErr(explain,"this LET goal: ", "", ctxInfo)
+				| StaticElaborationError => () (* already explained *)
+				| _ => strayExnBug(exn, "", ctxInfo));
+				raise StaticElaborationError)
+	    in
+	      IdentDict.plus(VE, VE_pat)
+	    end 
+	 | Absyn.NOTgoal(goal, _) => (elab_goal(relationId, ctxInfoClause, os, ME, VE, goal); VE)
+	 | Absyn.ANDgoal(g1,g2, _) => elab_goal(relationId, ctxInfoClause, os, ME, 
+									elab_goal(relationId, ctxInfoClause, os, ME, VE, g1), 
+									g2)
+
+    fun elab_goal_opt(relationId, ctxInfoClause, os, ME, VE, SOME goal) = 
+			elab_goal(relationId, ctxInfoClause, os, ME, VE, goal)
+      | elab_goal_opt(relationId, ctxInfoClause, os, ME, VE, NONE) = VE
+
+    (* Check that a set of clauses conform with the given type *)
+
+    fun checkClauseName(var_rel, var_clause) =
+      if Absyn.identEqual(var_rel, var_clause) then ()
+      else (sayIdError("the name in the clause is: ", 
+						Absyn.identName var_clause, Absyn.identCtxInfo var_clause);
+	    idError("but the name of the relation is: ", 
+	             Absyn.identName var_rel, Absyn.identCtxInfo var_rel))
+
+    fun mkRanTaus(tau, clause) =
+      let fun resultAry(Absyn.RETURN (exps, _)) = List.length exps
+	    | resultAry(Absyn.FAIL(_)) = ~1
+	  fun clauseRanAry(Absyn.CLAUSE1(_, _, _, result, _)) = resultAry result
+	    | clauseRanAry(Absyn.CLAUSE2(cl1, cl2, _)) =
+		case clauseRanAry cl1
+		  of ~1 => clauseRanAry cl2
+		   | ary => ary
+	  fun loop(n, rest) =
+	    if n < 1 then rest else loop(n-1, Ty.VAR(Ty.newTyvar())::rest)
+      in
+	case Ty.deref tau
+	  of Ty.REL(_,ranTaus) => ranTaus
+	   | _ => loop(clauseRanAry clause, [])
+      end
+
+    fun checkClause(os, modid, ME, VE, varRel, tau, clause) =
+      let val defaultRanTaus = mkRanTaus(tau, clause)      
+	  fun elabResult(relationId, ctxInfoClause, os, ME, VE, Absyn.RETURN (exps, _)) = 
+			elab_expseq_os(relationId, ctxInfoClause, os, ME, VE, exps)
+	    | elabResult(_, _, _, _, _, Absyn.FAIL(_)) = defaultRanTaus
+	  fun check(Absyn.CLAUSE1(goal_opt, var, patseq, result, ref(ctxInfo))) =
+		(let val (VE_pat, domTaus) = elab_patseq_os(varRel, ctxInfo, os, ME, VE, IdentDict.empty, patseq)
+		     val VE' = elab_goal_opt(varRel, ctxInfo, os, ME, IdentDict.plus(VE,VE_pat), goal_opt)
+		     val ranTaus = elabResult(varRel, ctxInfo, os, ME, VE', result)
+		     val _ = Ty.unify(tau, Ty.REL(domTaus, ranTaus))
+		     val _ = checkClauseName(varRel, var)
+		  fun printVE(var, StatObj.VALSTR{sigma,vk}, Dict) =
+			let val tau = TyScheme.instFree sigma
+			val sigma' = TyScheme.genAll tau
+			val Absyn.INFO(file, _,_, ref(Absyn.LOC(sl,sc,el,ec))) = 
+				Absyn.identCtxInfo var
+			val Absyn.INFO(_, _,_, ref(Absyn.LOC(sl_c,sc_c,el_c,ec_c))) = 
+				ctxInfo				
+			(* val bnd = StatObj.VALSTR{vk=StatObj.REL, sigma=sigma'} *)
+		  in
+		    (case vk of 
+		     StatObj.VAR => 
+				(
+				 printOs (os, "v:<");
+				 printOs (os, file); 
+				 printOs (os, ">:"); 
+				 printOs (os, (Int.toString sl)^"."^
+				       (Int.toString sc)^"."^
+				       (Int.toString el)^"."^
+				       (Int.toString ec)^"|[");
+				 printOs (os, (Int.toString sl_c)^"."^
+				       (Int.toString sc_c)^"."^
+				       (Int.toString el_c)^"."^
+				       (Int.toString ec_c)^"]|");				        
+				 printOs (os, Absyn.identName varRel);
+				 printOs (os, "[");
+				 printOs (os, Absyn.identName var);
+				 printOs (os, ":"); 
+				 
+				 if !Control.qualifiedRdb 
+				 then Ty.printTypeOs(os, "", tau)
+				 else Ty.printTypeOs(os, Absyn.identName modid, tau);
+				 
+				 printOs (os, "]\n"))
+			 | _ => () (*StatObj.REL => 
+		     (  
+		        printOs(os, "r:<");
+				printOs (os, file); 
+				printOs (os, ">:"); 
+				printOs (os, (Int.toString sl)^"."^
+				       (Int.toString sc)^"."^
+				       (Int.toString el)^"."^
+				       (Int.toString ec)^"|[");
+				printOs (os, (Int.toString sl_c)^"."^
+				       (Int.toString sc_c)^"."^
+				       (Int.toString el_c)^"."^
+				       (Int.toString ec_c)^"]|");				        
+				printOs (os, Absyn.identName varRel);
+				printOs (os, "[");
+				printOs(os,Absyn.identName var); 
+				printOs(os,":"); 
+				
+				if !Control.qualifiedRdb 
+				then Ty.printTypeOs(os, "", tau)
+				else Ty.printTypeOs(os, Absyn.identName modid, tau)
+				
+				printOs(os,"]\n")
+		     )
+		     | StatObj.CON => 
+		     (
+				printOs(os, "c:<");
+				printOs (os, file); 
+				printOs (os, ">:"); 
+				printOs (os, (Int.toString sl)^"."^
+				       (Int.toString sc)^"."^
+				       (Int.toString el)^"."^
+				       (Int.toString ec)^"|[");
+				printOs (os, (Int.toString sl_c)^"."^
+				       (Int.toString sc_c)^"."^
+				       (Int.toString el_c)^"."^
+				       (Int.toString ec_c)^"]|");				        
+				printOs (os, Absyn.identName varRel);
+				printOs (os, "[");
+				printOs(os,Absyn.identName var); 
+				printOs(os,":"); 
+				
+				if !Control.qualifiedRdb 
+				then Ty.printTypeOs(os, "", tau)
+				else Ty.printTypeOs(os, Absyn.identName modid, tau)
+				
+				printOs(os,"]\n")
+			 )*));
+			Dict
+		  end		     
+		 in
+		   case os of
+		     SOME (_) => (IdentDict.fold(printVE, IdentDict.empty, VE'); ())
+		   | NONE => ()
+		 end handle exn =>
+		   ((case exn
+		       of Ty.TypeError explain => 
+				sayTyErr(explain,"this clause: ", Absyn.identName var, ctxInfo)
+				| StaticElaborationError => () (* already explained *)
+				| _ => strayExnBug(exn, Absyn.identName var, ctxInfo));
+		    raise StaticElaborationError))
+	    | check(Absyn.CLAUSE2(cl1, cl2, _)) = (check cl1; check cl2)
+      in
+		check clause
+      end
+
+    (* Check a set of relation bindings *)
+
+    fun check_relbinds(os, modid, ME, VE, relbinds) =
+      let fun check(Absyn.RELBIND(var, _, clause, _)) =
+	    let val sigma = assert_rel(var, lookupVar(VE, var))
+		val tau = TyScheme.instRigid sigma
+	    in
+	      checkClause(os, modid, ME, VE, var, tau, clause)
+	    end
+      in
+		List.app check relbinds
+      end
+
+    (* Elaborate a set of relation bindings *)
+
+    fun elab_relbinds(ME, TE, VE, VE_rel, relbinds) =
+      let fun elab(Absyn.RELBIND(var, ty_opt, _, _), VE_rel) =
+	    (* Here we should do checkVar(empty, VE+VE_rel, var), but to
+	     * avoid the IdentDict.plus, we inline the equivalent checks.
+	     *)
+	    let val _ = checkVarNotBound(VE_rel, var)
+		val _ = checkVarNotBound(VE, var)
+		val _ = checkNotCon(StatObj.sourceInit, StatObj.VE_init, var)
+		val tau =
+		  case ty_opt
+		    of SOME ty => elab_ty ME TE NONE ty
+		     | NONE => Ty.VAR(Ty.newTyvar())
+		val sigma = TyScheme.genNone tau
+		val bnd = StatObj.VALSTR{vk=StatObj.REL, sigma=sigma}
+	    in
+	      IdentDict.insert(VE_rel, var, bnd)
+	    end
+      in
+		List.foldl elab VE_rel relbinds
+      end
+
+    (* Closing a variable environment *)
+
+    fun Close_VE VE =
+      let fun Close_bnd(var, StatObj.VALSTR{sigma,...}, VE) =
+	    (* This ought be instRigid, but that won't work here because
+	     * most sigmas aren't constructed from explicit types.
+	     * Since the sigma is instantiated only to be re-generalized,
+	     * instFree will work just fine.
+	     *)
+	    let val tau = TyScheme.instFree sigma
+		val sigma' = TyScheme.genAll tau
+		val bnd = StatObj.VALSTR{vk=StatObj.REL, sigma=sigma'}
+	    in
+	      
+	      IdentDict.insert(VE, var, bnd)
+	    end
+      in
+		IdentDict.fold(Close_bnd, IdentDict.empty, VE)
+      end
+
+    (* Elaborate a module's declarations *)
+
+    fun elab_decs(os, ME, TE, VE, modid, decs) =
+      let fun elab(ME, TE, VE, []) = (ME,TE,VE)
+	    | elab(ME, TE, VE, Absyn.WITHdec(_, interface, _)::decs) =
+		let val (_,TE',VE',modid') = elab_interface(ME, !interface)
+		    val Absyn.INTERFACE({source=source',...}, _) = !interface
+		    val modstr = StatObj.MODSTR{TE=TE', VE=VE', source=source'}
+		    val ME' = IdentDict.insert(ME, modid', modstr)
+		in
+		  elab(ME', TE, VE, decs)
+		end
+	    | elab(ME, TE, VE, Absyn.TYPEdec(typbinds, _)::decs) =
+		let val TE' = elab_typbinds(ME, IdentDict.empty, TE, typbinds)
+		in
+		  elab(ME, TE', VE, decs)
+		end
+	    | elab(ME, TE, VE, Absyn.DATAdec(datbinds, withbind, _)::decs) =
+		let val (TE',VE') = elab_datatype(ME,TE,VE,modid,datbinds,withbind)
+		in
+		  elab(ME, TE', VE', decs)
+		end
+	    | elab(ME, TE, VE, Absyn.VALdec(var, exp, ref(ctxInfo))::decs) =
+		let val _ = checkVar(IdentDict.empty, VE, var)
+		    val tau = elab_exp(ME, VE, exp)
+		      handle exn =>
+			((case exn
+			    of Ty.TypeError explain => 
+					sayTyErr(explain, "this declaration:", Absyn.identName var, ctxInfo)
+			     | StaticElaborationError => ()
+			     | _ => strayExnBug(exn, Absyn.identName var, ctxInfo));
+			 raise StaticElaborationError)
+		    val sigma = TyScheme.genAll tau
+		    val bnd = StatObj.VALSTR{vk=StatObj.VAR, sigma=sigma}
+		    val VE' = IdentDict.insert(VE, var, bnd)
+		in
+		  elab(ME, TE, VE', decs)
+		end
+	    | elab(ME, TE, VE, Absyn.RELdec(relbinds, _)::decs) =
+		let val VE_rel = elab_relbinds(ME, TE, VE, IdentDict.empty, relbinds)
+		    val _ = check_relbinds(os, modid, ME, IdentDict.plus(VE,VE_rel), relbinds)
+		    val VE'_rel = Close_VE VE_rel
+		in
+		  elab(ME, TE, IdentDict.plus(VE,VE'_rel), decs)
+		end
+      in
+		elab(ME, TE, VE, decs)
+      end
+
+    (* Check a module's interface specifications *)
+
+    fun check_nonabstract(false, _) = ()
+      | check_nonabstract(true, tycon) =
+	  idError("abstract type not completed: ", 
+			   Absyn.identName tycon, Absyn.identCtxInfo tycon)
+
+    fun check_arity(theta, tyvarseq, tycon) =
+      if TyFcn.arity theta = length tyvarseq then ()
+      else idError("abstract type implemented with wrong arity: ", 
+					Absyn.identName tycon, Absyn.identCtxInfo tycon)
+
+    fun check_equality(theta, tycon) =
+      if TyFcn.admitsEq theta then ()
+      else idError("abstract eqtype implemented without equality: ", 
+					Absyn.identName tycon, Absyn.identCtxInfo tycon)
+
+    fun check_specs(TE_dec, VE_spec, VE_dec, specs) =
+      let fun checkValue(kind, var_spec, sigma_spec) =
+	    case IdentDict.find'(VE_dec, var_spec)
+	      of NONE => idError("specified "^kind^" not defined: ", 
+							Absyn.identName var_spec, Absyn.identCtxInfo var_spec)
+	       | SOME(var_dec, StatObj.VALSTR{sigma=sigma_dec,...}) =>
+		  let val tau_spec = TyScheme.instRigid sigma_spec
+		      val tau_dec = TyScheme.instFree sigma_dec
+		  in
+		    Ty.unify(tau_dec, tau_spec)
+		    handle Ty.TypeError explain =>
+			    (sayTyErr(explain, "the specification for", Absyn.identName var_spec, Absyn.identCtxInfo var_spec);
+			     sayIdError("the actual type of ", Absyn.identName var_dec, Absyn.identCtxInfo var_dec);
+			     idError("does not match its specification: ", Absyn.identName var_spec, Absyn.identCtxInfo var_spec))
+			 | exn => strayExnBug(exn, Absyn.identName var_spec, Absyn.identCtxInfo var_spec)
+		  end
+	  fun check(Absyn.VALspec(var, _, _)) =
+		checkValue("variable", var,
+			   assert_var(var, lookupVar(VE_spec, var)))
+	    | check(Absyn.RELspec(var, _, _)) =
+		checkValue("relation", var,
+			   assert_rel(var, lookupVar(VE_spec, var)))
+	    | check(Absyn.ABSTYPEspec(eq, tyvarseq, tycon, _)) =
+		let val StatObj.TYSTR{theta,abstract} = lookupTycon(TE_dec, tycon)
+		    val _ = check_nonabstract(abstract, tycon)
+		    val _ = check_arity(theta, tyvarseq, tycon)
+		    val _ = if eq then check_equality(theta, tycon) else ()
+		in
+		  ()
+		end
+	    | check(_) = ()
+      in
+		List.app check specs
+      end
+
+      fun onlycon(var, bnd as StatObj.VALSTR{vk=StatObj.CON,...}, VE') =
+		IdentDict.insert(VE', var, bnd)
+	    | onlycon(_, _, VE') = VE'
+	  val Absyn.MODULE(interface, decs, _) = module
+	  val Absyn.INTERFACE({specs,source,...}, _) = interface
+	  fun elab() =
+	    let val _ = annotate_module(module)
+		val (ME,TE,VE,modid) = elab_interface(StatObj.ME_init, interface)
+		val VE' = IdentDict.fold(onlycon, IdentDict.empty, VE)
+		val (ME',TE',VE'') = elab_decs(os, ME, TE, VE', modid, decs)
+		val _ = check_specs(TE', VE, VE'', specs)
+	    in
+	      (modid, ME, TE, VE, ME', TE', VE', VE'')
+	    end
+      in
+		withSource(source, elab)
+      end
+
+    (* Check a separately compiled module *)
+
+    fun checkModule(os, module) =
+      let val (modid, ME, TE, VE, ME', TE', VE', VE'') = elab_module(os, module)
+		  fun printVE(var, StatObj.VALSTR{sigma,vk}, Dict) =
+			let val tau = TyScheme.instFree sigma
+			val sigma' = TyScheme.genAll tau
+			val Absyn.INFO(file, _,_, ref(Absyn.LOC(sl,sc,el,ec))) = 
+				Absyn.identCtxInfo var			
+			(* val bnd = StatObj.VALSTR{vk=StatObj.REL, sigma=sigma'} *)
+		  in
+		    case vk of 
+		     StatObj.REL => 
+		     (  
+		        printOs(os, "r:<");
+				printOs (os, file); 
+				printOs (os, ">:"); 
+				printOs (os, (Int.toString sl)^"."^
+							(Int.toString sc)^"."^
+							(Int.toString el)^"."^
+							(Int.toString ec)^"|"); 
+							
+				if !Control.qualifiedRdb 
+				then (printOs(os, Absyn.identName modid); printOs(os, "."))
+				else ();
+				
+				printOs(os,Absyn.identName var); 
+				printOs(os,":");
+				
+				if !Control.qualifiedRdb 
+				then Ty.printTypeOs(os, "", tau)
+				else Ty.printTypeOs(os, Absyn.identName modid, tau);
+				
+				printOs(os,"\n")
+		     )
+		     | StatObj.CON => 
+		     (
+				printOs(os, "c:<");
+				printOs (os, file); 
+				printOs (os, ">:"); 
+				printOs (os, (Int.toString sl)^"."^
+							(Int.toString sc)^"."^
+							(Int.toString el)^"."^
+							(Int.toString ec)^"|"); 
+							
+				if !Control.qualifiedRdb 
+				then (printOs (os, Absyn.identName modid); printOs(os, "."))
+				else ();
+
+				printOs(os, Absyn.identName var); 
+				printOs(os,":");
+				
+				if !Control.qualifiedRdb 
+				then Ty.printTypeOs(os, "", tau)
+				else Ty.printTypeOs(os, Absyn.identName modid, tau);
+				
+				printOs(os,"\n")
+			 )
+		     | StatObj.VAR => 
+		     (  
+		        printOs(os, "l:<");
+				printOs (os, file); 
+				printOs (os, ">:"); 
+				printOs (os, (Int.toString sl)^"."^
+							 (Int.toString sc)^"."^
+							 (Int.toString el)^"."^
+							 (Int.toString ec)^"|"); 
+							
+				if !Control.qualifiedRdb 
+				then (printOs(os, Absyn.identName modid); printOs(os, "."))
+				else ();
+				
+				printOs(os,Absyn.identName var); 
+				printOs(os,":");
+				
+				if !Control.qualifiedRdb 
+				then Ty.printTypeOs(os, "", tau)
+				else Ty.printTypeOs(os, Absyn.identName modid, tau);
+				
+				printOs(os,"\n")
+		     );
+			Dict
+		  end
+		  fun printTE(tycon, StatObj.TYSTR{theta, ...}, Dict) =
+		  let val Absyn.INFO(file, _,_, ref(Absyn.LOC(sl,sc,el,ec))) = 
+				Absyn.identCtxInfo tycon
+			  (*val theta = StatObj.tfcn(bvars, absVars)*)
+		  in
+		    printOs (os, "t:<");
+			printOs (os, file); 
+			printOs (os, ">:"); 
+			printOs (os, (Int.toString sl)^"."^
+				         (Int.toString sc)^"."^
+				         (Int.toString el)^"."^
+				         (Int.toString ec)^"|"); 		  
+			
+			if !Control.qualifiedRdb 
+			then (printOs (os, Absyn.identName modid); printOs(os, "."))
+			else ();
+			
+			printOs (os, Absyn.identName tycon);
+			(*printOs (os, "["^(Int.toString(bvars))^"]");*) 
+			printOs (os, "\n");
+			Dict
+		  end		  
+		  fun printDict(mod_id, StatObj.MODSTR{TE=M_TE, VE=M_VE,...}, Dict) =
+		  let val Absyn.INFO(file, _,_, ref(Absyn.LOC(sl,sc,el,ec))) = 
+				Absyn.identCtxInfo mod_id
+			  fun printVE_CON(var, StatObj.VALSTR{sigma,vk}, Dict) =
+					let val tau = TyScheme.instFree sigma
+					val sigma' = TyScheme.genAll tau
+					val Absyn.INFO(file, _,_, ref(Absyn.LOC(sl,sc,el,ec))) = 
+						Absyn.identCtxInfo var			
+				in
+					case vk of 
+					StatObj.CON => 
+					(
+						printOs(os, "c:<");
+						printOs (os, file); 
+						printOs (os, ">:"); 
+						printOs (os, (Int.toString sl)^"."^
+									 (Int.toString sc)^"."^
+									 (Int.toString el)^"."^
+									 (Int.toString ec)^"|"); 
+									
+						printOs(os, Absyn.identName mod_id); 
+						printOs(os, ".");
+						printOs(os, Absyn.identName var); 
+						printOs(os,":");
+						
+						Ty.printTypeOs(os, "", tau);
+						
+						printOs(os,"\n")
+					)
+					| _ => ();
+					Dict
+				end		  
+				
+		  in
+		    if ((Absyn.identName mod_id) <> "RML" andalso 
+		        (Absyn.identName mod_id) <> (Absyn.identName modid))
+		    then
+				( 
+				printOs(os, "/*  - start external M_VE_CON: */\n");
+				IdentDict.fold(printVE_CON, IdentDict.empty, M_VE);
+				printOs(os, "/* - end external */\n")
+				)
+			else
+				();
+			Dict		  
+		  end		  		  
+      in
+        case os of
+         SOME(_) => 
+         (
+			if !Control.rdbOnly
+			then 
+			(
+				printOs(os, "/*  ME_Dict: */\n"); 
+				IdentDict.fold(printDict, IdentDict.empty, ME);
+				()
+			)
+			else ();
+			(* 
+			printOs(os, "/*  TE: */\n");
+			IdentDict.fold(printTE, IdentDict.empty, TE);
+			printOs(os, "/*  VE: */\n");
+			IdentDict.fold(printVE, IdentDict.empty, VE);
+			printOs(os, "/*  ME' Dict: */\n");			
+			IdentDict.fold(printDict, IdentDict.empty, ME');
+			*) 
+			printOs(os, "/*  TE': */\n");
+			IdentDict.fold(printTE, IdentDict.empty, TE');
+			(*
+			printOs(os, "/*  VE': */\n");
+			IdentDict.fold(printVE, IdentDict.empty, VE');
+			*)
+			printOs(os, "/*  VE'': */\n");
+			IdentDict.fold(printVE, IdentDict.empty, VE'');
+		 ())
+		| NONE => ()
+      end
+
+    (* Elaborate a sequence of modules *)
+
+    fun elab_modseq(os, ME, modseq) =
+      let fun elab(module, ME) =
+	    let val (modid, _, _, VE, _, _, _, _) = elab_module(os, module)
+		val _ = assert_unbound_modid(ME, modid)
+		val Absyn.MODULE(Absyn.INTERFACE({source,...}, _), _, _) = module
+		val modstr = StatObj.MODSTR{TE=IdentDict.empty, VE=VE, source=source}
+	    in
+	      IdentDict.insert(ME, modid, modstr)
+	    end
+      in
+		List.foldl elab ME modseq 
+      end
+
+    (* Check an entire program *)
+
+    fun checkProgram(os, modseq) =
+      let val ME = elab_modseq(os, StatObj.ME_init, modseq)
+	  val VE = lookup_modid_VE(ME, Absyn.rmlIdent "Main")
+	  val sigma = assert_rel(Absyn.rmlIdent "Main.main",
+				 lookupVar(VE, Absyn.rmlIdent "main"))
+	  val tau = Ty.CONS([StatObj.tau_string], StatObj.t_list)
+      in
+		Ty.unify(TyScheme.instFree sigma, Ty.REL([tau],[]))
+      end
+
+  end (* functor StatElabFn *)

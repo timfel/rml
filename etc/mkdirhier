@@ -1,0 +1,101 @@
+#!/bin/sh
+# $XConsortium: mkdirhier.sh,v 1.7 94/03/24 15:46:34 gildea Exp $
+# Courtesy of Paul Eggert
+
+newline='
+'
+IFS=$newline
+
+case ${1--} in
+-*) echo >&2 "mkdirhier: usage: mkdirhier directory ..."; exit 1
+esac
+
+status=
+
+for directory
+do
+	case $directory in
+	'')
+		echo >&2 "mkdirhier: empty directory name"
+		status=1
+		continue;;
+	*"$newline"*)
+		echo >&2 "mkdirhier: directory name contains a newline: \`\`$directory''"
+		status=1
+		continue;;
+	///*) prefix=/;; # See Posix 2.3 "path".
+	//*) prefix=//;;
+	/*) prefix=/;;
+	-*) prefix=./;;
+	*) prefix=
+	esac
+
+	IFS=/
+	set x $directory
+	case $2 in
+	    */*)	# IFS parsing is broken
+		IFS=' '
+		set x `echo $directory | tr / ' '`
+		;;
+	esac
+	IFS=$newline
+	shift
+
+# The IFS parsing code above and the reassembly code below
+# has a serious problem.
+#
+# Given an absolute directory path starting with n slashes, many
+# (but not all) shells will set the n first positional variables
+# to the empty string (since there are n empty path segments).
+# The reassembly code below will concatenate the path segments
+# (including the empty ones) using a slash as separator, and
+# furthermore always prefix the path with one or two slashes.
+# On shells that set the initial positional variables to the
+# empty string, this means that the reconstructed path will be
+# prefixed by one or two additional slashes.
+#
+# This possible mutation may or may not matter. Most Unix-like
+# file systems apparently ignore the extra slashes, but at least
+# one does not: The Cygwin environment which emulates Unix on top
+# of the Win32 API interprets a path like "//a/foo.c" as "a:\foo.c",
+# and paths like "//machine/..." as accesses to other machines.
+# Since Cygwin uses bash, and bash is one of the shells that cause
+# path mutation here, this script will fail miserably on Cygwin.
+#
+# The workaround is to remove as many initial empty path segments
+# as the number of slashes we are going to prefix to the path,
+# but only for shells that actually need the workaround.
+#
+#			-- Mikael Pettersson, December 1998.
+
+	if [ "$prefix" = / -a -z "$1" ]; then
+	    shift
+	elif [ "$prefix" = // -a -z "$1" ]; then
+	    shift
+	    shift
+	fi
+
+	for filename
+	do
+		path=$prefix$filename
+		prefix=$path/
+		shift
+
+		test -d "$path" || {
+			paths=$path
+			for filename
+			do
+				if [ "$filename" != "." ]; then
+					path=$path/$filename
+					paths=$paths$newline$path
+				fi
+			done
+
+			mkdir $paths || status=$?
+
+			break
+		}
+	done
+  done
+
+exit $status

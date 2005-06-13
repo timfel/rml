@@ -1,0 +1,437 @@
+% def-initial.tex
+%
+\section{Initial Objects}
+This section defines the initial objects for the static and dynamic semantics.
+Although there is some overlap in naming
+($\ME_{\mathrm{init}}$ and $\VE_{\mathrm{init}}$ occur in both parts),
+the static and dynamic semantics are completely separated.
+%
+\subsection{Initial Static Objects}
+\seclab{static0}
+
+Figures~\figref{static-RML-interface-first} to~\figref{static-RML-interface-last}
+show the interface to the standard types, constructors, values, and relations.
+
+The initial static objects are built in several steps.
+First let $t_{\mathrm{lvar}}$ be the type name $(\mtt{RML},\mtt{lvar},\mathrm{true})$.
+The set MutTyName is $\{t_{\mathrm{lvar}}\}$.
+Then assume that references to $\ME_{\mathrm{init}}$, $\TE_{\mathrm{init}}$,
+and $\VE_{\mathrm{init}}$ in the inference rules for the static semantics are
+replaced by empty environments $\{\}$.
+Let $\TE$ and $\VE$ be the environments resulting from the
+elaboration of the \mtt{RML} interface.
+Now, $\TE_{\mathrm{init}} = \TE$, $\VE_{\mathrm{init}} = \VE$, and
+$\ME_{\mathrm{init}} = \{\mtt{RML}\mapsto(\TE_{\mathrm{init}},\VE_{\mathrm{init}})\}$.
+
+Furthermore, let $\tau_{\mathrm{char}}$, $\tau_{\mathrm{int}}$,
+$\tau_{\mathrm{real}}$, and $\tau_{\mathrm{string}}$ be the types
+corresponding to the \texttt{char}, \texttt{int}, \texttt{real}, and
+\texttt{string} type constructors in $\TE_{\mathrm{init}}$, and let
+$t_{\mathrm{list}}$ be the type name corresponding to the
+\texttt{list} type constructor in $\TE_{\mathrm{init}}$.
+%
+\begin{figure}[p]
+\begin{verbatim}
+module RML:
+  (* types *)
+  eqtype char
+  eqtype int
+  eqtype real
+  eqtype string
+  eqtype 'a vector
+  eqtype 'a lvar (* admits eq, even if 'a does not *)
+  datatype bool        = false
+                       | true
+  datatype 'a list     = nil
+                       | cons of 'a * 'a list
+  datatype 'a option   = NONE
+                       | SOME of 'a
+  (* booleans *)
+  relation bool_and:   (bool,bool) => bool
+  relation bool_not:   bool => bool
+  relation bool_or:    (bool,bool) => bool
+  (* characters *)  
+  relation char_int:   char => int
+  (* integers *)
+  relation int_abs:    int => int
+  relation int_add:    (int,int) => int
+  relation int_char:   int => char
+  relation int_div:    (int,int) => int
+  relation int_eq:     (int,int) => bool
+  relation int_ge:     (int,int) => bool
+  relation int_gt:     (int,int) => bool
+  relation int_le:     (int,int) => bool
+  relation int_lt:     (int,int) => bool
+  relation int_max:    (int,int) => int
+  relation int_min:    (int,int) => int
+  relation int_mod:    (int,int) => int
+  relation int_mul:    (int,int) => int
+  relation int_ne:     (int,int) => bool
+  relation int_neg:    int => int
+  relation int_real:   int => real
+  relation int_string: int => string
+  relation int_sub:    (int,int) => int
+\end{verbatim}
+\caption{Interface of the standard RML module}
+\figlab{static-RML-interface-first}
+\end{figure}
+
+\begin{figure}[htpb]
+\begin{verbatim}
+  (* reals *)
+  relation real_abs:      real => real
+  relation real_add:      (real,real) => real
+  relation real_atan:     real => real
+  relation real_cos:      real => real
+  relation real_div:      (real,real) => real
+  relation real_eq:       (real,real) => bool
+  relation real_exp:      real => real
+  relation real_floor:    real => real
+  relation real_ge:       (real,real) => bool
+  relation real_gt:       (real,real) => bool
+  relation real_int:      real => int
+  relation real_le:       (real,real) => bool
+  relation real_ln:       real => real
+  relation real_lt:       (real,real) => bool
+  relation real_max:      (real,real) => real
+  relation real_min:      (real,real) => real
+  relation real_mod:      (real,real) => real
+  relation real_mul:      (real,real) => real
+  relation real_ne:       (real,real) => bool
+  relation real_neg:      real => real
+  relation real_pow:      (real,real) => real
+  relation real_sin:      real => real
+  relation real_sqrt:     real => real
+  relation real_string:   real => string
+  relation real_sub:      (real,real) => real
+  (* strings *)  
+  relation string_append: (string,string) => string
+  relation string_int:    string => int
+  relation string_length: string => int
+  relation string_list:   string => char list
+  relation string_nth:    (string,int) => char
+  (* vectors *)
+  relation vector_length: 'a vector => int
+  relation vector_list:   'a vector => 'a list
+  relation vector_nth:    ('a vector,int) => 'a
+\end{verbatim}
+\caption{Interface of the standard RML module (contd.)}
+\end{figure}
+
+\begin{figure}[htpb]
+\begin{verbatim}
+  (* lists *)
+  relation list_append:   ('a list,'a list) => 'a list
+  relation list_delete:   ('a list,int) => 'a list
+  relation list_length:   'a list => int
+  relation list_member:   (''a,''a list) => bool
+  relation list_nth:      ('a list,int) => 'a
+  relation list_reverse:  'a list => 'a list
+  relation list_string:   char list => string
+  relation list_vector:   'a list => 'a vector
+  (* logical variables *)
+  relation lvar_new:      () => 'a lvar
+  relation lvar_get:      'a lvar => 'a option
+  relation lvar_set:      ('a lvar,'a) => ()
+  (* miscellaneous *)
+  relation clock:         () => real
+  relation print:         string => ()
+  relation tick:          () => int
+end
+\end{verbatim}
+\caption{Interface of the standard RML module (contd.)}
+\figlab{static-RML-interface-last}
+\end{figure}
+%
+\subsection{Initial Dynamic Objects}
+\seclab{dynamic0}
+The set PrimVal is equal to the set of variable identifiers bound as
+relations in the standard \mtt{RML} interface.
+$\VE_{\mathrm{init}} = \{\mem{var}\mapsto\mem{prim} ~;~ \mem{prim}\in\mathrm{PrimVal} \wedge \mem{var} = \mem{prim}\}$,
+$\ME_{\mathrm{init}} = \{ \mtt{RML} \mapsto \VE_{\mathrm{init}} \}$, and
+$s_{\mathrm{init}} = (\{\},X)$ for some unspecified external component $X$ of the state.
+%
+\subsubsection{Primitive Procedures}
+The function \mem{APPLY} describes the effect of calling a primitive procedure.
+We let \mem{true} denote the value of the \mtt{true} constructor,
+i.e. $(\mtt{true},[])$ (similarly for \mem{false}),
+$\mem{NONE}$ denote the value of the \mtt{NONE} constructor,
+i.e. $(\mtt{NONE},[])$,
+and $\mem{SOME}(v)$ denote $(\mtt{SOME},[v])$.
+\begin{itemize}
+\item $\mem{APPLY}(\mtt{clock},[],s) = ([r],s)$
+where $r$ is a real number containing the number of seconds since some
+arbitrary but fixed (for the current process) past time point.
+The precision of $r$ is unspecified.
+\item $\mem{APPLY}(\mtt{print},[\mem{str}],(\sigma,X)) = ([],(\sigma,X'))$
+where $X$ has been modified into $X'$ by emitting the string \emph{str}
+to the standard output device.
+\item $\mem{APPLY}(\mtt{tick},[],(\sigma,X)) = ([i],(\sigma,X'))$ where
+$i$ is an integer generated from $X$, and $X'$ is $X$
+where this fact has been recorded so that $i$ is not generated again.
+\item $\mem{APPLY}(\mtt{lvar\_new},[],(\sigma,X)) = ([l],(\sigma+\{l\mapsto\mathrm{unbound}\},X))$,
+where $l\notin\mathrm{Dom}~\sigma$.
+\item $\mem{APPLY}(\mtt{lvar\_get},[l],(\sigma,X)) = ([\mem{NONE}],(\sigma,X))$,
+if $\sigma(l) = \mathrm{unbound}$, and $([\mem{SOME}(v)],(\sigma,X))$,
+if $\sigma(l)$ is the value $v$.
+\item $\mem{APPLY}(\mtt{lvar\_set},[l,v],(\sigma,X)) = ([],(\sigma + \{l\mapsto v\},X))$,
+if $\sigma(l) = \mathrm{unbound}$, or $(\mathrm{FAIL},(\sigma,X))$
+if $\sigma(l) \in \mathrm{Val}$.
+\end{itemize}
+
+The following operations do not access the state.
+If an operation succeeds yielding a value $v$,
+then \mem{APPLY} returns $([v],s)$.
+If an operation fails, then \mem{APPLY} returns $(\mathrm{FAIL},s)$.
+Below, we abbreviate $\mem{APPLY}(\mem{prim},[x],s)$ to $\mem{prim}(x)$,
+and analogously for operations with more arguments.
+\begin{itemize}
+\item $\mtt{int\_abs}(i)$ returns the absolute value of $i$.
+\item $\mtt{int\_add}(i_1,i_2) = i_1 + i_2$
+\item $\mtt{int\_div}(i_1,i_2)$ returns the integer quotient of $i_1$ and $i_2$;
+if $i_2 = 0$, the operation fails.
+\item $\mtt{int\_eq}(i_1,i_2) = \mem{true}$ if $i_1 = i_2$, \mem{false} otherwise.
+\item $\mtt{int\_ge}(i_1,i_2) = \mem{true}$ if $i_1 \geq i_2$, \mem{false} otherwise.
+\item $\mtt{int\_gt}(i_1,i_2) = \mem{true}$ if $i_1 > i_2$, \mem{false} otherwise.
+\item $\mtt{int\_le}(i_1,i_2) = \mem{true}$ if $i_1 \leq i_2$, \mem{false} otherwise.
+\item $\mtt{int\_lt}(i_1,i_2) = \mem{true}$ if $i_1 < i_2$, \mem{false} otherwise.
+\item $\mtt{int\_max}(i_1,i_2) = i_1$ if $i_1 \geq i_2$, $i_2$ otherwise.
+\item $\mtt{int\_min}(i_1,i_2) = i_1$ if $i_1 \leq i_2$, $i_2$ otherwise.
+\item $\mtt{int\_mod}(i_1,i_2)$ returns the integer remainder of $i_1$ and $i_2$;
+if $i_2 = 0$, the operation fails.
+\item $\mtt{int\_mul}(i_1,i_2) = i_1 \times i_2$
+\item $\mtt{int\_ne}(i_1,i_2) = \mem{true}$ if $i_1 \neq i_2$, \mem{false} otherwise.
+\item $\mtt{int\_neg}(i) = -i$
+\item $\mtt{int\_real}(i) = r$ where $r$ is the real value equal to $i$.
+\item $\mtt{int\_string}(i)$ returns a textual representation of $i$, as a string.
+\item $\mtt{int\_sub}(i_1,i_2) = i_1 - i_2$
+\item $\mtt{real\_abs}(r)$ returns the absolute value of $r$.
+\item $\mtt{real\_add}(r_1,r_2) = r_1 + r_2$.
+\item $\mtt{real\_atan}(r)$ returns the arc tangent of $r$.
+\item $\mtt{real\_cos}(r)$ returns the cosine of $r$ (measured in radians).
+\item $\mtt{real\_div}(r_1,r_2) = r_1 / r_2$; if $r_2 = 0$, the operation fails.
+\item $\mtt{real\_eq}(r_1,r_2) = \mem{true}$ if $r_1 = r_2$, \mem{false} otherwise.
+\item $\mtt{real\_exp}(r)$ returns $e^r$.
+\item $\mtt{real\_floor}(r)$ returns the largest integer (as a real value)
+not greater than $r$.
+\item $\mtt{real\_ge}(r_1,r_2) = \mem{true}$ if $r_1 \geq r_2$, \mem{false} otherwise.
+\item $\mtt{real\_gt}(r_1,r_2) = \mem{true}$ if $r_1 > r_2$, \mem{false} otherwise.
+\item $\mtt{real\_int}(r)$ discards the fractional part of $r$ and returns
+the integral part as an integer.
+\item $\mtt{real\_le}(r_1,r_2) = \mem{true}$ if $r_1 \leq r_2$, \mem{false} otherwise.
+\item $\mtt{real\_ln}(r)$ returns the natural logarithm of $r$; fails if $r\leq 0$.
+\item $\mtt{real\_lt}(r_1,r_2) = \mem{true}$ if $r_1 < r_2$, \mem{false} otherwise.
+\item $\mtt{real\_max}(r_1,r_2) = r_1$ if $r_1 \geq r_2$, $r_2$ otherwise.
+\item $\mtt{real\_min}(r_1,r_2) = r_1$ if $r_1 \leq r_2$, $r_2$ otherwise.
+\item $\mtt{real\_mod}(r_1,r_2)$ returns the remainder of $r_1 / r_2$. This
+is the value $r_1 - i \times r_2$, for some integer $i$ such that the result
+has the same sign as $r_1$ and magnitude less than the magnitude of $r_2$.
+If $r_2 = 0$, the operation fails. (This corresponds to ANSI-C's \texttt{fmod} function.)
+\item $\mtt{real\_mul}(r_1,r_2) = r_1 \times r_2$.
+\item $\mtt{real\_ne}(r_1,r_2) = \mem{true}$ if $r_1 \neq r_2$, \mem{false} otherwise.
+\item $\mtt{real\_neg}(r) = -r$.
+\item $\mtt{real\_pow}(r_1,r_2) = r_1^{r_2}$. This is defined when $r_1 > 0$,
+or $r_1 < 0$ and $r_2$ is integral, or when $r_1 = 0$ and $r_2 \geq 0$;
+in other cases, the operation fails. $0^0$ is defined as $1$.
+\item $\mtt{real\_sin}(r)$ returns the sine of $r$ (measured in radians).
+\item $\mtt{real\_sqrt}(r) = \sqrt{r}$; if $r < 0$, the operation fails.
+\item $\mtt{real\_string}(r)$ returns a textual representation of $r$, as a string.
+\item $\mtt{real\_sub}(r_1,r_2) = r_1 - r_2$.
+\item $\mtt{string\_int}(\mem{str}) = i$ if the string has the lexical structure
+of an integer constant (as defined by the ICon token class) and $i$
+is the value associated with that constant. Otherwise the operation fails.
+\end{itemize}
+
+%
+\subsubsection{Implementation Dependent Parameters}
+Implicit in the description of the primitive procedures is that many
+may fail if their results cannot be represented by the implementation.
+We distinguish between four levels of conformance to this specification:
+\begin{itemize}
+\item Level 0 implementations have fixed precision integers and reals.
+Overflow and underflow conditions may or may not be reported as failures;
+instead, approximate values may be returned.
+Also, approximations are allowed for reals, e.g. by using IEEE floating-point.
+\item Level 1 implementations extend Level 0 implementations by detecting
+all overflow and underflow conditions, reporting them as failures.
+\item Level 2 implementations have infinite-precision integers, for which
+no overflow conditions are possible except due to memory exhaustion.
+Reals behave as in Level 1 implementations.
+\item Level 3 implementations have infinite precision integers and reals.
+No overflow or underflow conditions are possible except due to memory exhaustion.
+\end{itemize}
+An implementation \emph{must} document its conformance level.
+It is recommended that IEEE 64-bit floating-point arithmetic be used for reals,
+and that at least 31 bits of precision be available for integers.
+
+An implementation is \emph{weakly} conforming if it implements
+only a subset of the standard types and operations described here.
+The implemented subset must conform to this document.
+An implementation is also free to \emph{add} components to the standard interface.
+%
+\subsubsection{Derived Dynamic Objects}
+The behaviour of some standard relations can be defined in RML itself; they include
+the boolean, character, list, and vector operations, and most string operations.
+Their definitions are shown in Figures~\figref{impl-dyn-first}
+to~\figref{impl-dyn-last}.
+An implementation is expected to supply equivalent, but usually more efficient,
+implementations of some of these relations.
+In particular, although the vector and string types can be defined in terms of lists,
+the \verb@vector_length@, \verb@vector_nth@, \verb@string_length@ and
+\verb@string_nth@ relations are intended to execute in constant time.
+%
+\begin{figure}[htbp]
+\begin{verbatim}
+relation bool_and =
+  axiom bool_and(true, true) => true
+  axiom bool_and(true, false) => false
+  axiom bool_and(false, true) => false
+  axiom bool_and(false, false) => false
+end
+
+relation bool_or =
+  axiom bool_or(false, false) => false
+  axiom bool_or(false, true) => true
+  axiom bool_or(true, false) => true
+  axiom bool_or(true, true) => true
+end
+
+relation bool_not =
+  axiom bool_not false => true
+  axiom bool_not true => false
+end
+
+datatype char = CHR of int (* [0,255] *)
+
+relation char_int =
+  axiom char_int(CHR i) => i
+end
+
+relation int_char =
+  rule  int_ge(i,0) => true & int_le(i,255) => true
+        ----------------
+        int_char i => CHR i
+end
+\end{verbatim}
+\caption{Derived types and relations}
+\figlab{impl-dyn-first}
+\end{figure}
+%
+\begin{figure}[htbp]
+\begin{verbatim}
+relation list_append =
+  axiom list_append([], y) => y
+
+  rule  list_append(y, z) => yz
+        ----------------
+        list_append(x::y, z) => x::yz
+end
+
+relation list_reverse =
+  axiom list_reverse [] => []
+
+  rule  list_reverse y => revy &
+        list_append(revy, [x]) => z
+        ----------------
+        list_reverse (x::y) => z
+end
+
+relation list_length =
+  axiom list_length [] => 0
+
+  rule  list_length xs => n & int_add(1, n) => n'
+        ----------------
+        list_length (_::xs) => n'
+end
+
+relation list_member =
+  axiom list_member(_, []) => false
+
+  rule  x = y
+        ----------------
+        list_member(x, y::ys) => true
+
+  rule  not x = y & list_member(x, ys) => z
+        ----------------
+        list_member(x, y::ys) => z
+end
+\end{verbatim}
+\caption{Derived types and relations (contd.)}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{verbatim}
+relation list_nth =
+  axiom list_nth(x::_, 0) => x
+
+  rule  int_sub(n, 1) => n' & list_nth(xs, n') => x
+        ----------------
+        list_nth(_::xs, n) => x
+end
+
+relation list_delete =
+  axiom list_delete(_::xs, 0) => xs
+
+  rule  int_sub(n, 1) => n' & list_delete(xs, n') => xs'
+        ----------------
+        list_delete(x::xs, n) => x::xs'
+end
+
+datatype 'a vector = VEC of 'a list
+
+relation list_vector =
+  axiom list_vector l => VEC l
+end
+
+relation vector_list =
+  axiom vector_list(VEC l) => l
+end
+
+relation vector_length =
+  rule  list_length l => n
+        ----------------
+        vector_length(VEC l) => n
+end
+
+relation vector_nth =
+  rule  list_nth(l, n) => x
+        ----------------
+        vector_nth(VEC l, n) => x
+end
+\end{verbatim}
+\caption{Derived types and relations (contd.)}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{verbatim}
+datatype string = STR of char list
+
+relation list_string =
+  axiom list_string cs => STR cs
+end
+
+relation string_list =
+  axiom string_list(STR cs) => cs
+end
+
+relation string_length =
+  rule  list_length cs => n
+        ----------------
+        string_length(STR cs) => n
+end
+
+relation string_nth =
+  rule  list_nth(cs, n) => c
+        ----------------
+        string_nth(STR cs, n) => c
+end
+
+relation string_append =
+  rule  list_append(cs1, cs2) => cs3
+        ----------------
+        string_append(STR cs1, STR cs2) => STR cs3
+end
+\end{verbatim}
+\caption{Derived types and relations (contd.)}
+\figlab{impl-dyn-last}
+\end{figure}

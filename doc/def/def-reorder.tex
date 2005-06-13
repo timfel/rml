@@ -1,0 +1,139 @@
+% def-reorder.tex
+%
+\section{Reordering Phase}
+\seclab{reorder}
+This section describes the dependency analysis and reordering
+phase that occurs between the parsing and static elaboration phases.
+
+\subsection{Background}
+The type system of RML, like those in many other languages,
+generally requires the declaration of an object to lexically
+precede every use of that object. This holds for declared types,
+global variables, relations, and variables local to some relation.
+We refer to this as the \emph{define-before-use} rule.
+
+In some cases, however, programs can be easier to read
+if this rule is not enforced.
+For example, it can be desirable to write a main routine first,
+followed by the subroutines used to implement the main routine.
+
+Thus RML programs are subjected to a \emph{reordering phase} after
+parsing but before type checking\footnote{
+Haskell~\cite[Section 4.5.1]{Haskell96} is another language with
+a Hindley-Milner type system and reordering of declarations.}.
+This phase reorders top-level declarations of types, variables,
+and relations, in such a way that the define-before-use rule holds
+for the reordered program.
+The sections below describe the exact rules that define when valid
+reorderings exist.
+
+\subsubsection{Terminology}
+A directed graph $G = (V,E)$ is defined by a set $V$ (the vertices)
+and a binary relation $E:~V\rightarrow V$ (the edges) as usual.
+When the vertices are syntactic objects and the edges express
+dependencies between these objects, we call the graph a \emph{dependency graph}.
+
+A dependency graph consists of a set of strongly connected components.
+Taking these as equivalence classes over the graph results in a DAG of components.
+The \emph{preorder components} of a dependency graph is a topologically
+ordered sequence $C_1,\ldots,C_n$ of its components such that no $C_j$
+has any dependencies to any $C_k~(k>j)$.
+
+\subsection{Type Declarations}
+The analysis and reordering of type declarations applies to
+all type aliases \emph{typbind} and datatypes \emph{datbind}.
+The declarations in a module's interface are treated separately
+from those in the module's body.
+
+\subsubsection{Dependency Analysis}
+Let the \emph{context} be the set of all type declarations \emph{typbind}
+and \emph{datbind} in the part of the module under consideration.
+
+With every type declaration is associated a type constructor $\mem{tycon}_i$
+and a set of \emph{immediate dependencies} $\mem{Dep}_i$, defined as follows:
+\begin{itemize}
+\item A declaration $\mem{tyvarseq}~\mem{tycon}_i~\mtt{=}~\mem{ty}_i$
+defines $\mem{Dep}_i$ as the set of non-qualified type constructors
+occurring in $\mem{ty}_i$ and being declared in the current context.
+It is an error for $\mem{tycon}_i$ to occur in $\mem{Dep}_i$.
+
+\item A declaration $\mem{tyvarseq}~\mem{tycon}_i~\mtt{=}~\mem{conbind}_i$
+defines $\mem{Dep}_i$ as the set of non-qualified type constructors
+occurring in $\mem{conbind}_i$ and being declared in the current context.
+\end{itemize}
+
+It is an error for any \emph{tycon} to have more than one declaration in the context.
+
+Finally, $\mem{Dep}=\{(\mem{tycon}_i,\mem{tycon}_k)~;~\mem{tycon}_k\in\mem{Dep}_i\}$
+and $T$ is the set of all type constructors declared in the context.
+
+\subsubsection{Reordering}
+Now consider each of the preorder components $C_1,\ldots,C_n$ of the
+dependency graph $(T,\mem{Dep})$:
+\begin{itemize}
+\item If $C_j$ contains a single type constructor from a \emph{typbind},
+then its definition is emitted as a single \texttt{type} declaration.
+\item If $C_j$ contains a number of type constructors, all
+from \emph{datbind} declarations, then their definitions are
+collected and emitted as a single recursive \texttt{datatype} declaration.
+\item If $C_j$ contains several type constructors, some from \emph{datbind}
+and some from \emph{typbind} declarations, then further processing
+is required.
+
+Let $T_j = T\cap C_j$, $\mem{Dep}'_i = \mem{Dep}_i\cap T_j$,
+$\mem{Dep}_j = \{(\mem{tycon}_i,\mem{tycon}_k) ~;~ \mem{tycon}_k\in\mem{Dep}'_i\}$,
+and consider the dependency graph $(T_j,\mem{Dep}_j)$.
+This graph  must not have any cycles (i.e.,
+every strongly connected component must be a singleton).
+A depth-first traversal of $(T_j,\mem{Dep}_j)$ defines the order in which
+the \emph{typbind} declarations are collected.
+
+Finally, the component $C_j$ is emitted as a recursive \texttt{datatype}
+declaration, consisting of the \emph{datbind} declarations for the
+\emph{datbind} type constructors, and a \texttt{withtype} containing
+the \emph{typbind} declarations ordered as described above.
+\end{itemize}
+
+\subsection{Value Declarations}
+The analysis and reordering of value declarations applies to
+all \texttt{val} and \emph{relbind} declarations in module bodies.
+
+\subsubsection{Dependency Analysis}
+Let the context be the set of all \texttt{val} and \emph{relbind}
+declarations in the module's body.
+
+With every value declaration is associated a variable $\mem{var}_i$
+and a set of immediate dependencies $\mem{Dep}_i$, defined as follows:
+\begin{itemize}
+\item A declaration $\mtt{val}~\mem{var}_i~\mtt{=}~\mem{exp}_i$
+defines $\mem{Dep}_i$ as the set of non-qualified variables
+occurring in $\mem{exp}_i$ and being declared in the current context.
+It is an error for $\mem{var}_i$ to occur in $\mem{Dep}_i$.
+
+\item A \emph{relbind} declaration $\mem{var}_i~\langle\mtt{:}~\mem{ty}_i\rangle~\mtt{=}~\mem{clause}_i$
+defines $\mem{Dep}_i$ as the set of free non-qualified variables
+in $\mem{clause}_i$ and being defined in the current context.
+\end{itemize}
+
+It is an error for any \emph{var} to have more than one declaration in the context.
+
+Finally, $\mem{Dep}=\{(\mem{var}_i,\mem{var}_k)~;~\mem{var}_k\in\mem{Dep}_i\}$
+and $V$ is the set of all variables declared in the context.
+
+\subsubsection{Reordering}
+Now consider each of the preorder components $C_1,\ldots,C_n$ of the
+dependency graph $(V,\mem{Dep})$:
+\begin{itemize}
+\item If $C_j$ contains a single variable from a \texttt{val} declaration,
+then its definition is emitted as is.
+\item If $C_j$ contains a number of variables, all
+from \emph{relbind} declarations, then their definitions are
+collected and emitted as a single recursive \texttt{relation} declaration.
+\item All other cases are illegal.
+\end{itemize}
+
+\subsection{Modules}
+The declarations in a module's interface are reordered separately
+from those in the module's body.
+Within each part, declarations are reordered so that \texttt{with}-declarations
+precede type declarations, who in turn precede value declarations.

@@ -1,0 +1,65 @@
+% macros.tex
+
+% macros for relations -- groups of numbered (relation) rules
+%	\begin{relation}{Name}{Signature}
+%	\rrule	{<above-text>}
+%		{<below-text> \label{rrule:<tag>}}
+%	\rruleskip
+%	<more \rrules>
+%	\end{relation}
+% <above-text> should be a centered one-column array if its long
+%
+\newcounter{rrule}				% init 0
+\def\therrule{\mbox{\rm(\arabic{rrule})}}	% redefine \therrule
+\def\rrule#1#2{% \newcommand doesn't seem to work for this
+$$
+	\refstepcounter{rrule}
+	\frac{#1}{#2}
+	\eqno\therrule
+$$}
+\def\rruleskip{\smallskip}
+\newenvironment{relation}[2]{\bigskip\par\noindent{\large\bf#1}\hfill\fbox{$#2$}}{}
+
+% special formatting commands
+\def\mem#1{\mbox{\textit{#1}}}
+\def\mtt#1{\mbox{\texttt{#1}}}
+
+% common special symbols
+\def\ME{\mem{ME}}
+\def\TE{\mem{TE}}
+\def\VE{\mem{VE}}
+\def\rmunder{\mbox{\rm\_}}
+\def\ttbackslash{\mbox{\texttt{\char'134}}}
+\def\ttcaret{\mbox{\texttt{\char'136}}}
+\def\ttunder{\mbox{\texttt{\char'137}}}
+\def\ttlbrace{\mbox{\texttt{\char'173}}}
+\def\ttrbrace{\mbox{\texttt{\char'175}}}
+\def\elem{\hbox{$\in$}}
+\def\BAR{\hbox{$~\mid$}}
+\def\EMPTY{\varepsilon}
+\def\finmap{\stackrel{\mathrm{fin}}{\rightarrow}}
+
+% this should go into a ``thaux.sty''
+\catcode`\@=11
+\def\@thechalab{{}}
+\def\chalab#1{\def\@thechalab{cha:#1}\label{\@thechalab}}
+\def\charef#1{\ref{cha:#1}}
+\def\seclab#1{\label{\@thechalab:sec:#1}}
+\def\chasecref#1#2{\ref{cha:#1:sec:#2}}
+\def\secref#1{\ref{\@thechalab:sec:#1}}
+\def\figlab#1{\label{\@thechalab:fig:#1}}
+\def\figref#1{\ref{\@thechalab:fig:#1}}
+\def\tablab#1{\label{\@thechalab:tab:#1}}
+\def\tabref#1{\ref{\@thechalab:tab:#1}}
+\def\rulelab#1{\label{\@thechalab:rule:#1}}
+\def\ruleref#1{\ref{\@thechalab:rule:#1}}
+\catcode`\@=12
+
+% tt-like environment, but spaces and newlines are respected.
+% or like a verbatim where LaTeX still works
+% the \leftmargin=\z@ prevents indentation, making it similar
+% in appearance to verbatim
+\catcode`\@=11
+\newenvironment{code}{\begin{list}{}{\leftmargin=\z@\parsep=\z@}\item[]
+  \tt\obeylines\@vobeyspaces}{\end{list}}
+\catcode`\@=12

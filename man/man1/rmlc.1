@@ -1,0 +1,233 @@
+.\" rmlc.1
+.TH RMLC 1 "26 Feb 1998"
+.SH NAME
+rmlc \- RML compiler
+.SH SYNOPSIS
+.B rmlc
+[
+.B \-c
+]
+[
+.BI \-D name
+.RB [ =\f2token\f1
+] ]
+[
+.B \-dryrun
+]
+[
+.B \-f\f2option\f1
+]
+[
+.B \-g
+]
+[
+.BI \-I dir
+]
+[
+.B \-keeptmp
+]
+[
+.BI \-L dir
+]
+[
+.BI \-l name
+]
+[
+.BI \-o file
+]
+[
+.B \-p
+]
+[
+.B \-U\f2name\f1
+]
+[
+.B \-v
+]
+[
+.B \-W\f2c\f1,\f2args\f1
+]
+[
+.B \-W\f2option\f1
+]
+[
+.B +C
+]
+[
+.BI +R rts
+]
+
+.SH DESCRIPTION
+\f4rmlc\fP
+is the interface to the RML compilation system.
+The compilation tools conceptually consist of
+the RML translator, the C compiler, and the link editor.
+\f4rmlc\fP
+processes the supplied options
+and then executes the various tools with the proper arguments.
+\f4rmlc\fP
+accepts several types of files as arguments.
+.PP
+Files whose names end with \f4.rml\f1
+are taken to be RML source files and may be translated, compiled,
+and link edited.
+The compilation process may be stopped after the completion of any pass if the
+appropriate options are supplied.
+If the compilation process runs through the translator, then
+a C source file is produced
+whose name is that of the RML file with \f4.c\f1
+substituted for \f4.rml\f1;
+additionally, a C header file is produced suffixed \f4.h\f1.
+If the compilation process runs through the C compiler, then
+an object file is produced
+whose name is that of the C file with \f4.o\f1
+substituted for \f4.c\f1.
+In the same way, files whose names end in \f4.c\f1
+are taken to be C source files; they may be compiled and link edited.
+Files whose names end in \f4.o\f1 or \f4.a\f1
+are handed to the link editor,
+which produces an executable
+whose name by default is \f4a.out\f1.
+.SH OPTIONS
+Options and file name arguments may be freely mixed.
+Arguments are processed from left to right.
+The following options are interpreted by \f4rmlc\fP:
+.TP
+.B +C
+Translate, but do not compile or link edit the named RML files.
+.TP
+.B \-c
+Suppress the link editing phase of the compilation.
+.TP
+.B \-D\f2name\f1[\f4=\f2token\f1]
+Associates \f2name\f1 with the specified \f2token\f1
+as if by a \f4#define\f1 preprocessing directive.
+If no \f4=\f2token\f1 is specified, the token \f4\&1\f1 is supplied.
+This option is passed to the C compiler.
+.TP
+.B \-dryrun
+Show each component as it would have been invoked, but do not actually execute it.
+.TP
+.B \-f\f2option\f1
+The entire option is passed to the RML translator.
+.TP
+.B \-g
+Direct the C compiler to produce additional information for symbolic debugging.
+Also direct the link editor to link with debug-enabled object libraries.
+The last one of \f4\-g\f1 and \f4\-p\f1 to be specified takes precedence.
+.TP
+.BI \-I dir
+Look in \f2dir\f1, prior to the usual directories,
+for included files whose names do not
+begin with slash (/). Directories for multiple \f4\-I\f1 options
+are searched in the order specified.
+This option is passed to the C compiler.
+.TP
+.B \-keeptmp
+Retain temporary files created during compilation, instead of
+deleting them automatically.
+.TP
+.BI \-L dir
+Add \f2dir\f1 to the list of directories searched for object libraries.
+This option is passed to the link editor.
+.TP
+.BI \-l name
+Link with object library \f4lib\f2name\f4.so\f1 or \f4lib\f2name\f4.a\f1.
+This option is passed to the link editor.
+.TP
+.B \-o \f2filename
+If linking, produce the executable code in \f2filename\f1 instead of \f4a.out\f1.
+If not linking, produce object code for \f2file\f4.c\f1 in \f2filename\f1
+instead of \f2file\f4.o\f1. Do not specify both of \f4\-c\f1 and \f4\-o\f1
+if more than one file is being compiled.
+.TP
+.B \-p
+Direct the C compiler to generate extra code to write profile information.
+Also direct the link editor to link with profile-enabled object libraries.
+The last one of \f4\-g\f1 and \f4\-p\f1 to be specified takes precedence.
+.TP
+.BI +R rts
+Direct the RML translator to generate code for the runtime system named \f2rts\f1
+instead of the default \f4plain\f1. Also direct the link editor to link with the
+appropriate object library.
+.TP
+.B \-U\f2name\f1
+Cause any definition of \f2name\f1 to be undefined, as if by a
+\f4#undef\f1
+preprocessing directive.
+This option is passed to the C compiler.
+.TP
+.B \-v
+Show each component as it is invoked (verbose mode).
+.TP
+.B \-W\f2c\f1,\f2args\f1
+Hand off the arguments \f2args\f1 to \f2c\f1.
+Each argument must be separated from the preceding by only a comma.
+(A comma can be part of an argument by escaping it
+by an immediately preceding backslash (\f4\e\f1) character;
+the backslash is removed from the resulting argument.)
+\f2c\f1 can be one of the following:
+.PP
+.PD 0
+.RS 1i
+.TP
+\f4c\f1
+C compiler: (cc, gcc)
+.TP
+\f4r\f1
+RML translator: (rml)
+.RE
+.PD
+.TP
+.B \-W\f2option\f1
+The entire option is passed to the RML translator,
+unless it is of the form
+.BR \-W\f2c\f1,\f2args\f1 .
+.SH FILES
+.PD 0
+.TP 15
+.IB file .rml
+RML source file containing an RML module
+.TP
+.IB file .c
+C source file
+.TP
+.IB file .h
+C header file
+.TP
+.IB file .o
+object file
+.TP
+.B a.out
+executable output file
+.PD
+.SH "SEE ALSO"
+.BR cc (1),
+.BR gcc (1),
+.BR rml (1),
+.BR librml (3x)
+.sp .2
+.IR "The Definition of RML" .
+.sp .2
+.IR "Compiling Natural Semantics" .
+.SH NOTES
+The steps needed to compile and link RML code are sufficiently
+complex, and sometimes obscure, that users should not attempt to
+perform them themselves. Users are advised to use the \f4rmlc\f1
+driver in all of the following cases:
+.PD 0
+.TP
+.B 1.
+When compiling RML source code.
+.TP
+.B 2.
+When compiling C code that either was generated by the RML translator,
+or uses RML declarations from \f4<rml.h>\f1.
+.TP
+.B 3.
+When linking, and one or more object files were produced from
+RML source code or C code that uses RML declarations.
+.\" .SH BUGS
+.\" The error messages from the RML translator are not very informative.
+.SH AUTHOR
+Mikael Pettersson (mikpe@sophia.inria.fr, mikpe@ida.liu.se).

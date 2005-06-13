@@ -1,0 +1,290 @@
+(* sources.cm -- CM source list for the RML compiler and interpreter *)
+
+Group
+is
+
+#if (SMLNJ_VERSION < 110)
+#error This software requires SML/NJ version 110 or newer.
+#endif
+
+#if defined(NEW_CM)
+#if (SMLNJ_VERSION <= 110)	(* should use "=", but old CM craps out *)
+#if (SMLNJ_MINOR_VERSION < 29)	(* should use "andalso", but old CM craps out *)
+#error You need SML/NJ version 110.29 or newer.
+#endif
+#endif
+$/basis.cm
+(* $smlnj/internal/host-compiler-0.cm *)
+(* replaced with *)
+$smlnj/compiler.cm
+$smlnj/viscomp/debugprof.cm
+$/smlnj-lib.cm
+$/ml-yacc-lib.cm
+#else
+smlnj-lib.cm
+ml-yacc-lib.cm
+#endif
+
+(* 
+set for the new compiler!!
+fixme-later
+Control.shareDefError := false 
+also, vector is changed in the new compiler (110.45)
+SMLofNJ.Internals.ProfControl.profMode := true;
+*)
+
+(* config *)
+SYSDEP.sig
+SysDep.sml
+
+START.sig
+Start.sml
+StartFn.sml
+
+(* main *)
+CONTROL.sig
+Control.sml
+
+VERSION.sig
+Version.sml
+VersionFn.sml
+MAIN.sig
+Main.sml
+MainFn.sml
+
+(* link.sml no need for that because each structure definition has its own file *)
+
+(* util *)
+MAKESTRING.sig
+MakeString.sml
+UTIL.sig
+Util.sml
+PP.sig
+PP.sml
+SOURCE.sig
+Source.sml
+
+StrKey.sml
+IntKey.sml
+IntDict.sml
+ORD_DICT.sig
+ORD_KEY.sig
+AADictFn.sml
+STR_DICT.sig
+StrDict.sml
+
+
+(* conrep *)
+CONREP.sig
+Conrep.sml
+
+(* cps *)
+
+CPS.sig
+CPS.sml
+CPSFn.sml
+CPS_PRINT.sig
+CPSPrint.sml
+CPSPrintFn.sml
+
+CPS_USEFUL.sig
+CPSUseful.sml
+CPSUsefulFn.sml
+
+CPS_USAGES.sig
+CPSUsages.sml
+CPSUsagesFn.sml
+
+CPS_FVARS.sig
+CPSFVars.sml
+CPSFVarsFn.sml
+
+CPS_OPTIM.sig
+CPSOptim.sml
+CPSOptimFn.sml
+
+(* absyn *)
+
+ABSYN.sig
+Absyn.sml
+AbsynFn.sml
+
+ABSYN_PRINT.sig
+AbsynPrint.sml
+AbsynPrintFn.sml
+
+ABSYN_INSTRUMENTED.sig
+Instrument.sml
+InstrumentFn.sml
+
+(* lexer *)
+LEXARG.sig
+LexArg.sml
+LexArgFn.sml
+
+LEXUTIL.sig
+LexUtil.sml
+
+rml.lex
+RMLLex.sml
+
+mod.lex
+MODLex.sml
+
+(* parser *)
+RMLLrVals.sml
+RMLParser.sml
+rml.grm
+
+MODLrVals.sml
+MODParser.sml
+mod.grm
+
+PARSE.sig
+RMLParse.sml
+RMLParseFn.sml
+
+MODParse.sml
+MODParseFn.sml
+
+MOTOMO.sig
+MOToMO.sml
+MOToMOFn.sml
+
+MOToRML.sml
+MOToRMLFn.sml
+
+(* reorder *)
+REORDER_SCC.sig
+new/ReorderSCC.sml
+REORDER_TY.sig
+ReorderTy.sml
+new/ReorderTyFn.sml
+REORDER_VAL.sig
+ReorderVal.sml
+new/ReorderValFn.sml
+REORDER.sig
+Reorder.sml
+ReorderFn.sml
+ReorderParse.sml
+ReorderParseFn.sml
+
+(* fol *)
+
+FOL.sig
+FOL.sml
+FOLFn.sml
+FOL_UNIFY.sig
+FOLUnify.sml
+FOLUnifyFn.sml
+FOL_USAGES.sig
+FOLUsages.sml
+FOLUsagesFn.sml
+FOL_PRINT.sig
+FOLPrint.sml
+FOLPrintFn.sml
+FOL_OPTIM.sig
+FOLOptim.sml
+FOLOptimFn.sml
+
+(* static *)
+
+TY.sig
+Ty.sml
+TY_COMB.sig
+TyComb.sml
+TyCombFn.sml
+TY_FCN.sig
+TyFcn.sml
+TyFcnFn.sml
+TY_SCHEME.sig
+TyScheme.sml
+TySchemeFn.sml
+STAT_OBJ.sig
+StatObj.sml
+StatObjFn.sml
+STAT_ELAB.sig
+StatElab.sml
+StatElabFn.sml
+
+(* absyntofol *)
+
+ABSYNTOFOL.sig
+AbsynToFOL.sml
+AbsynToFOLFn.sml
+
+(* foltocps *)
+
+TRANSENV.sig
+TransEnv.sml
+TransEnvFn.sml
+PMC.sig
+PMC.sml
+PMCFn.sml
+FOLTOCPS.sig
+FOLToCPS.sml
+FOLToCPSFn.sml
+
+(* code *)
+
+MANGLE.sig
+Mangle.sml
+MangleFn.sml
+
+CODE.sig
+CODE_FVARS.sig
+CodeFVarsFn.sml
+CODE_OPTIM.sig
+CodeOptimFn.sml
+CODETOC.sig
+CodeToCFn.sml
+
+PLAIN.sig
+Plain.sml
+PlainFn.sml
+PLAINTOC.sig
+PlainToC.sml
+PlainToCFn.sml
+PlainCodeToC.sml
+PlainFVars.sml
+PlainOptim.sml
+
+SWITCH.sig
+Switch.sml
+SwitchFn.sml
+SWITCH_INTRAS.sig
+SwitchIntras.sml
+SwitchIntrasFn.sml
+SWITCHTOC.sig
+SwitchCodeToC.sml
+SwitchFVars.sml
+SwitchOptim.sml
+
+MaskToC.sml
+MaskToCFn.sml
+
+DiffToC.sml
+DiffToCFn.sml
+
+(* cpstocode *)
+
+CPSToSwitch.sml
+CPSToPlain.sml
+CPSTOCODE.sig
+CPSToCodeFn.sml
+
+(* cpstosml *)
+
+CPSTOSML.sig
+CPSToSML.sml
+CPSToSMLFn.sml
+
+(* interp *)
+
+INTERP_CORE.sig
+InterpCore.sml
+InterpCoreFn.sml
+INTERP.sig
+Interp.sml
+InterpFn.sml
+

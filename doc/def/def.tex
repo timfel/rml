@@ -1,0 +1,44 @@
+% def.tex
+\documentclass[11pt,a4paper,titlepage]{article}
+\usepackage{boxedminipage}
+\input{macros}
+%\includeonly{}
+\begin{document}
+
+\pagenumbering{roman}
+
+% Title Page
+\title{		The Definition of RML \\
+		Version 2}
+\author{	Mikael Pettersson \\
+		Department of Computer and Information Science \\
+		Link{\"o}ping University, Sweden \\
+		and \\
+		INRIA Sophia Antipolis, France}
+\date{		1998-04-13}
+\maketitle
+
+% Contents
+\tableofcontents
+
+% Preface
+\include{def-preface}
+
+% Body
+\clearpage
+\setcounter{page}{1}
+\pagenumbering{arabic}
+\include{def-intro}
+\include{def-notation}
+\include{def-lexical}
+\include{def-syntax}
+\include{def-reorder}
+\include{def-static}
+\include{def-dynamic}
+\include{def-initial}
+
+% Appendix
+\bibliographystyle{plain}
+\bibliography{rml}
+
+\end{document}

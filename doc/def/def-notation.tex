@@ -1,0 +1,225 @@
+% def-notation.tex
+%
+\section{Notation for Natural Semantics}
+\seclab{notation}
+%
+\subsection{Lexical definitions}
+Lexical definitions are made primarily using regular expressions.
+These are written using the following notation\footnote{
+This notation coincides with the one used by the \texttt{ml-lex} scanner generator.},
+in which
+alternatives are listed in decreasing order of precedence:
+\begin{center}
+\begin{tabular}{@{}l@{~}l}
+\emph{c} & denotes the character \emph{c}, if \emph{c} is not one of \verb@.*+?|(){}\"[]^@\\
+\verb@\t@ & denotes a tab character (ASCII 9)\\
+\verb@\n@ & denotes a newline character (ASCII 10)\\
+\verb@\@$ddd$ & denotes the single character with number $ddd$, where $ddd$ is a\\
+ & 3-digit decimal integer in the interval $[0,255]$\\
+\verb@\@\emph{c} & denotes the character \emph{c}\\
+\texttt{[...]} & denotes the set of characters listed in \verb@...@\\
+\verb@[^...]@ & denotes the complement of \texttt{[...]}\\
+$c_1\mtt{-}c_2$ & (within \texttt{[...]}) denotes the range of characters from $c_1$ to $c_2$\\
+\texttt{.} & denotes any character except newline\\
+\verb@"@\emph{x}\verb@"@ & denotes the string of characters \emph{x}\\
+\ttlbrace\emph{x}\ttrbrace & equals the expression bound to the identifier \emph{x}\\
+\texttt{(}\emph{x}\texttt{)} & equals \emph{x}\\
+\emph{x}\texttt{*} & denotes the Kleene closure of \emph{x}\\
+\emph{x}\texttt{+} & denotes the positive closure of \emph{x}\\
+\emph{x}\texttt{?} & denotes an optional occurrence of \emph{x}\\
+$x\ttlbrace n \ttrbrace$ & denotes $n$ repetitions of $x$, where $n$ is a small integer\\
+$x\ttlbrace n_1 \mtt{,} n_2 \ttrbrace$ & denotes between $n_1$ and $n_2$ repetitions of $x$\\
+\emph{xy} & denotes the concatenation of \emph{x} and \emph{y}\\
+\emph{x}\texttt{|}\emph{y} & denotes the disjunction of \emph{x} and \emph{y}\\
+\end{tabular}
+\end{center}
+%
+\subsection{Syntax definitions}
+Syntax definitions are made using extended context-free grammars.
+The following conventions apply:
+\begin{itemize}
+\item The brackets $\langle~\rangle$ enclose optional phrases.
+\item Alternative forms for each phrase class are listed in \emph{decreasing}
+order of precedence.
+\item $\EMPTY$ denotes an empty phrase.
+\item $\cdots$ denotes repetition. It is never a literal token.
+\item Constraints on the applicability of a production may be added.
+\item A production may be indicated as being left (right) (non) associative
+by adding the letter L (R) (N) to its right.
+\item References to literal tokens are printed in \texttt{this} style.
+\item References to syntactic phrases or non-literal lexical items
+are printed in \emph{this} style.
+\end{itemize}
+%
+\subsection{Sets}
+If $A$ is a set, then $\mathrm{Fin}~A$ denotes the set of finite subsets of $A$.
+%
+\subsection{Tuples}
+Tuples are ordered heterogeneous collections of fixed finite length.
+\smallskip\par\noindent\begin{tabular}{@{}l@{~}l}
+$(x_1,\cdots,x_n)$ & a tuple $t$ formed of $x_1$ to $x_n$, in that order\\
+$k~\mathrm{of}~t$ & projection; equals $x_k$ if $t = (x_1,\cdots,x_k,\cdots,x_n)$\\
+$T_1\times\cdots\times T_n$ & the type $\{(x_1,\cdots,x_n) ~;~ x_i \in T_i ~(1\leq i\leq n)\}$\\
+\end{tabular}
+\smallskip\par
+The notation $k~\mathrm{of}~t$ is sometimes extended to $x~\mathrm{of}~t$, where
+$x$ is a meta-variable ranging over $T_k$, and $t$ is of type
+$T_1\times\cdots T_k\cdots\times T_n$. There must be only one
+occurrence of the type $T_k$ in $T_1,\cdots,T_n$.
+%
+\subsection{Finite Sequences}
+Sequences are ordered homogeneous collections of varying, but always finite, length.
+\smallskip\par\noindent\begin{tabular}{@{}l@{~}l}
+$[]$ & the empty sequence\\
+$x::s$ & the sequence formed by prepending $x$ to sequence $s$\\
+$s@s'$ & the concatenation of sequences $s$ and $s'$\\
+$x^{(n)}$ or $[x_1,\cdots,x_n]$ & the sequence $x_1::\cdots ::x_n::[]$\\
+$x^*$ & a sequence of 0 or more \emph{x}'s\\
+$x^+$ & a sequence of 1 or more \emph{x}'s\\
+$s\downarrow k$ & the \emph{k}'th element of sequence \emph{s} (1-based)\\
+$s\setminus k$ & the sequence \emph{s} with its \emph{k}'th element removed\\
+$\#s$ & the length of sequence \emph{s}\\
+$\rightleftharpoons s$ & the reversal of sequence \emph{s}\\
+$x\in s$ & membership test, $\exists k\in[1,\#s] : s\downarrow k = x$\\
+$s\subseteq s'$ & $\forall k\in[1,\#s] : s\downarrow k \in s'$\\
+$T^k$ & the type of all \emph{T}-sequences of length \emph{k}\\
+$T^*$ or $\cup_{k\geq 0}T^k$ & the type of all finite \emph{T}-sequences\\
+$T^+$ or $\cup_{k\geq 1}T^k$ & the type of all non-empty finite \emph{T}-sequences
+\end{tabular}
+%
+\subsection{Finite Maps}
+If $A$ and $B$ are sets, then $A \finmap B$ denotes the set
+of \emph{finite maps} (partial functions with finite domain) from $A$ to $B$.
+The domain and range of a finite map, $f$, are denoted Dom~$f$ and Ran~$f$.
+A finite map can be written explicitly in the form
+$\{a_1\mapsto b_1,\cdots,a_k\mapsto b_k\}, k\geq 0$.
+The form $\{a\mapsto b ~;~ \phi\}$ stands for a finite map $f$ whose domain
+is the set of values $a$ which satisfy the condition $\phi$,
+and whose value on this domain is given by $f(a)=b$.
+If $f$ and $g$ are finite maps, then $f + g$ ($f$ \emph{modified by} $g$)
+is the finite map with domain $\mathrm{Dom}~f\cup\mathrm{Dom}~g$ and values
+\[ (f + g)(a) = \mathrm{if}~a\in\mathrm{Dom}~g~\mathrm{then}~g(a)~\mathrm{else}~f(a). \]
+%
+\subsection{Substitutions}
+If $t$ is a term with variables $V$ of type $T$, and $f$
+is a finite map of type $V \finmap T$, then $f$
+can be used as a \emph{substitution} on $t$. The expression $tf$ denotes the
+effect of substituting free variables $v_i$ in $t$ by $f(v_i)$,
+when $v_i \in \mathrm{Dom}~f$.
+The definition of `free' variables depends on the type of the term $t$.
+Substitutions are extended element-wise to finite sequences.
+%
+\subsection{Disjoint Unions}
+The type $T_1\cup\cdots\cup T_n$ denotes the \emph{disjoint} union
+of the types $T_1,\dots,T_n$. Let $x$ be a meta-variable ranging over
+a disjoint union type $T$, and $x_i$ range over its summands $T_i$.
+
+An $x_i$ is injected into $T$ by the expression $x_i~\mathrm{in}~T$.
+
+Membership test and projection are
+normally expressed using pattern-matching syntax. Using a meta-variable
+$x_i$ in a binding position in a function or relation, where the
+binding position is of type $T$, constrains an argument to
+be in the summand $T_i$; moreover, the formal parameter $x_i$ is bound
+to the projected value in $T_i$.
+%
+\subsection{Relations}
+A relation is a (in general infinite) set of tuples, i.e. a subset
+of some product $T_1\times\cdots\times T_n$. It is characterized by
+a \emph{signature} and is defined by a finite set of \emph{inference rules}.
+%
+\subsubsection{Signatures}
+A signature is used to declare the form and type of a relation.
+It is written as a non-empty sequence of meta-variables, with some auxiliary
+symbols inserted between some of them. Let $x_1,\dots,x_n$ be meta-variables
+for the types $T_1,\cdots,T_n$. Then a signature whose sequence of
+meta-variables is $x^{(n)}$, declares a relation over $T_1\times\cdots\times T_n$.
+
+When a relation is seen as defining logical propositions, as is typical for
+natural semantics, signatures are usually called \emph{judgements}.
+
+Occasionally, the place of a meta-variable will be replaced by a
+`prototype' pattern of the form $e/e'$, which denotes an anonymous
+type $T\cup T'$, where $T$ ($T'$) is the type of $e$ ($e'$).
+
+The auxiliary symbols inserted in a signature have no semantic effect,
+other than to make the signature easier to read, and to disambiguate
+different relations having the same type.
+
+Example: Let $\ME$, $\TE$, $\theta$, and \emph{longtycon} be the meta-variables
+for the types ModEnv, TyEnv, TypeFcn, and longTyCon respectively.
+Then $\ME,\TE\vdash\emph{longtycon}\Rightarrow\theta$ is a signature
+for a relation over
+$\mathrm{ModEnv}\times\mathrm{TyEnv}\times\mathrm{longTyCon}\times\mathrm{TypeFcn}$.
+%
+\subsubsection{Instances}
+An instance of a signature is formed by instantiating the meta-variables
+with expressions (or patterns) of appropriate types.
+
+Groups of relations are often viewed as defining a special-purpose logic.
+In this case, instances are referred to as \emph{propositions} or \emph{sequents}.
+%
+\subsubsection{Inference Rules}
+The contents (set of tuples) of a relation is specified using
+a finite set of inference rules of the form:
+$$ \frac{\emph{premises}}{\emph{conclusion}}\eqno(\emph{label}) $$
+The conclusion is written as an instance of the signature of the relation.
+The premises impose additional conditions, typically by checking
+that certain values occur in other relations, that certain
+values are equal (or not equal), or that certain values occur
+(or do not occur) in some set or sequence.
+When the premises are true, the conclusion (the existence of an element
+in the relation) can be inferred.
+
+We additionally require relations to be \emph{determinate}:
+for every element in the relation, \emph{exactly one}
+of the relation's inference rules must hold.
+
+We sometimes use \rmunder{} in the place of a meta-variable.
+This syntax is used to make it clear that a particular value is ignored.
+
+Inference rules are often labelled, as indicated by the label written
+to the right.
+
+In the rules, phrases bracketed by $\langle~\rangle$ are \emph{optional}.
+In an instance of a rule, either all or none of the options must be present.
+This convention, motivated by optional phrases in syntax definitions,
+allows a reduction in the number of rules.
+%
+\subsection{Example}
+These declarations are given for natural and binary numbers:
+
+\begin{figure}[hbt]
+\begin{boxedminipage}[h]{\textwidth}
+\begin{tabular*}{\linewidth}{@{}r@{~}c@{~}l@{~}r@{~}l@{\extracolsep{\fill}}r}
+\emph{n} & \elem & Nat & & & natural numbers (primitive)\\
+\emph{b} & \elem & Bin & ::= & $\mtt{0} ~\mid~ \mtt{1} ~\mid~ b\mtt{0} ~\mid~ b\mtt{1}$ & binary numbers
+\end{tabular*}
+\end{boxedminipage}
+\end{figure}
+
+Here is the specification for a relation expressing a mapping from
+binary to natural numbers.
+By convention, we write the relation's signature in a box
+above and to the right of the rules.
+We also indicate the type of the main object inspected
+by writing its name above and to the left of the rules.
+
+\setcounter{rrule}{0}
+\begin{relation}{Binary Numbers}{b \Rightarrow n}
+\rrule	{}
+	{\mtt{0} \Rightarrow 0}
+\rruleskip
+\rrule	{}
+	{\mtt{1} \Rightarrow 1}
+\rruleskip
+\rrule	{b \Rightarrow n}
+	{b\mtt{0} \Rightarrow 2n}
+\rruleskip
+\rrule	{b \Rightarrow n}
+	{b\mtt{1} \Rightarrow 2n+1}
+\end{relation}
+\setcounter{rrule}{0}
+
+Relations are often used in a directed manner. For example,
+a query $b \Rightarrow n$ is typically used when $b$ is known to \emph{compute} $n$.

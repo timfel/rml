@@ -1,0 +1,87 @@
+#!/bin/sh
+# etc/config.guess -- guess the value for the TARGET configuration variable
+
+export PATH
+PATH="/bin:/usr/bin:$PATH"
+
+case `uname -s` in
+  AIX)
+    OPSYS=aix
+    ARCH=rs6000
+    ;;
+  HP-UX)
+    OPSYS=hpux
+    ARCH=hppa
+    ;; 
+  IRIX*)
+    OPSYS=irix
+    ARCH=mips
+    ;;
+  Linux)
+    OPSYS=linux
+    case `uname -m` in
+      i[3456]86) ARCH=x86;;
+      *) exit 1;;
+    esac
+    ;;
+  OSF1)
+    OPSYS=osf1
+    case `uname -m` in
+      alpha) ARCH=alpha;;
+      *) exit 1;;
+    esac
+    ;;
+  SunOS)
+    case `uname -r` in
+      4.*)
+	OPSYS=sos4
+	case `/usr/bin/arch` in
+	  sun4) ARCH=sparc;;
+	  *) exit 1;;
+	esac
+      ;;
+      5.*)
+	OPSYS=sol2
+	case `uname -p` in
+	  sparc) ARCH=sparc;;
+	  i[3456]86) ARCH=x86;;
+	  *) exit 1;;
+	esac
+      ;;
+      *) exit 1;;
+    esac
+    ;;
+  ULTRIX)
+    OPSYS=ultrix
+    case `uname -m` in
+      RISC) ARCH=mips;;
+      *) exit 1;;
+    esac
+    ;;
+  CYGWIN_*)
+    OPSYS=cygwin
+    case `uname -m` in
+      i[3456]86) ARCH=x86;;
+      *) exit 1;;
+    esac
+    ;;
+  Darwin)
+     OPSYS=darwin
+     case `uname -m` in
+       Power\ Macintosh) ARCH=ppc;;
+       *) exit 1;;
+     esac
+    ;;
+  *) exit 1;;
+esac
+
+TARGET="$ARCH-$OPSYS"
+if [ -d config/$TARGET-gcc ]; then
+  echo "TARGET=$TARGET-gcc"
+elif [ -d config/$TARGET-cc ]; then
+  echo "TARGET=$TARGET-cc"
+elif [ -d config/$TARGET ]; then
+  echo "TARGET=$TARGET"
+else
+  exit 1
+fi

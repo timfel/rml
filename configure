@@ -1,0 +1,140 @@
+#!/bin/sh
+
+makeconfigureneeded=
+TARGET=
+PREFIX=
+SMLCM=
+MLLEX=
+MLYACC=
+HEAP_SUFFIX=
+DEBUGLIB=librml_g.a
+PROFLIB=librml_p.a
+
+if [ -r ./config.cache ]; then
+  . ./config.cache
+fi
+
+while [ "$#" != 0 ]; do
+    arg=$1
+    shift
+    case "$arg" in
+    --build=*)
+	TARGET=`echo $arg | sed 's/--build=//'`
+	if [ ! \( -d "config/$TARGET" -a -r "config/$TARGET/config.h" \) ]; then
+	  echo ./configure: You have indicated target "'$TARGET'".
+	  echo This software does not directly support that configuration.
+	  echo For a list of supported configurations, see the directory config/.
+	  exit 1
+	fi
+	makeconfigureneeded=1
+	;;
+    --prefix=*)
+	PREFIX=`echo $arg | sed 's/--prefix=//'`
+	;;
+    --nosmlnj)
+	SMLCM=nosmlnj
+	MLLEX=nosmlnj
+	MLYACC=nomlsnj
+	HEAP_SUFFIX=nosmlnj
+	;;
+    --disable-debug)
+	DEBUGLIB=
+	;;
+    --enable-debug)
+	DEBUGLIB=librml_g.a
+	;;
+    --disable-profile)
+	PROFLIB=
+	;;
+    --enable-profile)
+	PROFLIB=librml_p.a
+	;;
+    *)
+	echo ./configure: bad option "'$arg'"
+	echo usage: ./configure [options]
+	echo valid options are:
+	echo '--build=<cpu-os-compiler>'
+	echo '--prefix=<path>'
+	echo '--nosmlnj'
+	echo '--{disable,enable}-{debug,profile}'
+	exit 1
+    esac
+done
+
+if [ -z "$TARGET" ]; then
+  TARGET=`etc/config.guess`
+  if [ "$?" != 0 ]; then
+    echo ./configure: etc/config.guess failed to classify current host
+    exit 1
+  fi
+  eval $TARGET
+  echo ./configure: TARGET is $TARGET
+  makeconfigureneeded=1
+fi
+
+# SML/NJ configuration
+# Note: --nosmlnj MUST be given if SML/NJ isn't available
+
+if [ -z "$SMLCM" ]; then
+  makeconfigureneeded=1
+  MLLEX=`etc/which ml-lex` || MLLEX=`etc/which ml-lex.bat`
+  if [ "$?" != 0 ]; then
+    echo ./configure: unable to locate ml-lex in '$PATH'.
+    exit 1
+  fi
+  SMLCM=`echo $MLLEX | sed 's,ml-lex,sml-cm,'`
+  if [ ! -x $SMLCM ]; then
+    SMLCM=`echo $MLLEX | sed 's,ml-lex,sml,'`
+    if [ ! -x $SMLCM ]; then
+      echo ./configure: unable to locate sml-cm or sml.
+      exit 1
+    fi
+  fi
+  MLYACC=`echo $MLLEX | sed 's,ml-lex,ml-yacc,'`
+  if [ ! -x $MLYACC ]; then
+    echo ./configure: unable to locate ml-yacc.
+    exit 1
+  fi
+  echo ./configure: SMLCM is $SMLCM
+  case "$TARGET" in
+  x86-cygwin-gcc|x86-mingw32-gcc)
+	HEAP_SUFFIX=x86-win32
+	;;
+  *)
+	BIN_DIR=`grep BIN_DIR= $SMLCM | head -1`
+	if [ "$?" != 0 -o -z "$BIN_DIR" ]; then
+	  echo ./configure: unable to determine SML/NJ installation directory
+	  exit 1
+	fi
+	eval $BIN_DIR
+	ARCH_OPSYS_HEAPSUFFIX=`$BIN_DIR/.arch-n-opsys`
+	if [ "$?" != 0 ]; then
+	  echo ./configure: unable to determine SML/NJ heap suffix
+	  exit 1
+	fi
+	eval $ARCH_OPSYS_HEAPSUFFIX
+  esac
+  echo ./configure: SML/NJ heap suffix is $HEAP_SUFFIX
+fi
+
+if [ -z "$PREFIX" ]; then
+  PREFIX=`pwd`/$TARGET
+  echo ./configure: PREFIX is $PREFIX
+fi
+
+echo TARGET=$TARGET > ./config.cache
+echo PREFIX=$PREFIX >> ./config.cache
+echo SMLCM=$SMLCM >> ./config.cache
+echo MLLEX=$MLLEX >> ./config.cache
+echo MLYACC=$MLYACC >> ./config.cache
+echo HEAP_SUFFIX=$HEAP_SUFFIX >> ./config.cache
+echo DEBUGLIB=$DEBUGLIB >> ./config.cache
+echo PROFLIB=$PROFLIB >> ./config.cache
+
+echo ./configure: updated config.cache
+if [ ! -z "$makeconfigureneeded" ]; then
+  echo ./configure: make configure
+  make configure
+fi
+echo ./configure: done
+exit 0

@@ -1,0 +1,55 @@
+% def-preface.tex
+%
+\section*{Preface to Version 2}
+\addcontentsline{toc}{section}{Preface to Version 2}
+This second version of the definition of Relational ML (RML) incorporates
+a number of changes to Version 1~\cite[Appendix A]{Pettersson95:thesis}.
+These changes are summarised below.
+
+\subsection*{Summary of changes}
+
+Minor syntactic changes:
+colon (\texttt{:}) is used in place of the \texttt{interface} keyword;
+the user's main module is now \texttt{Main} instead of \texttt{main};
+the module containing standard bindings is now \texttt{RML} instead of \texttt{rml}.
+
+The \texttt{default} keyword has been added to allow users to
+specify default rules to apply if all the previous rules in a relation fail.
+Although this makes no difference either to the static or the dynamic semantics,
+it is important from a stylistic point of view to `declare' one's intentions
+rather than silently relying on the determinate proof search procedure.
+
+The \texttt{fail} procedure has been replaced by the \texttt{fail} keyword,
+which is placed syntactically in the result part of the conclusion of
+an inference rule. This eliminates the need to introduce dummy return
+values for the benefit of the type checker.
+
+Logical variables are now separate objects with explicit types.
+The dynamic semantics has been simplified by eliminating all
+implicit dereferencing operations.
+The type system does \emph{not} use SML-style imperative types since
+it already subsumes Wright's \cite{Wright95} approach.
+
+Equality types {\`a} la SML have been added,
+entailing significant changes to the static semantics.
+
+The limited form of polymorphic recursion for relations,
+available when their declarations had explicit types, has been removed.
+
+The old $\mem{var}~\mtt{=}~\mem{exp}$ goal has been split into two separate
+constructs. The new form $\mtt{let}~\mem{pat}~\mtt{=}~\mem{exp}$ is used for
+local bindings, while the original form continues to express an equality constraint.
+Local variables in rules are now allowed to shadow module-level variables.
+
+Miscellaneous changes to the set of predefined types and operations:
+built-in indexing relations \verb@list_nth@ etc. are now 0-based;
+\texttt{print} now only accepts strings instead of arbitrary values.
+
+Type and value declarations may now be written in any order in module
+interfaces and bodies. A dependency analysis is performed to recover
+a suitable sequential ordering of the declarations. After this reordering,
+the standard ML-style static elaboration phase is applied.
+
+\begin{flushright}
+Sophia Antipolis, April 1998
+\end{flushright}

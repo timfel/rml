@@ -1,0 +1,27 @@
+#!/bin/sh
+# usage: install-sml APPNAME PREFIX SMLCM HEAP_SUFFIX GOROOT
+
+APPNAME=$1
+PREFIX=$2
+SMLCM=$3
+HEAP_SUFFIX=$4
+GOROOT=$5
+
+$GOROOT/etc/mkdirhier $PREFIX/bin
+$GOROOT/etc/mkdirhier $PREFIX/lib
+case "$HEAP_SUFFIX" in
+x86-win32)
+    SMLDIR=`$GOROOT/etc/which_dir sml.bat`
+    RUN="$SMLDIR/.run/run.x86-win32.exe"
+    CYG_RML_PATH=`cygpath -w "$PREFIX/lib/"`
+    (echo '#!/bin/sh'; echo exec $RUN @SMLquiet @SMLload=\"$CYG_RML_PATH\\$APPNAME.$HEAP_SUFFIX\" '$*') > $PREFIX/bin/$APPNAME
+    chmod +x $PREFIX/bin/$APPNAME
+    cp $APPNAME.$HEAP_SUFFIX $PREFIX/lib    
+     ;;
+*)
+    RUN="$SMLCM"
+    (echo '#!/bin/sh'; echo exec $RUN @SMLquiet @SMLload=$PREFIX/lib/$APPNAME.$HEAP_SUFFIX '$*') > $PREFIX/bin/$APPNAME
+    chmod +x $PREFIX/bin/$APPNAME
+    cp $APPNAME.$HEAP_SUFFIX $PREFIX/lib
+    ;;
+esac
