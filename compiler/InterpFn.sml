@@ -47,7 +47,7 @@ functor InterpFn(structure Util : UTIL
 		    if con1=con2 then SOME StrDict.empty else NONE
 		 | _ => bug("match: constant "^con1^" expected STRUCT(_,_)")
 	    end
-	 | Absyn.STRUCTpat(SOME(Absyn.LONGID(_, con1, _)), pat_star, _) =>
+	 | Absyn.STRUCTpat(SOME(Absyn.LONGID(_, con1, _)), pat_star, _, _) =>
 	    let val con1 = Absyn.identName con1
 	    in
 	      case v
@@ -55,7 +55,7 @@ functor InterpFn(structure Util : UTIL
 		    if con1=con2 then match_star(pat_star, v_star) else NONE
 		 | _ => bug("match: constructor "^con1^" expected STRUCT(_,_)")
 	    end
-	 | Absyn.STRUCTpat(NONE, pat_star, _) =>
+	 | Absyn.STRUCTpat(NONE, pat_star, _, _) =>
 	    (case v
 	       of InterpCore.TUPLE v_star => match_star(pat_star, v_star)
 		| _ => bug "match: expected TUPLE")
@@ -64,7 +64,9 @@ functor InterpFn(structure Util : UTIL
 	       of SOME VE	=> SOME(StrDict.insert(VE, var, v))
 			| NONE		=> NONE)
 	 | Absyn.IDENTpat(_, r, _) => match(!r, v)
-
+	 | Absyn.NAMEDpat(id, pat, _) => 
+	    (bug "named arguments in patterns not implemented yet in the Interpreter!")
+	 
     and match_star(pat_star, v_star) =
       let fun loop([], [], VE) = SOME VE
 	    | loop(pat::pat_star, v::v_star, VE) =
@@ -187,7 +189,7 @@ functor InterpFn(structure Util : UTIL
 
     and exec(goal, ME, VE, fc, gc, s) =
       case goal
-	of Absyn.CALLgoal(longvar, exp_star, pat_star, _) =>
+	of Absyn.CALLgoal(longvar, exp_star, pat_star, _, _) =>
 	    let val v = lookupLongVar(longvar, ME, VE)
 		val v'_star = eval_star(exp_star, ME, VE)
 		val pc = RETMATCH(pat_star, VE, gc, fc)
@@ -203,7 +205,7 @@ functor InterpFn(structure Util : UTIL
 		    if InterpCore.equal(v,v') then proceed(gc, VE, fc, s)
 		    else fail(fc, s)
 	    end
-	 | Absyn.LETgoal(pat, exp, _) =>
+	 | Absyn.LETgoal(pat, exp, _, _) =>
 	    let val v = eval(exp, ME, VE)
 	    in
 	      case match(pat, v)
@@ -232,7 +234,7 @@ functor InterpFn(structure Util : UTIL
 
     and invoke(clause, v_star, ME, VE, fc, pc, s) =
       case clause
-	of Absyn.CLAUSE1(goal_opt, _, pat_star, result, _) =>
+	of Absyn.CLAUSE1(goal_opt, _, pat_star, result, _, _) =>
 	    (case match_star(pat_star, v_star)
 	       of SOME VE' =>
 		    let val gc = ANDRETURN(ME, result, pc)

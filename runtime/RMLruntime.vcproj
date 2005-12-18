@@ -390,6 +390,9 @@
 					RelativePath=".\common\str-nth.c">
 				</File>
 				<File
+					RelativePath=".\common\str-setnth.c">
+				</File>
+				<File
 					RelativePath=".\common\vec-add.c">
 				</File>
 				<File

@@ -19,7 +19,7 @@ CSRC=	bool-and.c bool-not.c bool-or.c\
 	real-int.c real-le.c real-ln.c real-lt.c real-max.c\
 	real-min.c real-mod.c real-mul.c real-ne.c real-neg.c\
 	real-pow.c real-sin.c real-sqrt.c real-str.c real-sub.c\
-	str-append.c str-int.c str-length.c str-list.c str-nth.c\
+	str-append.c str-int.c str-length.c str-list.c str-nth.c str-setnth.c \
 	vec-length.c vec-list.c vec-nth.c vec-setnth.c vec-update.c vec-create.c vec-add.c vec-arr.c\
 	arr-length.c arr-list.c arr-nth.c arr-setnth.c arr-update.c arr-create.c arr-add.c arr-vec.c\
 	rml-debug.c rmldb-parse.c rmldb-scan.c rml-db-parse.c rml-db-scan.c \

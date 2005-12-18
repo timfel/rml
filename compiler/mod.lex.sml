@@ -95,7 +95,7 @@ fun makeTYVAR(pos1, str) =
   let val lenTyVarStr = String.size tyVarStr
 	  val lenSubStr = String.size str - lenTyVarStr
   in
-    Tokens.TYVAR(substring(str, lenTyVarStr, lenSubStr), pos1, pos1 + lenSubStr)
+    Tokens.TYVAR("'"^substring(str, lenTyVarStr, lenSubStr), pos1, pos1 + lenSubStr)
   end
 
 val kwds = [

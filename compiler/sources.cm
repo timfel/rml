@@ -156,13 +156,13 @@ MOToRMLFn.sml
 
 (* reorder *)
 REORDER_SCC.sig
-new/ReorderSCC.sml
+ReorderSCC.sml
 REORDER_TY.sig
 ReorderTy.sml
-new/ReorderTyFn.sml
+ReorderTyFn.sml
 REORDER_VAL.sig
 ReorderVal.sml
-new/ReorderValFn.sml
+ReorderValFn.sml
 REORDER.sig
 Reorder.sml
 ReorderFn.sml

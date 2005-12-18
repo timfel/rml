@@ -64,8 +64,8 @@ fun mkCtxInfo(Absyn.INFO(file1,loc1,loc2,ref(Absyn.LOC(sl1,sc1,el1,ec1))),
                ref(Absyn.LOC(sl1,sc1,el2,ec2))))
 
 fun join_default(c1, NONE) = c1
-  | join_default(c1, SOME(c2 as Absyn.CLAUSE1(_,_,_,_,ref(infoC2)))) =
-      let fun join(c1 as Absyn.CLAUSE1(_,_,_,_,ref(infoC1))) = 
+  | join_default(c1, SOME(c2 as Absyn.CLAUSE1(_,_,_,_,_,ref(infoC2)))) =
+      let fun join(c1 as Absyn.CLAUSE1(_,_,_,_,_,ref(infoC1))) = 
 			Absyn.CLAUSE2(c1, c2, mkCtxInfo(infoC1,infoC2))
 	    | join(Absyn.CLAUSE2(c11,c12, ref(infoC1))) = 
 			Absyn.CLAUSE2(c11, join c12, mkCtxInfo(infoC1, infoC2))
@@ -73,7 +73,7 @@ fun join_default(c1, NONE) = c1
 		join c1
       end
   | join_default(c1, SOME(c2 as Absyn.CLAUSE2(_,_,ref(infoC2)))) =
-      let fun join(c1 as Absyn.CLAUSE1(_,_,_,_,ref(infoC1))) = 
+      let fun join(c1 as Absyn.CLAUSE1(_,_,_,_,_,ref(infoC1))) = 
 			Absyn.CLAUSE2(c1, c2, mkCtxInfo(infoC1,infoC2))
 	    | join(Absyn.CLAUSE2(c11,c12, ref(infoC1))) = 
 			Absyn.CLAUSE2(c11, join c12, mkCtxInfo(infoC1, infoC2))
@@ -516,7 +516,6 @@ fun  fixClassDefinition(
 %right POW_REAL POWER
 
 %left COMMA
-%right ASSIGN EQ 
 %left OR AND
 %left EQEQ NE_INT LT_INT GT_INT LE_INT GE_INT MOD_INT
 %right UNARY
@@ -524,6 +523,9 @@ fun  fixClassDefinition(
 %left LBRACE LPAREN DOT
 (* %left SEMICOLON *)
 %left ELSE
+
+%left COLONCOLON
+%right ASSIGN EQ 
 (* adrpo -- end *)	     
 
 %pos LexArg.pos
@@ -542,12 +544,12 @@ modelica
 
 (* PATTERNS *)
 pat	(* patterns possibly starting with LPAREN *)
-	: ident AS pat
+	: ident EQ pat
+		( Absyn.MNAMEDARGpat(ident, pat,
+			makeInfo myLoc (identleft, patright)))
+	| ident AS pat
 		( Absyn.MBINDpat(ident, pat,
 			makeInfo myLoc (identleft, patright)))
-	| ident EQ pat
-		( Absyn.MBINDpat(ident, pat,
-			makeInfo myLoc (identleft, patright)))			
 	| pat_a
 		( pat_a )
 
@@ -579,8 +581,16 @@ pat_c	(* patterns not starting with LPAREN *)
 
 pat_d	(* simple patterns not starting with LPAREN *)
 	: name_path pat_star
-		( Absyn.MSTRUCTpat(SOME name_path, pat_star,
-			makeInfo myLoc (name_pathleft, pat_starright)) )
+		( 
+		if (List.length pat_star > 0)
+		then
+		  Absyn.MSTRUCTpat(SOME name_path, pat_star,
+			makeInfo myLoc (name_pathleft, pat_starright))
+		else
+		  Absyn.MCONpat(
+			name_path,
+			makeInfo myLoc (name_pathleft, name_pathright))		   
+		)
 	| name_path pat_e
 		( Absyn.MSTRUCTpat(SOME name_path, [pat_e],
 			makeInfo myLoc (name_pathleft, pat_eright)) )
@@ -590,6 +600,12 @@ pat_d	(* simple patterns not starting with LPAREN *)
 pat_e	(* atomic patterns not starting with LPAREN *)
 	: WILD
 		( Absyn.MWILDpat(makeInfo myLoc (WILDleft, WILDright)) )
+	| CCON
+		( Absyn.MLITpat(
+			Absyn.CHAR(CCON,
+				makeInfo myLoc (CCONleft, CCONright)),
+			makeInfo myLoc (CCONleft, CCONright))
+		)		
 	| ICON
 		( Absyn.MLITpat(
 			Absyn.INTEGER(
@@ -648,7 +664,7 @@ seq_pat
 		( [Absyn.MBINDpat(ident, pat,
 			makeInfo myLoc (identleft, patright))])
 	| ident EQ pat
-		( [Absyn.MBINDpat(ident, pat,
+		( [Absyn.MNAMEDARGpat(ident, pat,
 			makeInfo myLoc (identleft, patright))])			
 
 pat_star
@@ -1619,7 +1635,7 @@ algorithm:
 		case algorithm of 
 			Absyn.ALGORITHMITEM(algorithm, _, _) =>
 				Absyn.ALGORITHMITEM(
-					Absyn.ALG_FAILURE(algorithm),
+					Absyn.ALG_FAILURE(algorithm, makeInfo myLoc (FAILUREleft, RPARENright)),
 					comment, 
 					makeInfo myLoc (FAILUREleft, RPARENright))
 			| _ => algorithm
@@ -1629,7 +1645,7 @@ algorithm:
 		case algorithm of 
 			Absyn.ALGORITHMITEM(algorithm, _, _) =>
 				Absyn.ALGORITHMITEM(
-					Absyn.ALG_EQUALITY(algorithm),
+					Absyn.ALG_EQUALITY(algorithm, makeInfo myLoc (EQUALITYleft, RPARENright)),
 					comment, 
 					makeInfo myLoc (EQUALITYleft, RPARENright))
 			| _ => algorithm
@@ -1897,12 +1913,19 @@ Case:
 
 
 expression:
-	if_expression
+      ident AS expression
+		(
+		  Absyn.MBINDexp(
+			ident, 
+			expression, 
+			makeInfo myLoc(identleft, expressionright))
+		)
+    | if_expression
 		( if_expression )
 	| simple_expression
 		( simple_expression )
 	| match_expression
-		( match_expression )	
+		( match_expression )
 
 if_expression:
 	IF expression THEN expression elseif_expression_list ELSE expression
@@ -1961,7 +1984,7 @@ simple_expression:
 	)
 
 logical_expression:
-	logical_term
+	  logical_term
 		( logical_term )
 	| logical_term OR logical_expression
 	( 
@@ -1970,7 +1993,7 @@ logical_expression:
 			Absyn.OR(makeInfo myLoc (ORleft, ORright)), 
 			logical_expression,
 			makeInfo myLoc (logical_termleft, logical_expressionright))
-	)
+	)	
 	
 
 logical_term:
@@ -2124,7 +2147,13 @@ expression_matrix:
 	)
 	
 primary:
-	ICON 
+	CCON 
+	( 
+		Absyn.CHAR(
+			CCON,
+			makeInfo myLoc (CCONleft, CCONright)) 
+	)
+	| ICON 
 	( 
 		Absyn.INTEGER(
 			ICON,
@@ -2230,17 +2259,80 @@ primary:
 				makeInfo myLoc (LPARENleft, RPARENright)),
 			makeInfo myLoc (component_referenceleft, RPARENright)) 
 	)		
-	| component_reference
+	| component_reference 
 	( 
+	case component_reference of 
+		Absyn.CREF_IDENT(ident, arrdim, info) =>
+		if (List.length arrdim = 0)
+		then
+			Absyn.CREF(
+				component_reference,
+				makeInfo myLoc (component_referenceleft, component_referenceright)) 
+		else
+			let val [Absyn.SUBSCRIPT(exp, infoarr)] = arrdim 
+			in
+				Absyn.CALL(
+				Absyn.CREF_IDENT(
+					Absyn.IDENT(
+						"array_get", 
+						makeInfo myLoc (component_referenceleft, component_referenceright)), 
+					[],
+					makeInfo myLoc (component_referenceleft, component_referenceright)), 
+				Absyn.FUNCTIONARGS(
+					[Absyn.NAMEDARG(
+						NONE, 
+						Absyn.CREF(Absyn.CREF_IDENT(ident, [], info), info), 
+						info),
+						Absyn.NAMEDARG(NONE, exp, infoarr)], 
+					makeInfo myLoc (component_referenceleft, component_referenceright)),
+				makeInfo myLoc (component_referenceleft, component_referenceright)
+			)				 					
+			end
+	|	Absyn.CREF_QUAL(ident1, arrdim1, Absyn.CREF_IDENT(ident2, arrdim2, info2), info1) =>
+		if (List.length arrdim2 = 0)
+		then
 		Absyn.CREF(
 			component_reference,
 			makeInfo myLoc (component_referenceleft, component_referenceright)) 
+		else
+			let val [Absyn.SUBSCRIPT(exp, infoarr)] = arrdim2
+			in
+				Absyn.CALL(
+				Absyn.CREF_IDENT(
+					Absyn.IDENT(
+						"array_get", 
+						makeInfo myLoc (component_referenceleft, component_referenceright)), 
+					[],
+					makeInfo myLoc (component_referenceleft, component_referenceright)), 
+				Absyn.FUNCTIONARGS(
+					[Absyn.NAMEDARG(
+						NONE, 
+						Absyn.CREF(
+							Absyn.CREF_QUAL(
+								ident1,
+								[],
+								Absyn.CREF_IDENT(ident2, [], info2),
+								info1),
+							info1), 
+						info1),
+						Absyn.NAMEDARG(NONE, exp, infoarr)], 
+					makeInfo myLoc (component_referenceleft, component_referenceright)),
+				makeInfo myLoc (component_referenceleft, component_referenceright))				 					
+			end
+	| _ => 		
+		Absyn.CREF(
+			component_reference,
+			makeInfo myLoc (component_referenceleft, component_referenceright)) 
+
 	)
 	| LPAREN function_arguments RPAREN 
 	( 
-		Absyn.TUPLE(
-			function_arguments,
-			makeInfo myLoc (LPARENleft, RPARENright)) 
+		case function_arguments of
+			Absyn.FUNCTIONARGS([Absyn.NAMEDARG(NONE, exp as Absyn.MSTRUCTexp(_), info)], infoFargs) 
+			=> exp
+		|	_ =>	Absyn.TUPLE(
+						function_arguments,
+						makeInfo myLoc (LPARENleft, RPARENright)) 
 	)
 	| LBRACK expression_matrix RBRACK ( expression_matrix )
 	(*
@@ -2364,17 +2456,24 @@ named_arguments:
 		( [ named_argument] )
 
 named_argument:
-	  ident EQ expression
+	(*
+	LPAREN ident AS expression RPAREN
 		( Absyn.NAMEDARG(
 			SOME(ident), 
 			expression,
 			makeInfo myLoc (identleft, expressionright)))
+	|
+	*) 
+	  ident EQ expression
+		( Absyn.NAMEDARG(
+			SOME(ident), 
+			expression,
+			makeInfo myLoc (identleft, expressionright)))			
 	| expression
 		( Absyn.NAMEDARG(
 			NONE, 
 			expression,
 			makeInfo myLoc (expressionleft, expressionright)))
-	
 
 expression_list:
 	expression 

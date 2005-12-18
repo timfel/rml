@@ -91,7 +91,7 @@ T_VAL T_file T_COLON range T_MORE T_id T_COLON ty
 			rmldb_make_rmldb_type_db_t($8));		
 	rmldb_var_db_add(&rmldb_var_db_start, &rmldb_var_db_end, rmldb_var_db_node);
 #ifdef _DEBUG_RDB_
-	fprintf(stderr, "file[%s],relation[%s],variabile[%s] -> ",$2,"_VAL_DECLARATION_",$6);
+	fprintf(stderr, "file[%s],relation[%s],variable[%s] -> ",$2,"_VAL_DECLARATION_",$6);
 	rmldb_print_type($8, 1, stderr);
 	fprintf(stderr,"\n");
 #endif
@@ -104,7 +104,7 @@ T_VAL T_file T_COLON range T_MORE T_id T_COLON ty
 			rmldb_make_rmldb_type_db_t($14));		
 	rmldb_var_db_add(&rmldb_var_db_start, &rmldb_var_db_end, rmldb_var_db_node);
 #ifdef _DEBUG_RDB_
-	fprintf(stderr, "file[%s],relation[%s],variabile[%s] -> ",$2,$10,$12);
+	fprintf(stderr, "file[%s],relation[%s],variable[%s] -> ",$2,$10,$12);
 	rmldb_print_type($14, 1, stderr);
 	fprintf(stderr,"\n");
 #endif

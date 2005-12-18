@@ -123,7 +123,7 @@ structure Source : SOURCE =
     fun sayErr s = TextIO.output(TextIO.stdErr, s)
     fun sayErr1 c = TextIO.output1(TextIO.stdErr, c)
 
-    fun sayFile file = (sayErr file; sayErr1 #":")
+    fun sayFile file = (sayErr "\n"; sayErr file; sayErr1 #":")
 
     fun sayPos(newLines, pos) =
       let val {line,column} = lookup(newLines, pos)
@@ -147,7 +147,6 @@ structure Source : SOURCE =
     fun getLoc((SOURCE{fileName, newLines}), spos, epos) =
 	if (!Control.doDebug orelse !Control.rdbOnly) 
 	then (* generate line no only if we do trace or program databse *)
-	
 		let val (sline, scolumn) = getLC(lookup(newLines, spos))
 			val (eline, ecolumn) = getLC(lookup(newLines, epos))
 		in
@@ -159,7 +158,6 @@ structure Source : SOURCE =
 		ecolumn = ecolumn
 		}
 		end
-	
 	else (*do not generate line/col no if we don't do trace *)
 		{
 		fileName=fileName,

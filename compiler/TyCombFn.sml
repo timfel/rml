@@ -13,6 +13,7 @@ functor TyCombFn(structure Util : UTIL
       | MKTUPLE of tycomb list
       | MKREL of tycomb list * tycomb list
       | MKCONS of tycomb list * Ty.tyname
+      | MKNAMED of string * tycomb
 
     fun absBvars(bvars, ty) =
       let fun isQ(QUOTE _) = true
@@ -45,6 +46,7 @@ functor TyCombFn(structure Util : UTIL
 		    in
 		      if List.all isQ cs then QUOTE ty else MKCONS(cs, t)
 		    end
+		 | Ty.NAMED(id_str, ty) => MKNAMED(id_str, abstract ty)
 	    end
       in
 		abstract ty
@@ -58,9 +60,10 @@ functor TyCombFn(structure Util : UTIL
 	       | Ty.REL(tys1,tys2) =>
 		  List.foldl scan (List.foldl scan alphas tys1) tys2
 	       | Ty.CONS(tys,_) => List.foldl scan alphas tys
+	       | Ty.NAMED(id_str, ty) => scan (ty, alphas)
 	  val bvars = scan(ty, [])
       in
-	(bvars, absBvars(bvars, ty))
+	    (bvars, absBvars(bvars, ty))
       end
 
     fun absNone ty = QUOTE(Ty.deref ty)
@@ -72,6 +75,7 @@ functor TyCombFn(structure Util : UTIL
 	    | eval(MKTUPLE cs) = Ty.TUPLE(map eval cs)
 	    | eval(MKREL(cs1,cs2)) = Ty.REL(map eval cs1, map eval cs2)
 	    | eval(MKCONS(cs,t)) = Ty.CONS(map eval cs, t)
+	    | eval(MKNAMED(id_str, ty)) = Ty.NAMED(id_str, eval ty)
       in
 		eval comb
       end

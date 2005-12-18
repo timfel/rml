@@ -6,7 +6,8 @@ functor StatElabFn(structure Util : UTIL
 		   structure MODParse : PARSE
 		   structure StatObj : STAT_OBJ
 		   structure Control : CONTROL
-		   sharing MODParse.Absyn = RMLParse.Absyn = StatObj.Absyn
+		   structure Instrument : ABSYN_INSTRUMENTED
+		   sharing MODParse.Absyn = RMLParse.Absyn = StatObj.Absyn = Instrument.Absyn
 		     ) : STAT_ELAB =
   struct
 
@@ -95,7 +96,7 @@ functor StatElabFn(structure Util : UTIL
        idError("this is the other binding of ", namethere, ctxInfoThere))
 
     fun lidError(msg, Absyn.LONGID(SOME(Absyn.IDENT(name1,_)), Absyn.IDENT(name2,_), ref(ctxInfo))) 
-		= idError(msg, name1^name2, ctxInfo)
+		= idError(msg, name1^"."^name2, ctxInfo)
     | lidError(msg, Absyn.LONGID(NONE, Absyn.IDENT(name,_), ref(ctxInfo))) 
 		= idError(msg, name, ctxInfo)
 
@@ -131,7 +132,6 @@ functor StatElabFn(structure Util : UTIL
     fun sameTyvar tyvar tyvar' = Absyn.identEqual(tyvar, tyvar')
 
     (* Verify that the identifier isn't bound *)
-
     fun assert_unbound(env, id, kind) =
       case IdentDict.find'(env, id)
 		of NONE => ()
@@ -204,7 +204,7 @@ functor StatElabFn(structure Util : UTIL
 	fun lookupCache(file, cache) = find(file, !cache)
 	
     (* Annotate "with" specifications and declarations with actual interfaces *)
-	(* do some caching here!!! XXX, FIXME, TODO! *)
+	(* do some caching here!!! done! *)
     fun annotate_with(file, ri) =
       let  val module = 
 		   let val cachedModule = lookupCache(file, cache)
@@ -216,7 +216,7 @@ functor StatElabFn(structure Util : UTIL
 						debug("annotate_with: parsing: "^file^"\n");  
 						case Control.fileType file
 						of Control.RML_FILE => RMLParse.parseInterface file
-						| Control.MO_FILE  => MODParse.parseInterface file
+						| Control.MO_FILE  =>  MODParse.parseInterface file 
 						)
 				in				
 					debug("annotate_with: caching :"^file^"\n");
@@ -246,8 +246,36 @@ functor StatElabFn(structure Util : UTIL
       List.app annotate_with_spec specs;
       List.app annotate_with_dec decs
       )
-    (* Elaborate a type expression *)
+      
+      
+	(* returns the named arguments from a type sequence *)
+	fun getNamedArgumentsInTys([]) = []
+	|	getNamedArgumentsInTys((x as Absyn.NAMEDty(_))::rest) = x::getNamedArgumentsInTys(rest)
+	|	getNamedArgumentsInTys(_::rest) = getNamedArgumentsInTys(rest)
 
+    (* 
+    adrpo: this function checks if all the named arguments in the type sequence are unique
+    *)
+	fun checkUniqueNamedArgsInTys(tyseq) = 
+	let val namedArgs = getNamedArgumentsInTys(tyseq)
+		fun checkUnique([], []) = ()
+		|	checkUnique(left, []) = ()
+		|	checkUnique(left, (current as Absyn.NAMEDty(id1, ty1, info1))::right) = 
+		let fun is_there(Absyn.NAMEDty(id2, ty2, ident2)) = Absyn.identEqual(id1, id2)
+			|	is_there(_) = false
+		in
+			case List.find is_there (left @ right) of
+				SOME(Absyn.NAMEDty(ident, pat, infoIdent)) => 
+					idRebindError("named argument in type: ", id1, ident)
+			|	_ => checkUnique(left @ [current], right) 
+		end
+		|	checkUnique(left, current::right) = (checkUnique(left @ [current], right))		
+		
+	in
+	  checkUnique([], tyseq)
+	end	      
+      
+    (* Elaborate a type expression *)
     fun elab_ty ME TE tyvarset_opt =
       let fun elab(Absyn.VARty(tyvar, _)) =
 		(case tyvarset_opt
@@ -258,6 +286,7 @@ functor StatElabFn(structure Util : UTIL
 		    | NONE => Ty.VAR(tyvarRigid tyvar))
 	    | elab(Absyn.CONSty(tyseq, longtycon, _)) =
 		let val tyfcn = lookup_longtycon(ME, TE, longtycon)
+			val _ = checkUniqueNamedArgsInTys(tyseq) (* adrpo added *)
 		in
 		  if length tyseq = TyFcn.arity tyfcn then
 		    TyFcn.apply(tyfcn, map elab tyseq)
@@ -265,9 +294,20 @@ functor StatElabFn(structure Util : UTIL
 		    lidError("wrong number of arguments to type function ",
 			     longtycon)
 		end
-	    | elab(Absyn.TUPLEty(tyseq, _)) = Ty.TUPLE(map elab tyseq)
+	    | elab(Absyn.TUPLEty(tyseq, _)) =
+	      (
+	        (* check also for name duplicates and named argument mixing with positional *) 
+	        checkUniqueNamedArgsInTys(tyseq); (* adrpo added *)
+			Ty.TUPLE(map elab tyseq)
+		  )
 	    | elab(Absyn.RELty(domtys,codtys, _)) =
+		  (
+	    	(* check also for name duplicates and named argument mixing with positional *) 
+	        checkUniqueNamedArgsInTys(domtys); (* adrpo added *)
+	        checkUniqueNamedArgsInTys(codtys); (* adrpo added *)	        
 			Ty.REL(map elab domtys, map elab codtys)
+		  )
+		| elab(Absyn.NAMEDty(Absyn.IDENT(id_str, _), ty, _)) = Ty.NAMED(id_str, elab ty)
       in
 		elab
       end
@@ -349,6 +389,7 @@ functor StatElabFn(structure Util : UTIL
 	  fun conbind_tau(Absyn.CONcb _, PreCE) = (res_tau, PreCE)
 	    | conbind_tau(Absyn.CTORcb(_, tyseq, _), PreCE) =
 		let val domtaus = map (elab_ty ME TE tyvarseq_opt) tyseq
+			val _ = checkUniqueNamedArgsInTys(tyseq)
 		in
 		  (Ty.REL(domtaus, [res_tau]), domtaus::PreCE)
 		end
@@ -559,10 +600,102 @@ functor StatElabFn(structure Util : UTIL
 		| _ => idError("data constructor isn't constant: ",
 						Absyn.identName con, 
 						Absyn.identCtxInfo con)
-
-    (* Elaborate a pattern *)
-
-    fun elab_pat(ME, VE, VE_pat, pat) =
+	
+	(* adrpo check if this contains named arguments in patterns *)
+	fun containsNamed([]) = false
+	|	containsNamed(pat::restpatseq) = 
+		(
+		case pat of 
+			Absyn.NAMEDpat(_) => ( print ("containsNamed=true -> "^(Instrument.getPatAsString(pat))^"\n"); true )
+		|	Absyn.STRUCTpat(_, patseq, _, _) =>	containsNamed(restpatseq) orelse containsNamed(patseq) 
+		|	_ => containsNamed(restpatseq)
+	    )
+	    
+	fun getNamedArgumentInPattern(id, []) = NONE (* error, should be there *)
+	|	getNamedArgumentInPattern(id, (x as Absyn.NAMEDpat(id_check, _, _))::rest) =
+		if id = Absyn.identName(id_check) 
+		then SOME(x)
+		else getNamedArgumentInPattern(id, rest)
+	|	getNamedArgumentInPattern(id, _::rest) = getNamedArgumentInPattern(id, rest)
+	
+	(* 
+	adrpo this function generates a positional pattern conform to the datatype 
+	constructor with the named arguments from patseq bound to the right places 
+	*)
+    fun generatePat(_, []) = [](* if the actual pattern is empty, don't bother *)
+    |	generatePat(tyargs_taus, patseq) =
+	let fun generatePatternFromTau(Ty.VAR(tyvar)) = Absyn.WILDpat(ref(Absyn.dummyInfo))
+		|	generatePatternFromTau(Ty.TUPLE(tys)) = 
+			let val pats = map generatePatternFromTau tys
+			in
+			Absyn.STRUCTpat(
+				NONE,
+				pats,
+				ref (pats),
+				ref(Absyn.dummyInfo))
+			end
+		|	generatePatternFromTau(Ty.REL(domtys, codtys)) = 
+			let val pats = map generatePatternFromTau domtys
+			in
+			Absyn.STRUCTpat(
+				NONE,
+				pats,
+				ref (pats),
+				ref(Absyn.dummyInfo))
+			end
+		|	generatePatternFromTau(Ty.CONS(tys, t as Ty.TYNAME{modid=modid,tycon=tycon,...})) = 
+			let val pats = map generatePatternFromTau tys
+			in
+			if (List.length pats > 0)
+			then
+			Absyn.STRUCTpat(
+				SOME(Absyn.LONGID(SOME(Absyn.rmlIdent(modid)), Absyn.rmlIdent(tycon), ref(Absyn.dummyInfo))),
+				pats,
+				ref (pats),
+				ref(Absyn.dummyInfo))
+			else Absyn.WILDpat(ref(Absyn.dummyInfo))
+			end
+		|	generatePatternFromTau(Ty.NAMED(id, ty)) = 
+			(* get the actual pattern from the patseq *)
+			let val named = getNamedArgumentInPattern(id, patseq)
+			in 
+				case named of 
+					NONE => Absyn.WILDpat(ref(Absyn.dummyInfo)) (* we didn't find it, make it WILDpat *) 
+				|	SOME(x) => x
+			end
+		val patWithNamedArguments = map generatePatternFromTau tyargs_taus
+		fun loopPositionals([], []) = []
+		|	loopPositionals(hd1::rest1, hd2::rest2) = 
+			let 
+			in
+				case hd1 of 
+					Absyn.NAMEDpat(id,_,_) => 
+					(
+					case hd2 of
+						Absyn.NAMEDpat(_) => hd1::loopPositionals(rest1, rest2) 
+					|	_ => bug("named argument: "^(Absyn.identName id)^" in pattern overrides positional argument! ")
+					)
+				|	Absyn.WILDpat(_) => 
+					(
+					case hd2 of
+						Absyn.NAMEDpat(_) => hd1::loopPositionals(rest1, rest2) 
+					|	_ => hd2::loopPositionals(rest1, rest2)
+					)
+				|   _ => bug(" is really weird to have this pattern here: "^(Instrument.getPatAsString(hd1)))
+			end
+		|	loopPositionals([], _) = bug("pattern and type have different number of components!")
+		|	loopPositionals(hd1::rest1, []) = hd1::loopPositionals(rest1, [])			
+    in
+	  case List.hd patseq of
+	    (* if the first pat is named, there are no positionals *)
+		Absyn.NAMEDpat(_) => patWithNamedArguments 
+	    (* we have positionals *)
+	  | _ => loopPositionals(patWithNamedArguments, patseq)
+    end
+	
+	
+	(*
+    fun generatePat(args_taus, patseq) =
       case pat
 		of Absyn.WILDpat _ => (VE_pat, Ty.VAR(Ty.newTyvar()))
 		| Absyn.LITpat(lit, _) => (VE_pat, elab_lit lit)
@@ -572,11 +705,11 @@ functor StatElabFn(structure Util : UTIL
 			in
 			  (VE_pat, con_tau)
 			end
-		| Absyn.STRUCTpat(SOME longcon, patseq, ref(ctxInfo)) =>
+		| Absyn.STRUCTpat(SOME longcon, patseq, patseq_ref, ref(ctxInfo)) => (* TODO!! fix ref pats here *)
 			let val con_tau = fresh_longcon(ME, VE, longcon)
-			val (VE'_pat, args_taus) = elab_patseq(ME, VE, VE_pat, patseq)
+			val (VE'_pat, args_taus) = elab_patseq_os(relationId, ctxInfoClause, os, ME, VE, VE_pat, patseq)
 			val res_tau = Ty.VAR(Ty.newTyvar())
-			val _ = Ty.unify(con_tau, Ty.REL(args_taus, [res_tau]))
+			val _ = (print "elab_pat_os.STRUCTpat\n"; Ty.unify(con_tau, Ty.REL(args_taus, [res_tau])))
 				   (* adrpo added 2004-11-29 *)
 				   handle exn =>
 					((case exn
@@ -588,13 +721,16 @@ functor StatElabFn(structure Util : UTIL
 			in
 			  (VE'_pat, res_tau)
 			end
-		| Absyn.STRUCTpat(NONE, patseq, _) =>
-			let val (VE'_pat, args_taus) = elab_patseq(ME, VE, VE_pat, patseq)
+		(* TODO!! fix ref pats here! Actually there shouln't be any NAMED patterns here as this is just a tuple *)
+		| Absyn.STRUCTpat(NONE, patseq, patseq_ref, _) => 
+			let val (VE'_pat, args_taus) = 
+			          elab_patseq_os(relationId, ctxInfoClause, os, ME, VE, VE_pat, patseq)
 			in
 			  (VE'_pat, Ty.TUPLE(args_taus))
 			end
 		| Absyn.BINDpat(var, pat, _) =>
-			let val (VE'_pat, tau) = elab_pat(ME, VE, VE_pat, pat)
+			let val (VE'_pat, tau) = 
+			          elab_pat_os(relationId, ctxInfoClause, os, ME, VE, VE_pat, pat)
 			val _ = checkVar(VE, VE'_pat, var)
 			val sigma = TyScheme.genNone tau
 			val bnd = StatObj.VALSTR{vk=StatObj.VAR, sigma=sigma}
@@ -635,19 +771,139 @@ functor StatElabFn(structure Util : UTIL
 				of SOME valstr => bound valstr
 				| NONE => mkbinding()
 			end
+		| Absyn.NAMEDpat(var, pat, _) =>
+		    (* this is a named argument in pattern *)
+			let val (VE'_pat, tau) = 
+			          elab_pat_os(relationId, ctxInfoClause, os, ME, VE, VE_pat, pat)
+			val _ = checkVar(VE, VE'_pat, var)
+			val sigma = TyScheme.genNone tau
+			val bnd = StatObj.VALSTR{vk=StatObj.VAR, sigma=sigma}
+			in
+			 (VE'_pat, Ty.NAMED(Absyn.identName var, tau))
+			end
+	*)
 
-    and elab_patseq(ME, VE, VE_pat, patseq) =
-      let fun loop([], VE_pat, rev_taus) = (VE_pat, rev rev_taus)
-	    | loop(pat::patseq, VE_pat, rev_taus) =
-		let val (VE_pat, tau) = elab_pat(ME, VE, VE_pat, pat)
+	(* returns the named arguments from a pattern sequence *)
+	fun getNamedArgumentsInPats([]) = []
+	|	getNamedArgumentsInPats((x as Absyn.NAMEDpat(_))::rest) = x::getNamedArgumentsInPats(rest)
+	|	getNamedArgumentsInPats(_::rest) = getNamedArgumentsInPats(rest)
+
+    (* 
+    adrpo: this function checks if all the named arguments in the pattern sequence are unique
+    *)
+	fun checkUniqueNamedArgsInPats(patseq) = 
+	let val namedArgs = getNamedArgumentsInPats(patseq)
+		fun checkUnique([], []) = ()
+		|	checkUnique(left, []) = ()
+		|	checkUnique(left, (current as Absyn.NAMEDpat(id1, pat1, info1))::right) = 
+		let fun is_there(Absyn.NAMEDpat(id2, pat2, ident2)) = Absyn.identEqual(id1, id2)
+			|	is_there(_) = false
 		in
-		  loop(patseq, VE_pat, tau::rev_taus)
+			case List.find is_there (left @ right) of
+				SOME(Absyn.NAMEDpat(ident, pat, infoIdent)) => 
+					idRebindError("named argument in pattern: ", id1, ident)
+			|	_ => checkUnique(left @ [current], right) 
+		end	
+		|	checkUnique(left, current::right) = checkUnique(left @ [current], right)
+	in
+	  checkUnique([], patseq)
+	end	
+		
+
+	(*
+	adrpo: this function check is the order of the named arguments in pattern is correct:
+	( positional*, named* ) meaning no positional after one named!
+	*)
+	fun checkNamedArgOrderInPat([]) = ()		
+	|   checkNamedArgOrderInPat(patseq) =
+    let	val startsWith = 
+		    case List.hd patseq of 
+				Absyn.NAMEDpat(_) => 1 (* starts with named argument *)
+			|	_ => 0 (* starts with positional argument *)	
+		fun loop([], _, p) = ()
+		|	loop(pat::rest, continueWith, p) =
+			(
+			case pat of
+				Absyn.NAMEDpat(_) => loop(rest, 1, pat) (* ok either way *)
+			|	_ => if continueWith=0 
+				        then loop(rest, 0, pat) (* that's ok, were positional arguments until now *) 
+				        else  (* uups, there is a wrong mix of positional and named arguments *)
+						let val pat_str = 
+								Instrument.getPatAsString(
+									Absyn.STRUCTpat(
+										NONE, 
+										patseq,
+										ref [],
+										ref(Absyn.dummyInfo)))
+						in
+						case p of 
+							Absyn.NAMEDpat(id, pat_, ref(info)) =>
+								idError(
+									"in pattern: "^pat_str^
+									", after the named argument: \""^(Absyn.identName id)^
+									"\" cannot follow a positional argument. ",
+									"A named argument must follow. Positional arguments can be only at the begining.",
+									info)
+						|	_ => idError(
+									"after a named argument cannot follow a positional argument in pattern: "^pat_str^". ",
+									"A named argument must follow. Positional arguments can be only at the begining.",
+									Instrument.getInfoFromPat(pat))
+						end
+			)
+	in 
+		loop(patseq, startsWith, List.hd patseq)
+	end
+	
+	fun checkNamedArgPositionInPat(patseq, args_taus) = ()
+	
+	(*
+      checks if the pattern sequence with named arguments is conform:
+      - form: ( positional*, named* )
+      - also named argument must lead to a position that is not already 
+        occupied by a positional argument
+      - also named arguments must be unique
+	*)
+	fun checkNamedArgInPattern([], args_taus) = ()
+	|	checkNamedArgInPattern(patseq, args_taus) =
+		let val _ = checkNamedArgOrderInPat(patseq) (* check order of positional/named arguments *)
+			val _ = checkUniqueNamedArgsInPats(patseq)    (* check unique of named arguments *)
+		in
+			()
 		end
-      in
-		loop(patseq, VE_pat, [])
-      end
+		
+	fun checkPattern([], args_taus) = ()
+	|	checkPattern(patseq, args_taus) = checkNamedArgInPattern(patseq, args_taus)
+	
+	(* 
+	if the pattern has named arguments then rewrite the 
+	pattern to positional one and the result place it in 
+	the patseq_ref
+	*)
+	fun fixPatSeq(patseq, patseq_ref, tyargs_taus) =
+	(
+		if containsNamed(patseq) 
+		then 
+		let val _ = checkPattern(patseq, tyargs_taus); 
+			val pats = generatePat(tyargs_taus, patseq)
+			val _ = patseq_ref := pats (* !!! very important !!! SET THE pat list ref  *)
+		in 
+		  pats
+		end
+		else patseq
+	)
 
+	fun showMe(_, longcon, [], tau) = ()
+	|	showMe(msg, longcon, pats, tau) =
+	(
+		(*print "\n";*)
+		print (msg^"["^Instrument.getPatAsString(
+						Absyn.STRUCTpat(SOME longcon, pats, ref pats, ref(Absyn.dummyInfo)))^
+			   "]=[");
+		Ty.printType(tau);
+		print "]\n"
+	)
 
+    (* Elaborate a pattern *)
     fun elab_pat_os(relationId, ctxInfoClause, os, ME, VE, VE_pat, pat) =
       case pat
 		of Absyn.WILDpat _ => (VE_pat, Ty.VAR(Ty.newTyvar()))
@@ -658,11 +914,29 @@ functor StatElabFn(structure Util : UTIL
 			in
 			  (VE_pat, con_tau)
 			end
-		| Absyn.STRUCTpat(SOME longcon, patseq, ref(ctxInfo)) =>
+		| Absyn.STRUCTpat(SOME longcon, patseq, patseq_ref, ref(ctxInfo)) => (* TODO!! fix ref pats here *)
 			let val con_tau = fresh_longcon(ME, VE, longcon)
-			val (VE'_pat, args_taus) = elab_patseq(ME, VE, VE_pat, patseq)
+			val pats = case con_tau of (* adrpo added *)
+					   Ty.REL(tyarg_taus, _) => fixPatSeq(patseq, patseq_ref, tyarg_taus)   
+					 | _ => patseq
+
+			val _ = if containsNamed(patseq) 
+			        then showMe("STP -> ", longcon, pats, con_tau) 
+			        else ()
+			(*
+			val (VE'_pat, args_taus) = elab_patseq_os(relationId, ctxInfoClause, os, ME, VE, VE_pat, patseq)
+			*)
+			val (VE'_pat, args_taus) = 
+				elab_patseq_os(
+					relationId, 
+					ctxInfoClause, 
+					os, 
+					ME, 
+					VE, 
+					VE_pat, 
+					pats)			
 			val res_tau = Ty.VAR(Ty.newTyvar())
-			val _ = Ty.unify(con_tau, Ty.REL(args_taus, [res_tau]))
+			val _ = (debug "elab_pat_os.STRUCTpat\n"; Ty.unify(con_tau, Ty.REL(args_taus, [res_tau])))
 				   (* adrpo added 2004-11-29 *)
 				   handle exn =>
 					((case exn
@@ -674,13 +948,16 @@ functor StatElabFn(structure Util : UTIL
 			in
 			  (VE'_pat, res_tau)
 			end
-		| Absyn.STRUCTpat(NONE, patseq, _) =>
-			let val (VE'_pat, args_taus) = elab_patseq(ME, VE, VE_pat, patseq)
+		(* TODO!! fix ref pats here! Actually there shouln't be any NAMED patterns here as this is just a tuple *)
+		| Absyn.STRUCTpat(NONE, patseq, patseq_ref, _) => 
+			let val (VE'_pat, args_taus) = 
+			          elab_patseq_os(relationId, ctxInfoClause, os, ME, VE, VE_pat, patseq)
 			in
 			  (VE'_pat, Ty.TUPLE(args_taus))
 			end
 		| Absyn.BINDpat(var, pat, _) =>
-			let val (VE'_pat, tau) = elab_pat(ME, VE, VE_pat, pat)
+			let val (VE'_pat, tau) = 
+			          elab_pat_os(relationId, ctxInfoClause, os, ME, VE, VE_pat, pat)
 			val _ = checkVar(VE, VE'_pat, var)
 			val sigma = TyScheme.genNone tau
 			val bnd = StatObj.VALSTR{vk=StatObj.VAR, sigma=sigma}
@@ -721,11 +998,25 @@ functor StatElabFn(structure Util : UTIL
 				of SOME valstr => bound valstr
 				| NONE => mkbinding()
 			end
+		| Absyn.NAMEDpat(var, pat, _) =>
+		    (* this is a named argument in pattern *)
+			let val (VE'_pat, tau) = 
+			          elab_pat_os(relationId, ctxInfoClause, os, ME, VE, VE_pat, pat)
+			(* TODO!! maybe is a good idea to bind the named argument in the relation 
+			          something like na1 = na1 as ...
+			val _ = checkVar(VE, VE'_pat, var)
+			val sigma = TyScheme.genNone tau
+			val bnd = StatObj.VALSTR{vk=StatObj.VAR, sigma=sigma}
+			*)
+			in
+			 (VE'_pat, Ty.NAMED(Absyn.identName var, tau))
+			end
 
     and elab_patseq_os(relationId, ctxInfoClause, os, ME, VE, VE_pat, patseq) =
       let fun loop([], VE_pat, rev_taus) = (VE_pat, rev rev_taus)
 	    | loop(pat::patseq, VE_pat, rev_taus) =
-		let val (VE_pat, tau) = elab_pat(ME, VE, VE_pat, pat)
+		let val (VE_pat, tau) = 
+		         elab_pat_os(relationId, ctxInfoClause, os, ME, VE, VE_pat, pat)
 		in
 		  loop(patseq, VE_pat, tau::rev_taus)
 		end
@@ -775,7 +1066,7 @@ functor StatElabFn(structure Util : UTIL
 	    let val con_tau = fresh_longcon(ME, VE, longcon)
 		val args_taus = elab_expseq(ME, VE, expseq)
 		val res_tau = Ty.VAR(Ty.newTyvar())
-		val _ = Ty.unify(con_tau, Ty.REL(args_taus, [res_tau]))
+		val _ = (debug "elab_exp.STRUCTexp\n"; Ty.unify(con_tau, Ty.REL(args_taus, [res_tau])))
 				   (* adrpo added 2004-11-29 *)
 				   handle exn =>
 					((case exn
@@ -795,74 +1086,6 @@ functor StatElabFn(structure Util : UTIL
 
     and elab_expseq(ME, VE, expseq) =
       map (fn exp => elab_exp(ME, VE, exp)) expseq
-
-	(*
-	  fun printVar(relationId, ctxInfoClause, os, var, tau) =
-		let val Absyn.INFO(file, _,_, ref(Absyn.LOC(sl,sc,el,ec))) = 
-				      Absyn.identCtxInfo var
-			val Absyn.INFO(_, _,_, ref(Absyn.LOC(sl_c,sc_c,el_c,ec_c))) = 
-				      ctxInfoClause	
-		in
-			printOs (os, "v:<");
-			printOs (os, file); 
-			printOs (os, ">:"); 
-			printOs (os, (Int.toString sl)^"."^
-				(Int.toString sc)^"."^
-				(Int.toString el)^"."^
-				(Int.toString ec)^"|[");
-			printOs (os, (Int.toString sl_c)^"."^
-				(Int.toString sc_c)^"."^
-				(Int.toString el_c)^"."^
-				(Int.toString ec_c)^"]|");				        
-			printOs (os, Absyn.identName relationId);
-			printOs (os, "[");
-			printOs (os, Absyn.identName var);
-			printOs (os, ":"); 
-			
-			if !Control.qualifiedRdb 
-			then Ty.printTypeOs(os, "", tau)
-			else Ty.printTypeOs(os, Absyn.identName modid, tau);
-			
-			printOs (os, "]\n")
-	   end
-
-	  fun printVarLong(relationId, ctxInfoClause, os, var, tau) =
-		let val Absyn.INFO(file, _,_, ref(Absyn.LOC(sl,sc,el,ec))) = 
-				      Absyn.lidentCtxInfo var 
-			val Absyn.INFO(file2, _,_, ref(Absyn.LOC(sl_c,sc_c,el_c,ec_c))) = 
-				      ctxInfoClause	
-		in
-			printOs (os, "v:<");
-			if (file = "RML") then printOs (os, file2) else printOs (os, file); 
-			printOs (os, ">:");
-			if (file = "RML") 
-			then 
-			 printOs (os, (Int.toString sl)^"."^
-				(Int.toString sc)^"."^
-				(Int.toString el)^"."^
-				(Int.toString ec)^"|[")
-			else 
-			 printOs (os, (Int.toString sl_c)^"."^
-				(Int.toString sc_c)^"."^
-				(Int.toString el_c)^"."^
-				(Int.toString ec_c)^"|[");					
-			printOs (os, (Int.toString sl_c)^"."^
-				(Int.toString sc_c)^"."^
-				(Int.toString el_c)^"."^
-				(Int.toString ec_c)^"]|");				        
-			printOs (os, Absyn.identName relationId);
-			printOs (os, "[");
-			printOs (os, Absyn.lidentName var);
-			printOs (os, ":"); 
-			
-			if !Control.qualifiedRdb 
-			then Ty.printTypeOs(os, "", tau)
-			else Ty.printTypeOs(os, Absyn.identName modid, tau);
-			
-			printOs (os, "]\n")
-	   end
-	   
-	*)
 
     fun elab_exp_os(relationId, ctxInfoClause, os, ME, VE, exp) =
     case exp
@@ -890,7 +1113,7 @@ functor StatElabFn(structure Util : UTIL
 	    let val con_tau = fresh_longcon(ME, VE, longcon)
 		val args_taus = elab_expseq_os(relationId, ctxInfoClause, os, ME, VE, expseq)
 		val res_tau = Ty.VAR(Ty.newTyvar())
-		val _ = Ty.unify(con_tau, Ty.REL(args_taus, [res_tau]))
+		val _ = (debug "elab_exp_os.STRUCTexp\n"; Ty.unify(con_tau, Ty.REL(args_taus, [res_tau])))
 				   (* adrpo added 2004-11-29 *)
 				   handle exn =>
 					((case exn
@@ -915,13 +1138,23 @@ functor StatElabFn(structure Util : UTIL
 
     fun elab_goal(relationId, ctxInfoClause, os, ME, VE, goal) =
     case goal
-	of Absyn.CALLgoal(longvar, expseq, patseq, ref(ctxInfo)) =>
+	of Absyn.CALLgoal(longvar, expseq, patseq, patseq_ref, ref(ctxInfo)) => (* TODO!! fix ref pats here *)
 	   let val rel_sigma = lookup_longvar(ME, VE, longvar)
 		   (* val _ = printVarLong(relationId, ctxInfoClause, os, longvar, TyScheme.instFree rel_sigma) *)
+		   val pats = case TyScheme.instFree rel_sigma of
+					   Ty.REL(_, tyargs_taus) => fixPatSeq(patseq, patseq_ref, tyargs_taus) (* adrpo added *)
+					 | _ => patseq
+		   val _ = if containsNamed(patseq) 
+			        then showMe("CAL -> ",longvar, pats, TyScheme.instFree rel_sigma) 
+			        else ()
 		   val exp_taus = elab_expseq_os(relationId, ctxInfoClause, os, ME, VE, expseq)
+		   (*
 		   val (VE_pat,pat_taus) = 
 				elab_patseq_os(relationId, ctxInfoClause, os, ME, VE, IdentDict.empty, patseq)
-    	   val _ = (Ty.unify(TyScheme.instFree rel_sigma, Ty.REL(exp_taus, pat_taus))) 
+		   *)
+		   val (VE_pat,pat_taus) = 
+				elab_patseq_os(relationId, ctxInfoClause, os, ME, VE, IdentDict.empty, pats)
+    	   val _ = (debug "elab_goal.CALLgoal\n"; (Ty.unify(TyScheme.instFree rel_sigma, Ty.REL(exp_taus, pat_taus)))) 
 				   (* adrpo added 2004-11-29 *)
 				   handle exn =>
 					((case exn
@@ -948,9 +1181,12 @@ functor StatElabFn(structure Util : UTIL
 				else 
 				 idUnboundError("variable", var)
 			| SOME(StatObj.VALSTR{sigma,...}) =>
-				let val _ = (
+				let val _ = 
+				           ( debug "elab_goal.EQUALgoal\n"; 
+				           (
 				             Ty.unify(TyScheme.instFree sigma, tau),
 				             Ty.mustAdmitEq tau
+				            )
 				            )
 				           (* adrpo added 2004-11-29 *)
 							handle exn =>
@@ -964,10 +1200,25 @@ functor StatElabFn(structure Util : UTIL
 				  VE
 				end
 	    end 
-	 | Absyn.LETgoal(pat, exp, ref(ctxInfo)) =>
+	 | Absyn.LETgoal(pat, exp, ref_pat_opt, ref(ctxInfo)) => (* TODO!! fix ref pats here *)
 	    let val tau = elab_exp_os(relationId, ctxInfoClause, os, ME, VE, exp)
-		val (VE_pat, tau') = elab_pat_os(relationId, ctxInfoClause, os, ME, VE, IdentDict.empty, pat)
-		val _ = Ty.unify(tau, tau')
+			val _ = if debugFlag
+					then (print ("\nLET pat:["^(Instrument.getPatAsString(pat))^"] = exp:"); Ty.printType(tau))
+					else ()
+			val patseq_ref = ref []
+			val pats = fixPatSeq([pat], patseq_ref, [Ty.deref tau]) (* adrpo added *)
+		    val _ = if containsNamed([pat]) 
+			        then showMe("LET -> ",Absyn.LONGID(NONE, relationId, ref(Absyn.dummyInfo)), pats, Ty.REL([tau], [])) 
+			        else ()
+			val pat_opt = 					
+			        if List.length (!patseq_ref) = 0 
+					then NONE 
+					else SOME(List.hd (!patseq_ref))
+			val _ = ref_pat_opt := pat_opt
+			val (VE_pat, tau') = 
+				elab_pat_os(relationId, ctxInfoClause, os, ME, VE, IdentDict.empty, 
+								case !ref_pat_opt of SOME(pat_opt) => pat_opt | _ => pat)
+			val _ = (debug "elab_goal.LETgoal\n"; Ty.unify(tau, tau'))
 			    (* adrpo added 2004-11-29 *)
 				handle exn =>
 				((case exn
@@ -999,7 +1250,7 @@ functor StatElabFn(structure Util : UTIL
     fun mkRanTaus(tau, clause) =
       let fun resultAry(Absyn.RETURN (exps, _)) = List.length exps
 	    | resultAry(Absyn.FAIL(_)) = ~1
-	  fun clauseRanAry(Absyn.CLAUSE1(_, _, _, result, _)) = resultAry result
+	  fun clauseRanAry(Absyn.CLAUSE1(_, _, _, result, _, _)) = resultAry result
 	    | clauseRanAry(Absyn.CLAUSE2(cl1, cl2, _)) =
 		case clauseRanAry cl1
 		  of ~1 => clauseRanAry cl2
@@ -1007,21 +1258,30 @@ functor StatElabFn(structure Util : UTIL
 	  fun loop(n, rest) =
 	    if n < 1 then rest else loop(n-1, Ty.VAR(Ty.newTyvar())::rest)
       in
-	case Ty.deref tau
-	  of Ty.REL(_,ranTaus) => ranTaus
-	   | _ => loop(clauseRanAry clause, [])
-      end
+		case Ty.deref tau
+		of Ty.REL(_,ranTaus) => ranTaus
+		| _ => loop(clauseRanAry clause, [])
+		end
 
     fun checkClause(os, modid, ME, VE, varRel, tau, clause) =
       let val defaultRanTaus = mkRanTaus(tau, clause)      
 	  fun elabResult(relationId, ctxInfoClause, os, ME, VE, Absyn.RETURN (exps, _)) = 
 			elab_expseq_os(relationId, ctxInfoClause, os, ME, VE, exps)
 	    | elabResult(_, _, _, _, _, Absyn.FAIL(_)) = defaultRanTaus
-	  fun check(Absyn.CLAUSE1(goal_opt, var, patseq, result, ref(ctxInfo))) =
-		(let val (VE_pat, domTaus) = elab_patseq_os(varRel, ctxInfo, os, ME, VE, IdentDict.empty, patseq)
+	  fun check(Absyn.CLAUSE1(goal_opt, var, patseq, result, patseq_ref ,ref(ctxInfo))) = (* TODO!! fix ref pats here *)
+		(let val pats = case tau of
+					   Ty.REL(tyargs_taus, _) => fixPatSeq(patseq, patseq_ref, tyargs_taus) (* adrpo added *)
+					 | _ => patseq
+			 val _ = if containsNamed(patseq) 
+			        then showMe("CLA -> ",Absyn.LONGID(NONE, var, ref(ctxInfo)), pats, tau)
+			        else ()
+			 (*
+			 val (VE_pat, domTaus) = elab_patseq_os(varRel, ctxInfo, os, ME, VE, IdentDict.empty, patseq)
+			 *)
+			 val (VE_pat, domTaus) = elab_patseq_os(varRel, ctxInfo, os, ME, VE, IdentDict.empty, pats)
 		     val VE' = elab_goal_opt(varRel, ctxInfo, os, ME, IdentDict.plus(VE,VE_pat), goal_opt)
 		     val ranTaus = elabResult(varRel, ctxInfo, os, ME, VE', result)
-		     val _ = Ty.unify(tau, Ty.REL(domTaus, ranTaus))
+		     val _ = (debug "checkClause.CLAUSE1\n"; Ty.unify(tau, Ty.REL(domTaus, ranTaus)))
 		     val _ = checkClauseName(varRel, var)
 		  fun printVE(var, StatObj.VALSTR{sigma,vk}, Dict) =
 			let val tau = TyScheme.instFree sigma
@@ -1056,54 +1316,7 @@ functor StatElabFn(structure Util : UTIL
 				 else Ty.printTypeOs(os, Absyn.identName modid, tau);
 				 
 				 printOs (os, "]\n"))
-			 | _ => () (*StatObj.REL => 
-		     (  
-		        printOs(os, "r:<");
-				printOs (os, file); 
-				printOs (os, ">:"); 
-				printOs (os, (Int.toString sl)^"."^
-				       (Int.toString sc)^"."^
-				       (Int.toString el)^"."^
-				       (Int.toString ec)^"|[");
-				printOs (os, (Int.toString sl_c)^"."^
-				       (Int.toString sc_c)^"."^
-				       (Int.toString el_c)^"."^
-				       (Int.toString ec_c)^"]|");				        
-				printOs (os, Absyn.identName varRel);
-				printOs (os, "[");
-				printOs(os,Absyn.identName var); 
-				printOs(os,":"); 
-				
-				if !Control.qualifiedRdb 
-				then Ty.printTypeOs(os, "", tau)
-				else Ty.printTypeOs(os, Absyn.identName modid, tau)
-				
-				printOs(os,"]\n")
-		     )
-		     | StatObj.CON => 
-		     (
-				printOs(os, "c:<");
-				printOs (os, file); 
-				printOs (os, ">:"); 
-				printOs (os, (Int.toString sl)^"."^
-				       (Int.toString sc)^"."^
-				       (Int.toString el)^"."^
-				       (Int.toString ec)^"|[");
-				printOs (os, (Int.toString sl_c)^"."^
-				       (Int.toString sc_c)^"."^
-				       (Int.toString el_c)^"."^
-				       (Int.toString ec_c)^"]|");				        
-				printOs (os, Absyn.identName varRel);
-				printOs (os, "[");
-				printOs(os,Absyn.identName var); 
-				printOs(os,":"); 
-				
-				if !Control.qualifiedRdb 
-				then Ty.printTypeOs(os, "", tau)
-				else Ty.printTypeOs(os, Absyn.identName modid, tau)
-				
-				printOs(os,"]\n")
-			 )*));
+			 | _ => ());
 			Dict
 		  end		     
 		 in
@@ -1136,13 +1349,15 @@ functor StatElabFn(structure Util : UTIL
       end
 
     (* Elaborate a set of relation bindings *)
-
     fun elab_relbinds(ME, TE, VE, VE_rel, relbinds) =
       let fun elab(Absyn.RELBIND(var, ty_opt, _, _), VE_rel) =
 	    (* Here we should do checkVar(empty, VE+VE_rel, var), but to
 	     * avoid the IdentDict.plus, we inline the equivalent checks.
 	     *)
-	    let val _ = checkVarNotBound(VE_rel, var)
+	    let (* val _ = print ("elab_relbinds: "^(Absyn.identName var)^"\n") *)
+	        (* maybe bind the relation with the type from the specs then unify with the existing type *)
+	        (* case IdentDict.find'(env, id) of NONE => () | SOME(id',_) => idRebindError(kind, id, id') *)
+	    val _ = checkVarNotBound(VE_rel, var)
 		val _ = checkVarNotBound(VE, var)
 		val _ = checkNotCon(StatObj.sourceInit, StatObj.VE_init, var)
 		val tau =
@@ -1171,7 +1386,6 @@ functor StatElabFn(structure Util : UTIL
 		val sigma' = TyScheme.genAll tau
 		val bnd = StatObj.VALSTR{vk=StatObj.REL, sigma=sigma'}
 	    in
-	      
 	      IdentDict.insert(VE, var, bnd)
 	    end
       in
@@ -1253,7 +1467,7 @@ functor StatElabFn(structure Util : UTIL
 		  let val tau_spec = TyScheme.instRigid sigma_spec
 		      val tau_dec = TyScheme.instFree sigma_dec
 		  in
-		    Ty.unify(tau_dec, tau_spec)
+		    (debug "check_specs.checkValue\n"; Ty.unify(tau_dec, tau_spec))
 		    handle Ty.TypeError explain =>
 			    (sayTyErr(explain, "the specification for", Absyn.identName var_spec, Absyn.identCtxInfo var_spec);
 			     sayIdError("the actual type of ", Absyn.identName var_dec, Absyn.identCtxInfo var_dec);
@@ -1279,14 +1493,18 @@ functor StatElabFn(structure Util : UTIL
 		List.app check specs
       end
 
-      fun onlycon(var, bnd as StatObj.VALSTR{vk=StatObj.CON,...}, VE') =
-		IdentDict.insert(VE', var, bnd)
-	    | onlycon(_, _, VE') = VE'
+      fun onlycon(var, bnd as StatObj.VALSTR{vk=StatObj.CON,...}, VE') = IdentDict.insert(VE', var, bnd)
+	    | onlycon(_, _, VE') = VE'      
+		(* maybe have the relation from specs also inserted in the VE  
+		| onlycon(var, bnd as StatObj.VALSTR{vk=StatObj.REL,...}, VE') = IdentDict.insert(VE', var, bnd)
+		*)
+	  
 	  val Absyn.MODULE(interface, decs, _) = module
 	  val Absyn.INTERFACE({specs,source,...}, _) = interface
+	  
 	  fun elab() =
 	    let val _ = annotate_module(module)
-		val (ME,TE,VE,modid) = elab_interface(StatObj.ME_init, interface)
+		val (ME,TE,VE,modid) = elab_interface(StatObj.ME_init, interface) (* elaborates the specifications *)
 		val VE' = IdentDict.fold(onlycon, IdentDict.empty, VE)
 		val (ME',TE',VE'') = elab_decs(os, ME, TE, VE', modid, decs)
 		val _ = check_specs(TE', VE, VE'', specs)
@@ -1298,9 +1516,12 @@ functor StatElabFn(structure Util : UTIL
       end
 
     (* Check a separately compiled module *)
-
+	fun fixAllNamedPatterns(module, VE'') = 
+	()
+	
     fun checkModule(os, module) =
-      let val (modid, ME, TE, VE, ME', TE', VE', VE'') = elab_module(os, module)
+      let val alreadyDumped = ref []
+		  val (modid, ME, TE, VE, ME', TE', VE', VE'') = elab_module(os, module)
 		  fun printVE(var, StatObj.VALSTR{sigma,vk}, Dict) =
 			let val tau = TyScheme.instFree sigma
 			val sigma' = TyScheme.genAll tau
@@ -1405,11 +1626,14 @@ functor StatElabFn(structure Util : UTIL
 		  fun printDict(mod_id, StatObj.MODSTR{TE=M_TE, VE=M_VE,...}, Dict) =
 		  let val Absyn.INFO(file, _,_, ref(Absyn.LOC(sl,sc,el,ec))) = 
 				Absyn.identCtxInfo mod_id
-			  fun printVE_CON(var, StatObj.VALSTR{sigma,vk}, Dict) =
+
+			  fun is_there(str) = (str = (Absyn.identName mod_id))
+			  
+			  fun printVE_CON_VAL(var, StatObj.VALSTR{sigma,vk}, Dict) =
 					let val tau = TyScheme.instFree sigma
 					val sigma' = TyScheme.genAll tau
 					val Absyn.INFO(file, _,_, ref(Absyn.LOC(sl,sc,el,ec))) = 
-						Absyn.identCtxInfo var			
+						Absyn.identCtxInfo var
 				in
 					case vk of 
 					StatObj.CON => 
@@ -1431,18 +1655,53 @@ functor StatElabFn(structure Util : UTIL
 						
 						printOs(os,"\n")
 					)
-					| _ => ();
+					| StatObj.VAR => 
+					(
+						printOs(os, "l:<");
+						printOs (os, file); 
+						printOs (os, ">:"); 
+						printOs (os, (Int.toString sl)^"."^
+									(Int.toString sc)^"."^
+									(Int.toString el)^"."^
+									(Int.toString ec)^"|"); 
+									
+						printOs(os, Absyn.identName mod_id); printOs(os, ".");
+						printOs(os,Absyn.identName var); 
+						printOs(os,":");
+						Ty.printTypeOs(os, "", tau);						
+						printOs(os,"\n")
+					)
+					| StatObj.REL => 
+					(  
+						printOs(os, "r:<");
+						printOs (os, file); 
+						printOs (os, ">:"); 
+						printOs (os, (Int.toString sl)^"."^
+									(Int.toString sc)^"."^
+									(Int.toString el)^"."^
+									(Int.toString ec)^"|"); 
+									
+						printOs(os, Absyn.identName mod_id); printOs(os, ".");
+						printOs(os,Absyn.identName var); 
+						printOs(os,":");
+						Ty.printTypeOs(os, "", tau);
+						printOs(os,"\n")
+					);
 					Dict
 				end		  
 				
 		  in
 		    if ((Absyn.identName mod_id) <> "RML" andalso 
-		        (Absyn.identName mod_id) <> (Absyn.identName modid))
+		        (Absyn.identName mod_id) <> (Absyn.identName modid) andalso 
+		        not (List.exists is_there (!alreadyDumped)))
 		    then
 				( 
-				printOs(os, "/*  - start external M_VE_CON: */\n");
-				IdentDict.fold(printVE_CON, IdentDict.empty, M_VE);
-				printOs(os, "/* - end external */\n")
+				printOs(os, "/*  - start external M_VE_CON: "^(Absyn.identName mod_id)^" */\n");
+				IdentDict.fold(printVE_CON_VAL, IdentDict.empty, M_VE);
+				printOs(os, "/* - end external */\n");
+				(* add the dumped module to a list to not dump it again *)
+				alreadyDumped := (Absyn.identName mod_id)::(!alreadyDumped);
+				()
 				)
 			else
 				();
@@ -1455,8 +1714,10 @@ functor StatElabFn(structure Util : UTIL
 			if !Control.rdbOnly
 			then 
 			(
-				printOs(os, "/*  ME_Dict: */\n"); 
+				printOs(os, "/*  ME Dict: */\n"); 
 				IdentDict.fold(printDict, IdentDict.empty, ME);
+				printOs(os, "/*  ME' Dict: */\n");			
+				IdentDict.fold(printDict, IdentDict.empty, ME');								
 				()
 			)
 			else ();
@@ -1465,8 +1726,6 @@ functor StatElabFn(structure Util : UTIL
 			IdentDict.fold(printTE, IdentDict.empty, TE);
 			printOs(os, "/*  VE: */\n");
 			IdentDict.fold(printVE, IdentDict.empty, VE);
-			printOs(os, "/*  ME' Dict: */\n");			
-			IdentDict.fold(printDict, IdentDict.empty, ME');
 			*) 
 			printOs(os, "/*  TE': */\n");
 			IdentDict.fold(printTE, IdentDict.empty, TE');
@@ -1477,7 +1736,8 @@ functor StatElabFn(structure Util : UTIL
 			printOs(os, "/*  VE'': */\n");
 			IdentDict.fold(printVE, IdentDict.empty, VE'');
 		 ())
-		| NONE => ()
+		| NONE => ();
+		fixAllNamedPatterns(module, VE'')
       end
 
     (* Elaborate a sequence of modules *)
@@ -1504,7 +1764,7 @@ functor StatElabFn(structure Util : UTIL
 				 lookupVar(VE, Absyn.rmlIdent "main"))
 	  val tau = Ty.CONS([StatObj.tau_string], StatObj.t_list)
       in
-		Ty.unify(TyScheme.instFree sigma, Ty.REL([tau],[]))
+		(debug "checkProgram\n"; Ty.unify(TyScheme.instFree sigma, Ty.REL([tau],[])))
       end
 
   end (* functor StatElabFn *)

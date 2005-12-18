@@ -44,9 +44,11 @@ functor AbsynPrintFn(structure MakeString : MAKESTRING
 
     fun print_ty(os, Absyn.VARty(tyvar, _)) = print_tyvar(os, tyvar)
       | print_ty(os, Absyn.CONSty(tyseq, longtycon, _)) =
-	  (print_list(os, tyseq, print_ty); print_longid(os, longtycon))
+	     (print_list(os, tyseq, print_ty); print_longid(os, longtycon))
       | print_ty(os, Absyn.TUPLEty(tyseq, _)) = print_tuple_ty(os, tyseq)
       | print_ty(os, Absyn.RELty(domtys, codtys, _)) = print_relty(os, domtys, codtys)
+      | print_ty(os, Absyn.NAMEDty(id, ty, _)) = 
+         (print_ident(os, id); prStr(os, ":("); print_ty(os, ty); prStr(os, ")"))
 
     and print_seqty(os, tyseq) = print_parens_comma(os, tyseq, print_ty)
 
@@ -71,11 +73,13 @@ functor AbsynPrintFn(structure MakeString : MAKESTRING
     fun print_pat(os, Absyn.WILDpat _) = prStr(os, "_")
       | print_pat(os, Absyn.LITpat(lit, _)) = print_lit(os, lit)
       | print_pat(os, Absyn.CONpat(longcon, _)) = print_longid(os, longcon)
-      | print_pat(os, Absyn.STRUCTpat(ctor, pat_star, _)) =
-	  (print_ctor_opt(os, ctor); print_parens_comma(os, pat_star, print_pat))
+      | print_pat(os, Absyn.STRUCTpat(ctor, pat_star, _, _)) =
+	     (print_ctor_opt(os, ctor); print_parens_comma(os, pat_star, print_pat))
       | print_pat(os, Absyn.BINDpat(var, pat, _)) =
 	  (print_ident(os, var); prStr(os, " as "); print_pat(os, pat))
       | print_pat(os, Absyn.IDENTpat(id, _, _)) = print_ident(os, id)
+      | print_pat(os, Absyn.NAMEDpat(id, pat, _)) = 
+         (print_ident(os, id); prStr(os, " = "); print_pat(os, pat))
 
     fun print_exp(os, Absyn.LITexp(lit, _)) = print_lit(os, lit)
       | print_exp(os, Absyn.CONexp(longid, _)) = print_longid(os, longid)
@@ -84,12 +88,12 @@ functor AbsynPrintFn(structure MakeString : MAKESTRING
 	  (print_ctor_opt(os, ctor); print_parens_comma(os, exp_star, print_exp))
       | print_exp(os, Absyn.IDENTexp(longid, _, _)) = print_longid(os, longid)
 
-    fun print_goal(os, Absyn.CALLgoal(longid, exp_star, pat_star, _)) =
+    fun print_goal(os, Absyn.CALLgoal(longid, exp_star, pat_star, _, _)) =
 	  (print_longid(os, longid); print_parens_comma(os, exp_star, print_exp);
 	   prStr(os, " => "); print_parens_comma(os, pat_star, print_pat))
       | print_goal(os, Absyn.EQUALgoal(var1, exp2, _)) =
 	  (print_ident(os, var1); prStr(os, " = "); print_exp(os, exp2))
-      | print_goal(os, Absyn.LETgoal(pat, exp, _)) =
+      | print_goal(os, Absyn.LETgoal(pat, exp, _, _)) =
 	  (prStr(os, "let "); print_pat(os, pat);
 	   prStr(os, " = "); print_exp(os, exp))
       | print_goal(os, Absyn.NOTgoal(g, _)) =
@@ -108,7 +112,7 @@ functor AbsynPrintFn(structure MakeString : MAKESTRING
     fun prResult(os, Absyn.RETURN(exps, _)) = print_parens_comma(os, exps, print_exp)
       | prResult(os, Absyn.FAIL _) = prStr(os, "fail")
 
-    fun print_clause(os, Absyn.CLAUSE1(g_opt, id, pat_star, result, _)) =
+    fun print_clause(os, Absyn.CLAUSE1(g_opt, id, pat_star, result, _, _)) =
 	  (prStr(os, "\n\trule\t");
 	   print_g_opt(os, g_opt);
 	   prStr(os, "\n\t\t----------------\n\t\t");
@@ -184,12 +188,6 @@ functor AbsynPrintFn(structure MakeString : MAKESTRING
 	  (prStr(os, "relation "); print_relbind_star(os, relbind_star))
 
     fun printModule(os, Absyn.MODULE(Absyn.INTERFACE({modid,specs,...}, _), dec_star, _)) =
-      (prStr(os, "module "); print_ident(os, modid); prStr(os, ":\n");
-       List.app (print_spec os) specs;
-       prStr(os, "end\n");
-       List.app (print_dec os) dec_star)
-
-    fun printSymtab(os, Absyn.MODULE(Absyn.INTERFACE({modid,specs,...}, _), dec_star, _)) =
       (prStr(os, "module "); print_ident(os, modid); prStr(os, ":\n");
        List.app (print_spec os) specs;
        prStr(os, "end\n");

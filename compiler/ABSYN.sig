@@ -23,17 +23,22 @@ signature ABSYN =
 				 | RCONlit of real * info ref
 				 | SCONlit of string * info ref
 
-    datatype ty	= VARty of tyvar * info ref
-				| CONSty of ty list * longid * info ref
+	(* adrpo added 2005-10-27 the NAMEDty for named arguments in patterns *) 
+    datatype ty	= VARty   of tyvar * info ref
+				| CONSty  of ty list * longid * info ref
 				| TUPLEty of ty list * info ref
-				| RELty of ty list * ty list * info ref
+				| RELty   of ty list * ty list * info ref
+				| NAMEDty of ident * ty * info ref
 
+	(* adrpo added 2005-10-27 the NAMEDpat for named arguments in patterns *)
+	(* adrpo added 2005-11-07 the pat list ref component in the STRUCTpat *) 
     datatype pat = WILDpat of info ref
 				 | LITpat of lit * info ref
 				 | CONpat of longid * info ref
-				 | STRUCTpat of longid option * pat list * info ref
+				 | STRUCTpat of longid option * pat list * pat list ref * info ref
 				 | BINDpat of var * pat * info ref
 				 | IDENTpat of ident * pat ref * info ref
+				 | NAMEDpat of ident * pat * info ref 
 
     datatype exp = LITexp of lit * info ref
 				 | CONexp of longid * info ref
@@ -41,16 +46,18 @@ signature ABSYN =
 				 | STRUCTexp of longid option * exp list * info ref
 				 | IDENTexp of longid * exp ref * info ref
 
-    datatype goal = CALLgoal of longid * exp list * pat list * info ref
+	(* adrpo added 2005-11-08 the ref component in CALLgoal and LETgoal *) 
+    datatype goal = CALLgoal of longid * exp list * pat list * pat list ref * info ref
 				  | EQUALgoal of var * exp * info ref
-				  | LETgoal of pat * exp * info ref
+				  | LETgoal of pat * exp * pat option ref * info ref
 				  | NOTgoal of goal * info ref
 				  | ANDgoal of goal * goal * info ref
 
     datatype result	= RETURN of exp list * info ref
 					| FAIL of info ref
 					
-    datatype clause	= CLAUSE1 of goal option * ident * pat list * result * info ref
+	(* adrpo added 2005-11-08 the pat list ref component in the CLAUSE1 *) 					
+    datatype clause	= CLAUSE1 of goal option * ident * pat list * result * pat list ref * info ref
 					| CLAUSE2 of clause * clause * info ref 
 
     datatype conbind = CONcb of ident * info ref
@@ -157,7 +164,9 @@ signature ABSYN =
 		    | NOT of info ref
 
 		    
-  datatype Exp = INTEGER of int * info ref
+  datatype Exp = 
+			 INTEGER of int * info ref
+		   | CHAR of char * info ref 
 	       | REAL of real * info ref
 	       | CREF of ComponentRef * info ref
 	       | STRING of string * info ref
@@ -181,6 +190,8 @@ signature ABSYN =
 						 ElementItem list * (* local decls *)
 						 Case list * (* case list + else in the end with pat = [] *)
 						 info ref
+	       | MBINDexp of ident * Exp * info ref (* is used for x as Exp *)	       
+
 
   and MatchType = MATCH | MATCHCONTINUE (* type of matching *)	       
 
@@ -190,6 +201,7 @@ signature ABSYN =
   (** followed by a list of named arguments (Modelica v2.0) *)
 							  
   and NamedArg = NAMEDARG of ident option * Exp * info ref
+
   (** The `NamedArg' datatype consist of an identifier for the argument and an expression *)
   (** giving the value of the argument *)
   
@@ -413,8 +425,8 @@ signature ABSYN =
 					* (Exp * AlgorithmItem list) list (* elsewhen *)
 					* info ref
 		     | ALG_NORETCALL of ComponentRef * FunctionArgs * info ref(* general fcalls without return value *)
-		     | ALG_FAILURE of Algorithm (* not goals *)
-		     | ALG_EQUALITY of Algorithm (* unification goals *)
+		     | ALG_FAILURE of Algorithm * info ref  (* not goals *)
+		     | ALG_EQUALITY of Algorithm * info ref (* unification goals *)
 
   and Case = CASE of Pattern list * (* patterns to be matched *) 
 					 ElementItem list * (* local decls *)
@@ -461,8 +473,9 @@ signature ABSYN =
 			| MLITpat of Exp * info ref
 			| MCONpat of Path * info ref
 			| MSTRUCTpat of Path option * Pattern list * info ref
-			| MBINDpat of var * Pattern * info ref
+			| MBINDpat of var * Pattern * info ref             (* x as pat *)
 			| MIDENTpat of ident * Pattern ref * info ref
+			| MNAMEDARGpat of var * Pattern * info ref (* name = pat *)
 
   (** Components in Modelica can be scalar or arrays with one or more *)
   (** dimensions. This datatype is used to indicate the dimensionality *)

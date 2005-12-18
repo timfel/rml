@@ -16,9 +16,13 @@ functor MOToMOFn(
 
     fun bug s = Util.bug("MOToMOFn."^s)
 
-	fun warn s = print  ("\nWARNING: MOToMOFn."^s^"\n\n")
-	
 	val debugFlag = false
+
+	fun warn s = 
+	if (debugFlag) 
+	then print  ("\nWARNING: MOToMOFn."^s^"\n\n")
+	else ()
+	
 	fun debug s = if (debugFlag) then print ("MOToMOFn."^s) else ()
 	
 	fun L(x) = (Int.toString (List.length x))		

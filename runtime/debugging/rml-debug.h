@@ -233,7 +233,8 @@ typedef struct rmldb_relation_db
 } rmldb_relation_db_t;
 
 /* adrpo - debugger global variables */ 
-extern int   rmldb_execution_type; 
+extern int   rmldb_execution_type;
+extern int   rmldb_execution_startup_type;
 extern int   rmldb_show;
 extern int   rmldb_last_command; /* need to know if we should start running or get more commands from the debugger */
 extern char* rmldb_command;

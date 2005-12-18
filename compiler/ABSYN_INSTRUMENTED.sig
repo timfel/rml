@@ -6,5 +6,7 @@ signature ABSYN_INSTRUMENTED =
 
     structure Absyn	: ABSYN
     val instrument	: string * Absyn.module -> Absyn.module
+    val getPatAsString : Absyn.pat -> string
+    val getInfoFromPat : Absyn.pat -> Absyn.info
     
   end (* signature ABSYN_INSTRUMENTED *)

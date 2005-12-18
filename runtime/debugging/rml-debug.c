@@ -67,7 +67,8 @@
 #define RMLDB_TYPE_SUFFIX_ARRAY  5
 
 char* rmldb_command;
-int   rmldb_execution_type = RMLDB_STEP;
+int   rmldb_execution_type         = RMLDB_STEP;
+int   rmldb_execution_startup_type = RMLDB_STEP;
 int   rmldb_show = RMLDB_HIDE;
 
 /* adrpo 
@@ -178,10 +179,12 @@ int rmldb_init(void)
 	/* debug the damn parsers/lexers */
 	/* aadebug = 1; */
 	/* aarmldbdebug = 1; */ 
-	printf("\nrmldb@> - RML debugger\n");
-	printf("rmldb@> - 2002-2005, PELAB/IDA/LiU, adrpo@ida.liu.se\n");  
-	printf("rmldb@> - debugging process %s \n", process_id);
-	signal (SIGINT, rmldb_use_quit);
+	if (rmldb_execution_startup_type == RMLDB_STEP)
+	{
+		printf("\nrmldb@> - RML debugger\n");
+		printf("rmldb@> - 2002-2005, PELAB/IDA/LiU, adrpo@ida.liu.se\n");  
+		printf("rmldb@> - debugging process %s \n", process_id);
+	}
 	/* Readline support.  Set both application name and input file. */ 
 	rl_readline_name = RMLDB_PROMPT;
 	rl_instream = stdin;
@@ -199,9 +202,11 @@ int rmldb_init(void)
 	}
 	else
 	{
-		printf("rmldb@> - on tty:%s \n", rmldb_ttyname);
+		if (rmldb_execution_startup_type == RMLDB_STEP)
+			printf("rmldb@> - on tty:%s \n", rmldb_ttyname);
 	}
 
+	signal (SIGINT, rmldb_use_quit);
 	using_history ();
 
 	/* initalize stuff */
@@ -229,8 +234,9 @@ int rmldb_init(void)
 	rmldb_current_execution_loc.SP = rmldb_stack_pointer_to_ulong(rml_state_SP);
 
 	/* parse for the first commands  */
-	rmldb_execution_type = RMLDB_STEP;
-	rmldb_parse();
+	rmldb_execution_type = rmldb_execution_startup_type;
+	/* wait for commands only if the execution startup type is step */
+	if (rmldb_execution_startup_type == RMLDB_STEP) rmldb_parse();
 }
 
 /*
@@ -269,7 +275,7 @@ void rmldb_show_help(void)
 	printf("Run the program:                                 ru|run\n");
 	printf("Print the current settings:                      stg|settings\n");
 	printf("Showing help:                                    he|help\n");
-	printf("Printing the status of Modelica runtime:         sts|stat|status\n");
+	printf("Printing the status of RML runtime:              sts|stat|status\n");
 	printf("Set the output to go to file also:               ou|output file {WORK IN PROGRESS}\n");
 	printf("Print the names of live variables:               li|live|livevars\n");
 	printf("On/Off printing names of livevars each step:     [set] li|live|livevars on|off\n");
@@ -412,12 +418,14 @@ void rmldb_backtrace_print(char* filter)
 	{
 		if (!filter)
 		{
-			rmldb_sprintf("#%.4d sp#%.4d ", tmp->depth, tmp->loc.SP);
+			/* rmldb_sprintf("#%.4d sp#%.4d ", tmp->depth, tmp->loc.SP); */
+            rmldb_sprintf("#%.4d ", tmp->depth);
 			rmldb_sprintf("%s\n", tmp->relation_name);
 		}
 		else if (strstr(tmp->relation_name, filter) != NULL)
 		{
-			rmldb_sprintf("#%.4d sp#%.4d ", tmp->depth, tmp->loc.SP);
+			/* rmldb_sprintf("#%.4d sp#%.4d ", tmp->depth, tmp->loc.SP); */
+            rmldb_sprintf("#%.4d ", tmp->depth);
 			rmldb_sprintf("%s\n", tmp->relation_name);
 		}
 		/* fprintf(stderr, "#%d %s \n", tmp->depth, tmp->relation_name); */
@@ -437,13 +445,15 @@ void rmldb_backtrace_send(char* filter)
 	{
 		if (!filter)
 		{
-			rmldb_sprintf("#%.4d sp#%.4d ", tmp->depth, tmp->loc.SP);
+			/* rmldb_sprintf("#%.4d sp#%.4d ", tmp->depth, tmp->loc.SP); */
+			rmldb_sprintf("#%.4d ", tmp->depth);
 			rmldb_pr_ident(tmp->loc.SP);
 			rmldb_sprintf("%s\n", tmp->relation_name);
 		}
 		else if (strstr(tmp->relation_name, filter) != NULL)
 		{
-			rmldb_sprintf("#%.4d sp#%.4d ", tmp->depth, tmp->loc.SP);
+			/* rmldb_sprintf("#%.4d sp#%.4d ", tmp->depth, tmp->loc.SP); */
+			rmldb_sprintf("#%.4d ", tmp->depth);
 			rmldb_pr_ident(tmp->loc.SP);
 			rmldb_sprintf("%s\n", tmp->relation_name);
 		}
@@ -488,7 +498,7 @@ void rmldb_callchain_push(char *rname, rmldb_current_execution_loc_t loc)
 		rmldb_callchain_start = last;
 		last->depth = 0;
 	}
-	strcpy(last->relation_name, rname);
+	strncpy(last->relation_name, rname, RMLDB_MAX_STRING);
 	last->next = NULL;
 	last->prev = rmldb_callchain_end;
 	if(rmldb_callchain_end)
@@ -593,11 +603,30 @@ extern void rmldb_add_var(int direction, void* var_name, void* var)
 
 extern void rmldb_clear_vars(void)
 {
-	struct rmldb_var_node *tmp;
-	for(tmp = rmldb_var_in_start; tmp; tmp = tmp->next)	free(tmp);
+	struct rmldb_var_node *tmp, *remember;
+	if (rmldb_var_in_start && rmldb_var_in_start == rmldb_var_in_end) 
+	{
+		free (rmldb_var_in_start);
+	}
+	else 
+		for(tmp = rmldb_var_in_start; tmp; tmp = remember) 
+		{
+			remember = tmp->next;
+			free(tmp);
+		}
 	rmldb_var_in_start = NULL;
 	rmldb_var_in_end = NULL;
-	for(tmp = rmldb_var_out_start; tmp; tmp = tmp->next) free(tmp);
+
+	if (rmldb_var_out_start && rmldb_var_out_start == rmldb_var_out_end) 
+	{
+		free (rmldb_var_out_start);
+	}
+	else 
+		for(tmp = rmldb_var_out_start; tmp; tmp = remember) 
+		{
+			remember = tmp->next;
+			free(tmp);
+		}
 	rmldb_var_out_start = NULL;
 	rmldb_var_out_end = NULL;
 }
@@ -732,7 +761,7 @@ extern void rmldb_display_variable(char* var_name)
 	strcpy(rmldb_display_vars[rmldb_number_of_display_vars], var_name);
 	rmldb_number_of_display_vars++;
 	rmldb_print_variable(var_name);
-	printf("Variable: [%s] added to display variabile list.\n", var_name); 
+	printf("Variable: [%s] added to display variable list.\n", var_name); 
 }
 
 extern void rmldb_undisplay_variable(char* var_name)
@@ -744,7 +773,7 @@ extern void rmldb_undisplay_variable(char* var_name)
 	}
 	strcpy(rmldb_display_vars[i], rmldb_display_vars[rmldb_number_of_display_vars-1]);
 	rmldb_number_of_display_vars--;
-	printf("Variable: [%s] removed from display variabile list\n", var_name); 
+	printf("Variable: [%s] removed from display variable list\n", var_name); 
 }
 
 void rmldb_print_displayvars(void)
@@ -1437,13 +1466,13 @@ void rmldb_print_type_info_id(char* id, FILE* out)
 		}
 	}
 	/* vars */
-	fprintf(out, "\n- variabiles");
+	fprintf(out, "\n- variables");
 	rmldb_var_db_t* tmpv;
 	for(tmpv = rmldb_var_db_start; tmpv; tmpv = tmpv->next)
 	{
 		if (strcmp(id, tmpv->name) == 0)
 		{
-			fprintf(out, "\n\t+ %s:%d.%d.%d.%d|relation: %s|clause range: %d.%d.%d.%d|variabile: %s has type:",
+			fprintf(out, "\n\t+ %s:%d.%d.%d.%d|relation: %s|clause range: %d.%d.%d.%d|variable: %s has type:",
 				tmpv->file,
 				tmpv->range->sl,tmpv->range->sc,tmpv->range->el,tmpv->range->el,
 				tmpv->relation,
@@ -2531,7 +2560,7 @@ void rmldb_var_show(void *p, rmldb_type_t* type, int depth)
 						if (suffix == RMLDB_TYPE_SUFFIX_LVAR)
 						{
 							/* actually should not happen here */
-							rmldb_sprintf ("LVAR(????HERE????)");
+							rmldb_sprintf ("LVAR?!?!?");
 							return;
 						}
 						/* the last case DATATYPES */

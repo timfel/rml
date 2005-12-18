@@ -93,7 +93,6 @@ RML_BEGIN_LABEL(RML__debug)
         rmldb_sprintf("%s", b);
 		if (rmldb_print_livevars_each_step)
 			rmldb_print_vars();
-
 		rmldb_print_displayvars();
         /* parse a command */
         rmldb_parse();

@@ -2,8 +2,8 @@ RML SYSTEM RELEASE HISTORY
 ==========================
 Adrian Pop, adrpo@ida.liu.se, http://www.ida.liu.se/~adrpo
 
-Source Release 2.3.0 with operators, 2005-06-13
--------------------------------------------------------------------------
+Binary Release 2.3.0 with operators, 2005-06-13
+---------------------------------------------------
 - general
   + fixed some problems with arrays and vectors
   + now the compiler can compile metamodelica files 
@@ -11,8 +11,7 @@ Source Release 2.3.0 with operators, 2005-06-13
   + compilation is now faster (hopefully) 
 
 
-
-Source Release 2.2.2 with operators, 2005-01-27
+Binary Release 2.2.2 with operators, 2005-01-27
 -------------------------------------------------------------------------
 - general
   + fixed a segfault bug discovered by Peter Aronsson (in array/vector_add)
@@ -60,7 +59,7 @@ Source Release 2.2.2 with operators, 2005-01-27
     [ PLEASE LET ME KNOW WHAT DOES NOT WORK AS IT SHOULD]
 
 
-Source Release 2.2.1 without operators, 2005-01-13
+Binary Release 2.2.1 without operators, 2005-01-13
 --------------------------------------------------
 - debugger 
   + command "next" that jumps over goals
@@ -99,7 +98,7 @@ Source Release 2.2.1 without operators, 2005-01-13
   http://www.standardml.org/Basis/array.html
   http://www.standardml.org/Basis/vector.html
 
-Source Release 2.2 without operators, 2004-12-20
+Binary Release 2.2 without operators, 2004-12-20
 -------------------------------------------------
 Debugging:
  a lot of new commands in the debugger,
@@ -115,7 +114,7 @@ Runtime
  - -youngsize=xxx as command line to the generated .exe
  
 
-Source Release 2.1.9 with operators, 16 June, 2004
+Binary Release 2.1.9 with operators, 16 June, 2004
 ---------------------------------------------------------------------
 - added operators: (look in examples/exp1 and examples/assigntwotype)
 int_add       | +
@@ -148,7 +147,7 @@ real_lt       | >.
 string_append | x ^ y
 
 
-Source Release 2.1.9, September 28, 2003
+Binary Release 2.1.9, September 28, 2003
 ---------------------------------------------------------------------
 Created binary releases that do not depend on SMLNJ anymore.
 
@@ -164,9 +163,9 @@ Available for:
 
 Adrian/
 
-<From here up, maintained by Adrian Pop adrpo@ida.liu.se>
+<From here up, developed by Adrian Pop adrpo@ida.liu.se>
 --------------------------------------------------------------
-********************* Maintainer change **********************
+********************* Author change **********************
 --------------------------------------------------------------
 <Until here created and maintained by Mikael Petterson>
 

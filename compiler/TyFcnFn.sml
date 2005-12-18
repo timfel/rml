@@ -7,7 +7,8 @@ functor TyFcnFn(structure Util : UTIL
 
     structure Ty = TyComb.Ty
 
-    datatype tyfcn = THETA of int * TyComb.tycomb
+    datatype tyfcn = THETA of int * (* arity of the type function *)
+                              TyComb.tycomb 
 
     fun lambda(bvars, ty) = THETA(length bvars, TyComb.absBvars(bvars, ty))
 

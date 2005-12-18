@@ -16,6 +16,7 @@ signature TY =
       | TUPLE of ty list
       | REL of ty list * ty list
       | CONS of ty list * tyname
+      | NAMED of string * ty    (* type component name and the actual type *)
     and tyvar
       = RIGID of string
       | FREE of {tag: int ref,		(* patchable *)

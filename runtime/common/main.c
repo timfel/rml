@@ -54,6 +54,7 @@ static unsigned long my_atoul(const char *nptr)
 
 int main(int argc, char **argv)
 {
+	rmldb_execution_startup_type = RMLDB_STEP;
     for(++argv, --argc; argc > 0 && argv[0][0] == '-';) {
 	char *arg = &argv[0][1];
 	++argv, --argc;
@@ -87,6 +88,12 @@ int main(int argc, char **argv)
 		rml_young_size = RML_YOUNG_SIZE;
 		continue;
 	    }
+	    continue;
+	} else if( strcmp(arg, "debugrun") == 0 ) {
+	    rmldb_execution_startup_type = RMLDB_RUN;
+	    continue;
+	} else if( strcmp(arg, "debugfast") == 0 ) {
+	    rmldb_execution_startup_type = RMLDB_FAST;
 	    continue;
 	} else if( strcmp(arg, "-") == 0 ) {
 	    break;

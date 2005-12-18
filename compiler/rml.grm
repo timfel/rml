@@ -71,7 +71,7 @@ fun exp_cons(e,es) = Absyn.STRUCTexp(ctor_cons, [e,es], ref(Absyn.dummyInfo))
 fun mkexplst lst = mklst(lst, exp_nil, exp_cons)
 
 val pat_nil = Absyn.CONpat(id_nil, ref(Absyn.dummyInfo))
-fun pat_cons(p,ps) = Absyn.STRUCTpat(ctor_cons, [p,ps], ref(Absyn.dummyInfo))
+fun pat_cons(p,ps) = Absyn.STRUCTpat(ctor_cons, [p,ps], ref [], ref(Absyn.dummyInfo))
 fun mkpatlst lst = mklst(lst, pat_nil, pat_cons)
 
 fun mktuplety([ty]) = ty
@@ -83,8 +83,8 @@ fun mkCtxInfo(Absyn.INFO(file1,loc1,loc2,ref(Absyn.LOC(sl1,sc1,el1,ec1))),
                ref(Absyn.LOC(sl1,sc1,el2,ec2))))
 
 fun join_default(c1, NONE) = c1
-  | join_default(c1, SOME(c2 as Absyn.CLAUSE1(_,_,_,_,ref(infoC2)))) =
-      let fun join(c1 as Absyn.CLAUSE1(_,_,_,_,ref(infoC1))) = 
+  | join_default(c1, SOME(c2 as Absyn.CLAUSE1(_,_,_,_,_,ref(infoC2)))) =
+      let fun join(c1 as Absyn.CLAUSE1(_,_,_,_,_,ref(infoC1))) = 
 			Absyn.CLAUSE2(c1, c2, mkCtxInfo(infoC1,infoC2))
 	    | join(Absyn.CLAUSE2(c11,c12, ref(infoC1))) = 
 			Absyn.CLAUSE2(c11, join c12, mkCtxInfo(infoC1, infoC2))
@@ -92,7 +92,7 @@ fun join_default(c1, NONE) = c1
 		join c1
       end
   | join_default(c1, SOME(c2 as Absyn.CLAUSE2(_,_,ref(infoC2)))) =
-      let fun join(c1 as Absyn.CLAUSE1(_,_,_,_,ref(infoC1))) = 
+      let fun join(c1 as Absyn.CLAUSE1(_,_,_,_,_,ref(infoC1))) = 
 			Absyn.CLAUSE2(c1, c2, mkCtxInfo(infoC1,infoC2))
 	    | join(Absyn.CLAUSE2(c11,c12, ref(infoC1))) = 
 			Absyn.CLAUSE2(c11, join c12, mkCtxInfo(infoC1, infoC2))
@@ -179,7 +179,7 @@ fun join_default(c1, NONE) = c1
 	|   GT_REAL      (* >. *)
 	|   LE_REAL      (* <=. *)
 	|   LT_REAL      (*  <. *)
-	|   NE_REAL      (* !=. *)
+	|   NE_REAL      (* !=.  or <>. *)
 	(* string operators *)
 	|	ADD_STRING	 (* ^ *)	
 	(* list operators *)
@@ -250,6 +250,8 @@ fun join_default(c1, NONE) = c1
 	|	pat_star of Absyn.pat list
 	|	pat_comma_star of Absyn.pat list
 	|	pat_comma_plus of Absyn.pat list
+	|	pat_comma_star_list of Absyn.pat list
+	|	pat_comma_plus_list of Absyn.pat list	
 	|	literal of Absyn.lit
 	|	ty of Absyn.ty
 	|	tuple_ty of Absyn.ty list
@@ -435,10 +437,10 @@ clause_plus
 
 clause
 	: RULE conjunctive_goal_opt DASHES ident seq_pat result
-		( Absyn.CLAUSE1(conjunctive_goal_opt, ident, seq_pat, result,
+		( Absyn.CLAUSE1(conjunctive_goal_opt, ident, seq_pat, result, ref [], 
 			makeInfo myLoc (RULEleft, resultright)) )
 	| AXIOM ident seq_pat result
-		( Absyn.CLAUSE1(NONE, ident, seq_pat, result,
+		( Absyn.CLAUSE1(NONE, ident, seq_pat, result, ref [],
 			makeInfo myLoc (AXIOMleft, resultright)) )
 
 result
@@ -464,103 +466,112 @@ conjunctive_goal
 	| atomic_goal AMPERSAND conjunctive_goal
 		( Absyn.ANDgoal(atomic_goal, conjunctive_goal,
 			makeInfo myLoc (atomic_goalleft, conjunctive_goalright)) )
-
+	| atomic_goal AMPERSAND (* god damn the ampersant *)
+		( atomic_goal )		
+	(*
+	| atomic_goal COMMA conjunctive_goal
+		( Absyn.ANDgoal(atomic_goal, conjunctive_goal,
+			makeInfo myLoc (atomic_goalleft, conjunctive_goalright)) )
+	| atomic_goal COMMA (* god damn the ampersant *)
+		( atomic_goal )
+	*)
+		
 atomic_goal
 	: (* adrpo -- start *)
 	  (* /////////------ integer operators ------///////// *)
 	   exp_d ADD_INT exp_d res_pat
-		( Absyn.CALLgoal(op_add_int, [exp_d1, exp_d2], res_pat,
+		( Absyn.CALLgoal(op_add_int, [exp_d1, exp_d2], res_pat, ref [],
 			makeInfo myLoc (exp_d1left, res_patright)) )			
 	| exp_d SUB_INT exp_d res_pat
-		( Absyn.CALLgoal(op_sub_int, [exp_d1, exp_d2], res_pat,
+		( Absyn.CALLgoal(op_sub_int, [exp_d1, exp_d2], res_pat, ref [],
 			makeInfo myLoc (exp_d1left, res_patright)) )			
 	| SUB_INT exp_d res_pat %prec UNARY
-		( Absyn.CALLgoal(op_neg_int, [exp_d1], res_pat,
+		( Absyn.CALLgoal(op_neg_int, [exp_d1], res_pat, ref [],
 			makeInfo myLoc (SUB_INTleft, res_patright)) )			
 	| exp_d STAR exp_d res_pat
-		( Absyn.CALLgoal(op_mul_int, [exp_d1, exp_d2], res_pat,
+		( Absyn.CALLgoal(op_mul_int, [exp_d1, exp_d2], res_pat, ref [],
 			makeInfo myLoc (exp_d1left, res_patright)) )			
 	| exp_d DIV_INT exp_d res_pat
-		( Absyn.CALLgoal(op_div_int, [exp_d1, exp_d2], res_pat,
+		( Absyn.CALLgoal(op_div_int, [exp_d1, exp_d2], res_pat, ref [],
 			makeInfo myLoc (exp_d1left, res_patright)) )			
 	| exp_d MOD_INT exp_d res_pat
-		( Absyn.CALLgoal(op_mod_int, [exp_d1, exp_d2], res_pat,
+		( Absyn.CALLgoal(op_mod_int, [exp_d1, exp_d2], res_pat, ref [],
 			makeInfo myLoc (exp_d1left, res_patright)) )			
 	| exp_d EQEQ_INT exp_d res_pat
-		( Absyn.CALLgoal(op_eq_int, [exp_d1, exp_d2], res_pat,
+		( Absyn.CALLgoal(op_eq_int, [exp_d1, exp_d2], res_pat, ref [],
 			makeInfo myLoc (exp_d1left, res_patright)) )			
 	| exp_d GE_INT exp_d res_pat
-		( Absyn.CALLgoal(op_ge_int, [exp_d1, exp_d2], res_pat,
+		( Absyn.CALLgoal(op_ge_int, [exp_d1, exp_d2], res_pat, ref [],
 			makeInfo myLoc (exp_d1left, res_patright)) )			
 	| exp_d GT_INT exp_d res_pat
-		( Absyn.CALLgoal(op_gt_int, [exp_d1, exp_d2], res_pat,
+		( Absyn.CALLgoal(op_gt_int, [exp_d1, exp_d2], res_pat, ref [],
 			makeInfo myLoc (exp_d1left, res_patright)) )			
 	| exp_d LE_INT exp_d res_pat
-		( Absyn.CALLgoal(op_le_int, [exp_d1, exp_d2], res_pat,
+		( Absyn.CALLgoal(op_le_int, [exp_d1, exp_d2], res_pat, ref [],
 			makeInfo myLoc (exp_d1left, res_patright)) )			
 	| exp_d LT_INT exp_d res_pat
-		( Absyn.CALLgoal(op_lt_int, [exp_d1, exp_d2], res_pat,
+		( Absyn.CALLgoal(op_lt_int, [exp_d1, exp_d2], res_pat, ref [],
 			makeInfo myLoc (exp_d1left, res_patright)) )			
 	| exp_d NE_INT exp_d res_pat
-		( Absyn.CALLgoal(op_ne_int, [exp_d1, exp_d2], res_pat,
+		( Absyn.CALLgoal(op_ne_int, [exp_d1, exp_d2], res_pat, ref [],
 			makeInfo myLoc (exp_d1left, res_patright)) )			
 	(* /////////------ real operators ------/////////*)
 	| exp_d ADD_REAL exp_d res_pat
-		( Absyn.CALLgoal(op_add_real, [exp_d1, exp_d2], res_pat,
+		( Absyn.CALLgoal(op_add_real, [exp_d1, exp_d2], res_pat, ref [],
 			makeInfo myLoc (exp_d1left, res_patright)) )			
 	| exp_d SUB_REAL exp_d res_pat
-		( Absyn.CALLgoal(op_sub_real, [exp_d1, exp_d2], res_pat,
+		( Absyn.CALLgoal(op_sub_real, [exp_d1, exp_d2], res_pat, ref [],
 			makeInfo myLoc (exp_d1left, res_patright)) )			
 	| SUB_REAL exp_d res_pat %prec UNARY
-		( Absyn.CALLgoal(op_neg_real, [exp_d1], res_pat,
+		( Absyn.CALLgoal(op_neg_real, [exp_d1], res_pat, ref [],
 			makeInfo myLoc (SUB_REALleft, res_patright)) )			
 	| exp_d MUL_REAL exp_d res_pat
-		( Absyn.CALLgoal(op_mul_real, [exp_d1, exp_d2], res_pat,
+		( Absyn.CALLgoal(op_mul_real, [exp_d1, exp_d2], res_pat, ref [],
 			makeInfo myLoc (exp_d1left, res_patright)) )			
 	| exp_d DIV_REAL exp_d res_pat
-		( Absyn.CALLgoal(op_div_real, [exp_d1, exp_d2], res_pat,
+		( Absyn.CALLgoal(op_div_real, [exp_d1, exp_d2], res_pat, ref [],
 			makeInfo myLoc (exp_d1left, res_patright)) )			
 	| exp_d MOD_REAL exp_d res_pat
-		( Absyn.CALLgoal(op_mod_real, [exp_d1, exp_d2], res_pat,
+		( Absyn.CALLgoal(op_mod_real, [exp_d1, exp_d2], res_pat, ref [],
 			makeInfo myLoc (exp_d1left, res_patright)) )			
 	| exp_d POW_REAL exp_d res_pat
-		( Absyn.CALLgoal(op_pow_real, [exp_d1, exp_d2], res_pat,
+		( Absyn.CALLgoal(op_pow_real, [exp_d1, exp_d2], res_pat, ref [],
 			makeInfo myLoc (exp_d1left, res_patright)) )						
 	| exp_d EQ_REAL exp_d res_pat
-		( Absyn.CALLgoal(op_eq_real, [exp_d1, exp_d2], res_pat,
+		( Absyn.CALLgoal(op_eq_real, [exp_d1, exp_d2], res_pat, ref [],
 			makeInfo myLoc (exp_d1left, res_patright)) )			
 	| exp_d GE_REAL exp_d res_pat
-		( Absyn.CALLgoal(op_ge_real, [exp_d1, exp_d2], res_pat,
+		( Absyn.CALLgoal(op_ge_real, [exp_d1, exp_d2], res_pat, ref [],
 			makeInfo myLoc (exp_d1left, res_patright)) )			
 	| exp_d GT_REAL exp_d res_pat
-		( Absyn.CALLgoal(op_gt_real, [exp_d1, exp_d2], res_pat,
+		( Absyn.CALLgoal(op_gt_real, [exp_d1, exp_d2], res_pat, ref [],
 			makeInfo myLoc (exp_d1left, res_patright)) )			
 	| exp_d LE_REAL exp_d res_pat
-		( Absyn.CALLgoal(op_le_real, [exp_d1, exp_d2], res_pat,
+		( Absyn.CALLgoal(op_le_real, [exp_d1, exp_d2], res_pat, ref [],
 			makeInfo myLoc (exp_d1left, res_patright)) )			
 	| exp_d LT_REAL exp_d res_pat
-		( Absyn.CALLgoal(op_lt_real, [exp_d1, exp_d2], res_pat,
+		( Absyn.CALLgoal(op_lt_real, [exp_d1, exp_d2], res_pat, ref [],
 			makeInfo myLoc (exp_d1left, res_patright)) )			
 	| exp_d NE_REAL exp_d res_pat
-		( Absyn.CALLgoal(op_ne_real, [exp_d1, exp_d2], res_pat,
+		( Absyn.CALLgoal(op_ne_real, [exp_d1, exp_d2], res_pat, ref [],
 			makeInfo myLoc (exp_d1left, res_patright)) )			
 	(* /////////------ string operators ------/////////*)
 	| exp_d ADD_STRING exp_d res_pat
-		( Absyn.CALLgoal(op_add_string, [exp_d1, exp_d2], res_pat,
+		( Absyn.CALLgoal(op_add_string, [exp_d1, exp_d2], res_pat, ref [],
 			makeInfo myLoc (exp_d1left, res_patright)) )			
 	(* /////////------ list operators ------/////////*)
 	| exp_d ADD_LIST exp_d res_pat
-		( Absyn.CALLgoal(op_add_list, [exp_d1, exp_d2], res_pat,
+		( Absyn.CALLgoal(op_add_list, [exp_d1, exp_d2], res_pat, ref [],
 			makeInfo myLoc (exp_d1left, res_patright)) )						
 	(* adrpo -- end *)			
 	| longorshortid seq_exp res_pat
-		( Absyn.CALLgoal(longorshortid, seq_exp, res_pat,
+		( Absyn.CALLgoal(longorshortid, seq_exp, res_pat, ref [],
 			makeInfo myLoc (longorshortidleft, seq_expright)) )
 	| ident EQ exp
 		( Absyn.EQUALgoal(ident, exp,
 			makeInfo myLoc (identleft, expright)) )
 	| LET pat EQ exp
-		( Absyn.LETgoal(pat, exp,
+		( Absyn.LETgoal(pat, exp,  ref (NONE),
 			makeInfo myLoc (LETleft, expright)) )
 	| NOT atomic_goal
 		( Absyn.NOTgoal(atomic_goal,
@@ -641,36 +652,54 @@ exp_comma_plus
 		( exp :: exp_comma_plus )
 
 (* PATTERNS *)
-
 pat	(* patterns possibly starting with LPAREN *)
 	: ident AS pat
 		( Absyn.BINDpat(ident, pat,
 			makeInfo myLoc (identleft, patright)))
 	| pat_a
 		( pat_a )
-
+	
 pat_a
 	: pat_b COLONCOLON pat_a
-		( Absyn.STRUCTpat(ctor_cons, [pat_b, pat_a], 
+		( Absyn.STRUCTpat(ctor_cons, [pat_b, pat_a],
+			ref [],  
 			makeInfo myLoc (pat_bleft, pat_aright)) )
 	| pat_b
 		( pat_b )
 
 pat_b	(* simple patterns possibly starting with LPAREN *)
 	: LPAREN RPAREN
-		( Absyn.STRUCTpat(NONE, [],
+		( Absyn.STRUCTpat(NONE, [], 
+			ref [],
 			makeInfo myLoc (LPARENleft, RPARENright)) )
 	| LPAREN pat RPAREN
 		( pat )
 	| LPAREN pat COMMA pat_comma_plus RPAREN
-		( Absyn.STRUCTpat(NONE, pat :: pat_comma_plus,
+		( Absyn.STRUCTpat(NONE, pat :: pat_comma_plus, 
+			ref [],
 			makeInfo myLoc (LPARENleft, RPARENright)) )
 	| pat_d
-		( pat_d )
+		( pat_d )					
+    (* adrpo added 2005-10-27 the ident EQ pat for named arguments in patterns *)
+    (*
+	| LPAREN ident EQ pat RPAREN
+		( Absyn.STRUCTpat(NONE, 
+			[ Absyn.NAMEDpat(ident, pat, makeInfo myLoc (identleft, patright)) ],
+			ref [],
+			makeInfo myLoc (LPARENleft, RPARENright))
+		)
+	*)
+	| LPAREN ident EQ pat COMMA pat_comma_plus RPAREN
+		( Absyn.STRUCTpat(NONE, 
+			Absyn.NAMEDpat(ident, pat, makeInfo myLoc (identleft, patright)) :: pat_comma_plus,
+			ref [],
+			makeInfo myLoc (LPARENleft, RPARENright))
+		)			
 
 pat_c	(* patterns not starting with LPAREN *)
 	: pat_d COLONCOLON pat_c
 		( Absyn.STRUCTpat(ctor_cons, [pat_d, pat_c],
+			ref [],
 			makeInfo myLoc (pat_dleft, pat_cright)) )
 	| pat_d
 		( pat_d )
@@ -678,9 +707,11 @@ pat_c	(* patterns not starting with LPAREN *)
 pat_d	(* simple patterns not starting with LPAREN *)
 	: longorshortid pat_star
 		( Absyn.STRUCTpat(SOME longorshortid, pat_star,
+			ref [],
 			makeInfo myLoc (longorshortidleft, pat_starright)) )
 	| longorshortid pat_e
 		( Absyn.STRUCTpat(SOME longorshortid, [pat_e],
+			ref [],
 			makeInfo myLoc (longorshortidleft, pat_eright)) )
 	| pat_e
 		( pat_e )
@@ -697,8 +728,8 @@ pat_e	(* atomic patterns not starting with LPAREN *)
 	| ident
 		( Absyn.IDENTpat(ident, ref(Absyn.WILDpat(ref(Absyn.dummyInfo))),
 			makeInfo myLoc (identleft, identright)) )
-	| LBRACK pat_comma_star RBRACK
-		( mkpatlst(pat_comma_star) )
+	| LBRACK pat_comma_star_list RBRACK
+		( mkpatlst(pat_comma_star_list) )
 
 res_pat
 	: (*empty*)
@@ -718,17 +749,35 @@ pat_star
 	: LPAREN pat_comma_star RPAREN
 		( pat_comma_star )
 
+pat_comma_star_list
+	: (*empty*)
+		( [] )
+	| pat_comma_plus_list
+		( pat_comma_plus_list )
+
+(* adrpo added 2005-10-27 the ident EQ pat for named arguments in patterns *)
+pat_comma_plus_list
+	: pat
+		( [pat] )
+	| pat COMMA pat_comma_plus
+		( pat :: pat_comma_plus )
+
 pat_comma_star
 	: (*empty*)
 		( [] )
 	| pat_comma_plus
 		( pat_comma_plus )
 
+(* adrpo added 2005-10-27 the ident EQ pat for named arguments in patterns *)
 pat_comma_plus
 	: pat
 		( [pat] )
 	| pat COMMA pat_comma_plus
 		( pat :: pat_comma_plus )
+	| ident EQ pat
+		( [ Absyn.NAMEDpat(ident, pat, makeInfo myLoc (identleft, patright)) ] )
+	| ident EQ pat COMMA pat_comma_plus
+		( Absyn.NAMEDpat(ident, pat, makeInfo myLoc (identleft, patright)) :: pat_comma_plus )
 
 (* LITERALS *)
 
@@ -747,19 +796,23 @@ literal
 			makeInfo myLoc (SCONleft, SCONright)) )
 
 (* TYPES *)
-
+(* adrpo added 2005-10-27 the ident COLON ty for named arguments in patterns *)
 ty
 	: seq_ty FATARROW seq_ty
 		( Absyn.RELty(seq_ty1, seq_ty2,
 			makeInfo myLoc (seq_ty1left, seq_ty2right)) )
 	| tuple_ty
 		( mktuplety(tuple_ty) )
-
+		
 tuple_ty
 	: ty_sans_star STAR tuple_ty
 		( ty_sans_star :: tuple_ty )
 	| ty_sans_star
 		( [ty_sans_star] )
+	| ident COLON ty_sans_star 
+		( [ Absyn.NAMEDty(ident, ty_sans_star, makeInfo myLoc (identleft, ty_sans_starright)) ] )
+	| ident COLON ty_sans_star STAR tuple_ty
+		( Absyn.NAMEDty(ident, ty_sans_star, makeInfo myLoc (identleft, tuple_tyright)) :: tuple_ty )
 
 ty_sans_star
 	: ty_sans_star longorshortid

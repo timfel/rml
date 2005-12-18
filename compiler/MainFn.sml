@@ -242,7 +242,7 @@ functor MainFn(
     
     (* function that outputs the version of the compiler *)
     fun version() = 
-      (sayErr "rml version ";
+      (sayErr "rml and Meta-Modelica compiler version ";
        sayErr Version.versionNumber;
        sayErr " built ";
        sayErr Version.builtDate;
@@ -355,10 +355,21 @@ functor MainFn(
 		loop(argv, [])
       end
 
+    fun dependency argv =
+      let fun process arg =
+	      case (Control.fileType arg)
+			of Control.RML_FILE => translate (Control.pathSplit arg)
+			 | Control.MO_FILE  => translate (Control.pathSplit arg)
+		     | _ => usage arg
+      in
+		List.app process argv
+      end
+
     (* the main function *)
     fun main argv =
       let fun loop("-i"::argv) = interpreter argv
 	    | loop("-v"::argv) = (version(); loop argv)
+	    | loop("-dep"::argv) = dependency argv
 	    | loop argv = compiler argv
       in
 	    loop argv

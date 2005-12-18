@@ -519,6 +519,9 @@
 				RelativePath="StatElab.sml">
 			</File>
 			<File
+				RelativePath=".\StatElabFn-2005-11-06-saved-code.sml">
+			</File>
+			<File
 				RelativePath="StatElabFn.sml">
 			</File>
 			<File
@@ -670,6 +673,9 @@
 		</Filter>
 		<File
 			RelativePath="..\..\yaccpar\modelica+\absyn.mo">
+		</File>
+		<File
+			RelativePath=".\compilation-warnings-2005-10-27.txt">
 		</File>
 		<File
 			RelativePath=".\grammar-modelica-2.1.txt">

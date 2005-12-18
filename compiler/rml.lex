@@ -279,6 +279,8 @@ tyvar="'"+{alpha}{alnum}*;
 	(Tokens.LT_REAL(yypos, yypos+1));
 <INITIAL>"!=."	=>
 	(Tokens.NE_REAL(yypos, yypos+2));
+<INITIAL>"<>."	=>
+	(Tokens.NE_REAL(yypos, yypos+2));
 
 <INITIAL>"^"	=>
 	(Tokens.ADD_STRING(yypos, yypos));

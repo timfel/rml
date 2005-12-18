@@ -508,7 +508,7 @@ functor FOLToCPSFn(structure Util : UTIL
       let fun combine(_, TransEnv.DEF{def,tieknot}, defs) = (tieknot(); def::defs)
 	    | combine(_, _, defs) = defs
       in
-	StrDict.fold(combine, [], tenv)
+	    StrDict.fold(combine, [], tenv)
       end
 
     (* X4: menv -> string list *)
@@ -516,7 +516,7 @@ functor FOLToCPSFn(structure Util : UTIL
     fun X4 menv =
       let fun combine(modname, _, xmods) = modname :: xmods
       in
-	StrDict.fold(combine, [], menv)
+	    StrDict.fold(combine, [], menv)
       end
 
     (* X5: string -> tenv -> Absyn.spec list -> (CPS.longid * CPS.literal) list *)

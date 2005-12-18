@@ -5,5 +5,4 @@ signature ABSYN_PRINT =
 
     structure Absyn	: ABSYN
     val printModule	: TextIO.outstream * Absyn.module -> unit
-    val printSymtab	: TextIO.outstream * Absyn.module -> unit
   end (* signature ABSYN_PRINT *)

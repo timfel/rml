@@ -42,6 +42,7 @@ structure MOToRML =
 				[Absyn.IDENTpat(Absyn.makeIdent(resstr, info), 
 								ref(Absyn.WILDpat(info)), 
 								info)],
+				_,
 				info)),
 		  info)
 		end
@@ -74,6 +75,7 @@ structure MOToRML =
 				[Absyn.IDENTpat(Absyn.makeIdent(resstr, info), 
 								ref(Absyn.WILDpat(info)), 
 								info)],
+				ref [],
 				info)
 		 ),
 		 info)
@@ -114,6 +116,7 @@ structure MOToRML =
 				[Absyn.IDENTpat(Absyn.makeIdent(resstr, info), 
 								ref(Absyn.WILDpat(info)), 
 								info)],
+				ref [], 
 				info)
 		  ),
 		  info)
@@ -143,6 +146,7 @@ structure MOToRML =
 				[Absyn.IDENTpat(Absyn.makeIdent(resstr, info), 
 								ref(Absyn.WILDpat(info)), 
 								info)],
+				ref [],
 				info)
 		 ),
 		 info)
@@ -172,6 +176,7 @@ structure MOToRML =
 				[Absyn.IDENTpat(Absyn.makeIdent(resstr, info), 
 								ref(Absyn.WILDpat(info)), 
 								info)],
+				ref [],
 				info)
 		  ),
 		  info)

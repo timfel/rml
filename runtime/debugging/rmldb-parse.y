@@ -78,12 +78,14 @@ T_BREAKPOINT T_ON T_ID T_EOL
   rmldb_execution_type = RMLDB_STEP;
   YYACCEPT;
 }
+/*
 | T_EOL
 {
   rmldb_last_command = RMLDB_BREAK_PARSE;
   rmldb_execution_type = RMLDB_STEP;
   YYACCEPT;
 }
+*/
 | T_NEXT T_EOL
 {
   rmldb_last_command = RMLDB_BREAK_PARSE;

@@ -3,6 +3,9 @@
 structure Ty : TY =
   struct
 
+	val debugFlag = false
+	fun debug s = if (debugFlag) then print ("Ty."^s) else ()    	
+
     datatype tynameeq
       = NEVER
       | MAYBE
@@ -16,6 +19,7 @@ structure Ty : TY =
       | TUPLE of ty list
       | REL of ty list * ty list
       | CONS of ty list * tyname
+      | NAMED of string * ty    (* type component name and the actual type *)
     and tyvar
       = RIGID of string
       | FREE of {tag: int ref,		(* patchable *)
@@ -89,6 +93,7 @@ structure Ty : TY =
 		| [ty]	=> (printAtomicType ty; say1 #" ")
 		| _	=> (printTyseq tys; say1 #" ");
 	     printTyname t)
+	 | NAMED(id_str, t) => (say id_str; say ":("; printTypeDispatch(t, needParens); say ")")
 
     fun printType ty = (alphaCounter := ~1; printTypeNoParens ty)
     val printType' = printTypeNoParens
@@ -158,6 +163,7 @@ structure Ty : TY =
 				| [ty]	=> (printAtomicTypeOs(os, modid, ty); say1Os(os, #" "))
 				| _	=> (printTyseqOs(os, modid, tys); say1Os(os, #" "));
 				printTynameOs(os, modid, t))
+	    | NAMED(id_str, t) => (sayOs(os, id_str); sayOs(os, ":("); printTypeDispatchOs(os, modid, t, needParens); sayOs(os, ")"))
 
     fun printTypeOs(SOME(os), modid, ty) = (alphaCounter := ~1; printTypeNoParensOs(os, modid, ty))
       | printTypeOs(NONE, _, ty) = ()
@@ -178,10 +184,13 @@ structure Ty : TY =
 	       | TUPLE tys => List.all check tys
 	       | REL(_,_) => false
 	       | CONS(tys,TYNAME{eq,...}) =>
-		  case !eq
-		    of ALWAYS => true
-		     | MAYBE => List.all check tys
-		     | NEVER => false
+		     (
+		     case !eq
+		       of ALWAYS => true
+		        | MAYBE => List.all check tys
+		        | NEVER => false
+		     )
+		   | NAMED(id_str, t) => admitsEq(t, ignoreTyvars)
       in
 		check ty
       end
@@ -222,12 +231,53 @@ structure Ty : TY =
 	       | REL(domtys,codtys)	=>
 		  (List.app check domtys; List.app check codtys)
 	       | CONS(tys,_)		=> List.app check tys
+	       | NAMED(id_str, t)   => check(t)
       in
-	check ty2
+	    check ty2
       end
 
     (* unification *)
-
+    
+    (* adrpo named arguments in patterns *)
+	fun  isNamed(tylist) =
+	let fun is_present(NAMED(_)) = true
+		|	is_present(_) = false
+	in
+		if List.exists is_present tylist 
+		then true
+		else false
+	end
+	
+	fun getNamedTypes(tylist) =
+	let fun loop([]) = []
+		| loop((x as NAMED(_, ty))::rest) = x::loop(rest)
+		| loop(_::rest) = loop(rest)
+	in
+		loop tylist
+	end
+	
+	fun getNamedTypesIntersection(tylist1, tylist2) =
+		let fun loop([]) = []
+			| loop(x as NAMED(id_str, ty)::rest) = id_str::loop(rest)
+			| loop(_::rest) = loop(rest)
+			val namedArgTys1 = loop tylist1
+			val namedArgTys2 = loop tylist2
+		in 
+			() 
+		end	
+	    
+	fun getNamedTypeComponents(id1, tylist) =
+	let fun loop([]) = []
+		| loop(NAMED(id2, ty)::rest) = if id1=id2 then ty::loop(rest) else loop(rest)
+		| loop(_::rest) = loop(rest)
+	in
+	    (*
+	    say ("Searching for: "^id1^" in type: "); printTyseq (tylist); 
+	    say "\n";
+	    *)
+		loop tylist
+	end
+    
     fun bindTyvar(tyvar1 as RIGID _, ty2) =
 	  tyErrInst(tyvar1, ty2, "the type variable is explicit")
       | bindTyvar(tyvar1 as FREE{eq,subst,...}, ty2) =
@@ -243,7 +293,17 @@ structure Ty : TY =
 		    FREE{eq=eq2,subst=subst2,...}, ty2) =
 	  if eq1 then subst2 := SOME ty1 else subst1 := SOME ty2
 
-    fun unify(ty1, ty2) = unify2(deref ty1, deref ty2)
+    fun unify(ty1, ty2) = 
+    (
+        (* 
+        ty1 : declared type
+        ty2 : inferred type 
+        *)
+		if debugFlag 
+		then (say "["; printType(ty1); say "]=["; printType(ty2); say "]\n") 
+		else ();
+		unify2(deref ty1, deref ty2)
+	)
 
     and unify2(ty1 as VAR(tyvar1), ty2 as VAR(tyvar2)) =
 	  if tyvar1 = tyvar2 then () else unifyTyvars(tyvar1, ty1, tyvar2, ty2)
@@ -269,14 +329,96 @@ structure Ty : TY =
 	    if tynameEq(t1, t2) then unify3(tys1, tys2, ty1, ty2, "type arguments")
 	    else tyErrDiffer(ty1, ty2, "type names")
 	  end
+	  | unify2(ty1 as NAMED(id1, t1), ty2 as NAMED(id2, t2)) = 
+		(
+		 unify2(t1, t2)
+		 (* 
+		 if id1 = id2 then () else tyErrDiffer(ty1, ty2, "named arguments");
+		 *)
+		)
+	  (* wrong 		
+	  (* deal with the fact that ty1 = NAMED and ty2 = TUPLE *)
+	  | unify2(ty1 as NAMED(id1, t1), ty2 as TUPLE(_)) = 
+		(
+		 unify2(TUPLE([ty1]), ty2)
+		)
+	  (* deal with the fact that ty1 = TUPLE and ty2 = NAMED *)		
+	  | unify2(ty1 as TUPLE(_), ty2 as NAMED(id2, t2)) = 
+		(
+		 unify2(ty1, TUPLE([ty2]))
+		)
+	  *)
+	  (* now the general case *)		
+	  | unify2(ty1 as NAMED(id1, t1), ty2) = 
+		(
+		 unify2(t1, ty2)
+		)
+	  | unify2(ty1, ty2 as NAMED(id2, t2)) = 
+		(
+		 unify2(ty1, t2)
+		)		
+      | unify2(ty1 as TUPLE(_), ty2) = tyErrDiffer(ty1, ty2, "kinds: ty1 is a tuple and ty2 is not a tuple")		
+      | unify2(ty1, ty2 as TUPLE(_)) = tyErrDiffer(ty1, ty2, "kinds: ty2 is a tuple and ty1 is not a tuple")		
       | unify2(ty1, ty2) = tyErrDiffer(ty1, ty2, "kinds")
 
     and unify3(tys1, tys2, ty1, ty2, kind) =
-      let fun loop([], []) = ()
-	    | loop(ty1::tys1, ty2::tys2) = (unify(ty1, ty2); loop(tys1, tys2))
-	    | loop(_, _) = tyErrDiffer(ty1, ty2, "number of "^kind)
-      in
-		loop(tys1, tys2)
-      end
+    (
+      (* test if one of them has NAMED type components in them *)
+	  let val (namedTys1, namedTys2) = (getNamedTypes tys1, getNamedTypes tys2)
+	      val (nrNamedTys1,nrNamedTys2) = (List.length namedTys1, List.length namedTys2)	      
+	      val (isNamedTys1,isNamedTys2) = (nrNamedTys1 > 0, nrNamedTys2 > 0)
+	      val (nrTys1,nrTys2) = (List.length tys1, List.length tys2)	      
+          fun loopTypes([], []) = ()
+		    | loopTypes(ty1::tys1, ty2::tys2) = (unify(ty1, ty2); loopTypes(tys1, tys2))
+			| loopTypes(_, _) = tyErrDiffer(ty1, ty2, "number of "^kind)
+	  in
+	  (*
+      case (isNamedTys1, isNamedTys2) of
+		   (true, true) => (* both are named *)
+		        (* this functions gets 2 lists and checks if the named argument types from the 
+		            first list are unifying with the named argument types of the second list *)     
+				let fun loopNamed([], _) = () 
+				    |   loopNamed(NAMED(id, ty)::tyrest, tylist2) = 
+						let val namedTypesComponents = getNamedTypeComponents(id, tylist2)
+							(*
+							val _ = (say "[NAMES FOUND:"; 
+									List.map printType namedTypesComponents;
+									say "]\n")
+							*)
+						in 
+							if (List.length namedTypesComponents = 0)
+							then 
+							(
+							(* check here if the first component of the other type list isn't 'a *)
+							(* case List.hd tys2 of
+								VAR(_) => unify(ty, List.hd tylist2)
+								| _ => *)tyErrDiffer(ty1, ty2, "structure: The named type component: "^id^" not present in the other type")
+							)
+							else if (List.length namedTypesComponents > 1)
+					 			then tyErrDiffer(ty1, ty2, "structure: The named type component: "^id^" is present several times in the other type")
+								else (* there can be only one! *)
+									unify(ty, List.hd namedTypesComponents); 
+							loopNamed(tyrest, tylist2)
+						end
+					|   loopNamed(_, _)	=
+					(tyErrDiffer(ty1, ty2, "structure: named arguments in types are mixed with positional arguments"))
+			in
+			  if nrNamedTys1 <= nrNamedTys2 
+			  then loopNamed(namedTys1, namedTys2)
+			  else loopNamed(namedTys2, namedTys1)
+			end
+		| (true, false) => (* first is named second is NOT named *)
+			if (nrTys1 = nrTys2) 
+			then loopTypes(tys1, tys2)
+			else (tyErrDiffer(ty1, ty2, "structure: First type has named components the second does not, and also are not equivalent positionaly."))
+        | (false, true) => (* first is NOT named second is not named *)
+			if (nrTys1 = nrTys2) 
+			then loopTypes(tys1, tys2)
+			else (tyErrDiffer(ty1, ty2, "structure: Second type has named components the first does not, and also are not equivalent positionaly."))
+        | (false, false) => (* both are NOT NAMED *)
+        *)
+			loopTypes(tys1, tys2)        
+	  end
+    )
 
   end (* structure Ty *)
