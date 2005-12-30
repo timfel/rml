@@ -1,7 +1,7 @@
 RML COPYRIGHT NOTICE, LICENSE AND DISCLAIMER.
 
 ------------------------------------------------------------------------
-Portions Copyright (c) 2002-2005 by Adrian Pop
+Portions Copyright (c) 2002-2005 by Adrian Pop, adrpo@ida.liu.se
 (Versions above rml-2.1.8)
 
 Permission to use, copy, modify, and distribute this software and
@@ -11,8 +11,10 @@ that both the copyright notice and this permission notice and warranty
 disclaimer appear in supporting documentation, and that the name of
 The Author not be used in advertising or publicity pertaining to
 distribution of the software without specific, written prior permission.
-For COMMERCIAL uses of versions above rml-2.1.8 please contact 
-Adrian Pop, adrpo@ida.liu.se. 
+
+COMMERCIAL use (including the distribution of generated code in source 
+or binary form), copy, modification and distribution of versions above 
+rml-2.1.8 is not permitted without prior agreement with Adrian Pop.
 
 THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
 INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS.
