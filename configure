@@ -124,9 +124,20 @@ fi
 
 echo TARGET=$TARGET > ./config.cache
 echo PREFIX=$PREFIX >> ./config.cache
-echo SMLCM=$SMLCM >> ./config.cache
-echo MLLEX=$MLLEX >> ./config.cache
-echo MLYACC=$MLYACC >> ./config.cache
+case "$TARGET" in
+  x86-mingw32-gcc)
+	SMLDIR=`etc/which_dir sml.bat`
+	SMLRUN=$SMLDIR/.run/run.x86-win32.exe 
+	echo SMLCM=\`echo $SMLRUN @SMLload=$SMLDIR/.heap/sml\` >> ./config.cache
+	echo MLLEX=\`echo $SMLRUN @SMLload=$SMLDIR/.heap/ml-lex\` >> ./config.cache
+	echo MLYACC=\`echo $SMLRUN @SMLload=$SMLDIR/.heap/ml-yacc\` >> ./config.cache
+	;;
+  *)
+	echo SMLCM=$SMLCM   >> ./config.cache
+	echo MLLEX=$MLLEX   >> ./config.cache
+	echo MLYACC=$MLYACC >> ./config.cache
+
+esac
 echo HEAP_SUFFIX=$HEAP_SUFFIX >> ./config.cache
 echo DEBUGLIB=$DEBUGLIB >> ./config.cache
 echo PROFLIB=$PROFLIB >> ./config.cache

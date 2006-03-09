@@ -37,4 +37,4 @@ default:
 install:
 
 clean:
-	rm -f a.out core mon.out gmon.out $(CLEAN) *.ast *.cps *.fol *~ *.rdb
+	rm -f a.out core mon.out gmon.out $(CLEAN) *.ast *.cps *.fol *~ *.rdb *.srz *.sig *.rmod *.rsig

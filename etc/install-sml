@@ -5,12 +5,21 @@ APPNAME=$1
 PREFIX=$2
 SMLCM=$3
 HEAP_SUFFIX=$4
-GOROOT=$5
+TARGET=$5
+GOROOT=$6
+
 
 $GOROOT/etc/mkdirhier $PREFIX/bin
 $GOROOT/etc/mkdirhier $PREFIX/lib
-case "$HEAP_SUFFIX" in
-x86-win32)
+case "$TARGET" in
+x86-mingw32-gcc)
+    SMLDIR=`$GOROOT/etc/which_dir sml.bat`
+    RUN="$SMLDIR/.run/run.x86-win32.exe"
+    (echo '#!/bin/sh'; echo exec $RUN @SMLquiet @SMLload=\"$PREFIX/lib/$APPNAME.$HEAP_SUFFIX\" '$*') > $PREFIX/bin/$APPNAME
+    chmod +x $PREFIX/bin/$APPNAME
+    cp $APPNAME.$HEAP_SUFFIX $PREFIX/lib    
+     ;;
+x86-cygwin-gcc)
     SMLDIR=`$GOROOT/etc/which_dir sml.bat`
     RUN="$SMLDIR/.run/run.x86-win32.exe"
     CYG_RML_PATH=`cygpath -w "$PREFIX/lib/"`

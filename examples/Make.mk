@@ -3,7 +3,4 @@
 #
 GOROOT=..
 SUBDIRS=metamodelica rml 
-
-default: configure
-
 include $(GOROOT)/etc/dispatch.mk

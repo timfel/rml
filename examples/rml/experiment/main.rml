@@ -49,8 +49,11 @@ relation main: string list => () =
 
    rule print arg &
         print "\n" &
-	real_string(1.1e010) => str &
-  	print "1.1e010 ->" & print str & print "\n"
+	let str1="1.1e-005" &
+	real_string(1.1e-005) => str &
+  	print str1 & 
+	print " -> " & 
+	print str & print "\n"
         (* 
         string_list_string_char(arg) => clst &
         listDelete(clst, 0) => clst_1  &
