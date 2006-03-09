@@ -9,25 +9,25 @@ all:	calc
 
 # MAIN PROGRAM
 
-CALCOBJS= main.o lexer.o parser.o yacclib.o assigntwotype.o
-CLEAN=calc calc.exe $(CALCOBJS) lexer.c parser.c parser.h assigntwotype.c assigntwotype.h
+CALCOBJS= main.o lexer.o parser.o yacclib.o AssignTwoType.o
+CLEAN=calc calc.exe $(CALCOBJS) lexer.c parser.c parser.h AssignTwoType.c AssignTwoType.h
 #uncomment this to have debugging
 #RMLCFLAGS=-g -East 
 
 calc: $(CALCOBJS)
 	$(LINK.rml) $(CALCOBJS) $(LDLIBS) -o calc
 
-main.o:	 main.c assigntwotype.h
+main.o:	 main.c AssignTwoType.h
 
 # LEXER
 
-lexer.o:  lexer.c parser.h assigntwotype.h
+lexer.o:  lexer.c parser.h AssignTwoType.h
 lexer.c:  lexer.l
 	flex -t -l lexer.l >lexer.c
 
 # PARSER
 
-parser.o:  parser.c assigntwotype.h
+parser.o:  parser.c AssignTwoType.h
 parser.c parser.h:  parser.y
 	bison -d parser.y
 	mv parser.tab.c parser.c
@@ -36,9 +36,9 @@ parser.c parser.h:  parser.y
 
 # ABSTRACT SYNTAX and EVALUATION
 
-assigntwotype.o:  assigntwotype.c
-assigntwotype.c assigntwotype.h:	assigntwotype.mo
-	$(COMPILE.rml) assigntwotype.mo
+AssignTwoType.o:  AssignTwoType.c
+AssignTwoType.c AssignTwoType.h:	AssignTwoType.mo
+	$(COMPILE.rml) AssignTwoType.mo
 
 # AUX
 

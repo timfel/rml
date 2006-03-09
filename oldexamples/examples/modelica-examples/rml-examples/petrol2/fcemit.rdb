@@ -1,0 +1,395 @@
+v:<fcemit.rml>:37.18.37.18|[34.3.38.1]|emit_int[i:int]
+v:<fcemit.rml>:34.24.34.24|[34.3.38.1]|emit_int[s:string]
+v:<fcemit.rml>:384.30.384.32|[382.3.385.1]|emit_restore_display[lev:int]
+v:<fcemit.rml>:12.17.12.17|[10.3.13.1]|foreach[F:'alpha => ()]
+v:<fcemit.rml>:12.20.12.20|[10.3.13.1]|foreach[x:'alpha]
+v:<fcemit.rml>:12.23.12.24|[10.3.13.1]|foreach[xs:'alpha list]
+v:<fcemit.rml>:51.21.51.25|[49.3.52.1]|emit_struct[stamp:int]
+v:<fcemit.rml>:58.24.58.26|[56.3.60.3]|emit_base[str:string]
+v:<fcemit.rml>:62.23.62.27|[60.3.63.1]|emit_base[stamp:int]
+v:<fcemit.rml>:69.27.69.29|[67.3.71.3]|emit_invty[ity:InvTy]
+v:<fcemit.rml>:73.27.73.29|[71.3.75.3]|emit_invty[ity:InvTy]
+v:<fcemit.rml>:73.31.73.32|[71.3.75.3]|emit_invty[sz:int]
+v:<fcemit.rml>:77.27.77.29|[75.3.79.3]|emit_invty[str:string]
+v:<fcemit.rml>:81.30.81.33|[79.3.82.1]|emit_invty[args:Arg list]
+v:<fcemit.rml>:81.27.81.28|[79.3.82.1]|emit_invty[id:string]
+v:<fcemit.rml>:97.22.97.25|[95.3.98.1]|emit_arg[base:Base]
+v:<fcemit.rml>:97.28.97.30|[95.3.98.1]|emit_arg[ity:InvTy]
+v:<fcemit.rml>:91.19.91.21|[89.3.92.1]|emit_args[arg:Arg]
+v:<fcemit.rml>:91.24.91.27|[89.3.92.1]|emit_args[args:Arg list]
+v:<fcemit.rml>:103.24.103.26|[101.3.104.1]|emit_comma_arg[arg:Arg]
+v:<fcemit.rml>:109.19.109.21|[109.3.109.56]|invert_ty[ity:InvTy]
+v:<fcemit.rml>:110.19.110.21|[110.3.110.54]|invert_ty[ity:InvTy]
+v:<fcemit.rml>:111.19.111.21|[111.3.111.58]|invert_ty[ity:InvTy]
+v:<fcemit.rml>:113.39.113.42|[113.3.115.52]|invert_ty[base:Base]
+v:<fcemit.rml>:115.19.115.21|[113.3.115.52]|invert_ty[ity:InvTy]
+v:<fcemit.rml>:113.45.113.48|[113.3.115.52]|invert_ty[ity':InvTy]
+v:<fcemit.rml>:115.34.115.35|[113.3.115.52]|invert_ty[ty:FCode.Ty]
+v:<fcemit.rml>:117.43.117.46|[117.3.119.56]|invert_ty[base:Base]
+v:<fcemit.rml>:119.19.119.21|[117.3.119.56]|invert_ty[ity:InvTy]
+v:<fcemit.rml>:119.34.119.35|[117.3.119.56]|invert_ty[sz:int]
+v:<fcemit.rml>:117.49.117.52|[117.3.119.56]|invert_ty[ity':InvTy]
+v:<fcemit.rml>:119.37.119.38|[117.3.119.56]|invert_ty[ty:FCode.Ty]
+v:<fcemit.rml>:121.19.121.21|[121.3.121.76]|invert_ty[ity:InvTy]
+v:<fcemit.rml>:121.47.121.51|[121.3.121.76]|invert_ty[stamp:int]
+v:<fcemit.rml>:122.19.122.21|[122.3.122.62]|invert_ty[ity:InvTy]
+v:<fcemit.rml>:122.37.122.41|[122.3.122.62]|invert_ty[stamp:int]
+v:<fcemit.rml>:183.48.183.51|[182.3.191.3]|emit_unop[base:Base]
+v:<fcemit.rml>:183.54.183.56|[182.3.191.3]|emit_unop[ity:InvTy]
+v:<fcemit.rml>:189.31.189.32|[182.3.191.3]|emit_unop[ty:FCode.Ty]
+v:<fcemit.rml>:201.54.201.55|[195.3.202.1]|emit_unop[id:string]
+v:<fcemit.rml>:201.45.201.49|[195.3.202.1]|emit_unop[stamp:int]
+v:<fcemit.rml>:45.19.45.19|[42.3.46.1]|emit_real[r:real]
+v:<fcemit.rml>:42.25.42.25|[42.3.46.1]|emit_real[s:string]
+v:<fcemit.rml>:234.29.234.29|[232.3.236.3]|emit_exp[i:int]
+v:<fcemit.rml>:238.29.238.29|[236.3.240.3]|emit_exp[r:real]
+v:<fcemit.rml>:242.32.242.36|[240.3.244.3]|emit_exp[level:int]
+v:<fcemit.rml>:246.36.246.38|[244.3.248.3]|emit_exp[exp:FCode.Exp]
+v:<fcemit.rml>:246.30.246.33|[244.3.248.3]|emit_exp[unop:FCode.UnOp]
+v:<fcemit.rml>:251.37.251.41|[248.3.253.3]|emit_exp[binop:FCode.BinOp]
+v:<fcemit.rml>:251.31.251.34|[248.3.253.3]|emit_exp[exp1:FCode.Exp]
+v:<fcemit.rml>:251.44.251.47|[248.3.253.3]|emit_exp[exp2:FCode.Exp]
+v:<fcemit.rml>:248.72.248.74|[248.3.253.3]|emit_exp[str:string]
+v:<fcemit.rml>:255.34.255.37|[253.3.256.1]|emit_exp[exps:FCode.Exp list]
+v:<fcemit.rml>:255.30.255.31|[253.3.256.1]|emit_exp[id:string]
+v:<fcemit.rml>:261.24.261.26|[259.3.262.1]|emit_comma_exp[exp:FCode.Exp]
+v:<fcemit.rml>:269.19.269.21|[267.3.270.1]|emit_exps[exp:FCode.Exp]
+v:<fcemit.rml>:269.24.269.27|[267.3.270.1]|emit_exps[exps:FCode.Exp list]
+v:<fcemit.rml>:277.36.277.38|[275.3.278.1]|emit_assign_retval[exp:FCode.Exp]
+v:<fcemit.rml>:283.33.283.35|[281.3.285.3]|emit_stmt[lhs:FCode.Exp]
+v:<fcemit.rml>:283.37.283.39|[281.3.285.3]|emit_stmt[rhs:FCode.Exp]
+v:<fcemit.rml>:287.34.287.37|[285.3.289.3]|emit_stmt[exps:FCode.Exp list]
+v:<fcemit.rml>:287.31.287.32|[285.3.289.3]|emit_stmt[id:string]
+v:<fcemit.rml>:291.32.291.34|[289.3.293.3]|emit_stmt[ret:(FCode.Ty*FCode.Exp) option]
+v:<fcemit.rml>:296.31.296.33|[293.3.298.3]|emit_stmt[exp:FCode.Exp]
+v:<fcemit.rml>:296.35.296.38|[293.3.298.3]|emit_stmt[stmt:FCode.Stmt]
+v:<fcemit.rml>:301.28.301.30|[298.3.303.3]|emit_stmt[exp:FCode.Exp]
+v:<fcemit.rml>:301.32.301.36|[298.3.303.3]|emit_stmt[stmt1:FCode.Stmt]
+v:<fcemit.rml>:301.38.301.42|[298.3.303.3]|emit_stmt[stmt2:FCode.Stmt]
+v:<fcemit.rml>:305.29.305.33|[303.3.307.3]|emit_stmt[stmt1:FCode.Stmt]
+v:<fcemit.rml>:305.35.305.39|[303.3.307.3]|emit_stmt[stmt2:FCode.Stmt]
+v:<fcemit.rml>:363.44.363.50|[359.3.364.1]|emit_load_formals[formals:FCode.Var list]
+v:<fcemit.rml>:363.37.363.38|[359.3.364.1]|emit_load_formals[id:string]
+v:<fcemit.rml>:363.53.363.57|[359.3.364.1]|emit_load_formals[stamp:string]
+v:<fcemit.rml>:376.33.376.39|[370.3.377.1]|emit_setup_display[formals:FCode.Var list]
+v:<fcemit.rml>:376.55.376.59|[370.3.377.1]|emit_setup_display[stamp:int]
+v:<fcemit.rml>:376.28.376.30|[370.3.377.1]|emit_setup_display[lev:int]
+v:<fcemit.rml>:373.29.373.34|[370.3.377.1]|emit_setup_display[stamp':string]
+v:<fcemit.rml>:376.61.376.64|[370.3.377.1]|emit_setup_display[vars:FCode.Var list]
+v:<fcemit.rml>:126.38.126.41|[126.3.130.1]|emit_var[base:Base]
+v:<fcemit.rml>:129.28.129.29|[126.3.130.1]|emit_var[id:string]
+v:<fcemit.rml>:126.44.126.46|[126.3.130.1]|emit_var[ity:InvTy]
+v:<fcemit.rml>:129.31.129.32|[126.3.130.1]|emit_var[ty:FCode.Ty]
+v:<fcemit.rml>:135.22.135.24|[133.3.136.1]|emit_var_bnd[var:FCode.Var]
+v:<fcemit.rml>:345.31.345.32|[343.3.346.1]|emit_decl_retval[ty:FCode.Ty]
+v:<fcemit.rml>:319.34.319.37|[317.3.321.3]|emit_proc_head[args:Arg list]
+v:<fcemit.rml>:319.30.319.31|[317.3.321.3]|emit_proc_head[id:string]
+v:<fcemit.rml>:324.37.324.40|[321.3.325.1]|emit_proc_head[args:Arg list]
+v:<fcemit.rml>:321.44.321.47|[321.3.325.1]|emit_proc_head[base:Base]
+v:<fcemit.rml>:324.33.324.34|[321.3.325.1]|emit_proc_head[id:string]
+v:<fcemit.rml>:321.50.321.52|[321.3.325.1]|emit_proc_head[ity:InvTy]
+v:<fcemit.rml>:324.29.324.30|[321.3.325.1]|emit_proc_head[ty:FCode.Ty]
+v:<fcemit.rml>:335.38.335.41|[335.3.337.59]|conv_formal_defn[base:Base]
+v:<fcemit.rml>:337.36.337.37|[335.3.337.59]|conv_formal_defn[id:string]
+v:<fcemit.rml>:335.44.335.46|[335.3.337.59]|conv_formal_defn[ity:InvTy]
+v:<fcemit.rml>:337.39.337.40|[335.3.337.59]|conv_formal_defn[ty:FCode.Ty]
+v:<fcemit.rml>:20.13.20.13|[18.3.20.32]|map[F:'alpha => 'beta]
+v:<fcemit.rml>:20.19.20.20|[18.3.20.32]|map[xs:'alpha list]
+v:<fcemit.rml>:20.16.20.16|[18.3.20.32]|map[x:'alpha]
+v:<fcemit.rml>:18.16.18.16|[18.3.20.32]|map[y:'beta]
+v:<fcemit.rml>:18.34.18.35|[18.3.20.32]|map[ys:'beta list]
+v:<fcemit.rml>:390.43.390.50|[390.3.402.1]|emit_proc_defn[formals':Arg list]
+v:<fcemit.rml>:400.38.400.44|[390.3.402.1]|emit_proc_defn[formals:FCode.Var list]
+v:<fcemit.rml>:400.35.400.36|[390.3.402.1]|emit_proc_defn[id:string]
+v:<fcemit.rml>:401.52.401.54|[390.3.402.1]|emit_proc_defn[lev:int]
+v:<fcemit.rml>:401.58.401.61|[390.3.402.1]|emit_proc_defn[stmt:FCode.Stmt]
+v:<fcemit.rml>:401.56.401.56|[390.3.402.1]|emit_proc_defn[r:FCode.Record]
+v:<fcemit.rml>:400.46.400.51|[390.3.402.1]|emit_proc_defn[ty_opt:FCode.Ty option]
+v:<fcemit.rml>:311.38.311.41|[311.3.313.58]|conv_formal_decl[base:Base]
+v:<fcemit.rml>:311.43.311.45|[311.3.313.58]|conv_formal_decl[ity:InvTy]
+v:<fcemit.rml>:313.38.313.39|[311.3.313.58]|conv_formal_decl[ty:FCode.Ty]
+v:<fcemit.rml>:328.43.328.50|[328.3.332.1]|emit_proc_decl[formals':Arg list]
+v:<fcemit.rml>:331.38.331.44|[328.3.332.1]|emit_proc_decl[formals:FCode.Var list]
+v:<fcemit.rml>:331.35.331.36|[328.3.332.1]|emit_proc_decl[id:string]
+v:<fcemit.rml>:331.46.331.51|[328.3.332.1]|emit_proc_decl[ty_opt:FCode.Ty option]
+v:<fcemit.rml>:145.41.145.44|[141.3.146.1]|emit_rec_bnds[bnds:FCode.Var list]
+v:<fcemit.rml>:141.38.141.40|[141.3.146.1]|emit_rec_bnds[id':string]
+v:<fcemit.rml>:145.33.145.34|[141.3.146.1]|emit_rec_bnds[id:string]
+v:<fcemit.rml>:145.47.145.52|[141.3.146.1]|emit_rec_bnds[prefix:string]
+v:<fcemit.rml>:145.36.145.37|[141.3.146.1]|emit_rec_bnds[ty:FCode.Ty]
+v:<fcemit.rml>:158.41.158.44|[151.3.159.1]|emit_record[bnds:FCode.Var list]
+v:<fcemit.rml>:158.34.158.39|[151.3.159.1]|emit_record[stamp0:int]
+v:<fcemit.rml>:153.41.153.47|[151.3.159.1]|emit_record[prefix0:string]
+v:<fcemit.rml>:154.40.154.46|[151.3.159.1]|emit_record[prefix1:string]
+v:<fcemit.rml>:152.30.152.35|[151.3.159.1]|emit_record[stamp1:string]
+v:<fcemit.rml>:466.28.466.31|[464.3.467.1]|emit_rec_tree[left:RTree]
+v:<fcemit.rml>:466.33.466.33|[464.3.467.1]|emit_rec_tree[r:FCode.Record]
+v:<fcemit.rml>:466.35.466.39|[464.3.467.1]|emit_rec_tree[right:RTree]
+v:<fcemit.rml>:412.21.412.21|[410.3.412.28]|compare'[j:int]
+v:<fcemit.rml>:412.18.412.18|[410.3.412.28]|compare'[i:int]
+v:<fcemit.rml>:416.21.416.21|[414.3.416.28]|compare'[j:int]
+v:<fcemit.rml>:416.18.416.18|[414.3.416.28]|compare'[i:int]
+v:<fcemit.rml>:422.20.422.20|[420.3.422.27]|compare[j:int]
+v:<fcemit.rml>:422.17.422.17|[420.3.422.27]|compare[i:int]
+v:<fcemit.rml>:424.51.424.53|[424.3.426.28]|compare[cmp:Cmp]
+v:<fcemit.rml>:426.20.426.20|[424.3.426.28]|compare[j:int]
+v:<fcemit.rml>:426.17.426.17|[424.3.426.28]|compare[i:int]
+v:<fcemit.rml>:437.16.437.16|[437.3.437.47]|insert[r:FCode.Record]
+v:<fcemit.rml>:439.35.439.37|[439.3.444.35]|insert[cmp:Cmp]
+v:<fcemit.rml>:443.53.443.57|[439.3.444.35]|insert[right:RTree]
+v:<fcemit.rml>:443.21.443.24|[439.3.444.35]|insert[left:RTree]
+v:<fcemit.rml>:440.43.440.47|[439.3.444.35]|insert[left':RTree]
+v:<fcemit.rml>:443.26.443.26|[439.3.444.35]|insert[r:FCode.Record]
+v:<fcemit.rml>:442.16.442.17|[439.3.444.35]|insert[r':FCode.Record]
+v:<fcemit.rml>:443.44.443.48|[439.3.444.35]|insert[stamp:int]
+v:<fcemit.rml>:440.50.440.55|[439.3.444.35]|insert[right':RTree]
+v:<fcemit.rml>:442.35.442.40|[439.3.444.35]|insert[stamp':int]
+v:<fcemit.rml>:448.24.448.27|[448.3.448.52]|insert'[left:RTree]
+v:<fcemit.rml>:448.30.448.34|[448.3.448.52]|insert'[right:RTree]
+v:<fcemit.rml>:452.25.452.28|[450.3.452.54]|insert'[left:RTree]
+v:<fcemit.rml>:450.29.450.33|[450.3.452.54]|insert'[left':RTree]
+v:<fcemit.rml>:452.21.452.22|[450.3.452.54]|insert'[r':FCode.Record]
+v:<fcemit.rml>:452.31.452.35|[450.3.452.54]|insert'[right:RTree]
+v:<fcemit.rml>:456.25.456.28|[454.3.456.54]|insert'[left:RTree]
+v:<fcemit.rml>:456.31.456.35|[454.3.456.54]|insert'[right:RTree]
+v:<fcemit.rml>:456.21.456.22|[454.3.456.54]|insert'[r':FCode.Record]
+v:<fcemit.rml>:454.30.454.35|[454.3.456.54]|insert'[right':RTree]
+v:<fcemit.rml>:473.29.473.32|[473.3.473.41]|ty_recs[recs:RTree]
+v:<fcemit.rml>:474.28.474.31|[474.3.474.40]|ty_recs[recs:RTree]
+v:<fcemit.rml>:475.29.475.32|[475.3.475.41]|ty_recs[recs:RTree]
+v:<fcemit.rml>:479.31.479.35|[477.3.479.45]|ty_recs[recs0:RTree]
+v:<fcemit.rml>:477.31.477.35|[477.3.479.45]|ty_recs[recs1:RTree]
+v:<fcemit.rml>:479.27.479.28|[477.3.479.45]|ty_recs[ty:FCode.Ty]
+v:<fcemit.rml>:483.34.483.38|[481.3.483.48]|ty_recs[recs0:RTree]
+v:<fcemit.rml>:481.31.481.35|[481.3.483.48]|ty_recs[recs1:RTree]
+v:<fcemit.rml>:483.29.483.30|[481.3.483.48]|ty_recs[ty:FCode.Ty]
+v:<fcemit.rml>:489.47.489.50|[486.3.489.69]|ty_recs[bnds:FCode.Var list]
+v:<fcemit.rml>:486.29.486.33|[486.3.489.69]|ty_recs[recs1:RTree]
+v:<fcemit.rml>:489.27.489.27|[486.3.489.69]|ty_recs[r:FCode.Record]
+v:<fcemit.rml>:489.55.489.59|[486.3.489.69]|ty_recs[recs0:RTree]
+v:<fcemit.rml>:487.35.487.39|[486.3.489.69]|ty_recs[recs2:RTree]
+v:<fcemit.rml>:491.33.491.36|[491.3.491.45]|ty_recs[recs:RTree]
+v:<fcemit.rml>:495.23.495.26|[495.3.495.35]|vars_recs[recs:RTree]
+v:<fcemit.rml>:498.35.498.39|[497.3.500.56]|vars_recs[recs2:RTree]
+v:<fcemit.rml>:500.42.500.46|[497.3.500.56]|vars_recs[recs0:RTree]
+v:<fcemit.rml>:497.31.497.35|[497.3.500.56]|vars_recs[recs1:RTree]
+v:<fcemit.rml>:500.31.500.32|[497.3.500.56]|vars_recs[ty:FCode.Ty]
+v:<fcemit.rml>:500.36.500.39|[497.3.500.56]|vars_recs[vars:FCode.Var list]
+v:<fcemit.rml>:516.35.516.39|[514.3.516.49]|unop_recs[recs0:RTree]
+v:<fcemit.rml>:514.31.514.35|[514.3.516.49]|unop_recs[recs1:RTree]
+v:<fcemit.rml>:516.31.516.32|[514.3.516.49]|unop_recs[ty:FCode.Ty]
+v:<fcemit.rml>:518.31.518.34|[518.3.518.43]|unop_recs[recs:RTree]
+v:<fcemit.rml>:519.31.519.34|[519.3.519.43]|unop_recs[recs:RTree]
+v:<fcemit.rml>:520.31.520.34|[520.3.520.43]|unop_recs[recs:RTree]
+v:<fcemit.rml>:521.31.521.34|[521.3.521.43]|unop_recs[recs:RTree]
+v:<fcemit.rml>:522.31.522.34|[522.3.522.43]|unop_recs[recs:RTree]
+v:<fcemit.rml>:523.33.523.36|[523.3.523.45]|unop_recs[recs:RTree]
+v:<fcemit.rml>:524.38.524.41|[524.3.524.50]|unop_recs[recs:RTree]
+v:<fcemit.rml>:529.32.529.35|[529.3.529.44]|exp_recs[recs:RTree]
+v:<fcemit.rml>:530.32.530.35|[530.3.530.44]|exp_recs[recs:RTree]
+v:<fcemit.rml>:531.35.531.38|[531.3.531.47]|exp_recs[recs:RTree]
+v:<fcemit.rml>:537.35.537.37|[534.3.537.55]|exp_recs[exp:FCode.Exp]
+v:<fcemit.rml>:537.41.537.45|[534.3.537.55]|exp_recs[recs0:RTree]
+v:<fcemit.rml>:534.35.534.39|[534.3.537.55]|exp_recs[recs1:RTree]
+v:<fcemit.rml>:535.33.535.37|[534.3.537.55]|exp_recs[recs2:RTree]
+v:<fcemit.rml>:537.30.537.33|[534.3.537.55]|exp_recs[unop:FCode.UnOp]
+v:<fcemit.rml>:542.31.542.34|[539.3.542.59]|exp_recs[exp1:FCode.Exp]
+v:<fcemit.rml>:542.38.542.41|[539.3.542.59]|exp_recs[exp2:FCode.Exp]
+v:<fcemit.rml>:542.45.542.49|[539.3.542.59]|exp_recs[recs0:RTree]
+v:<fcemit.rml>:539.34.539.38|[539.3.542.59]|exp_recs[recs1:RTree]
+v:<fcemit.rml>:540.34.540.38|[539.3.542.59]|exp_recs[recs2:RTree]
+v:<fcemit.rml>:546.32.546.35|[544.3.546.53]|exp_recs[exps:FCode.Exp list]
+v:<fcemit.rml>:546.39.546.43|[544.3.546.53]|exp_recs[recs0:RTree]
+v:<fcemit.rml>:544.35.544.39|[544.3.546.53]|exp_recs[recs1:RTree]
+v:<fcemit.rml>:550.23.550.26|[550.3.550.35]|exps_recs[recs:RTree]
+v:<fcemit.rml>:555.19.555.21|[552.3.555.44]|exps_recs[exp:FCode.Exp]
+v:<fcemit.rml>:555.24.555.27|[552.3.555.44]|exps_recs[exps:FCode.Exp list]
+v:<fcemit.rml>:555.30.555.34|[552.3.555.44]|exps_recs[recs0:RTree]
+v:<fcemit.rml>:552.33.552.37|[552.3.555.44]|exps_recs[recs1:RTree]
+v:<fcemit.rml>:553.35.553.39|[552.3.555.44]|exps_recs[recs2:RTree]
+v:<fcemit.rml>:566.34.566.37|[562.3.566.60]|stmt_recs[exp1:FCode.Exp]
+v:<fcemit.rml>:566.39.566.42|[562.3.566.60]|stmt_recs[exp2:FCode.Exp]
+v:<fcemit.rml>:566.46.566.50|[562.3.566.60]|stmt_recs[recs0:RTree]
+v:<fcemit.rml>:563.34.563.38|[562.3.566.60]|stmt_recs[recs2:RTree]
+v:<fcemit.rml>:562.31.562.35|[562.3.566.60]|stmt_recs[recs1:RTree]
+v:<fcemit.rml>:564.34.564.38|[562.3.566.60]|stmt_recs[recs3:RTree]
+v:<fcemit.rml>:566.31.566.32|[562.3.566.60]|stmt_recs[ty:FCode.Ty]
+v:<fcemit.rml>:570.33.570.36|[568.3.570.54]|stmt_recs[exps:FCode.Exp list]
+v:<fcemit.rml>:570.40.570.44|[568.3.570.54]|stmt_recs[recs0:RTree]
+v:<fcemit.rml>:568.35.568.39|[568.3.570.54]|stmt_recs[recs1:RTree]
+v:<fcemit.rml>:572.38.572.41|[572.3.572.50]|stmt_recs[recs:RTree]
+v:<fcemit.rml>:576.40.576.42|[574.3.576.62]|stmt_recs[exp:FCode.Exp]
+v:<fcemit.rml>:576.48.576.52|[574.3.576.62]|stmt_recs[recs0:RTree]
+v:<fcemit.rml>:574.33.574.37|[574.3.576.62]|stmt_recs[recs1:RTree]
+v:<fcemit.rml>:581.31.581.33|[578.3.581.56]|stmt_recs[exp:FCode.Exp]
+v:<fcemit.rml>:581.35.581.38|[578.3.581.56]|stmt_recs[stmt:FCode.Stmt]
+v:<fcemit.rml>:581.42.581.46|[578.3.581.56]|stmt_recs[recs0:RTree]
+v:<fcemit.rml>:578.33.578.37|[578.3.581.56]|stmt_recs[recs1:RTree]
+v:<fcemit.rml>:579.35.579.39|[578.3.581.56]|stmt_recs[recs2:RTree]
+v:<fcemit.rml>:587.28.587.30|[583.3.587.60]|stmt_recs[exp:FCode.Exp]
+v:<fcemit.rml>:587.38.587.42|[583.3.587.60]|stmt_recs[stmt2:FCode.Stmt]
+v:<fcemit.rml>:587.46.587.50|[583.3.587.60]|stmt_recs[recs0:RTree]
+v:<fcemit.rml>:584.36.584.40|[583.3.587.60]|stmt_recs[recs2:RTree]
+v:<fcemit.rml>:583.33.583.37|[583.3.587.60]|stmt_recs[recs1:RTree]
+v:<fcemit.rml>:585.36.585.40|[583.3.587.60]|stmt_recs[recs3:RTree]
+v:<fcemit.rml>:587.32.587.36|[583.3.587.60]|stmt_recs[stmt1:FCode.Stmt]
+v:<fcemit.rml>:592.35.592.39|[589.3.592.57]|stmt_recs[stmt2:FCode.Stmt]
+v:<fcemit.rml>:592.43.592.47|[589.3.592.57]|stmt_recs[recs0:RTree]
+v:<fcemit.rml>:590.36.590.40|[589.3.592.57]|stmt_recs[recs2:RTree]
+v:<fcemit.rml>:589.36.589.40|[589.3.592.57]|stmt_recs[recs1:RTree]
+v:<fcemit.rml>:592.29.592.33|[589.3.592.57]|stmt_recs[stmt1:FCode.Stmt]
+v:<fcemit.rml>:594.31.594.34|[594.3.594.43]|stmt_recs[recs:RTree]
+v:<fcemit.rml>:601.30.601.33|[601.3.601.42]|block_opt_recs[recs:RTree]
+v:<fcemit.rml>:607.45.607.48|[604.3.607.67]|block_opt_recs[stmt:FCode.Stmt]
+v:<fcemit.rml>:607.43.607.43|[604.3.607.67]|block_opt_recs[r:FCode.Record]
+v:<fcemit.rml>:604.29.604.33|[604.3.607.67]|block_opt_recs[recs1:RTree]
+v:<fcemit.rml>:607.53.607.57|[604.3.607.67]|block_opt_recs[recs0:RTree]
+v:<fcemit.rml>:605.35.605.39|[604.3.607.67]|block_opt_recs[recs2:RTree]
+v:<fcemit.rml>:504.27.504.30|[504.3.504.39]|ty_opt_recs[recs:RTree]
+v:<fcemit.rml>:508.30.508.34|[506.3.508.44]|ty_opt_recs[recs0:RTree]
+v:<fcemit.rml>:506.31.506.35|[506.3.508.44]|ty_opt_recs[recs1:RTree]
+v:<fcemit.rml>:508.26.508.27|[506.3.508.44]|ty_opt_recs[ty:FCode.Ty]
+v:<fcemit.rml>:623.47.623.55|[619.3.623.73]|proc_recs[block_opt:FCode.Block option]
+v:<fcemit.rml>:623.32.623.38|[619.3.623.73]|proc_recs[formals:FCode.Var list]
+v:<fcemit.rml>:619.38.619.42|[619.3.623.73]|proc_recs[recs1:RTree]
+v:<fcemit.rml>:623.59.623.63|[619.3.623.73]|proc_recs[recs0:RTree]
+v:<fcemit.rml>:620.39.620.43|[619.3.623.73]|proc_recs[recs2:RTree]
+v:<fcemit.rml>:621.45.621.49|[619.3.623.73]|proc_recs[recs3:RTree]
+v:<fcemit.rml>:623.40.623.45|[619.3.623.73]|proc_recs[ty_opt:FCode.Ty option]
+v:<fcemit.rml>:627.24.627.27|[627.3.627.36]|procs_recs[recs:RTree]
+v:<fcemit.rml>:631.20.631.23|[629.3.631.47]|procs_recs[proc:FCode.Proc]
+v:<fcemit.rml>:631.26.631.30|[629.3.631.47]|procs_recs[procs:FCode.Proc list]
+v:<fcemit.rml>:629.35.629.39|[629.3.631.47]|procs_recs[recs1:RTree]
+v:<fcemit.rml>:631.33.631.37|[629.3.631.47]|procs_recs[recs0:RTree]
+v:<fcemit.rml>:629.71.629.75|[629.3.631.47]|procs_recs[recs2:RTree]
+v:<fcemit.rml>:641.27.641.31|[639.3.642.1]|emit_record_defns[procs:FCode.Proc list]
+v:<fcemit.rml>:639.37.639.40|[639.3.642.1]|emit_record_defns[recs:RTree]
+v:<fcemit.rml>:658.31.658.32|[651.3.659.1]|emit[id:string]
+v:<fcemit.rml>:658.25.658.29|[651.3.659.1]|emit[procs:FCode.Proc list]
+/*  ME_Dict: */
+/*  - start external M_VE_CON: */
+c:<fcode.rml>:24.27.24.29|FCode.PLT:FCode.Ty => FCode.BinOp
+c:<fcode.rml>:19.55.19.58|FCode.IMOD:FCode.BinOp
+c:<fcode.rml>:6.27.6.30|FCode.CHAR:FCode.Ty
+c:<fcode.rml>:30.27.30.32|FCode.BINARY:(FCode.Exp,FCode.BinOp,FCode.Exp) => FCode.Exp
+c:<fcode.rml>:10.27.10.29|FCode.ARR:(int,FCode.Ty) => FCode.Ty
+c:<fcode.rml>:45.27.45.31|FCode.BLOCK:(int,FCode.Record,FCode.Stmt) => FCode.Block
+c:<fcode.rml>:19.62.19.65|FCode.IAND:FCode.BinOp
+c:<fcode.rml>:31.27.31.31|FCode.FCALL:(string,FCode.Exp list) => FCode.Exp
+c:<fcode.rml>:16.27.16.30|FCode.CtoI:FCode.UnOp
+c:<fcode.rml>:28.27.28.33|FCode.DISPLAY:int => FCode.Exp
+c:<fcode.rml>:19.27.19.30|FCode.IADD:FCode.BinOp
+c:<fcode.rml>:20.39.20.41|FCode.IEQ:FCode.BinOp
+c:<fcode.rml>:26.27.26.30|FCode.ICON:int => FCode.Exp
+c:<fcode.rml>:19.48.19.51|FCode.IDIV:FCode.BinOp
+c:<fcode.rml>:20.33.20.35|FCode.ILE:FCode.BinOp
+c:<fcode.rml>:37.27.37.28|FCode.IF:(FCode.Exp,FCode.Stmt,FCode.Stmt) => FCode.Stmt
+c:<fcode.rml>:20.27.20.29|FCode.ILT:FCode.BinOp
+c:<fcode.rml>:19.34.19.37|FCode.ISUB:FCode.BinOp
+c:<fcode.rml>:7.27.7.29|FCode.INT:FCode.Ty
+c:<fcode.rml>:19.41.19.44|FCode.IMUL:FCode.BinOp
+c:<fcode.rml>:19.69.19.71|FCode.IOR:FCode.BinOp
+c:<fcode.rml>:23.27.23.30|FCode.PADD:FCode.Ty => FCode.BinOp
+c:<fcode.rml>:16.34.16.37|FCode.ItoR:FCode.UnOp
+c:<fcode.rml>:16.48.16.51|FCode.ItoC:FCode.UnOp
+c:<fcode.rml>:17.27.17.30|FCode.LOAD:FCode.Ty => FCode.UnOp
+c:<fcode.rml>:17.40.17.45|FCode.OFFSET:(FCode.Record,string) => FCode.UnOp
+c:<fcode.rml>:24.51.24.53|FCode.PEQ:FCode.Ty => FCode.BinOp
+c:<fcode.rml>:34.27.34.31|FCode.PCALL:(string,FCode.Exp list) => FCode.Stmt
+c:<fcode.rml>:23.53.23.57|FCode.PDIFF:FCode.Ty => FCode.BinOp
+c:<fcode.rml>:24.39.24.41|FCode.PLE:FCode.Ty => FCode.BinOp
+c:<fcode.rml>:22.27.22.29|FCode.RLT:FCode.BinOp
+c:<fcode.rml>:9.27.9.29|FCode.PTR:FCode.Ty => FCode.Ty
+c:<fcode.rml>:48.27.48.30|FCode.PROG:(FCode.Proc list,string) => FCode.Prog
+c:<fcode.rml>:47.27.47.30|FCode.PROC:(string,FCode.Var list,FCode.Ty option,FCode.Block option) => FCode.Proc
+c:<fcode.rml>:23.40.23.43|FCode.PSUB:FCode.Ty => FCode.BinOp
+c:<fcode.rml>:8.27.8.30|FCode.REAL:FCode.Ty
+c:<fcode.rml>:21.27.21.30|FCode.RADD:FCode.BinOp
+c:<fcode.rml>:16.69.16.72|FCode.PtoI:FCode.UnOp
+c:<fcode.rml>:27.27.27.30|FCode.RCON:real => FCode.Exp
+c:<fcode.rml>:21.48.21.51|FCode.RDIV:FCode.BinOp
+c:<fcode.rml>:13.27.13.32|FCode.RECORD:(int,FCode.Var list) => FCode.Record
+c:<fcode.rml>:11.27.11.29|FCode.REC:FCode.Record => FCode.Ty
+c:<fcode.rml>:35.27.35.32|FCode.RETURN:(FCode.Ty*FCode.Exp) option => FCode.Stmt
+c:<fcode.rml>:22.39.22.41|FCode.REQ:FCode.BinOp
+c:<fcode.rml>:22.33.22.35|FCode.RLE:FCode.BinOp
+c:<fcode.rml>:16.55.16.59|FCode.TOPTR:FCode.Ty => FCode.UnOp
+c:<fcode.rml>:21.34.21.37|FCode.RSUB:FCode.BinOp
+c:<fcode.rml>:21.41.21.44|FCode.RMUL:FCode.BinOp
+c:<fcode.rml>:38.27.38.29|FCode.SEQ:(FCode.Stmt,FCode.Stmt) => FCode.Stmt
+c:<fcode.rml>:16.41.16.44|FCode.RtoI:FCode.UnOp
+c:<fcode.rml>:39.27.39.30|FCode.SKIP:FCode.Stmt
+c:<fcode.rml>:33.27.33.31|FCode.STORE:(FCode.Ty,FCode.Exp,FCode.Exp) => FCode.Stmt
+c:<fcode.rml>:12.27.12.32|FCode.UNFOLD:int => FCode.Ty
+c:<fcode.rml>:29.27.29.31|FCode.UNARY:(FCode.UnOp,FCode.Exp) => FCode.Exp
+c:<fcode.rml>:14.27.14.29|FCode.VAR:(string,FCode.Ty) => FCode.Var
+c:<fcode.rml>:36.27.36.31|FCode.WHILE:(FCode.Exp,FCode.Stmt) => FCode.Stmt
+/* - end external */
+/*  TE': */
+t:<fcemit.rml>:407.10.407.12|Cmp
+t:<fcemit.rml>:30.10.30.12|Arg
+t:<fcemit.rml>:23.10.23.13|Base
+t:<fcemit.rml>:26.10.26.14|InvTy
+t:<fcemit.rml>:429.10.429.14|RTree
+/*  VE'': */
+r:<fcemit.rml>:32.10.32.17|emit_int:int => ()
+c:<fcemit.rml>:24.19.24.21|REC:int => Base
+c:<fcemit.rml>:407.24.407.25|EQ:Cmp
+c:<fcemit.rml>:23.19.23.22|BASE:string => Base
+c:<fcemit.rml>:30.24.30.26|ARG:(Base,InvTy) => Arg
+c:<fcemit.rml>:27.19.27.24|ARRity:(InvTy,int) => InvTy
+c:<fcemit.rml>:429.19.429.23|EMPTY:RTree
+c:<fcemit.rml>:407.19.407.20|LT:Cmp
+c:<fcemit.rml>:29.19.29.24|FUNity:(string,Arg list) => InvTy
+c:<fcemit.rml>:407.29.407.30|GT:Cmp
+c:<fcemit.rml>:430.19.430.22|NODE:(RTree,FCode.Record,RTree) => RTree
+c:<fcemit.rml>:26.19.26.24|PTRity:InvTy => InvTy
+r:<fcemit.rml>:334.10.334.25|conv_formal_defn:FCode.Var => Arg
+r:<fcemit.rml>:204.10.204.21|binop_to_str:FCode.BinOp => string
+c:<fcemit.rml>:28.19.28.24|VARity:string => InvTy
+r:<fcemit.rml>:409.10.409.17|compare':(int,int) => Cmp
+r:<fcemit.rml>:597.10.597.23|block_opt_recs:(FCode.Block option,RTree) => RTree
+r:<fcemit.rml>:419.10.419.16|compare:(int,int) => Cmp
+r:<fcemit.rml>:310.10.310.25|conv_formal_decl:FCode.Var => Arg
+r:<fcemit.rml>:54.10.54.18|emit_base:Base => ()
+r:<fcemit.rml>:84.10.84.18|emit_args:Arg list => ()
+r:<fcemit.rml>:650.10.650.13|emit:FCode.Prog => ()
+r:<fcemit.rml>:94.10.94.17|emit_arg:Arg => ()
+r:<fcemit.rml>:272.10.272.27|emit_assign_retval:(FCode.Ty*FCode.Exp) option => ()
+r:<fcemit.rml>:258.10.258.23|emit_comma_exp:FCode.Exp => ()
+r:<fcemit.rml>:100.10.100.23|emit_comma_arg:Arg => ()
+r:<fcemit.rml>:230.10.230.17|emit_exp:FCode.Exp => ()
+r:<fcemit.rml>:340.10.340.25|emit_decl_retval:FCode.Ty option => ()
+r:<fcemit.rml>:264.10.264.18|emit_exps:FCode.Exp list => ()
+r:<fcemit.rml>:348.10.348.27|emit_return_retval:FCode.Ty option => ()
+r:<fcemit.rml>:387.10.387.23|emit_proc_defn:FCode.Proc => ()
+r:<fcemit.rml>:356.10.356.26|emit_load_formals:(FCode.Var list,string) => ()
+r:<fcemit.rml>:66.10.66.19|emit_invty:InvTy => ()
+r:<fcemit.rml>:327.10.327.23|emit_proc_decl:FCode.Proc => ()
+r:<fcemit.rml>:40.10.40.18|emit_real:real => ()
+r:<fcemit.rml>:316.10.316.23|emit_proc_head:(FCode.Ty option,string,Arg list) => ()
+r:<fcemit.rml>:148.10.148.20|emit_record:FCode.Record => ()
+r:<fcemit.rml>:138.10.138.22|emit_rec_bnds:(FCode.Var list,string) => ()
+r:<fcemit.rml>:461.10.461.22|emit_rec_tree:RTree => ()
+r:<fcemit.rml>:638.10.638.26|emit_record_defns:FCode.Proc list => ()
+r:<fcemit.rml>:379.10.379.29|emit_restore_display:(int,FCode.Record) => ()
+r:<fcemit.rml>:106.10.106.18|invert_ty:(InvTy,FCode.Ty) => (Base,InvTy)
+r:<fcemit.rml>:125.10.125.17|emit_var:FCode.Var => ()
+r:<fcemit.rml>:48.10.48.20|emit_struct:int => ()
+r:<fcemit.rml>:366.10.366.27|emit_setup_display:(int,FCode.Var list,FCode.Record) => ()
+r:<fcemit.rml>:280.10.280.18|emit_stmt:FCode.Stmt => ()
+r:<fcemit.rml>:161.10.161.18|emit_unop:FCode.UnOp => ()
+r:<fcemit.rml>:528.10.528.17|exp_recs:(FCode.Exp,RTree) => RTree
+r:<fcemit.rml>:132.10.132.21|emit_var_bnd:FCode.Var => ()
+r:<fcemit.rml>:7.10.7.16|foreach:(('a => ()),'a list) => ()
+r:<fcemit.rml>:549.10.549.18|exps_recs:(FCode.Exp list,RTree) => RTree
+r:<fcemit.rml>:436.10.436.15|insert:(FCode.Record,RTree) => RTree
+r:<fcemit.rml>:447.10.447.16|insert':(Cmp,FCode.Record,RTree,RTree) => (RTree,RTree)
+r:<fcemit.rml>:558.10.558.18|stmt_recs:(FCode.Stmt,RTree) => RTree
+r:<fcemit.rml>:611.10.611.18|proc_recs:(FCode.Proc,RTree) => RTree
+r:<fcemit.rml>:15.10.15.12|map:(('a => 'b),'a list) => 'b list
+r:<fcemit.rml>:626.10.626.19|procs_recs:(FCode.Proc list,RTree) => RTree
+r:<fcemit.rml>:471.10.471.16|ty_recs:(FCode.Ty,RTree) => RTree
+r:<fcemit.rml>:503.10.503.20|ty_opt_recs:(FCode.Ty option,RTree) => RTree
+r:<fcemit.rml>:512.10.512.18|unop_recs:(FCode.UnOp,RTree) => RTree
+r:<fcemit.rml>:494.10.494.18|vars_recs:(FCode.Var list,RTree) => RTree

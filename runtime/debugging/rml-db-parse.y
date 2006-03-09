@@ -87,11 +87,11 @@ T_VAL T_file T_COLON range T_MORE T_id T_COLON ty
 {
 	/* l:<Builtin.rml>:660.5.660.20|n2real2arrayreal:Types.TType*'a option */
 	rmldb_var_db_t* rmldb_var_db_node = 
-		rmldb_make_rmldb_var_db($2, $4, $4, "_VAL_DECLARATION_", $6, 
+		rmldb_make_rmldb_var_db($2, $4, $4, "_VL_", $6, 
 			rmldb_make_rmldb_type_db_t($8));		
 	rmldb_var_db_add(&rmldb_var_db_start, &rmldb_var_db_end, rmldb_var_db_node);
 #ifdef _DEBUG_RDB_
-	fprintf(stderr, "file[%s],relation[%s],variable[%s] -> ",$2,"_VAL_DECLARATION_",$6);
+	fprintf(stderr, "file[%s],relation[%s],variable[%s] -> ",$2,"_VL_",$6);
 	rmldb_print_type($8, 1, stderr);
 	fprintf(stderr,"\n");
 #endif

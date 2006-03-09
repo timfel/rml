@@ -8,7 +8,7 @@ functor TransEnvFn(structure Util : UTIL
 
     structure StrDict	= StrDict
     structure ConRep	= CPS.ConRep
-    structure CPS	= CPS
+    structure CPS		= CPS
 
     datatype translation = DEF of {def: CPS.def, tieknot: unit->unit}
 			| LIT of CPS.literal
@@ -125,7 +125,9 @@ functor TransEnvFn(structure Util : UTIL
 	  val te = extern(te, "string_setnth")
 	  val te = extern(te, "string_setnth_string_char") (* string index string char => new str *)	  
 	  val te = extern(te, "string_update")
-	  val te = extern(te, "string_update_string_char") (* string index string char => new str *)	  
+	  val te = extern(te, "string_update_string_char") (* string index string char => new str *)
+	  val te = extern(te, "string_equal")
+	  val te = extern(te, "string_compare")	  	  
 	  (* immutable vectors *)
 	  val te = extern(te, "vector_length")
 	  val te = extern(te, "vector_nth")
@@ -213,6 +215,9 @@ functor TransEnvFn(structure Util : UTIL
 	  val te = extern(te, "clock")
 	  val te = extern(te, "print")
 	  val te = extern(te, "tick")
+	  (* if expressions *)
+	  val te = extern(te, "if_exp")
+	  val te = extern(te, "ifExp")	  
 	  (* debug *)
 	  val te = extern(te, "debug")
 	  val te = extern(te, "debug_print")
@@ -277,7 +282,10 @@ functor TransEnvFn(structure Util : UTIL
 	  val te = extern(te, "stringSetNth")
 	  val te = extern(te, "stringSetNthStringChar") (* string index string char => new str *)	  
 	  val te = extern(te, "stringUpdate")
-	  val te = extern(te, "stringUpdateStringChar") (* string index string char => new str *)	  	  
+	  val te = extern(te, "stringUpdateStringChar") (* string index string char => new str *)
+	  val te = extern(te, "string_equal")
+	  val te = extern(te, "string_compare")	  	  
+	  	  	  
 	  (* immutable vectors *)
 	  val te = extern(te, "vectorLength")
 	  val te = extern(te, "vectorNth")

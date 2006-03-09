@@ -1,0 +1,189 @@
+(* test.rml -- contains Mini-Freja test cases *)
+module Test:
+    with "absyn.rml"
+    relation test: int => Absyn.exp
+end
+
+relation sieve =
+
+axiom sieve NTH =>
+  Absyn.RECexp([
+		("filter",
+		 Absyn.LAMexp("p", Absyn.LAMexp("xs0",
+(*<<<<<<<<<<<<<<<<*)
+Absyn.CASEexp(Absyn.VARexp "xs0",
+	      [(Absyn.CONSTpat Absyn.NILcnst, Absyn.CONSTexp Absyn.NILcnst),
+	       (Absyn.CONSpat(Absyn.VARpat "x", Absyn.VARpat "xs"),
+		Absyn.IFexp(Absyn.APPexp(Absyn.VARexp "p", Absyn.VARexp "x"),
+			    Absyn.CONSexp(Absyn.VARexp "x",
+					  Absyn.APPexp(Absyn.APPexp(Absyn.VARexp "filter",
+								    Absyn.VARexp "p"),
+						       Absyn.VARexp "xs")),
+			    Absyn.APPexp(Absyn.APPexp(Absyn.VARexp "filter",
+						      Absyn.VARexp "p"),
+					 Absyn.VARexp "xs")))])
+(*<<<<<<<<<<<<<<<<*)
+			))),
+		("take",
+		 Absyn.LAMexp("n0", Absyn.LAMexp("xs0",
+(*<<<<<<<<<<<<<<<<*)
+Absyn.CASEexp(Absyn.VARexp "n0",
+	      [(Absyn.CONSTpat(Absyn.INTcnst 0), Absyn.CONSTexp Absyn.NILcnst),
+	       (Absyn.VARpat "n",
+		Absyn.CASEexp(Absyn.VARexp "xs0",
+			      [(Absyn.CONSpat(Absyn.VARpat "x", Absyn.VARpat "xs"),
+				Absyn.CONSexp(Absyn.VARexp "x",
+					      Absyn.APPexp(Absyn.APPexp(Absyn.VARexp "take",
+									Absyn.PRIM2exp(Absyn.SUB,
+										       Absyn.VARexp "n",
+										       Absyn.CONSTexp(Absyn.INTcnst 1))),
+							   Absyn.VARexp "xs"))),
+			       (Absyn.CONSTpat Absyn.NILcnst,
+				Absyn.CONSTexp Absyn.NILcnst)]))])
+(*<<<<<<<<<<<<<<<<*)
+			))),
+		("from",
+		 Absyn.LAMexp("n",
+			      Absyn.CONSexp(Absyn.VARexp "n",
+					    Absyn.APPexp(Absyn.VARexp "from",
+							 Absyn.PRIM2exp(Absyn.ADD,
+									Absyn.VARexp "n",
+									Absyn.CONSTexp(Absyn.INTcnst 1)))))),
+		("not_div",
+		 Absyn.LAMexp("x", Absyn.LAMexp("y",
+(*<<<<<<<<<<<<<<<<*)
+Absyn.PRIM2exp(Absyn.NE,
+	       Absyn.PRIM2exp(Absyn.MOD, Absyn.VARexp "y", Absyn.VARexp "x"),
+	       Absyn.CONSTexp(Absyn.INTcnst 0))
+(*<<<<<<<<<<<<<<<<*)
+			))),
+		("sieve", Absyn.LAMexp("xs0",
+(*<<<<<<<<<<<<<<<<*)
+Absyn.CASEexp(Absyn.VARexp "xs0",
+	      [(Absyn.CONSpat(Absyn.VARpat "x", Absyn.VARpat "xs"),
+		Absyn.CONSexp(Absyn.VARexp "x",
+			      Absyn.APPexp(Absyn.VARexp "sieve",
+					   Absyn.APPexp(Absyn.APPexp(Absyn.VARexp "filter",
+								     Absyn.APPexp(Absyn.VARexp "not_div",
+										  Absyn.VARexp "x")),
+							Absyn.VARexp "xs"))))])
+(*<<<<<<<<<<<<<<<<*)
+			)),
+		("primes",
+		 Absyn.APPexp(Absyn.VARexp "sieve",
+			      Absyn.APPexp(Absyn.VARexp "from",
+					   Absyn.CONSTexp(Absyn.INTcnst 2))))	],
+	       Absyn.APPexp(Absyn.APPexp(Absyn.VARexp "take",
+					 Absyn.CONSTexp(Absyn.INTcnst NTH)), (*XXX*)
+			    Absyn.VARexp "primes"))
+end (* relation sieve *)
+
+relation test =
+
+axiom test 0 =>	(* 42 *)
+  Absyn.PRIM2exp(Absyn.ADD,
+		 Absyn.CONSTexp(Absyn.INTcnst 2),
+		 Absyn.CONSTexp(Absyn.INTcnst 40))
+
+axiom test 1 =>	(* cons(20,27) *)
+ Absyn.RECexp([("main", Absyn.CONSexp(Absyn.CONSTexp(Absyn.INTcnst 20),
+				      Absyn.VARexp "a")),
+	       ("a", Absyn.CONSTexp(Absyn.INTcnst 27))],
+	      Absyn.VARexp "main")
+
+axiom test 2 =>	(* 88 *)
+ Absyn.RECexp([("main",
+		Absyn.PRIM2exp(Absyn.ADD,
+			       Absyn.VARexp "a",
+			       Absyn.RECexp([("c",
+					      Absyn.PRIM2exp(Absyn.ADD,
+							     Absyn.PRIM2exp(Absyn.MUL,
+									    Absyn.CONSTexp(Absyn.INTcnst 2),
+									    Absyn.CONSTexp(Absyn.INTcnst 3)),
+							     Absyn.VARexp "b")),
+					     ("a", Absyn.CONSTexp(Absyn.INTcnst 1))],
+					    Absyn.PRIM2exp(Absyn.MUL,
+							   Absyn.VARexp "c",
+							   Absyn.VARexp "a")))),
+	       ("a", Absyn.CONSTexp(Absyn.INTcnst 40)),
+	       ("b", Absyn.CONSTexp(Absyn.INTcnst 42))],
+	      Absyn.VARexp "main")
+
+axiom test 3 =>	(* 6 *)
+  Absyn.RECexp([("foo",
+		 Absyn.LAMexp("y",
+			      Absyn.CASEexp(Absyn.VARexp "y",
+					    [(Absyn.CONSTpat(Absyn.INTcnst 0),
+					      Absyn.CONSTexp(Absyn.INTcnst 1)),
+					     (Absyn.VARpat "x",
+					      Absyn.PRIM2exp(Absyn.ADD,
+							     Absyn.VARexp "y",
+							     Absyn.CONSTexp(Absyn.INTcnst 1)))]))),
+		("main",
+		 Absyn.APPexp(Absyn.VARexp "foo",
+			      Absyn.CONSTexp(Absyn.INTcnst 5)))],
+	       Absyn.VARexp "main")
+
+axiom test 4 =>	(* 18 *)
+  Absyn.RECexp([("x", Absyn.CONSTexp(Absyn.INTcnst 17)),
+		("foo",
+		 Absyn.LAMexp("y",
+			      Absyn.RECexp([("x", Absyn.CONSTexp(Absyn.INTcnst 99))],
+					   Absyn.PRIM2exp(Absyn.ADD,
+							  Absyn.VARexp "y",
+							  Absyn.CONSTexp(Absyn.INTcnst 1))))),
+		("main", Absyn.APPexp(Absyn.VARexp "foo", Absyn.VARexp "x"))],
+	       Absyn.VARexp "main")
+
+axiom test 5 => (* 120 *)
+  Absyn.RECexp([("fac",
+		 Absyn.LAMexp("n",
+(*<<<<<<<<<<<<<<<<*)
+Absyn.IFexp(Absyn.PRIM2exp(Absyn.LE,
+			   Absyn.VARexp "n",
+			   Absyn.CONSTexp(Absyn.INTcnst 1)),
+	    Absyn.CONSTexp(Absyn.INTcnst 1),
+	    Absyn.PRIM2exp(Absyn.MUL,
+			   Absyn.VARexp "n",
+			   Absyn.APPexp(Absyn.VARexp "fac",
+					Absyn.PRIM2exp(Absyn.SUB,
+						       Absyn.VARexp "n",
+						       Absyn.CONSTexp(Absyn.INTcnst 1)))))
+(*<<<<<<<<<<<<<<<<*)
+			     ))],
+	       Absyn.APPexp(Absyn.VARexp "fac", Absyn.CONSTexp(Absyn.INTcnst 5)))
+
+axiom test 6 =>	(* 120 *)
+  Absyn.RECexp([("iff",
+		 Absyn.LAMexp("x", Absyn.LAMexp("e1", Absyn.LAMexp("e2",
+(*<<<<<<<<<<<<<<<<*)
+Absyn.CASEexp(Absyn.VARexp "x",
+	      [(Absyn.CONSTpat(Absyn.BOOLcnst false), Absyn.VARexp "e2"),
+	       (Absyn.CONSTpat(Absyn.BOOLcnst true), Absyn.VARexp "e1")])
+(*<<<<<<<<<<<<<<<<*)
+			)))),
+	        ("fac",
+		 Absyn.LAMexp("n",
+(*<<<<<<<<<<<<<<<<*)
+Absyn.APPexp(Absyn.APPexp(Absyn.APPexp(Absyn.VARexp "iff",
+				       Absyn.PRIM2exp(Absyn.LE,
+						      Absyn.VARexp "n",
+						      Absyn.CONSTexp(Absyn.INTcnst 1))),
+			  Absyn.CONSTexp(Absyn.INTcnst 1)),
+	     Absyn.PRIM2exp(Absyn.MUL,
+			    Absyn.VARexp "n",
+			    Absyn.APPexp(Absyn.VARexp "fac",
+					 Absyn.PRIM2exp(Absyn.SUB,
+							Absyn.VARexp "n",
+							Absyn.CONSTexp(Absyn.INTcnst 1)))))
+(*<<<<<<<<<<<<<<<<*)
+			     ))],
+	       Absyn.APPexp(Absyn.VARexp "fac", Absyn.CONSTexp(Absyn.INTcnst 5)))
+
+rule	int_gt(n, 10) => true &		(* test n+10 is sieve n *)
+	int_sub(n, 10) => n' &
+	sieve n' => e
+	----------------
+	test n => e
+
+end (* relation test *)

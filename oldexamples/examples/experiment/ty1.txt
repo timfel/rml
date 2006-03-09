@@ -1,0 +1,65 @@
+int ?unifies? 'a -> int ?unifies?'a
+('a,'a list) => 'a list ?unifies? (real,'a list) => 'b -> ('a,'a list) => 'a list ?unifies?(real,'a list) => 'b
+'a ?unifies? real -> 'a ?unifies?real
+real list ?unifies? 'a list -> real list ?unifies?'a list
+real ?unifies? 'a -> real ?unifies?'a
+real list='b
+real list ?unifies? 'b -> real list ?unifies?'b
+real list ?unifies? 'a -> real list ?unifies?'a
+(int,'a) => 'a array ?unifies? (int,real list) => 'a -> (int,'a) => 'a array ?unifies?(int,real list) => 'a
+int ?unifies? int -> int ?unifies?int
+'a ?unifies? real list -> 'a ?unifies?real list
+real list array='a
+real list array ?unifies? 'a -> real list array ?unifies?'a
+('a array,int,'a) => 'a array ?unifies? (real list array,int,real list) => () -> ('a array,int,'a) => 'a array ?unifies?(real list array,int,real list) => ()
+'a array ?unifies? real list array -> 'a array ?unifies?real list array
+'a ?unifies? real list -> 'a ?unifies?real list
+int ?unifies? int -> int ?unifies?int
+real list ?unifies? real list -> real list ?unifies?real list
+real ?unifies? real -> real ?unifies?real
+real list array=()
+string list => () ?unifies? 'a => () -> string list => () ?unifies?'a => ()
+string list ?unifies? 'a -> string list ?unifies?'a
+()=()
+('a,'a list) => 'a list ?unifies? (real,'a list) => 'b -> ('a,'a list) => 'a list ?unifies?(real,'a list) => 'b
+'a ?unifies? real -> 'a ?unifies?real
+real list ?unifies? 'a list -> real list ?unifies?'a list
+real ?unifies? 'a -> real ?unifies?'a
+real list='b
+real list ?unifies? 'b -> real list ?unifies?'b
+('a,'a list) => 'a list ?unifies? (real,'a list) => 'b -> ('a,'a list) => 'a list ?unifies?(real,'a list) => 'b
+'a ?unifies? real -> 'a ?unifies?real
+real list ?unifies? 'a list -> real list ?unifies?'a list
+real ?unifies? 'a -> real ?unifies?'a
+real list='b
+real list ?unifies? 'b -> real list ?unifies?'b
+('a,'a list) => 'a list ?unifies? (real,'a list) => 'b -> ('a,'a list) => 'a list ?unifies?(real,'a list) => 'b
+'a ?unifies? real -> 'a ?unifies?real
+real list ?unifies? 'a list -> real list ?unifies?'a list
+real ?unifies? 'a -> real ?unifies?'a
+real list='b
+real list ?unifies? 'b -> real list ?unifies?'b
+('a,'a list) => 'a list ?unifies? (real list,'a list) => 'b -> ('a,'a list) => 'a list ?unifies?(real list,'a list) => 'b
+'a ?unifies? real list -> 'a ?unifies?real list
+real list list ?unifies? 'a list -> real list list ?unifies?'a list
+real list ?unifies? 'a -> real list ?unifies?'a
+real list list='b
+real list list ?unifies? 'b -> real list list ?unifies?'b
+('a,'a list) => 'a list ?unifies? (real list,real list list) => 'a -> ('a,'a list) => 'a list ?unifies?(real list,real list list) => 'a
+'a ?unifies? real list -> 'a ?unifies?real list
+real list list ?unifies? real list list -> real list list ?unifies?real list list
+real list ?unifies? real list -> real list ?unifies?real list
+real ?unifies? real -> real ?unifies?real
+real list list='a
+real list list ?unifies? 'a -> real list list ?unifies?'a
+('a,'a list) => 'a list ?unifies? (real list,real list list) => 'a -> ('a,'a list) => 'a list ?unifies?(real list,real list list) => 'a
+'a ?unifies? real list -> 'a ?unifies?real list
+real list list ?unifies? real list list -> real list list ?unifies?real list list
+real list ?unifies? real list -> real list ?unifies?real list
+real ?unifies? real -> real ?unifies?real
+real list list='a
+real list list ?unifies? 'a -> real list list ?unifies?'a
+string list => () ?unifies? string list => () -> string list => () ?unifies?string list => ()
+string list ?unifies? string list -> string list ?unifies?string list
+string ?unifies? string -> string ?unifies?string
+()=()

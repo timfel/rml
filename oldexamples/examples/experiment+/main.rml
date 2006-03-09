@@ -1,0 +1,46 @@
+
+module Main:
+
+datatype 'a tree = Empty | Node of 'a tree * 'a * 'a tree
+
+datatype s = A of string * string
+
+relation main: string list => ()
+end
+
+val k = Node(
+          Node(Empty, "1", Empty),
+	 "2",
+	 Node(Empty, "3", Empty))
+
+relation walk =
+  rule 
+       --------
+       walk(Empty)
+
+  rule walk(left) &
+       print element &
+       walk(right)
+       -----------------------------
+       walk(Node(left, element, right)) 
+end
+
+relation j = 
+ axiom j(s1, s2) => A(s1,s2)
+end
+
+relation main: string list => () =
+
+  rule let x = 2 &
+       int_string(x) => z &
+       j(z,z) => (a as l) &
+       let p = a &
+       let A(s1, s2) = p & 
+       let A(s3, s4) = l &
+       a = l &
+       print s1 & print s2 & print s3 & print s4 &
+       walk(k)
+       -------
+       main(_)
+
+end

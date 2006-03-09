@@ -6,6 +6,7 @@ typedef unsigned int rml_uint_t;
 #define RML_LOG2_SIZE_INT 2
 #define RML_SIZE_INT 4
 #define RML_SIZE_DBL 8
+#define RML_DBL_PAD
 /* end of repchk-generated section */
 
 #define	RML_CLOCK_ANSIC

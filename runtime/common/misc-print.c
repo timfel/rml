@@ -6,6 +6,7 @@ RML_BEGIN_LABEL(RML__print)
 {
     void *str = rmlA0;
     fwrite(RML_STRINGDATA(str), RML_HDRSTRLEN(RML_GETHDR(str)), 1, stdout);
+	fflush(stdout);
     RML_TAILCALLK(rmlSC);
 }
 RML_END_LABEL
@@ -38,6 +39,7 @@ void rmldb_var_print(void *p)
 				{
 					rml_uint_t slots = RML_HDRSLOTS(phdr);
 					rml_uint_t constr = RML_HDRCTOR(phdr);
+					void **pp = NULL;
 					if (slots == 0)
 					{
 						rmldb_sprintf ("{S(%d)[%d]=NIL}", constr, slots);
@@ -47,7 +49,7 @@ void rmldb_var_print(void *p)
 					
 					rmldb_sprintf ("S(%d)[%d](", constr, slots);
 
-					void **pp = RML_STRUCTDATA(p);
+					pp = RML_STRUCTDATA(p);
 					fflush(stdout);
 					// function definition
 					if ((constr == 64 || constr==13) &&

@@ -29,13 +29,11 @@ val PARAMETER:  'a * 'a -> (svalue,'a) token
 val PACKAGE:  'a * 'a -> (svalue,'a) token
 val OUTPUT:  'a * 'a -> (svalue,'a) token
 val OR:  'a * 'a -> (svalue,'a) token
-val OVERLOAD:  'a * 'a -> (svalue,'a) token
 val OUTER:  'a * 'a -> (svalue,'a) token
 val MODEL:  'a * 'a -> (svalue,'a) token
 val LOOP:  'a * 'a -> (svalue,'a) token
 val INPUT:  'a * 'a -> (svalue,'a) token
 val INNER:  'a * 'a -> (svalue,'a) token
-val INITIAL:  'a * 'a -> (svalue,'a) token
 val IN:  'a * 'a -> (svalue,'a) token
 val IMPORT:  'a * 'a -> (svalue,'a) token
 val IF:  'a * 'a -> (svalue,'a) token
@@ -70,6 +68,7 @@ val RBRACE:  'a * 'a -> (svalue,'a) token
 val LBRACE:  'a * 'a -> (svalue,'a) token
 val SEMICOLON:  'a * 'a -> (svalue,'a) token
 val ADD_LIST:  'a * 'a -> (svalue,'a) token
+val EQEQ_STRING:  'a * 'a -> (svalue,'a) token
 val ADD_STRING:  'a * 'a -> (svalue,'a) token
 val NE_REAL:  'a * 'a -> (svalue,'a) token
 val LT_REAL:  'a * 'a -> (svalue,'a) token
@@ -96,7 +95,6 @@ val NEG_INT:  'a * 'a -> (svalue,'a) token
 val SUB_INT:  'a * 'a -> (svalue,'a) token
 val ADD_INT:  'a * 'a -> (svalue,'a) token
 val WILD:  'a * 'a -> (svalue,'a) token
-val TYVAR: (string) *  'a * 'a -> (svalue,'a) token
 val TYPE:  'a * 'a -> (svalue,'a) token
 val STAR:  'a * 'a -> (svalue,'a) token
 val SCON: (string) *  'a * 'a -> (svalue,'a) token
@@ -119,7 +117,6 @@ val DOT:  'a * 'a -> (svalue,'a) token
 val COMMA:  'a * 'a -> (svalue,'a) token
 val COLONCOLON:  'a * 'a -> (svalue,'a) token
 val COLON:  'a * 'a -> (svalue,'a) token
-val CCON: (char) *  'a * 'a -> (svalue,'a) token
 val BAR:  'a * 'a -> (svalue,'a) token
 val AS:  'a * 'a -> (svalue,'a) token
 val AND:  'a * 'a -> (svalue,'a) token

@@ -46,11 +46,18 @@ relation apply=
 end
 
 relation main: string list => () =
-   rule let max = 100 &
-        let li = [10.0]  & 
-        array_create(max, li) => vli &
-        loop(0, max, vli)
-        -----------------
-        main (_)
+
+   rule print arg &
+        print "\n" &
+	real_string(1.1e010) => str &
+  	print "1.1e010 ->" & print str & print "\n"
+        (* 
+        string_list_string_char(arg) => clst &
+        listDelete(clst, 0) => clst_1  &
+        string_char_list_string(clst_1) => str_1 & print "\n" &
+        print str_1
+        *)       
+        ---------------------------------------
+        main (arg::argv)
 
 end

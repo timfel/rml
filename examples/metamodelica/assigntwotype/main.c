@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 #include "rml.h"
-#include "assigntwotype.h"
+#include "AssignTwoType.h"
 
 typedef void * rml_t;
 rml_t absyntree;
@@ -21,7 +21,7 @@ main()
   /* Initialize the RML modules */
 
   printf("[Init]\n");
-  assigntwotype_5finit();
+  AssignTwoType_5finit();
 
   /* Parse the input into an abstract syntax tree (in RML form)
      using yacc and lex */
@@ -37,7 +37,7 @@ main()
 
   printf("[Eval]\n");
   rml_state_ARGS[0]= absyntree;
-  if (!rml_prim_once(RML_LABPTR(assigntwotype__evalprogram)) )
+  if (!rml_prim_once(RML_LABPTR(AssignTwoType__evalprogram)) )
   {
     fprintf(stderr,"Evaluation failed!\n");
     exit(2);

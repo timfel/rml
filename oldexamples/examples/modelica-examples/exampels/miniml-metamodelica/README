@@ -1,0 +1,18 @@
+This is an implementation of a polymorphic type checker
+and an evaluator for a not-quite-trivial subset of ML.
+
+The subset includes LET, LETREC (singleton bindings only),
+tuples, lists, SML references, SML equality types, SML
+arithmetic overloading, and SML/NJ overloaded "print".
+
+The type system uses Wright-style imperative polymorphism.
+Type generalization is based on R{\'e}my's ranked type system,
+as described in INRIA RR No. 1776. Types are compiled to
+type schemes using analogues of the SKI combinators.
+
+Missing features:
+* general records
+* patterns
+* multiple LETREC bindings
+* user-defined types
+* modules

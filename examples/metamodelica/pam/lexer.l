@@ -2,7 +2,7 @@
 #include "gram.h"
 #include "yacclib.h"
 #include "rml.h"
-#include "pam.h"
+#include "Pam.h"
 
 typedef void *rml_t;
 

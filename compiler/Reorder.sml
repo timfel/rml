@@ -2,4 +2,5 @@
 
 structure Reorder =
   ReorderFn(structure ReorderTy = ReorderTy
-            structure ReorderVal = ReorderVal);
+            structure ReorderVal = ReorderVal
+            structure Control = Control);

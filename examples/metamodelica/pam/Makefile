@@ -14,23 +14,23 @@ all:    pam
 # EXECUTABLE
 
 COMMONOBJS=yacclib.o
-VSLOBJS=main.o lexer.o gram.o parse.o pam.o input.o
-CLEAN=pam $(COMMONOBJS) $(VSLOBJS) main.c main.h lexer.c gram.c gram.h parse.o pam.h pam.c *~ pam.exe
+VSLOBJS=Main.o lexer.o gram.o Parse.o Pam.o Input.o
+CLEAN=pam $(COMMONOBJS) $(VSLOBJS) Main.c Main.h lexer.c gram.c gram.h Parse.o Pam.h Pam.c *~ pam.exe
 
 pam: $(VSLOBJS) $(COMMONOBJS)
 	$(LINK.rml) $(VSLOBJS) $(COMMONOBJS) $(LDLIBS) -o pam
 
 # MAIN ROUTINE WRITTEN IN RML NOW
 
-main.o: main.c
-main.c main.h: main.rml
-	$(COMPILE.rml) -c main.rml
+Main.o: Main.c
+Main.c Main.h: Main.mo
+	$(COMPILE.rml) -c Main.mo
 
 # PAM
 
-pam.o: pam.c
-pam.c pam.h: pam.rml
-	$(COMPILE.rml) -c pam.rml
+Pam.o: Pam.c
+Pam.c Pam.h: Pam.mo
+	$(COMPILE.rml) -c Pam.mo
 
 # YACCLIB
 
@@ -39,7 +39,7 @@ yacclib.o:  yacclib.c
 
 # LEXER
 
-lexer.o:  lexer.c gram.h pam.h
+lexer.o:  lexer.c gram.h Pam.h
 lexer.c:  lexer.l
 	flex -t -l lexer.l >lexer.c
 
@@ -51,13 +51,13 @@ gram.c gram.h:  gram.y
 	mv gram.tab.c gram.c
 	mv gram.tab.h gram.h
 
-# INTERFACE TO SCANNER/PARSER (RML CALLING C)
+# INTERFACE TO SCANNER/PARSER (OMC CALLING C)
 
-parse.o:  parse.c 
+Parse.o:  Parse.c 
 
-# INTERFACE TO INPUT (RML CALLING C)
+# INTERFACE TO INPUT (OMC CALLING C)
 
-input.o:  input.c 
+Input.o:  Input.c 
 
 # AUX
 

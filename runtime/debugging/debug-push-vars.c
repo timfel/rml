@@ -3,13 +3,13 @@
 #include "rml.h"
 
 /* all functions depend on 
-#ifndef _RMLDB_DEFINED_   
-they will call SC directly and their code will be only in -g -pg lib version 
+#ifndef RML_DEBUG   
+they will call SC directly and their code will be only in -g lib version 
 */
 
 RML_BEGIN_LABEL(RML__debug_5fpush_5fvars)
 {
-#ifndef _RMLDB_DEFINED_
+#ifndef RML_DEBUG
 	RML_TAILCALLK(rmlSC);
 #else
 	if (rmldb_execution_type == RMLDB_FAST) RML_TAILCALLK(rmlSC);
@@ -29,7 +29,7 @@ RML_END_LABEL
 
 RML_BEGIN_LABEL(RML__debug_5fpush_5fin01)
 {
-#ifndef _RMLDB_DEFINED_
+#ifndef RML_DEBUG
 	RML_TAILCALLK(rmlSC);
 #else
 	if (rmldb_execution_type == RMLDB_FAST) RML_TAILCALLK(rmlSC); 
@@ -41,7 +41,7 @@ RML_BEGIN_LABEL(RML__debug_5fpush_5fin01)
 
 RML_BEGIN_LABEL(RML__debug_5fpush_5fin02)
 {
-#ifndef _RMLDB_DEFINED_
+#ifndef RML_DEBUG
 	RML_TAILCALLK(rmlSC);
 #else
 	if (rmldb_execution_type == RMLDB_FAST) RML_TAILCALLK(rmlSC);
@@ -53,7 +53,7 @@ RML_BEGIN_LABEL(RML__debug_5fpush_5fin02)
 
 RML_BEGIN_LABEL(RML__debug_5fpush_5fin03)
 {
-#ifndef _RMLDB_DEFINED_
+#ifndef RML_DEBUG
 	RML_TAILCALLK(rmlSC);
 #else
 	if (rmldb_execution_type == RMLDB_FAST) RML_TAILCALLK(rmlSC);
@@ -66,7 +66,7 @@ RML_BEGIN_LABEL(RML__debug_5fpush_5fin03)
 
 RML_BEGIN_LABEL(RML__debug_5fpush_5fin04)
 {
-#ifndef _RMLDB_DEFINED_
+#ifndef RML_DEBUG
 	RML_TAILCALLK(rmlSC);
 #else
 	if (rmldb_execution_type == RMLDB_FAST) RML_TAILCALLK(rmlSC);
@@ -80,7 +80,7 @@ RML_BEGIN_LABEL(RML__debug_5fpush_5fin04)
 
 RML_BEGIN_LABEL(RML__debug_5fpush_5fin05)
 {
-#ifndef _RMLDB_DEFINED_
+#ifndef RML_DEBUG
 	RML_TAILCALLK(rmlSC);
 #else
 	if (rmldb_execution_type == RMLDB_FAST) RML_TAILCALLK(rmlSC);
@@ -95,7 +95,7 @@ RML_BEGIN_LABEL(RML__debug_5fpush_5fin05)
 
 RML_BEGIN_LABEL(RML__debug_5fpush_5fin06)
 {
-#ifndef _RMLDB_DEFINED_
+#ifndef RML_DEBUG
 	RML_TAILCALLK(rmlSC);
 #else
 	if (rmldb_execution_type == RMLDB_FAST) RML_TAILCALLK(rmlSC);
@@ -111,7 +111,7 @@ RML_BEGIN_LABEL(RML__debug_5fpush_5fin06)
 
 RML_BEGIN_LABEL(RML__debug_5fpush_5fin07)
 {
-#ifndef _RMLDB_DEFINED_
+#ifndef RML_DEBUG
 	RML_TAILCALLK(rmlSC);
 #else
 	if (rmldb_execution_type == RMLDB_FAST) RML_TAILCALLK(rmlSC);
@@ -128,7 +128,7 @@ RML_BEGIN_LABEL(RML__debug_5fpush_5fin07)
 
 RML_BEGIN_LABEL(RML__debug_5fpush_5fin08)
 {
-#ifndef _RMLDB_DEFINED_
+#ifndef RML_DEBUG
 	RML_TAILCALLK(rmlSC);
 #else
 	if (rmldb_execution_type == RMLDB_FAST) RML_TAILCALLK(rmlSC);
@@ -146,7 +146,7 @@ RML_BEGIN_LABEL(RML__debug_5fpush_5fin08)
 
 RML_BEGIN_LABEL(RML__debug_5fpush_5fin09)
 {
-#ifndef _RMLDB_DEFINED_
+#ifndef RML_DEBUG
 	RML_TAILCALLK(rmlSC);
 #else
 	if (rmldb_execution_type == RMLDB_FAST) RML_TAILCALLK(rmlSC);
@@ -165,7 +165,7 @@ RML_BEGIN_LABEL(RML__debug_5fpush_5fin09)
 
 RML_BEGIN_LABEL(RML__debug_5fpush_5fin10)
 {
-#ifndef _RMLDB_DEFINED_
+#ifndef RML_DEBUG
 	RML_TAILCALLK(rmlSC);
 #else
 	if (rmldb_execution_type == RMLDB_FAST) RML_TAILCALLK(rmlSC);
@@ -185,7 +185,7 @@ RML_BEGIN_LABEL(RML__debug_5fpush_5fin10)
 
 RML_BEGIN_LABEL(RML__debug_5fpush_5fin11)
 {
-#ifndef _RMLDB_DEFINED_
+#ifndef RML_DEBUG
 	RML_TAILCALLK(rmlSC);
 #else
 	if (rmldb_execution_type == RMLDB_FAST) RML_TAILCALLK(rmlSC);
@@ -206,7 +206,7 @@ RML_BEGIN_LABEL(RML__debug_5fpush_5fin11)
 
 RML_BEGIN_LABEL(RML__debug_5fpush_5fin12)
 {
-#ifndef _RMLDB_DEFINED_
+#ifndef RML_DEBUG
 	RML_TAILCALLK(rmlSC);
 #else
 	if (rmldb_execution_type == RMLDB_FAST) RML_TAILCALLK(rmlSC);
@@ -228,7 +228,7 @@ RML_BEGIN_LABEL(RML__debug_5fpush_5fin12)
 
 RML_BEGIN_LABEL(RML__debug_5fpush_5fin13)
 {
-#ifndef _RMLDB_DEFINED_
+#ifndef RML_DEBUG
 	RML_TAILCALLK(rmlSC);
 #else
 	if (rmldb_execution_type == RMLDB_FAST) RML_TAILCALLK(rmlSC);
@@ -251,7 +251,7 @@ RML_BEGIN_LABEL(RML__debug_5fpush_5fin13)
 
 RML_BEGIN_LABEL(RML__debug_5fpush_5fin14)
 {
-#ifndef _RMLDB_DEFINED_
+#ifndef RML_DEBUG
 	RML_TAILCALLK(rmlSC);
 #else
 	if (rmldb_execution_type == RMLDB_FAST) RML_TAILCALLK(rmlSC);
@@ -275,7 +275,7 @@ RML_BEGIN_LABEL(RML__debug_5fpush_5fin14)
 
 RML_BEGIN_LABEL(RML__debug_5fpush_5fin15)
 {
-#ifndef _RMLDB_DEFINED_
+#ifndef RML_DEBUG
 	RML_TAILCALLK(rmlSC);
 #else
 	if (rmldb_execution_type == RMLDB_FAST) RML_TAILCALLK(rmlSC);
@@ -300,7 +300,7 @@ RML_BEGIN_LABEL(RML__debug_5fpush_5fin15)
 
 RML_BEGIN_LABEL(RML__debug_5fpush_5fin16)
 {
-#ifndef _RMLDB_DEFINED_
+#ifndef RML_DEBUG
 	RML_TAILCALLK(rmlSC);
 #else
 	if (rmldb_execution_type == RMLDB_FAST) RML_TAILCALLK(rmlSC);
@@ -331,7 +331,7 @@ RML_BEGIN_LABEL(RML__debug_5fpush_5fin16)
 
 RML_BEGIN_LABEL(RML__debug_5fpush_5fout01)
 {
-#ifndef _RMLDB_DEFINED_
+#ifndef RML_DEBUG
 	RML_TAILCALLK(rmlSC);
 #else
 	if (rmldb_execution_type == RMLDB_FAST) RML_TAILCALLK(rmlSC);
@@ -342,7 +342,7 @@ RML_BEGIN_LABEL(RML__debug_5fpush_5fout01)
 
 RML_BEGIN_LABEL(RML__debug_5fpush_5fout02)
 {
-#ifndef _RMLDB_DEFINED_
+#ifndef RML_DEBUG
 	RML_TAILCALLK(rmlSC);
 #else
 	if (rmldb_execution_type == RMLDB_FAST) RML_TAILCALLK(rmlSC);
@@ -354,7 +354,7 @@ RML_BEGIN_LABEL(RML__debug_5fpush_5fout02)
 
 RML_BEGIN_LABEL(RML__debug_5fpush_5fout03)
 {
-#ifndef _RMLDB_DEFINED_
+#ifndef RML_DEBUG
 	RML_TAILCALLK(rmlSC);
 #else
 	if (rmldb_execution_type == RMLDB_FAST) RML_TAILCALLK(rmlSC);
@@ -367,7 +367,7 @@ RML_BEGIN_LABEL(RML__debug_5fpush_5fout03)
 
 RML_BEGIN_LABEL(RML__debug_5fpush_5fout04)
 {
-#ifndef _RMLDB_DEFINED_
+#ifndef RML_DEBUG
 	RML_TAILCALLK(rmlSC);
 #else
 	if (rmldb_execution_type == RMLDB_FAST) RML_TAILCALLK(rmlSC);
@@ -381,7 +381,7 @@ RML_BEGIN_LABEL(RML__debug_5fpush_5fout04)
 
 RML_BEGIN_LABEL(RML__debug_5fpush_5fout05)
 {
-#ifndef _RMLDB_DEFINED_
+#ifndef RML_DEBUG
 	RML_TAILCALLK(rmlSC);
 #else
 	if (rmldb_execution_type == RMLDB_FAST) RML_TAILCALLK(rmlSC);
@@ -396,7 +396,7 @@ RML_BEGIN_LABEL(RML__debug_5fpush_5fout05)
 
 RML_BEGIN_LABEL(RML__debug_5fpush_5fout06)
 {
-#ifndef _RMLDB_DEFINED_
+#ifndef RML_DEBUG
 	RML_TAILCALLK(rmlSC);
 #else
 	if (rmldb_execution_type == RMLDB_FAST) RML_TAILCALLK(rmlSC);
@@ -412,7 +412,7 @@ RML_BEGIN_LABEL(RML__debug_5fpush_5fout06)
 
 RML_BEGIN_LABEL(RML__debug_5fpush_5fout07)
 {
-#ifndef _RMLDB_DEFINED_
+#ifndef RML_DEBUG
 	RML_TAILCALLK(rmlSC);
 #else
 	if (rmldb_execution_type == RMLDB_FAST) RML_TAILCALLK(rmlSC);
@@ -429,7 +429,7 @@ RML_BEGIN_LABEL(RML__debug_5fpush_5fout07)
 
 RML_BEGIN_LABEL(RML__debug_5fpush_5fout08)
 {
-#ifndef _RMLDB_DEFINED_
+#ifndef RML_DEBUG
 	RML_TAILCALLK(rmlSC);
 #else
 	if (rmldb_execution_type == RMLDB_FAST) RML_TAILCALLK(rmlSC);
@@ -447,7 +447,7 @@ RML_BEGIN_LABEL(RML__debug_5fpush_5fout08)
 
 RML_BEGIN_LABEL(RML__debug_5fpush_5fout09)
 {
-#ifndef _RMLDB_DEFINED_
+#ifndef RML_DEBUG
 	RML_TAILCALLK(rmlSC);
 #else
 	if (rmldb_execution_type == RMLDB_FAST) RML_TAILCALLK(rmlSC);
@@ -466,7 +466,7 @@ RML_BEGIN_LABEL(RML__debug_5fpush_5fout09)
 
 RML_BEGIN_LABEL(RML__debug_5fpush_5fout10)
 {
-#ifndef _RMLDB_DEFINED_
+#ifndef RML_DEBUG
 	RML_TAILCALLK(rmlSC);
 #else
 	if (rmldb_execution_type == RMLDB_FAST) RML_TAILCALLK(rmlSC);
@@ -486,7 +486,7 @@ RML_BEGIN_LABEL(RML__debug_5fpush_5fout10)
 
 RML_BEGIN_LABEL(RML__debug_5fpush_5fout11)
 {
-#ifndef _RMLDB_DEFINED_
+#ifndef RML_DEBUG
 	RML_TAILCALLK(rmlSC);
 #else
 	if (rmldb_execution_type == RMLDB_FAST) RML_TAILCALLK(rmlSC);
@@ -507,7 +507,7 @@ RML_BEGIN_LABEL(RML__debug_5fpush_5fout11)
 
 RML_BEGIN_LABEL(RML__debug_5fpush_5fout12)
 {
-#ifndef _RMLDB_DEFINED_
+#ifndef RML_DEBUG
 	RML_TAILCALLK(rmlSC);
 #else
 	if (rmldb_execution_type == RMLDB_FAST) RML_TAILCALLK(rmlSC);
@@ -529,7 +529,7 @@ RML_BEGIN_LABEL(RML__debug_5fpush_5fout12)
 
 RML_BEGIN_LABEL(RML__debug_5fpush_5fout13)
 {
-#ifndef _RMLDB_DEFINED_
+#ifndef RML_DEBUG
 	RML_TAILCALLK(rmlSC);
 #else
 	if (rmldb_execution_type == RMLDB_FAST) RML_TAILCALLK(rmlSC);
@@ -552,7 +552,7 @@ RML_BEGIN_LABEL(RML__debug_5fpush_5fout13)
 
 RML_BEGIN_LABEL(RML__debug_5fpush_5fout14)
 {
-#ifndef _RMLDB_DEFINED_
+#ifndef RML_DEBUG
 	RML_TAILCALLK(rmlSC);
 #else
 	if (rmldb_execution_type == RMLDB_FAST) RML_TAILCALLK(rmlSC);
@@ -576,7 +576,7 @@ RML_BEGIN_LABEL(RML__debug_5fpush_5fout14)
 
 RML_BEGIN_LABEL(RML__debug_5fpush_5fout15)
 {
-#ifndef _RMLDB_DEFINED_
+#ifndef RML_DEBUG
 	RML_TAILCALLK(rmlSC);
 #else
 	if (rmldb_execution_type == RMLDB_FAST) RML_TAILCALLK(rmlSC);
@@ -601,7 +601,7 @@ RML_BEGIN_LABEL(RML__debug_5fpush_5fout15)
 
 RML_BEGIN_LABEL(RML__debug_5fpush_5fout16)
 {
-#ifndef _RMLDB_DEFINED_
+#ifndef RML_DEBUG
 	RML_TAILCALLK(rmlSC);
 #else
 	if (rmldb_execution_type == RMLDB_FAST) RML_TAILCALLK(rmlSC);

@@ -2,53 +2,59 @@
 
 (* parameters for ML-Yacc *)
 type arg = LexArg.lexarg
-type pos = LexArg.pos
+type pos = Cache.poz
 type svalue = Tokens.svalue
 type ('a,'b) token = ('a,'b) Tokens.token
 type lexresult = (svalue,pos) token
 
+fun mkPos (pos, lexarg) = 
+	(pos, 
+	 !(LexArg.currLine lexarg), 
+	  (LexArg.fixColumn (lexarg,pos); !(LexArg.currColumn lexarg)))
+
 fun eof(lexarg) =
-  let val pos = LexArg.readPos lexarg
+  let val pos        = LexArg.readPos lexarg
+	  val newPos     = mkPos(pos, lexarg)
   in
-    if !(LexArg.eofFlag lexarg) then Tokens.EOF_HARD(pos, pos)
+    if !(LexArg.eofFlag lexarg) 
+    then 
+		Tokens.EOF_HARD(newPos, newPos)
     else
       let val pos1 = !(LexArg.leftPos lexarg)
 	  val _ = LexArg.eofFlag lexarg := true
       in
 		if !(LexArg.comLev lexarg) > 0 then
-		LexArg.error2 lexarg ("unterminated comment at EOF", pos1, pos)
+		LexArg.error2 lexarg ("unterminated comment at EOF", pos1, newPos)
 		else if !(LexArg.strList lexarg) <> [] then
-		LexArg.error2 lexarg ("unterminated string at EOF", pos1, pos)
+		LexArg.error2 lexarg ("unterminated string at EOF", pos1, newPos)
 		else ();
-		Tokens.EOF_SOFT(pos, pos)
+		Tokens.EOF_SOFT(newPos, newPos)
       end
   end
-
-fun makeDECINT(pos1, str) =
+  
+  
+fun makeDECINT(pos1, str, lexarg) =
   let val pos2 = pos1 + String.size str - 1
   in
-    Tokens.ICON(LexUtil.decint str, pos1, pos2)
+    Tokens.ICON(LexUtil.decint str, mkPos(pos1, lexarg), mkPos(pos2, lexarg))
   end
 
-fun makeHEXINT(pos1, str) =
+fun makeHEXINT(pos1, str, lexarg) =
   let val pos2 = pos1 + String.size str - 1
   in
-    Tokens.ICON(LexUtil.hexint str, pos1, pos2)
+    Tokens.ICON(LexUtil.hexint str, mkPos(pos1, lexarg), mkPos(pos2, lexarg))
   end
 
-fun makeRCON(pos1, str) =
+fun makeRCON(pos1, str, lexarg) =
   let val pos2 = pos1 + String.size str - 1
   in
-    (*print "Our real string:"; print str; print " the counted REAL: "; 
-    print (Real.toString (LexUtil.rcon str));
-    print "\n";*)
-    Tokens.RCON(LexUtil.rcon str, pos1, pos2)
+    Tokens.RCON(LexUtil.rcon str, mkPos(pos1, lexarg), mkPos(pos2, lexarg))
   end
 
-fun makeCCON(pos1, str) =
+fun makeCCON(pos1, str, lexarg) =
   let val pos2 = pos1 + String.size str - 1
   in
-    Tokens.CCON(LexUtil.ccon str, pos1, pos2)
+    Tokens.CCON(LexUtil.ccon str, mkPos(pos1, lexarg), mkPos(pos2, lexarg))
   end
 
 (* The regular expression for a string literal used to be:
@@ -65,10 +71,10 @@ fun addString(lexarg, yytext) =
     strList := yytext :: !strList
   end
 
-fun errBadStr(lexarg, pos, yytext) =
-  let val msg = "illegal character in string " ^ MakeString.scvt yytext
+fun errBadStr(lexarg, pos, text) =
+  let val msg = "illegal character in string " ^ MakeString.scvt text
   in
-    LexArg.error2 lexarg (msg,pos,pos)
+    LexArg.error2 lexarg (msg, mkPos(pos, lexarg), mkPos(pos, lexarg))
   end
 
 fun makeSCON(lexarg, pos2) =
@@ -76,14 +82,13 @@ fun makeSCON(lexarg, pos2) =
       val str = String.concat(List.rev("\"" :: !strList))
       val _ = strList := []
   in
-    Tokens.SCON(LexUtil.scon str, !(LexArg.leftPos lexarg), pos2)
+    Tokens.SCON(LexUtil.scon str, !(LexArg.leftPos lexarg), mkPos(pos2, lexarg))
   end
 
-fun makeTYVAR(pos1, str) =
+fun makeTYVAR(pos1, str, lexarg) =
   let val len_1 = String.size str - 1
   in
-    Tokens.TYVAR(
-		substring(str, 1, len_1), pos1 + 1, pos1 + len_1)
+    Tokens.TYVAR(substring(str, 1, len_1), mkPos(pos1 + 1, lexarg), mkPos(pos1 + len_1, lexarg))
   end
 
 val kwds = [
@@ -107,12 +112,15 @@ val kwds = [
 	    ("withtype",Tokens.WITHTYPE)
 	    ]
 
-fun makeIDENT(pos1, str) =
+fun makeIDENT(pos1, str, lexarg) =
   let val pos2 = pos1 + String.size str - 1
-      fun loop [] = Tokens.IDENT(str, pos1, pos2)
+      fun loop [] = Tokens.IDENT(str, mkPos(pos1, lexarg), mkPos(pos2, lexarg))
 	| loop((str',mktok)::rest) =
-	    if str=str' then mktok(pos1, pos2) else loop rest
+	    if str=str' then mktok(mkPos(pos1, lexarg),mkPos(pos1, lexarg)) else loop rest
   in
+	if (str = "end")    
+	then LexArg.currVisibility(lexarg) := Cache.PROTECTED
+	else ();	
     loop kwds
   end
 
@@ -122,9 +130,12 @@ fun dec(ri) = let val j = !ri - 1 in ri := j; j end
 %%
 
 %header (functor RMLLexFn(structure Tokens : RML_TOKENS
-			  structure LexArg : LEXARG
+			  structure Cache: CACHE
+			  structure LexArg : LEXARG where type poz = Cache.poz
 			  structure MakeString : MAKESTRING
-			  structure LexUtil : LEXUTIL) : ARG_LEXER);
+			  structure LexUtil : LEXUTIL
+			  sharing type Cache.visibility = LexArg.visibility
+			  ) : ARG_LEXER);
 			  
 %S STRING GAP COMMENT COMMENTLINE;
 %arg (lexarg);
@@ -159,159 +170,162 @@ tyvar="'"+{alpha}{alnum}*;
 %%
 
 <INITIAL>{eol}		=>
-	(LexArg.newLine(lexarg, yypos);
+	(LexArg.newLine(lexarg, mkPos(yypos, lexarg));
 	 continue());
 <INITIAL>{tab}		=>
-	(LexArg.newTab(lexarg, yygone, yypos);
+	(LexArg.newTab(lexarg, yygone, mkPos(yypos, lexarg));
 	 continue());
 <INITIAL>{white}	=>
 	(continue());
 <INITIAL>\"		=>
 	(LexArg.strList lexarg := [yytext];
-	 LexArg.leftPos lexarg := yypos;
+	 LexArg.fixColumn(lexarg, yypos);
+	 LexArg.leftPos lexarg := mkPos(yypos, lexarg);
 	 YYBEGIN STRING;
 	 continue());
 <INITIAL>"&"		=>
-	(Tokens.AMPERSAND(yypos, yypos));
+	(Tokens.AMPERSAND(mkPos(yypos, lexarg), mkPos(yypos, lexarg)));
 <INITIAL>"(*"|"/*"		=>
 	(LexArg.comLev lexarg := 1;
-	 LexArg.leftPos lexarg := yypos;
+	 LexArg.leftPos lexarg := mkPos(yypos, lexarg);
 	 YYBEGIN COMMENT;
 	 continue());
 <INITIAL>"//"		=>
 	(LexArg.comLev lexarg := 1;
-	 LexArg.leftPos lexarg := yypos;
+	 LexArg.leftPos lexarg := mkPos(yypos, lexarg);
 	 YYBEGIN COMMENTLINE;
 	 continue());
 <INITIAL>"("		=>
-	(Tokens.LPAREN(yypos, yypos));
+	(Tokens.LPAREN(mkPos(yypos, lexarg), mkPos(yypos, lexarg)));
 <INITIAL>")"		=>
-	(Tokens.RPAREN(yypos, yypos));
+	(Tokens.RPAREN(mkPos(yypos, lexarg), mkPos(yypos, lexarg)));
 <INITIAL>"*)"|"*/"		=>
 	(LexArg.error2 lexarg ("unmatched close comment",
-	 yypos,
-	 yypos+1); continue());
+	 mkPos(yypos, lexarg),
+	 mkPos(yypos+1, lexarg)); continue());
 <INITIAL>"*"		=>
-	(Tokens.STAR(yypos, yypos));
+	(Tokens.STAR(mkPos(yypos, lexarg), mkPos(yypos, lexarg)));
 <INITIAL>","		=>
-	(Tokens.COMMA(yypos, yypos));
+	(Tokens.COMMA(mkPos(yypos, lexarg), mkPos(yypos, lexarg)));
 <INITIAL>"-""-"+	=>
-	(Tokens.DASHES(yypos, yypos + String.size yytext - 1));
+	(Tokens.DASHES(mkPos(yypos, lexarg), mkPos(yypos + String.size yytext - 1, lexarg)));
 <INITIAL>"."		=>
-	(Tokens.DOT(yypos, yypos));
+	(Tokens.DOT(mkPos(yypos, lexarg), mkPos(yypos, lexarg)));
 <INITIAL>"::"		=>
-	(Tokens.COLONCOLON(yypos, yypos+1));
+	(Tokens.COLONCOLON(mkPos(yypos, lexarg), mkPos(yypos+1, lexarg)));
 <INITIAL>":"		=>
-	(Tokens.COLON(yypos, yypos));
+	(Tokens.COLON(mkPos(yypos, lexarg), mkPos(yypos, lexarg)));
 <INITIAL>"="		=>
-	(Tokens.EQ(yypos, yypos));
+	(Tokens.EQ(mkPos(yypos, lexarg), mkPos(yypos, lexarg)));
 <INITIAL>"=>"		=>
-	(Tokens.FATARROW(yypos, yypos+1));
+	(Tokens.FATARROW(mkPos(yypos, lexarg), mkPos(yypos+1, lexarg)));
 <INITIAL>"["		=>
-	(Tokens.LBRACK(yypos, yypos));
+	(Tokens.LBRACK(mkPos(yypos, lexarg), mkPos(yypos, lexarg)));
 <INITIAL>"]"		=>
-	(Tokens.RBRACK(yypos, yypos));
+	(Tokens.RBRACK(mkPos(yypos, lexarg), mkPos(yypos, lexarg)));
 <INITIAL>"_"		=>
-	(Tokens.WILD(yypos, yypos));
+	(Tokens.WILD(mkPos(yypos, lexarg), mkPos(yypos, lexarg)));
 <INITIAL>"|"		=>
-	(Tokens.BAR(yypos, yypos));
+	(Tokens.BAR(mkPos(yypos, lexarg), mkPos(yypos, lexarg)));
 <INITIAL>{decint}	=>
-	(makeDECINT(yypos, yytext));
+	(makeDECINT(yypos, yytext, lexarg));
 <INITIAL>{hexint}	=>
-	(makeHEXINT(yypos, yytext));
+	(makeHEXINT(yypos, yytext, lexarg));
 <INITIAL>{rcon}		=>
-	(makeRCON(yypos, yytext));
+	(makeRCON(yypos, yytext, lexarg));
 <INITIAL>{ccon}		=>
-	(makeCCON(yypos, yytext));
+	(makeCCON(yypos, yytext, lexarg));
 <INITIAL>{id}		=>
-	(makeIDENT(yypos, yytext));
+	(makeIDENT(yypos, yytext, lexarg));
 <INITIAL>{tyvar}	=>
-	(makeTYVAR(yypos, yytext));
+	(makeTYVAR(yypos, yytext, lexarg));
 		
 <INITIAL>"+"	=> 
-	(Tokens.ADD_INT(yypos, yypos));
+	(Tokens.ADD_INT(mkPos(yypos, lexarg), mkPos(yypos, lexarg)));
 <INITIAL>"-"	=>
-	(Tokens.SUB_INT(yypos, yypos));
+	(Tokens.SUB_INT(mkPos(yypos, lexarg), mkPos(yypos, lexarg)));
 <INITIAL>"~"	=>
-	(Tokens.NEG_INT(yypos, yypos));	
+	(Tokens.NEG_INT(mkPos(yypos, lexarg), mkPos(yypos, lexarg)));	
 <INITIAL>"/"	=>
-	(Tokens.DIV_INT(yypos, yypos));
+	(Tokens.DIV_INT(mkPos(yypos, lexarg), mkPos(yypos, lexarg)));
 <INITIAL>"%"	=>
-	(Tokens.MOD_INT(yypos, yypos));
+	(Tokens.MOD_INT(mkPos(yypos, lexarg), mkPos(yypos, lexarg)));
 <INITIAL>"=="	=>
-	(Tokens.EQEQ_INT(yypos, yypos+1));
+	(Tokens.EQEQ_INT(mkPos(yypos, lexarg), mkPos(yypos+1, lexarg)));
 <INITIAL>">="	=>
-	(Tokens.GE_INT(yypos, yypos+1));
+	(Tokens.GE_INT(mkPos(yypos, lexarg), mkPos(yypos+1, lexarg)));
 <INITIAL>">"	=>
-	(Tokens.GT_INT(yypos, yypos));
+	(Tokens.GT_INT(mkPos(yypos, lexarg), mkPos(yypos, lexarg)));
 <INITIAL>"<="	=>
-	(Tokens.LE_INT(yypos, yypos+1));
+	(Tokens.LE_INT(mkPos(yypos, lexarg), mkPos(yypos+1, lexarg)));
 <INITIAL>"<"	=>
-	(Tokens.LT_INT(yypos, yypos));
+	(Tokens.LT_INT(mkPos(yypos, lexarg), mkPos(yypos, lexarg)));
 <INITIAL>"!="	=>
-	(Tokens.NE_INT(yypos, yypos+1));
+	(Tokens.NE_INT(mkPos(yypos, lexarg), mkPos(yypos+1, lexarg)));
 <INITIAL>"<>"	=>
-	(Tokens.NE_INT(yypos, yypos+1));
+	(Tokens.NE_INT(mkPos(yypos, lexarg), mkPos(yypos+1, lexarg)));
 
 <INITIAL>"+."	=>
-	(Tokens.ADD_REAL(yypos, yypos+1));
+	(Tokens.ADD_REAL(mkPos(yypos, lexarg), mkPos(yypos+1, lexarg)));
 <INITIAL>"-."	=>
-	(Tokens.SUB_REAL(yypos, yypos+1));
+	(Tokens.SUB_REAL(mkPos(yypos, lexarg), mkPos(yypos+1, lexarg)));
 <INITIAL>"~."	=>
-	(Tokens.NEG_REAL(yypos, yypos+1));	
+	(Tokens.NEG_REAL(mkPos(yypos, lexarg), mkPos(yypos+1, lexarg)));	
 <INITIAL>"*."	=>
-	(Tokens.MUL_REAL(yypos, yypos+1));
+	(Tokens.MUL_REAL(mkPos(yypos, lexarg), mkPos(yypos+1, lexarg)));
 <INITIAL>"/."	=>
-	(Tokens.DIV_REAL(yypos, yypos+1)); 
+	(Tokens.DIV_REAL(mkPos(yypos, lexarg), mkPos(yypos+1, lexarg))); 
 <INITIAL>"%."	=>
-	(Tokens.MOD_REAL(yypos, yypos+1));
+	(Tokens.MOD_REAL(mkPos(yypos, lexarg), mkPos(yypos+1, lexarg)));
 <INITIAL>"^."	=>
-	(Tokens.POW_REAL(yypos, yypos+1));		
+	(Tokens.POW_REAL(mkPos(yypos, lexarg), mkPos(yypos+1, lexarg)));		
 <INITIAL>"==."	=>
-	(Tokens.EQ_REAL(yypos, yypos+2));
+	(Tokens.EQ_REAL(mkPos(yypos, lexarg), mkPos(yypos+2, lexarg)));
 <INITIAL>">=."	=>
-	(Tokens.GE_REAL(yypos, yypos+2));
+	(Tokens.GE_REAL(mkPos(yypos, lexarg), mkPos(yypos+2, lexarg)));
 <INITIAL>">."	=>
-	(Tokens.GT_REAL(yypos, yypos+1));
+	(Tokens.GT_REAL(mkPos(yypos, lexarg), mkPos(yypos+1, lexarg)));
 <INITIAL>"<=."	=>
-	(Tokens.LE_REAL(yypos, yypos+2));
+	(Tokens.LE_REAL(mkPos(yypos, lexarg), mkPos(yypos+2, lexarg)));
 <INITIAL>"<."	=>
-	(Tokens.LT_REAL(yypos, yypos+1));
+	(Tokens.LT_REAL(mkPos(yypos, lexarg), mkPos(yypos+1, lexarg)));
 <INITIAL>"!=."	=>
-	(Tokens.NE_REAL(yypos, yypos+2));
+	(Tokens.NE_REAL(mkPos(yypos, lexarg), mkPos(yypos+2, lexarg)));
 <INITIAL>"<>."	=>
-	(Tokens.NE_REAL(yypos, yypos+2));
+	(Tokens.NE_REAL(mkPos(yypos, lexarg), mkPos(yypos+2, lexarg)));
 
-<INITIAL>"^"	=>
-	(Tokens.ADD_STRING(yypos, yypos));
+<INITIAL>"+&"	=>
+	(Tokens.ADD_STRING(mkPos(yypos, lexarg), mkPos(yypos, lexarg)));
+<INITIAL>"==&"	=>
+	(Tokens.EQEQ_STRING(mkPos(yypos, lexarg), mkPos(yypos, lexarg)));
 	
 <INITIAL>"@"	=>
-	(Tokens.ADD_LIST(yypos, yypos));
+	(Tokens.ADD_LIST(mkPos(yypos, lexarg), mkPos(yypos, lexarg)));
 		
 <INITIAL>.		=>
 	(let val msg = "illegal character " ^ MakeString.scvt yytext
 	 in
-	   LexArg.error2 lexarg (msg,yypos,yypos);
+	   LexArg.error2 lexarg (msg,mkPos(yypos, lexarg),mkPos(yypos, lexarg));
 	   continue()
 	 end);
 
 <STRING>\"		=>
 	(YYBEGIN INITIAL; makeSCON(lexarg, yypos));
 <STRING>\\{eol}		=>
-	(LexArg.newLine(lexarg, yypos+1);
+	(LexArg.newLine(lexarg, mkPos(yypos+1, lexarg));
 	 YYBEGIN GAP; continue());
 <STRING>\\{tab}		=>
-	(LexArg.newTab(lexarg, yygone, yypos+1);
+	(LexArg.newTab(lexarg, yygone, mkPos(yypos+1, lexarg));
 	 YYBEGIN GAP; continue());
 <STRING>\\{white}	=>
 	(YYBEGIN GAP; continue());
 <STRING>{cdesc}		=>
 	(addString(lexarg, yytext); continue());
 <STRING>{eol}		=>
-	(LexArg.newLine(lexarg, yypos);
+	(LexArg.newLine(lexarg, mkPos(yypos, lexarg));
 	 addString(lexarg, yytext); continue());
 <STRING>{tab}		=>
-	(LexArg.newTab(lexarg, yygone, yypos);
+	(LexArg.newTab(lexarg, yygone, mkPos(yypos, lexarg));
 	 addString(lexarg, yytext); continue());
 <STRING>.		=>
 	(errBadStr(lexarg, yypos, yytext); continue());
@@ -319,17 +333,17 @@ tyvar="'"+{alpha}{alnum}*;
 <GAP>\\			=>
 	(YYBEGIN STRING; continue());
 <GAP>{eol}		=>
-	(LexArg.newLine(lexarg, yypos);
+	(LexArg.newLine(lexarg, mkPos(yypos, lexarg));
 	 continue());
 <GAP>{tab}		=>
-	(LexArg.newTab(lexarg, yygone, yypos);
+	(LexArg.newTab(lexarg, yygone, mkPos(yypos, lexarg));
 	 continue());
 <GAP>{white}		=>
 	(continue());
 <GAP>.			=>
 	(let val msg = "illegal character in string gap " ^ MakeString.scvt yytext
 	 in
-	   LexArg.error2 lexarg (msg,yypos,yypos);
+	   LexArg.error2 lexarg (msg,mkPos(yypos, lexarg),mkPos(yypos, lexarg));
 	   continue()
 	 end);
 
@@ -338,19 +352,19 @@ tyvar="'"+{alpha}{alnum}*;
 <COMMENT>"*)"|"*/"		=>
 	(if dec(LexArg.comLev lexarg) > 0 then () else YYBEGIN INITIAL; continue());
 <COMMENT>{eol}		=>
-	(LexArg.newLine(lexarg, yypos);
+	(LexArg.newLine(lexarg, mkPos(yypos, lexarg));
 	 continue());
 <COMMENT>{tab}		=>
-	(LexArg.newTab(lexarg, yygone, yypos);
+	(LexArg.newTab(lexarg, yygone, mkPos(yypos, lexarg));
 	 continue());
 <COMMENT>.		=>
 	(continue());
 
 <COMMENTLINE>{eol}		=>
-	(LexArg.newLine(lexarg, yypos);
+	(LexArg.newLine(lexarg, mkPos(yypos, lexarg));
 	 if dec(LexArg.comLev lexarg) > 0 then () else YYBEGIN INITIAL; continue());
 <COMMENTLINE>{tab}		=>
-	(LexArg.newTab(lexarg, yygone, yypos);
+	(LexArg.newTab(lexarg, yygone, mkPos(yypos, lexarg));
 	 continue());
 <COMMENTLINE>.		=>
 	(continue());

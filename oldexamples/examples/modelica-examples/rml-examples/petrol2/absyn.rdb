@@ -1,0 +1,62 @@
+/*  ME_Dict: */
+/*  TE': */
+t:<absyn.rml>:3.10.3.14|Ident
+t:<absyn.rml>:50.9.50.13|Block
+t:<absyn.rml>:20.14.20.18|BinOp
+t:<absyn.rml>:4.14.4.21|Constant
+t:<absyn.rml>:7.14.7.19|ConBnd
+t:<absyn.rml>:25.14.25.16|Exp
+t:<absyn.rml>:10.14.10.15|Ty
+t:<absyn.rml>:36.14.36.17|Stmt
+t:<absyn.rml>:53.14.53.17|Prog
+t:<absyn.rml>:22.14.22.18|RelOp
+t:<absyn.rml>:48.14.48.19|SubBnd
+t:<absyn.rml>:19.14.19.17|UnOp
+t:<absyn.rml>:16.14.16.18|TyBnd
+t:<absyn.rml>:15.9.15.14|VarBnd
+/*  VE'': */
+c:<absyn.rml>:6.27.6.34|IDENTcon:string => Constant
+c:<absyn.rml>:7.27.7.32|CONBND:(string,Constant) => ConBnd
+c:<absyn.rml>:36.27.36.32|ASSIGN:(Exp,Exp) => Stmt
+c:<absyn.rml>:19.27.19.30|ADDR:UnOp
+c:<absyn.rml>:20.27.20.29|ADD:BinOp
+c:<absyn.rml>:12.27.12.29|ARR:(Constant,Ty) => Ty
+c:<absyn.rml>:50.27.50.31|BLOCK:(ConBnd list,TyBnd list,VarBnd list,SubBnd list,Stmt) => Block
+c:<absyn.rml>:31.27.31.32|BINARY:(Exp,BinOp,Exp) => Exp
+c:<absyn.rml>:28.27.28.30|CAST:(Ty,Exp) => Exp
+c:<absyn.rml>:38.27.38.33|FRETURN:Exp => Stmt
+c:<absyn.rml>:34.27.34.31|FCALL:(string,Exp list) => Exp
+c:<absyn.rml>:33.27.33.34|EQUALITY:(Exp,Exp) => Exp
+c:<absyn.rml>:29.27.29.31|FIELD:(Exp,string) => Exp
+c:<absyn.rml>:21.41.21.44|IAND:BinOp
+c:<absyn.rml>:48.27.48.33|FUNCBND:(string,VarBnd list,Ty,Block option) => SubBnd
+c:<absyn.rml>:27.27.27.31|IDENT:string => Exp
+c:<absyn.rml>:20.39.20.41|MUL:BinOp
+c:<absyn.rml>:4.27.4.32|INTcon:int => Constant
+c:<absyn.rml>:21.34.21.37|IMOD:BinOp
+c:<absyn.rml>:21.27.21.30|IDIV:BinOp
+c:<absyn.rml>:41.27.41.28|IF:(Exp,Stmt,Stmt) => Stmt
+c:<absyn.rml>:19.34.19.38|INDIR:UnOp
+c:<absyn.rml>:25.27.25.29|INT:int => Exp
+c:<absyn.rml>:22.32.22.33|LE:RelOp
+c:<absyn.rml>:21.48.21.50|IOR:BinOp
+c:<absyn.rml>:22.27.22.28|LT:RelOp
+c:<absyn.rml>:20.45.20.48|RDIV:BinOp
+c:<absyn.rml>:39.27.39.33|PRETURN:Stmt
+c:<absyn.rml>:19.42.19.44|NOT:UnOp
+c:<absyn.rml>:10.27.10.30|NAME:string => Ty
+c:<absyn.rml>:37.27.37.31|PCALL:(string,Exp list) => Stmt
+c:<absyn.rml>:53.27.53.30|PROG:(string,Block) => Prog
+c:<absyn.rml>:49.27.49.33|PROCBND:(string,VarBnd list,Block option) => SubBnd
+c:<absyn.rml>:11.27.11.29|PTR:Ty => Ty
+c:<absyn.rml>:32.27.32.34|RELATION:(Exp,RelOp,Exp) => Exp
+c:<absyn.rml>:5.27.5.33|REALcon:real => Constant
+c:<absyn.rml>:26.27.26.30|REAL:real => Exp
+c:<absyn.rml>:13.27.13.29|REC:VarBnd list => Ty
+c:<absyn.rml>:16.27.16.31|TYBND:(string,Ty) => TyBnd
+c:<absyn.rml>:43.27.43.30|SKIP:Stmt
+c:<absyn.rml>:42.27.42.29|SEQ:(Stmt,Stmt) => Stmt
+c:<absyn.rml>:20.33.20.35|SUB:BinOp
+c:<absyn.rml>:15.27.15.32|VARBND:(string,Ty) => VarBnd
+c:<absyn.rml>:30.27.30.31|UNARY:(UnOp,Exp) => Exp
+c:<absyn.rml>:40.27.40.31|WHILE:(Exp,Stmt) => Stmt

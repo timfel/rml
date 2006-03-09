@@ -1,0 +1,21 @@
+v:<main2.rml>:22.21.22.23|[20.3.22.36]|elaborate[dec:Absyn.Dec]
+v:<main2.rml>:22.12.22.18|[20.3.22.36]|elaborate[statenv:(string*Scheme.Scheme) list]
+v:<main2.rml>:20.42.20.49|[20.3.22.36]|elaborate[statenv':(string*Scheme.Scheme) list]
+v:<main2.rml>:27.21.27.23|[24.3.27.32]|elaborate[dec:Absyn.Dec]
+v:<main2.rml>:27.12.27.18|[24.3.27.32]|elaborate[statenv:(string*Scheme.Scheme) list]
+v:<main2.rml>:35.8.35.10|[33.3.36.1]|doall[dec:Absyn.Dec]
+v:<main2.rml>:35.13.35.16|[33.3.36.1]|doall[decs:Absyn.Dec list]
+v:<main2.rml>:35.19.35.25|[33.3.36.1]|doall[statenv:(string*Scheme.Scheme) list]
+v:<main2.rml>:33.35.33.42|[33.3.36.1]|doall[statenv':(string*Scheme.Scheme) list]
+v:<main2.rml>:10.28.10.31|[10.3.12.19]|parse[decs:Absyn.Dec list]
+v:<main2.rml>:12.8.12.11|[10.3.12.19]|parse[file:string]
+v:<main2.rml>:16.8.16.11|[14.3.16.19]|parse[file:string]
+v:<main2.rml>:39.22.39.25|[39.3.42.1]|main[decs:Absyn.Dec list]
+v:<main2.rml>:41.7.41.10|[39.3.42.1]|main[file:string]
+/*  ME_Dict: */
+/*  TE': */
+/*  VE'': */
+r:<main2.rml>:19.10.19.18|elaborate:((string*Scheme.Scheme) list,Absyn.Dec) => (string*Scheme.Scheme) list
+r:<main2.rml>:30.10.30.14|doall:(Absyn.Dec list,(string*Scheme.Scheme) list) => ()
+r:<main2.rml>:38.10.38.13|main:string list => ()
+r:<main2.rml>:9.10.9.14|parse:string => Absyn.Dec list

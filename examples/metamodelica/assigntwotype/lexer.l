@@ -2,7 +2,7 @@
 #include "parser.h"
 #include "yacclib.h"
 #include "rml.h"
-#include "assigntwotype.h"
+#include "AssignTwoType.h"
 
 typedef void *rml_t;
 /* extern rml_t yylval; */
@@ -51,7 +51,7 @@ int lex_icon()
 
 int lex_rcon()
 {
-  yylval=(rml_t) assigntwotype__REAL(mk_rcon(atof(yytext)));
+  yylval=(rml_t) AssignTwoType__REAL(mk_rcon(atof(yytext)));
   return T_REALCONST;
 }
 

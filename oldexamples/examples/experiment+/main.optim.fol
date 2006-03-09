@@ -1,0 +1,84 @@
+(MODULE Main)
+
+(define (s [A:2])
+
+(define (tree [Empty Node:3])
+
+(define k
+  (STRUCT Node
+	  [(STRUCT Node [Empty "1" Empty])
+	   "2"
+	   (STRUCT Node [Empty "3" Empty])]))
+
+(define (walk $101:1)
+  (CASE [$101:1]
+	([(AS $103:0
+		(STRUCT Node
+			[(AS $104:1 (WILD))
+			 (AS $105:1 (WILD))
+			 (AS $106:1 (WILD))]))]
+	 (ANDTHEN (CALL walk [$104:1] [])
+		  (ANDTHEN (CALL print [$105:1] [])
+			   (ANDTHEN (CALL walk [$106:1] []) (RETURN [])))))
+	([(AS $102:0 Empty)] (RETURN []))))
+
+(define (j $108:1 $107:1)
+  (CASE [$108:1 $107:1]
+	([(AS $109:1 (WILD)) (AS $110:1 (WILD))]
+	 (RETURN [(STRUCT A [$109:1 $110:1])]))))
+
+(define (main $111:1)
+  (CASE [$111:1]
+	([(AS $112:0 (WILD))]
+	 (ANDTHEN (BIND $114:1 2)
+		  (CASE [$114:1]
+			([(AS $113:1 (WILD))]
+			 (ANDTHEN (CALL int_string [$113:1] [$116:1])
+				  (CASE [$116:1]
+					([(AS $115:2 (WILD))]
+					 (ANDTHEN (CALL j
+							[$115:2 $115:2]
+							[$118:1])
+						  (CASE [$118:1]
+							([(AS $117:4 (WILD))]
+							 (ANDTHEN (BIND $120:1
+									 $117:4)
+								  (CASE [$120:1]
+									([(AS $119:1
+										(WILD))]
+									 (ANDTHEN (BIND $124:1
+											 $119:1)
+										  (CASE [$124:1]
+											([(AS $121:0
+												(STRUCT A
+													[(AS $122:1
+													       (WILD))
+													 (AS $123:1
+													       (WILD))]))]
+											 (ANDTHEN (BIND $128:1
+													 $117:4)
+												  (CASE [$128:1]
+													([(AS $125:0
+														(STRUCT A
+															[(AS $126:1
+															       (WILD))
+															 (AS $127:1
+															       (WILD))]))]
+													 (ANDTHEN (EQUAL $117:4
+															 $117:4)
+														  (ANDTHEN (CALL print
+																 [$122:1]
+																 [])
+															   (ANDTHEN (CALL print
+																	  [$123:1]
+																	  [])
+																    (ANDTHEN (CALL print
+																		   [$126:1]
+																		   [])
+																	     (ANDTHEN (CALL print
+																			    [$127:1]
+																			    [])
+																		      (ANDTHEN (CALL walk
+																				     [k]
+																				     [])
+																			       (RETURN []))))))))))))))))))))))))))))

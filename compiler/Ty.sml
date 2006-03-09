@@ -4,7 +4,7 @@ structure Ty : TY =
   struct
 
 	val debugFlag = false
-	fun debug s = if (debugFlag) then print ("Ty."^s) else ()    	
+	fun debug s = if (debugFlag) then TextIO.output(TextIO.stdErr, "Ty."^s) else ()    	
 
     datatype tynameeq
       = NEVER
@@ -282,9 +282,12 @@ structure Ty : TY =
 	  tyErrInst(tyvar1, ty2, "the type variable is explicit")
       | bindTyvar(tyvar1 as FREE{eq,subst,...}, ty2) =
 	  (mustNotOccurIn(tyvar1, ty2);
-	   if eq andalso not(admitsEq(ty2, false)) then
-	     tyErrInst(tyvar1, ty2, "the type does not admit equality")
-	   else ();
+	   case ty2 of (* XXX! TODO adrpo 2006-03-07: don't check equality of relations *)
+			REL(_,_) => ()
+	   |	_ => 
+			if eq andalso not(admitsEq(ty2, false)) 
+			then tyErrInst(tyvar1, ty2, "the type does not admit equality")
+			else ();
 	   subst := SOME ty2)
 
     fun unifyTyvars(RIGID _, ty1, tyvar2, _) = bindTyvar(tyvar2, ty1)

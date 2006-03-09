@@ -27,7 +27,7 @@ functor CodeToCFn(structure MakeString : MAKESTRING
     fun mangle name =
       let val (Code.Mangle.NAME name) = Code.Mangle.encode name
       in
-	name
+		name
       end
 
     fun prLitName os (Code.LITNAME name) = (output(os, "lit"); prInt os name)
@@ -43,7 +43,7 @@ functor CodeToCFn(structure MakeString : MAKESTRING
       (output(os, "RML_GVAL_VALUE("); prLabel os lab; output(os, ")"))
 
     fun prLitRef os lr =
-      case lr
+    case lr
 	of Code.INTlr i =>
 	    (output(os, "RML_IMMEDIATE("); prFixNum(os, i); output(os, ")"))
 	 | Code.HDRlr{len,con} =>
@@ -104,15 +104,51 @@ functor CodeToCFn(structure MakeString : MAKESTRING
 	  Code.prGoto(os, prLabel, prVal, target, nargs)
       | prCode' os (Code.STORE(dst,src,code)) =
 	  (output(os, "\n\tRML_STORE("); prVal os dst; output(os, ", ");
+	  (* adrpo 2005-12-29 changed this to the one below! 
 	   prVal os src; output(os, ");"); prCode os code)
+	   *)
+	   prVal os src; output(os, ");"); 
+	   (case code of 
+	        (* open a new sope only when a decl follows. *)
+			Code.CODE{code=Code.BIND(SOME(Code.LOCvar lvar), v, c),...} => 
+			(output(os, "\n\t{"); prCode os code; output(os, "}"))
+			(* else, don't open a new scope *)
+		| _ => prCode os code)
+	  )
       | prCode' os (Code.BIND(SOME(Code.LOCvar lvar), v, code)) =
-	  (output(os, "\n\t{ void *"); prLVar os lvar; output(os, " = ");
+	  (* adrpo 2005-12-29 changed this to the one below! 
+	  (output(os, "\n\t{ void *"); prLVar os lvar; output(os, " = "); 
+	  *)
+	  (output(os, "\n\tvoid *"); prLVar os lvar; output(os, " = ");
+	  (* adrpo 2005-12-29 changed this to the one below!       
 	   prVal os v; output(os, ";"); prCode os code; output(os, "}"))
+	  *)
+	   prVal os v; output(os, ";"); prCode os code)	  
       | prCode' os (Code.BIND(SOME(Code.GLOvar gvar), v,  code)) =
 	  (output(os, "\n\t"); prGVar os gvar; output(os, " = "); prVal os v;
+	  (* adrpo 2005-12-29 changed this to the one below!       
 	   output(os, ";"); prCode os code)
+	  *)
+	   output(os, ";"); 
+	   (case code of 
+	        (* open a new sope only when a decl follows. *)
+			Code.CODE{code=Code.BIND(SOME(Code.LOCvar lvar), v, c),...} => 
+			(output(os, "{"); prCode os code; output(os, "}"))
+			(* else, don't open a new scope *)
+		| _ => prCode os code)
+	  )	  
       | prCode' os (Code.BIND(NONE, v, code)) =
+	  (* adrpo 2005-12-29 changed this to the one below!       
 	  (output(os, "\n\t"); prVal os v; output(os, ";"); prCode os code)
+	  *)
+	  (output(os, "\n\t"); prVal os v; output(os, ";");
+	   (case code of 
+	        (* open a new sope only when a decl follows. *)
+			Code.CODE{code=Code.BIND(SOME(Code.LOCvar lvar), v, c),...} => 
+			(output(os, "{"); prCode os code; output(os, "}"))
+			(* else, don't open a new scope *)
+		| _ => prCode os code)
+	  )	   
       | prCode' os (Code.SWITCH(_, [], NONE)) = bug "prCode': SWITCH(_,[],NONE)"
       | prCode' os (Code.SWITCH(v, [], SOME default)) = (* == BIND(NONE,v,default) *)
 	  (output(os, "\n\t"); prVal os v; output(os, ";"); prCode os default)
@@ -162,8 +198,15 @@ functor CodeToCFn(structure MakeString : MAKESTRING
     and prCases(prCaseTag, os, case0, cases, default) =
       let fun prCase(ct, code) =
 	    (output(os, "\n\tcase "); prCaseTag(os, ct);
-	     output(os, ":"); prCode os code)
-	  fun prDefault code = (output(os, "\n\tdefault:"); prCode os code)
+		(* adrpo 2005-12-29 changed this to the one below! 	     
+		output(os, ":"); prCode os code) 
+		 *)
+	    output(os, ": {"); prCode os code; output(os, "}"))
+	  fun prDefault code = 
+	    (* adrpo 2005-12-29 changed this to the one below!
+		(output(os, "\n\tdefault:"); prCode os code)
+		*)
+		(output(os, "\n\tdefault:{"); prCode os code; output(os, "}"))
 	  fun loop((ct,code), []) =
 		(case default
 		   of NONE =>
@@ -173,7 +216,7 @@ functor CodeToCFn(structure MakeString : MAKESTRING
 	    | loop((ct,code), (case0::cases)) =
 		(prCase(ct,code); loop(case0, cases))
       in
-	loop(case0, cases)
+		loop(case0, cases)
       end
 
     and prRealCase os dvar (Code.REALct r, code) =
@@ -198,7 +241,7 @@ functor CodeToCFn(structure MakeString : MAKESTRING
       (output(os, "extern RML_FORWARD_LABEL("); prLabel os lab; output(os, ");\n"))
 
     fun prLitDef os (litname, litdef) =
-      case litdef
+    case litdef
 	of Code.REALld r		=>
 	    (output(os, "static const RML_DEFREALLIT("); prLitName os litname;
 	     output(os, ","); prReal os r; output(os, ");\n"))
@@ -258,16 +301,16 @@ functor CodeToCFn(structure MakeString : MAKESTRING
 		(output(os, "&"); prLabel os extlab)
 	    | prLitRefDefn(os, _) = output(os, "0")
       in
-	prLitRefConst(os, lr);
-	output(os, "struct rml_gval ");
-	prLabel os lab;
-	output(os, " = {{");
-	prLitRefInit os lr;
-	output(os, "},");
-	prLitRefDefn(os, lr);
-	output(os, ",\034");
-	prLabel os lab;
-	output(os, "\034};\n")
+		prLitRefConst(os, lr);
+		output(os, "struct rml_gval ");
+		prLabel os lab;
+		output(os, " = {{");
+		prLitRefInit os lr;
+		output(os, "},");
+		prLitRefDefn(os, lr);
+		output(os, ",\034");
+		prLabel os lab;
+		output(os, "\034};\n")
       end
 
     fun emitValues _ [] = ()
@@ -295,26 +338,26 @@ functor CodeToCFn(structure MakeString : MAKESTRING
           val xmods = map mangle xmods
 	      val modname = mangle modname
       in
-	output(os, "\n");
-	List.app (prDecInitProc os) xmods;
-	output(os, "\nvoid "); output(os, modname);
-	output(os, mangled_init); output(os, "(void)\n{\n");
-	output(os, "\tstatic int done = 0;\n");
-	output(os, "\tif( done ) return;\n");
-	output(os, "\tdone = 1;\n");
-	hookfn();	(* only used by DiffToCFn *)
-	List.app (prCallInitProc os) xmods;
-	List.app (prInitVal os) values;
-	List.app (prLitDefPatch os) litdefs;
-	if !Control.doDebug 
-	then
-	(
-	output(os, "\trmldb_load_db(\"");
-	output(os, prefix^".rdb");
-	output(os, "\");\n")	
-	)
-	else ();
-	output(os, "}\n")
+		output(os, "\n");
+		List.app (prDecInitProc os) xmods;
+		output(os, "\nvoid "); output(os, modname);
+		output(os, mangled_init); output(os, "(void)\n{\n");
+		output(os, "\tstatic int done = 0;\n");
+		output(os, "\tif( done ) return;\n");
+		output(os, "\tdone = 1;\n");
+		hookfn();	(* only used by DiffToCFn *)
+		List.app (prCallInitProc os) xmods;
+		List.app (prInitVal os) values;
+		List.app (prLitDefPatch os) litdefs;
+		if !Control.doDebug 
+		then
+		(
+		output(os, "\trmldb_load_db(\"");
+		output(os, prefix^".rdb");
+		output(os, "\");\n")	
+		)
+		else ();
+		output(os, "}\n")
       end
 
     fun prInterfaceValDec os (lab,_) = prValDec os lab

@@ -1,0 +1,6 @@
+module moda:
+
+  datatype Exp = SPECop of int list vector option
+
+
+end

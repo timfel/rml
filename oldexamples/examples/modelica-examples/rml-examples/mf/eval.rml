@@ -1,0 +1,333 @@
+(* eval.rml -- Mini-Freja Evaluator *)
+module Eval:
+    with "absyn.rml"	(* get module Absyn *)
+    relation exec: Absyn.exp => ()
+end
+
+datatype value	= CONSTval of Absyn.const
+		| CLOval of env * Absyn.var * Absyn.exp
+		| CONSval of value * value
+		| SUSPval of env * Absyn.exp
+		| RSUSPval of env lvar * Absyn.exp	(* for RECexp *)
+type env	= (Absyn.var * value) list
+
+(* Apply a unary strict primop. The argument must be a constant. *)
+
+relation primapp1: (Absyn.prim1, Absyn.const) => Absyn.const =
+
+	rule	bool_not x => y
+		----------------
+		primapp1(Absyn.NOT, Absyn.BOOLcnst x) => Absyn.BOOLcnst y
+
+	rule	int_neg x => y
+		----------------
+		primapp1(Absyn.NEG, Absyn.INTcnst x) => Absyn.INTcnst y
+end
+
+(* Apply a binary strict primop. The arguments must be constants. *)
+
+relation primapp2: (Absyn.prim2, Absyn.const, Absyn.const) => Absyn.const =
+
+	rule	int_lt(x, y) => z
+		----------------
+		primapp2(Absyn.LT, Absyn.INTcnst x, Absyn.INTcnst y)
+			=> Absyn.BOOLcnst z
+
+	rule	int_le(x, y) => z
+		----------------
+		primapp2(Absyn.LE, Absyn.INTcnst x, Absyn.INTcnst y)
+			=> Absyn.BOOLcnst z
+
+	rule	int_eq(x, y) => z
+		----------------
+		primapp2(Absyn.EQ, Absyn.INTcnst x, Absyn.INTcnst y)
+			=> Absyn.BOOLcnst z
+
+	rule	int_ne(x, y) => z
+		----------------
+		primapp2(Absyn.NE, Absyn.INTcnst x, Absyn.INTcnst y)
+			=> Absyn.BOOLcnst z
+
+	rule	int_ge(x, y) => z
+		----------------
+		primapp2(Absyn.GE, Absyn.INTcnst x, Absyn.INTcnst y)
+			=> Absyn.BOOLcnst z
+
+	rule	int_gt(x, y) => z
+		----------------
+		primapp2(Absyn.GT, Absyn.INTcnst x, Absyn.INTcnst y)
+			=> Absyn.BOOLcnst z
+
+	rule	bool_and(x, y) => z
+		----------------
+		primapp2(Absyn.AND, Absyn.BOOLcnst x, Absyn.BOOLcnst y)
+			=> Absyn.BOOLcnst z
+
+	rule	bool_or(x, y) => z
+		----------------
+		primapp2(Absyn.OR, Absyn.BOOLcnst x, Absyn.BOOLcnst y)
+			=> Absyn.BOOLcnst z
+
+	rule	int_add(x, y) => z
+		----------------
+		primapp2(Absyn.ADD, Absyn.INTcnst x, Absyn.INTcnst y)
+			=> Absyn.INTcnst z
+
+	rule	int_sub(x, y) => z
+		----------------
+		primapp2(Absyn.SUB, Absyn.INTcnst x, Absyn.INTcnst y)
+			=> Absyn.INTcnst z
+
+	rule	int_mul(x, y) => z
+		----------------
+		primapp2(Absyn.MUL, Absyn.INTcnst x, Absyn.INTcnst y)
+			=> Absyn.INTcnst z
+
+	rule	int_div(x, y) => z
+		----------------
+		primapp2(Absyn.DIV, Absyn.INTcnst x, Absyn.INTcnst y)
+			=> Absyn.INTcnst z
+
+	rule	int_mod(x, y) => z
+		----------------
+		primapp2(Absyn.MOD, Absyn.INTcnst x, Absyn.INTcnst y)
+			=> Absyn.INTcnst z
+end
+
+(* Find the most recent binding of an identifier in an environment. *)
+
+relation lookup: (env, Absyn.var) => value =
+
+	rule	id = id'
+		----------------
+		lookup((id,v)::_, id') => v
+
+	rule	not id = id' & lookup(rho, id') => v
+		----------------
+		lookup((id,_)::rho, id') => v
+end
+
+(* Augment an environment with a set of recursive declarations
+ * Step 1: construct an uninstantiated reference ptrNewRho
+ * Step 2: construct newRho: for every declaration (id,exp), push
+ *	   a binding (id, RSUSPval(ptrNewRho,exp)) onto the old rho
+ * Step 3: tie the knot by instantiating ptrNewRho to newRho
+ *
+ * The force and strict relations automatically dereference these
+ * rho references.
+ *)
+relation newenv: (env, (Absyn.var*Absyn.exp) list, env lvar) => env =
+
+  axiom	newenv(rho, [], _) => rho
+
+  rule	newenv((id,RSUSPval(ptrNewRho,exp))::rho, decls, ptrNewRho) => newRho
+	----------------
+	newenv(rho, (id,exp)::decls, ptrNewRho) => newRho
+end
+
+relation recenv: (env, (Absyn.var * Absyn.exp) list) => env =
+
+  rule	lvar_new => ptrNewRho &
+	newenv(rho, decls, ptrNewRho) => newRho &
+	lvar_set(ptrNewRho, newRho)
+	----------------
+	recenv(rho, decls) => newRho
+end
+
+(* Match a pattern with a value. Return augmented environment or error. *)
+
+datatype match_result = MYES of env | MNO
+
+relation match: (env, value, Absyn.pat) => match_result =
+
+	axiom	match(rho, v, Absyn.VARpat id) => MYES((id,v)::rho)
+
+	rule	c = c'
+		----------------
+		match(rho, CONSTval c, Absyn.CONSTpat c') => MYES rho
+
+	rule	not c = c'
+		----------------
+		match(rho, CONSTval c, Absyn.CONSTpat c') => MNO
+
+	rule	match(rho, v1, p1) => res1 & match_cdr(res1, v2, p2) => res2
+		----------------
+		match(rho, CONSval(v1,v2), Absyn.CONSpat(p1,p2)) => res2
+
+	axiom	match(_, CONSTval _, Absyn.CONSpat(_,_)) => MNO
+	axiom	match(_, CONSval(_,_), Absyn.CONSTpat _) => MNO
+end
+
+relation match_cdr: (match_result, value, Absyn.pat) => match_result =
+
+	rule	match(rho, v2, p2) => res
+		----------------
+		match_cdr(MYES rho, v2, p2) => res
+
+	axiom	match_cdr(MNO, _, _) => MNO	(* could use AS pattern here *)
+end
+
+(* Using result of IF predicate, choose between the alternative expressions *)
+
+relation if_choose: (bool, Absyn.exp, Absyn.exp) => Absyn.exp =
+
+	axiom	if_choose(true, e2, _) => e2
+	axiom	if_choose(false, _, e3) => e3
+end
+
+(* Evaluate the expression of the first pattern to match the value. Result in whnf *)
+
+relation eval_case: (env, value, Absyn.crule list) => value =
+
+	rule	match(rho, v, pat) => result &
+		case_choose(result, exp, rho, v, rules) => v'
+		----------------
+		eval_case(rho, v, (pat,exp)::rules) => v'
+end
+
+relation case_choose: (match_result, Absyn.exp, env, value, Absyn.crule list) => value =
+
+	rule	eval(rho', exp) => v'
+		----------------
+		case_choose(MYES rho', exp, _, _, _) => v'
+
+	rule	eval_case(rho, v, rules) => v'
+		----------------
+		case_choose(MNO, _, rho, v, rules) => v'
+end
+
+(* Compute the whnf of an expression in an environment *)
+
+relation eval: (env, Absyn.exp) => value =
+
+	axiom	eval(_, Absyn.CONSTexp c) => CONSTval c
+
+	rule	lookup(rho, id) => v & force v => v'
+		----------------
+		eval(rho, Absyn.VARexp id) => v'
+
+	axiom	eval(rho, Absyn.CONSexp(e1,e2))
+		=> CONSval(SUSPval(rho,e1), SUSPval(rho,e2))
+
+	axiom	eval(rho, Absyn.LAMexp(id,exp)) => CLOval(rho,id,exp)
+
+	rule	eval(rho, e) => v & eval_case(rho, v, rules) => v'
+		----------------
+		eval(rho, Absyn.CASEexp(e,rules)) => v'
+
+	rule	eval(rho, e) => CONSTval c &
+		primapp1(p, c) => c'
+		----------------
+		eval(rho, Absyn.PRIM1exp(p,e)) => CONSTval c'
+
+	rule	eval(rho,e1) => CONSTval c1 &
+		eval(rho,e2) => CONSTval c2 &
+		primapp2(p,c1,c2) => c3
+		----------------
+		eval(rho, Absyn.PRIM2exp(p,e1,e2)) => CONSTval c3
+
+	rule	eval(rho, e1) => CONSTval(Absyn.BOOLcnst flag) &
+		if_choose(flag, e2, e3) => e &
+		eval(rho, e) => v
+		----------------
+		eval(rho, Absyn.IFexp(e1,e2,e3)) => v
+
+	rule	eval(rho, f) => CLOval(rho',formal,body) &
+		eval((formal,SUSPval(rho,arg))::rho', body) => v
+		----------------
+		eval(rho, Absyn.APPexp(f,arg)) => v
+
+	rule	recenv(rho, d) => rho' & eval(rho', e) => v
+		----------------
+		eval(rho, Absyn.RECexp(d,e)) => v
+end
+
+(* Force a value to be in whnf *)
+
+relation force: value => value =
+
+	axiom	force(v as CONSTval _) => v
+	axiom	force(v as CLOval(_,_,_)) => v
+	axiom	force(v as CONSval(_,_)) => v
+
+	rule	eval(rho, exp) => v & force v => v'
+		----------------
+		force SUSPval(rho,exp) => v'
+
+	rule	lvar_get ptrRho => SOME rho &	(* fails is still unbound *)
+		eval(rho, exp) => v & force v => v'
+		----------------
+		force RSUSPval(ptrRho,exp) => v'
+end
+
+(* Force a value to be fully evaluated *)
+
+relation strict: value => value =
+
+	axiom	strict(v as CONSTval _) => v
+	axiom	strict(v as CLOval(_,_,_)) => v
+
+	rule	strict v1 => v1' & strict v2 => v2'
+		----------------
+		strict CONSval(v1,v2) => CONSval(v1',v2')
+
+	rule	eval(rho, exp) => v & strict v => v'
+		----------------
+		strict SUSPval(rho,exp) => v'
+
+	rule	lvar_get ptrRho => SOME rho &	(* fails if still unbound *)
+		eval(rho, exp) => v & strict v => v'
+		----------------
+		strict RSUSPval(ptrRho,exp) => v'
+end
+
+(* print a strict value *)
+
+relation bool_string: bool => string =
+  axiom bool_string true	=> "true"
+  axiom bool_string false	=> "false"
+end
+
+relation print_const: Absyn.const => () =
+
+  rule	int_string i => s & print s
+	----------------
+	print_const(Absyn.INTcnst i)
+
+  rule	bool_string b => s & print s
+	----------------
+	print_const(Absyn.BOOLcnst b)
+
+  rule	print "[]"
+	----------------
+	print_const(Absyn.NILcnst)
+end
+
+relation print_value: value => () =
+
+  rule	print_const c
+	----------------
+	print_value(CONSTval c)
+
+  rule	print "<closure>"
+	----------------
+	print_value(CLOval(_,_,_))
+
+  rule	print_value car & print "::" & print_value cdr
+	----------------
+	print_value(CONSval(car,cdr))
+end
+
+(* Evaluate an expression and print the result *)
+
+relation exec: Absyn.exp => () =
+
+  rule	eval([], e) => v &
+	strict v => v' &
+	print_value v' &
+	print "\n"
+	----------------
+	exec e => ()
+end
+
+(* end module Eval *)

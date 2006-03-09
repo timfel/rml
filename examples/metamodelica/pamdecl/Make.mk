@@ -14,17 +14,17 @@ all:    pamdecl
 # EXECUTABLE
  
 COMMONOBJS=yacclib.o
-VSLOBJS=main.o lexer.o parser.o scanparse.o absyn.o env.o eval.o
-CLEAN=pamdecl pamdecl.exe $(COMMONOBJS) $(VSLOBJS) main.c main.h lexer.c parser.c parser.h absyn.c absyn.h env.c env.h eval.c eval.h *~
+VSLOBJS=Main.o lexer.o parser.o ScanParse.o Absyn.o Env.o Eval.o
+CLEAN=pamdecl pamdecl.exe $(COMMONOBJS) $(VSLOBJS) Main.c Main.h lexer.c parser.c parser.h Absyn.c Absyn.h Env.c Env.h Eval.c Eval.h *~
  
 pamdecl: $(VSLOBJS) $(COMMONOBJS)
 	$(LINK.rml) $(VSLOBJS) $(COMMONOBJS) $(LDLIBS) -o pamdecl
  
 # MAIN ROUTINE WRITTEN IN RML NOW
  
-main.o: main.c
-main.c main.h: main.rml
-	$(COMPILE.rml) -c main.rml
+Main.o: Main.c
+Main.c Main.h: Main.mo
+	$(COMPILE.rml) -c Main.mo
  
 # YACCLIB
  
@@ -33,13 +33,13 @@ yacclib.o:  yacclib.c
  
 # LEXER
  
-lexer.o:  lexer.c parser.h absyn.h
+lexer.o:  lexer.c parser.h Absyn.h
 lexer.c:  lexer.l
 	flex -t -l lexer.l >lexer.c
  
 # PARSER
  
-parser.o:  parser.c absyn.h
+parser.o:  parser.c Absyn.h
 parser.c parser.h:  parser.y
 	bison -d parser.y
 	mv parser.tab.c parser.c
@@ -47,25 +47,25 @@ parser.c parser.h:  parser.y
  
 # INTERFACE TO SCANNER/PARSER (RML CALLING C)
  
-scanparse.o:  scanparse.c absyn.h
- 
+ScanParse.o:  ScanParse.c Absyn.h
+
 # ABSTRACT SYNTAX
  
-absyn.o:  absyn.c
-absyn.c absyn.h:  absyn.rml
-	$(COMPILE.rml) absyn.rml
+Absyn.o:  Absyn.c
+Absyn.c Absyn.h:  Absyn.mo
+	$(COMPILE.rml) Absyn.mo
  
 # ENVIRONMENTS
  
-env.o:  env.c
-env.c env.h:  env.rml
-	$(COMPILE.rml) env.rml
+Env.o:  Env.c
+Env.c Env.h:  Env.mo
+	$(COMPILE.rml) Env.mo
  
 # EVALUATION
  
-eval.o:  eval.c 
-eval.c eval.h:  eval.rml absyn.h env.h
-	$(COMPILE.rml) eval.rml
+Eval.o:  Eval.c 
+Eval.c Eval.h:  Eval.mo Absyn.h Env.h
+	$(COMPILE.rml) Eval.mo
  
 # AUX
 

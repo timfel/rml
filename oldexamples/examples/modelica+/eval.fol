@@ -1,0 +1,387 @@
+(MODULE Eval)
+
+(define (Exp [RCONST:1 PLUS:2 SUB:2 MUL:2 DIV:2 NEG:1])
+
+(define (eval $106:6)
+  (ORELSE (ANDTHEN (MATCH [($106:6
+			    (AS $107:0 (STRUCT RCONST [(AS $108:3 (WILD))])))])
+		   (ANDTHEN (AND (AND (AND (CALL RML.debug_push_in01
+						 ["v1" $108:3]
+						 [])
+					   (MATCH []))
+				      (AND (CALL RML.debug
+						 ["eval.mo"
+						  19
+						  26
+						  19
+						  28
+						  "eval"
+						  "axiom:eval(RCONST(v1)) => (v1)"]
+						 [])
+					   (MATCH [])))
+				 (AND (CALL RML.debug_push_out01
+					    ["v1" $108:3]
+					    [])
+				      (MATCH [])))
+			    (RETURN [$108:3])))
+	  (ORELSE (ANDTHEN (MATCH [($106:6
+				    (AS $109:0
+					  (STRUCT PLUS
+						  [(AS $110:2 (WILD))
+						   (AS $111:2 (WILD))])))])
+			   (ANDTHEN (AND (AND (AND (AND (AND (CALL RML.debug_push_in01
+								   ["e1" $110:2]
+								   [])
+							     (MATCH []))
+							(AND (CALL RML.debug
+								   ["eval.mo"
+								    21
+								    11
+								    21
+								    21
+								    "eval"
+								    "call:eval(e1) => (v1)"]
+								   [])
+							     (MATCH [])))
+						   (AND (AND (CALL eval
+								   [$110:2]
+								   [$113:1])
+							     (MATCH [($113:1
+								      (AS $112:3
+									    (WILD)))]))
+							(AND (CALL RML.debug_push_out01
+								   ["v1" $112:3]
+								   [])
+							     (MATCH []))))
+					      (AND (AND (AND (CALL RML.debug_push_in01
+								   ["e2" $111:2]
+								   [])
+							     (MATCH []))
+							(AND (CALL RML.debug
+								   ["eval.mo"
+								    21
+								    26
+								    21
+								    36
+								    "eval"
+								    "call:eval(e2) => (v2)"]
+								   [])
+							     (MATCH [])))
+						   (AND (CALL eval
+							      [$111:2]
+							      [$115:1])
+							(MATCH [($115:1
+								 (AS $114:2
+								       (WILD)))]))))
+					 (AND (AND (AND (CALL RML.debug_push_in02
+							      ["v1"
+							       $112:3
+							       "v2"
+							       $114:2]
+							      [])
+							(MATCH []))
+						   (AND (CALL RML.debug
+							      ["eval.mo"
+							       22
+							       13
+							       22
+							       21
+							       "eval"
+							       "call:real_add(v1,v2) => (temp101)"]
+							      [])
+							(MATCH [])))
+					      (AND (CALL real_add
+							 [$112:3 $114:2]
+							 [$117:1])
+						   (MATCH [($117:1
+							    (AS $116:1
+								  (WILD)))]))))
+				    (RETURN [$116:1])))
+		  (ORELSE (ANDTHEN (MATCH [($106:6
+					    (AS $118:0
+						  (STRUCT SUB
+							  [(AS $119:2 (WILD))
+							   (AS $120:2
+								 (WILD))])))])
+				   (ANDTHEN (AND (AND (AND (AND (AND (CALL RML.debug_push_in01
+									   ["e1"
+									    $119:2]
+									   [])
+								     (MATCH []))
+								(AND (CALL RML.debug
+									   ["eval.mo"
+									    24
+									    11
+									    24
+									    21
+									    "eval"
+									    "call:eval(e1) => (v1)"]
+									   [])
+								     (MATCH [])))
+							   (AND (AND (CALL eval
+									   [$119:2]
+									   [$122:1])
+								     (MATCH [($122:1
+									      (AS $121:3
+										    (WILD)))]))
+								(AND (CALL RML.debug_push_out01
+									   ["v1"
+									    $121:3]
+									   [])
+								     (MATCH []))))
+						      (AND (AND (AND (CALL RML.debug_push_in01
+									   ["e2"
+									    $120:2]
+									   [])
+								     (MATCH []))
+								(AND (CALL RML.debug
+									   ["eval.mo"
+									    24
+									    26
+									    24
+									    36
+									    "eval"
+									    "call:eval(e2) => (v2)"]
+									   [])
+								     (MATCH [])))
+							   (AND (CALL eval
+								      [$120:2]
+								      [$124:1])
+								(MATCH [($124:1
+									 (AS $123:2
+									       (WILD)))]))))
+						 (AND (AND (AND (CALL RML.debug_push_in02
+								      ["v1"
+								       $121:3
+								       "v2"
+								       $123:2]
+								      [])
+								(MATCH []))
+							   (AND (CALL RML.debug
+								      ["eval.mo"
+								       25
+								       13
+								       25
+								       21
+								       "eval"
+								       "call:real_sub(v1,v2) => (temp102)"]
+								      [])
+								(MATCH [])))
+						      (AND (CALL real_sub
+								 [$121:3 $123:2]
+								 [$126:1])
+							   (MATCH [($126:1
+								    (AS $125:1
+									  (WILD)))]))))
+					    (RETURN [$125:1])))
+			  (ORELSE (ANDTHEN (MATCH [($106:6
+						    (AS $127:0
+							  (STRUCT MUL
+								  [(AS $128:2
+									 (WILD))
+								   (AS $129:2
+									 (WILD))])))])
+					   (ANDTHEN (AND (AND (AND (AND (AND (CALL RML.debug_push_in01
+										   ["e1"
+										    $128:2]
+										   [])
+									     (MATCH []))
+									(AND (CALL RML.debug
+										   ["eval.mo"
+										    27
+										    11
+										    27
+										    21
+										    "eval"
+										    "call:eval(e1) => (v1)"]
+										   [])
+									     (MATCH [])))
+								   (AND (AND (CALL eval
+										   [$128:2]
+										   [$131:1])
+									     (MATCH [($131:1
+										      (AS $130:3
+											    (WILD)))]))
+									(AND (CALL RML.debug_push_out01
+										   ["v1"
+										    $130:3]
+										   [])
+									     (MATCH []))))
+							      (AND (AND (AND (CALL RML.debug_push_in01
+										   ["e2"
+										    $129:2]
+										   [])
+									     (MATCH []))
+									(AND (CALL RML.debug
+										   ["eval.mo"
+										    27
+										    26
+										    27
+										    36
+										    "eval"
+										    "call:eval(e2) => (v2)"]
+										   [])
+									     (MATCH [])))
+								   (AND (CALL eval
+									      [$129:2]
+									      [$133:1])
+									(MATCH [($133:1
+										 (AS $132:2
+										       (WILD)))]))))
+							 (AND (AND (AND (CALL RML.debug_push_in02
+									      ["v1"
+									       $130:3
+									       "v2"
+									       $132:2]
+									      [])
+									(MATCH []))
+								   (AND (CALL RML.debug
+									      ["eval.mo"
+									       28
+									       13
+									       28
+									       21
+									       "eval"
+									       "call:real_mul(v1,v2) => (temp103)"]
+									      [])
+									(MATCH [])))
+							      (AND (CALL real_mul
+									 [$130:3
+									  $132:2]
+									 [$135:1])
+								   (MATCH [($135:1
+									    (AS $134:1
+										  (WILD)))]))))
+						    (RETURN [$134:1])))
+				  (ORELSE (ANDTHEN (MATCH [($106:6
+							    (AS $136:0
+								  (STRUCT DIV
+									  [(AS $137:2
+										 (WILD))
+									   (AS $138:2
+										 (WILD))])))])
+						   (ANDTHEN (AND (AND (AND (AND (AND (CALL RML.debug_push_in01
+											   ["e1"
+											    $137:2]
+											   [])
+										     (MATCH []))
+										(AND (CALL RML.debug
+											   ["eval.mo"
+											    30
+											    11
+											    30
+											    21
+											    "eval"
+											    "call:eval(e1) => (v1)"]
+											   [])
+										     (MATCH [])))
+									   (AND (AND (CALL eval
+											   [$137:2]
+											   [$140:1])
+										     (MATCH [($140:1
+											      (AS $139:3
+												    (WILD)))]))
+										(AND (CALL RML.debug_push_out01
+											   ["v1"
+											    $139:3]
+											   [])
+										     (MATCH []))))
+								      (AND (AND (AND (CALL RML.debug_push_in01
+											   ["e2"
+											    $138:2]
+											   [])
+										     (MATCH []))
+										(AND (CALL RML.debug
+											   ["eval.mo"
+											    30
+											    26
+											    30
+											    36
+											    "eval"
+											    "call:eval(e2) => (v2)"]
+											   [])
+										     (MATCH [])))
+									   (AND (CALL eval
+										      [$138:2]
+										      [$142:1])
+										(MATCH [($142:1
+											 (AS $141:2
+											       (WILD)))]))))
+								 (AND (AND (AND (CALL RML.debug_push_in02
+										      ["v1"
+										       $139:3
+										       "v2"
+										       $141:2]
+										      [])
+										(MATCH []))
+									   (AND (CALL RML.debug
+										      ["eval.mo"
+										       31
+										       13
+										       31
+										       21
+										       "eval"
+										       "call:real_div(v1,v2) => (temp104)"]
+										      [])
+										(MATCH [])))
+								      (AND (CALL real_div
+										 [$139:3
+										  $141:2]
+										 [$144:1])
+									   (MATCH [($144:1
+										    (AS $143:1
+											  (WILD)))]))))
+							    (RETURN [$143:1])))
+					  (ANDTHEN (MATCH [($106:6
+							    (AS $145:0
+								  (STRUCT NEG
+									  [(AS $146:2
+										 (WILD))])))])
+						   (ANDTHEN (AND (AND (AND (AND (CALL RML.debug_push_in01
+										      ["e1"
+										       $146:2]
+										      [])
+										(MATCH []))
+									   (AND (CALL RML.debug
+										      ["eval.mo"
+										       33
+										       11
+										       33
+										       21
+										       "eval"
+										       "call:eval(e1) => (v1)"]
+										      [])
+										(MATCH [])))
+								      (AND (AND (CALL eval
+										      [$146:2]
+										      [$148:1])
+										(MATCH [($148:1
+											 (AS $147:3
+											       (WILD)))]))
+									   (AND (CALL RML.debug_push_out01
+										      ["v1"
+										       $147:3]
+										      [])
+										(MATCH []))))
+								 (AND (AND (AND (CALL RML.debug_push_in01
+										      ["v1"
+										       $147:3]
+										      [])
+										(MATCH []))
+									   (AND (CALL RML.debug
+										      ["eval.mo"
+										       34
+										       13
+										       34
+										       18
+										       "eval"
+										       "call:real_neg(v1) => (temp105)"]
+										      [])
+										(MATCH [])))
+								      (AND (CALL real_neg
+										 [$147:3]
+										 [$150:1])
+									   (MATCH [($150:1
+										    (AS $149:1
+											  (WILD)))]))))
+							    (RETURN [$149:1])))))))))

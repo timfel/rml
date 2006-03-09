@@ -6,6 +6,8 @@ structure RMLParse =
 	  structure RMLParser = RMLParser
 	  structure Tokens = RMLLrVals.Tokens
 	  structure LexArg = LexArg
-	  structure MOToRML = MOToRML
-	  structure Control = Control);
+	  structure Control = Control
+	  structure Cache = Cache
+	  structure Reorder = Reorder
+	  );
 

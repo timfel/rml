@@ -3,7 +3,7 @@
 #include "parser.h"
 #include "rml.h"
 #include "yacclib.h"
-#include "absyn.h"
+#include "Absyn.h"
  
 typedef void *rml_t;
 /* extern rml_t yylval; */

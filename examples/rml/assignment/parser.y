@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include "yacclib.h"
 #include "rml.h"
-#include "assignment.h"
+#include "Assignment.h"
 
 typedef void *rml_t;
 #define YYSTYPE rml_t
@@ -28,7 +28,7 @@ extern rml_t absyntree;
 /* Yacc BNF grammar of the expression language Assignments */
 
 program         :  assignments T_SEMIC expression
-                        { absyntree = assignment__PROGRAM($1, $3);}
+                        { absyntree = Assignment__PROGRAM($1, $3);}
 
 assignments     :  assignments  assignment
                         { $$ = mk_cons($2, $1);}
@@ -36,43 +36,43 @@ assignments     :  assignments  assignment
                         { $$ = mk_nil();}
 
 assignment      :  T_IDENT  T_ASSIGN  expression
-                        { $$ = assignment__ASSIGN($1, $3);}
+                        { $$ = Assignment__ASSIGN($1, $3);}
 
 expression      :  term
                         { $$ = $1;}
                 |  expression  weak_operator  term
-                        { $$ = assignment__BINARY($1, $2, $3);}
+                        { $$ = Assignment__BINARY($1, $2, $3);}
 
 term            :  u_element
                         { $$ = $1;}
                 |  term  strong_operator  u_element
-                        { $$ = assignment__BINARY($1, $2, $3);}
+                        { $$ = Assignment__BINARY($1, $2, $3);}
 
 u_element       :  element
                         { $$ = $1;}
                 |  unary_operator  element
-                        { $$ = assignment__UNARY($1, $2);}
+                        { $$ = Assignment__UNARY($1, $2);}
 
 element         :  T_INTCONST
                         { $$ = $1;}
                 |  T_IDENT
-                        { $$ = assignment__IDENT($1);}
+                        { $$ = Assignment__IDENT($1);}
                 |  T_LPAREN  expression  T_RPAREN
                         { $$ = $2;}
                 |  T_LPAREN  assignment  T_RPAREN
                         { $$ = $2;}
 
 weak_operator   :  T_ADD
-                        { $$ = assignment__ADD;}
+                        { $$ = Assignment__ADD;}
                 |  T_SUB
-                        { $$ = assignment__SUB;}
+                        { $$ = Assignment__SUB;}
 
 strong_operator :  T_MUL
-                        { $$ = assignment__MUL;}
+                        { $$ = Assignment__MUL;}
                 |  T_DIV
-                        { $$ = assignment__DIV;}
+                        { $$ = Assignment__DIV;}
 
 unary_operator  :  T_SUB
-                        { $$ = assignment__NEG;}
+                        { $$ = Assignment__NEG;}
 
 

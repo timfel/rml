@@ -1,0 +1,4 @@
+module ScanParse:
+  with "absyn.rml"
+  relation scanparse: (string) => Absyn.GProg
+end

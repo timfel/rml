@@ -297,7 +297,7 @@ functor InterpFn(structure Util : UTIL
       InterpCore.list2value 
 		(fn scon => 
 			InterpCore.LIT(
-				Absyn.SCONlit(scon, ref(Absyn.dummyInfo)))) scon_star
+				Absyn.SCONlit(scon, Absyn.dummyInfo))) scon_star
 
     (* Programs *)
 

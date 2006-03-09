@@ -1,0 +1,1027 @@
+(MODULE exp2)
+
+(define (UnOp [NEG])
+
+(define (BinOp [ADD SUB MUL DIV])
+
+(define (Exp [INT:1 BINARY:3 UNARY:2])
+
+(define (apply_unop $102:1 $101:1)
+  (ANDTHEN (MATCH [($102:1 (AS $103:0 NEG)) ($101:1 (AS $104:3 (WILD)))])
+	   (ANDTHEN (AND (AND (AND (AND (CALL RML.debug_print
+					      ["NEG" "<- match"]
+					      [])
+					(MATCH []))
+				   (AND (CALL RML.debug_print ["NEG" NEG] [])
+					(MATCH [])))
+			      (AND (AND (CALL RML.debug_print
+					      ["v" "<- match"]
+					      [])
+					(MATCH []))
+				   (AND (CALL RML.debug_print ["v" $104:3] [])
+					(MATCH []))))
+			 (AND (AND (AND (CALL RML.debug
+					      ["exp2.rml"
+					       52
+					       9
+					       52
+					       24
+					       "apply_unop"
+					       "call:int_neg(v) => (v2)"]
+					      [])
+					(MATCH []))
+				   (AND (CALL RML.debug_print ["v" $104:3] [])
+					(MATCH [])))
+			      (AND (AND (CALL int_neg [$104:3] [$106:1])
+					(MATCH [($106:1 (AS $105:2 (WILD)))]))
+				   (AND (AND (CALL RML.debug_print
+						   ["v2" "<- match"]
+						   [])
+					     (MATCH []))
+					(AND (CALL RML.debug_print
+						   ["v2" $105:2]
+						   [])
+					     (MATCH []))))))
+		    (RETURN [$105:2]))))
+
+(define (apply_binop $109:4 $108:4 $107:4)
+  (ORELSE (ANDTHEN (MATCH [($109:4 (AS $110:0 ADD))
+			   ($108:4 (AS $111:3 (WILD)))
+			   ($107:4 (AS $112:3 (WILD)))])
+		   (ANDTHEN (AND (AND (AND (AND (CALL RML.debug_print
+						      ["ADD" "<- match"]
+						      [])
+						(MATCH []))
+					   (AND (CALL RML.debug_print
+						      ["ADD" ADD]
+						      [])
+						(MATCH [])))
+				      (AND (AND (AND (CALL RML.debug_print
+							   ["v1" "<- match"]
+							   [])
+						     (MATCH []))
+						(AND (CALL RML.debug_print
+							   ["v1" $111:3]
+							   [])
+						     (MATCH [])))
+					   (AND (AND (CALL RML.debug_print
+							   ["v2" "<- match"]
+							   [])
+						     (MATCH []))
+						(AND (CALL RML.debug_print
+							   ["v2" $112:3]
+							   [])
+						     (MATCH [])))))
+				 (AND (AND (AND (CALL RML.debug
+						      ["exp2.rml"
+						       32
+						       9
+						       32
+						       28
+						       "apply_binop"
+						       "call:int_add(v1,v2) => (v3)"]
+						      [])
+						(MATCH []))
+					   (AND (AND (CALL RML.debug_print
+							   ["v1" $111:3]
+							   [])
+						     (MATCH []))
+						(AND (CALL RML.debug_print
+							   ["v2" $112:3]
+							   [])
+						     (MATCH []))))
+				      (AND (AND (CALL int_add
+						      [$111:3 $112:3]
+						      [$114:1])
+						(MATCH [($114:1
+							 (AS $113:2 (WILD)))]))
+					   (AND (AND (CALL RML.debug_print
+							   ["v3" "<- match"]
+							   [])
+						     (MATCH []))
+						(AND (CALL RML.debug_print
+							   ["v3" $113:2]
+							   [])
+						     (MATCH []))))))
+			    (RETURN [$113:2])))
+	  (ORELSE (ANDTHEN (MATCH [($109:4 (AS $115:0 SUB))
+				   ($108:4 (AS $116:3 (WILD)))
+				   ($107:4 (AS $117:3 (WILD)))])
+			   (ANDTHEN (AND (AND (AND (AND (CALL RML.debug_print
+							      ["SUB" "<- match"]
+							      [])
+							(MATCH []))
+						   (AND (CALL RML.debug_print
+							      ["SUB" SUB]
+							      [])
+							(MATCH [])))
+					      (AND (AND (AND (CALL RML.debug_print
+								   ["v1"
+								    "<- match"]
+								   [])
+							     (MATCH []))
+							(AND (CALL RML.debug_print
+								   ["v1" $116:3]
+								   [])
+							     (MATCH [])))
+						   (AND (AND (CALL RML.debug_print
+								   ["v2"
+								    "<- match"]
+								   [])
+							     (MATCH []))
+							(AND (CALL RML.debug_print
+								   ["v2" $117:3]
+								   [])
+							     (MATCH [])))))
+					 (AND (AND (AND (CALL RML.debug
+							      ["exp2.rml"
+							       36
+							       9
+							       36
+							       28
+							       "apply_binop"
+							       "call:int_sub(v1,v2) => (v3)"]
+							      [])
+							(MATCH []))
+						   (AND (AND (CALL RML.debug_print
+								   ["v1" $116:3]
+								   [])
+							     (MATCH []))
+							(AND (CALL RML.debug_print
+								   ["v2" $117:3]
+								   [])
+							     (MATCH []))))
+					      (AND (AND (CALL int_sub
+							      [$116:3 $117:3]
+							      [$119:1])
+							(MATCH [($119:1
+								 (AS $118:2
+								       (WILD)))]))
+						   (AND (AND (CALL RML.debug_print
+								   ["v3"
+								    "<- match"]
+								   [])
+							     (MATCH []))
+							(AND (CALL RML.debug_print
+								   ["v3" $118:2]
+								   [])
+							     (MATCH []))))))
+				    (RETURN [$118:2])))
+		  (ORELSE (ANDTHEN (MATCH [($109:4 (AS $120:0 MUL))
+					   ($108:4 (AS $121:3 (WILD)))
+					   ($107:4 (AS $122:3 (WILD)))])
+				   (ANDTHEN (AND (AND (AND (AND (CALL RML.debug_print
+								      ["MUL"
+								       "<- match"]
+								      [])
+								(MATCH []))
+							   (AND (CALL RML.debug_print
+								      ["MUL"
+								       MUL]
+								      [])
+								(MATCH [])))
+						      (AND (AND (AND (CALL RML.debug_print
+									   ["v1"
+									    "<- match"]
+									   [])
+								     (MATCH []))
+								(AND (CALL RML.debug_print
+									   ["v1"
+									    $121:3]
+									   [])
+								     (MATCH [])))
+							   (AND (AND (CALL RML.debug_print
+									   ["v2"
+									    "<- match"]
+									   [])
+								     (MATCH []))
+								(AND (CALL RML.debug_print
+									   ["v2"
+									    $122:3]
+									   [])
+								     (MATCH [])))))
+						 (AND (AND (AND (CALL RML.debug
+								      ["exp2.rml"
+								       40
+								       9
+								       40
+								       28
+								       "apply_binop"
+								       "call:int_mul(v1,v2) => (v3)"]
+								      [])
+								(MATCH []))
+							   (AND (AND (CALL RML.debug_print
+									   ["v1"
+									    $121:3]
+									   [])
+								     (MATCH []))
+								(AND (CALL RML.debug_print
+									   ["v2"
+									    $122:3]
+									   [])
+								     (MATCH []))))
+						      (AND (AND (CALL int_mul
+								      [$121:3
+								       $122:3]
+								      [$124:1])
+								(MATCH [($124:1
+									 (AS $123:2
+									       (WILD)))]))
+							   (AND (AND (CALL RML.debug_print
+									   ["v3"
+									    "<- match"]
+									   [])
+								     (MATCH []))
+								(AND (CALL RML.debug_print
+									   ["v3"
+									    $123:2]
+									   [])
+								     (MATCH []))))))
+					    (RETURN [$123:2])))
+			  (ANDTHEN (MATCH [($109:4 (AS $125:0 DIV))
+					   ($108:4 (AS $126:3 (WILD)))
+					   ($107:4 (AS $127:3 (WILD)))])
+				   (ANDTHEN (AND (AND (AND (AND (CALL RML.debug_print
+								      ["DIV"
+								       "<- match"]
+								      [])
+								(MATCH []))
+							   (AND (CALL RML.debug_print
+								      ["DIV"
+								       DIV]
+								      [])
+								(MATCH [])))
+						      (AND (AND (AND (CALL RML.debug_print
+									   ["v1"
+									    "<- match"]
+									   [])
+								     (MATCH []))
+								(AND (CALL RML.debug_print
+									   ["v1"
+									    $126:3]
+									   [])
+								     (MATCH [])))
+							   (AND (AND (CALL RML.debug_print
+									   ["v2"
+									    "<- match"]
+									   [])
+								     (MATCH []))
+								(AND (CALL RML.debug_print
+									   ["v2"
+									    $127:3]
+									   [])
+								     (MATCH [])))))
+						 (AND (AND (AND (CALL RML.debug
+								      ["exp2.rml"
+								       44
+								       9
+								       44
+								       28
+								       "apply_binop"
+								       "call:int_div(v1,v2) => (v3)"]
+								      [])
+								(MATCH []))
+							   (AND (AND (CALL RML.debug_print
+									   ["v1"
+									    $126:3]
+									   [])
+								     (MATCH []))
+								(AND (CALL RML.debug_print
+									   ["v2"
+									    $127:3]
+									   [])
+								     (MATCH []))))
+						      (AND (AND (CALL int_div
+								      [$126:3
+								       $127:3]
+								      [$129:1])
+								(MATCH [($129:1
+									 (AS $128:2
+									       (WILD)))]))
+							   (AND (AND (CALL RML.debug_print
+									   ["v3"
+									    "<- match"]
+									   [])
+								     (MATCH []))
+								(AND (CALL RML.debug_print
+									   ["v3"
+									    $128:2]
+									   [])
+								     (MATCH []))))))
+					    (RETURN [$128:2])))))))
+
+(define (eval $130:3)
+  (ORELSE (ANDTHEN (MATCH [($130:3
+			    (AS $131:0 (STRUCT INT [(AS $132:3 (WILD))])))])
+		   (ANDTHEN (AND (AND (AND (AND (CALL RML.debug_print
+						      ["INT(ival)" "<- match"]
+						      [])
+						(MATCH []))
+					   (AND (CALL RML.debug_print
+						      ["ival" $132:3]
+						      [])
+						(MATCH [])))
+				      (AND (CALL RML.debug
+						 ["exp2.rml"
+						  16
+						  3
+						  16
+						  33
+						  "eval"
+						  "axiom:"]
+						 [])
+					   (MATCH [])))
+				 (AND (CALL RML.debug_print ["ival" $132:3] [])
+				      (MATCH [])))
+			    (RETURN [$132:3])))
+	  (ORELSE (ANDTHEN (MATCH [($130:3
+				    (AS $133:0
+					  (STRUCT BINARY
+						  [(AS $134:3 (WILD))
+						   (AS $135:3 (WILD))
+						   (AS $136:3 (WILD))])))])
+			   (ANDTHEN (AND (AND (AND (CALL RML.debug_print
+							 ["BINARY(e1,binop,e2)"
+							  "<- match"]
+							 [])
+						   (MATCH []))
+					      (AND (AND (CALL RML.debug_print
+							      ["e1" $134:3]
+							      [])
+							(MATCH []))
+						   (AND (AND (CALL RML.debug_print
+								   ["binop"
+								    $135:3]
+								   [])
+							     (MATCH []))
+							(AND (CALL RML.debug_print
+								   ["e2" $136:3]
+								   [])
+							     (MATCH [])))))
+					 (AND (AND (AND (AND (CALL RML.debug
+								   ["exp2.rml"
+								    18
+								    9
+								    18
+								    22
+								    "eval"
+								    "call:eval(e1) => (v1)"]
+								   [])
+							     (MATCH []))
+							(AND (CALL RML.debug_print
+								   ["e1" $134:3]
+								   [])
+							     (MATCH [])))
+						   (AND (AND (CALL eval
+								   [$134:3]
+								   [$138:1])
+							     (MATCH [($138:1
+								      (AS $137:3
+									    (WILD)))]))
+							(AND (AND (CALL RML.debug_print
+									["v1"
+									 "<- match"]
+									[])
+								  (MATCH []))
+							     (AND (CALL RML.debug_print
+									["v1"
+									 $137:3]
+									[])
+								  (MATCH [])))))
+					      (AND (AND (AND (AND (CALL RML.debug
+									["exp2.rml"
+									 19
+									 9
+									 19
+									 22
+									 "eval"
+									 "call:eval(e2) => (v2)"]
+									[])
+								  (MATCH []))
+							     (AND (CALL RML.debug_print
+									["e2"
+									 $136:3]
+									[])
+								  (MATCH [])))
+							(AND (AND (CALL eval
+									[$136:3]
+									[$140:1])
+								  (MATCH [($140:1
+									   (AS $139:3
+										 (WILD)))]))
+							     (AND (AND (CALL RML.debug_print
+									     ["v2"
+									      "<- match"]
+									     [])
+								       (MATCH []))
+								  (AND (CALL RML.debug_print
+									     ["v2"
+									      $139:3]
+									     [])
+								       (MATCH [])))))
+						   (AND (AND (AND (AND (CALL RML.debug
+									     ["exp2.rml"
+									      20
+									      9
+									      20
+									      38
+									      "eval"
+									      "call:apply_binop(binop,v1,v2) => (v3)"]
+									     [])
+								       (MATCH []))
+								  (AND (AND (CALL RML.debug_print
+										  ["binop"
+										   $135:3]
+										  [])
+									    (MATCH []))
+								       (AND (AND (CALL RML.debug_print
+										       ["v1"
+											$137:3]
+										       [])
+										 (MATCH []))
+									    (AND (CALL RML.debug_print
+										       ["v2"
+											$139:3]
+										       [])
+										 (MATCH [])))))
+							     (AND (AND (CALL apply_binop
+									     [$135:3
+									      $137:3
+									      $139:3]
+									     [$142:1])
+								       (MATCH [($142:1
+										(AS $141:3
+										      (WILD)))]))
+								  (AND (AND (CALL RML.debug_print
+										  ["v3"
+										   "<- match"]
+										  [])
+									    (MATCH []))
+								       (AND (CALL RML.debug_print
+										  ["v3"
+										   $141:3]
+										  [])
+									    (MATCH [])))))
+							(AND (AND (CALL RML.debug
+									["exp2.rml"
+									 22
+									 37
+									 22
+									 41
+									 "eval"
+									 "return:(v3)"]
+									[])
+								  (MATCH []))
+							     (AND (CALL RML.debug_print
+									["v3"
+									 $141:3]
+									[])
+								  (MATCH [])))))))
+				    (RETURN [$141:3])))
+		  (ANDTHEN (MATCH [($130:3
+				    (AS $143:0
+					  (STRUCT UNARY
+						  [(AS $144:3 (WILD))
+						   (AS $145:3 (WILD))])))])
+			   (ANDTHEN (AND (AND (AND (CALL RML.debug_print
+							 ["UNARY(unop,e)"
+							  "<- match"]
+							 [])
+						   (MATCH []))
+					      (AND (AND (CALL RML.debug_print
+							      ["unop" $144:3]
+							      [])
+							(MATCH []))
+						   (AND (CALL RML.debug_print
+							      ["e" $145:3]
+							      [])
+							(MATCH []))))
+					 (AND (AND (AND (AND (CALL RML.debug
+								   ["exp2.rml"
+								    24
+								    9
+								    24
+								    21
+								    "eval"
+								    "call:eval(e) => (v1)"]
+								   [])
+							     (MATCH []))
+							(AND (CALL RML.debug_print
+								   ["e" $145:3]
+								   [])
+							     (MATCH [])))
+						   (AND (AND (CALL eval
+								   [$145:3]
+								   [$147:1])
+							     (MATCH [($147:1
+								      (AS $146:3
+									    (WILD)))]))
+							(AND (AND (CALL RML.debug_print
+									["v1"
+									 "<- match"]
+									[])
+								  (MATCH []))
+							     (AND (CALL RML.debug_print
+									["v1"
+									 $146:3]
+									[])
+								  (MATCH [])))))
+					      (AND (AND (AND (AND (CALL RML.debug
+									["exp2.rml"
+									 24
+									 27
+									 24
+									 51
+									 "eval"
+									 "call:apply_unop(unop,v1) => (v2)"]
+									[])
+								  (MATCH []))
+							     (AND (AND (CALL RML.debug_print
+									     ["unop"
+									      $144:3]
+									     [])
+								       (MATCH []))
+								  (AND (CALL RML.debug_print
+									     ["v1"
+									      $146:3]
+									     [])
+								       (MATCH []))))
+							(AND (AND (CALL apply_unop
+									[$144:3
+									 $146:3]
+									[$149:1])
+								  (MATCH [($149:1
+									   (AS $148:3
+										 (WILD)))]))
+							     (AND (AND (CALL RML.debug_print
+									     ["v2"
+									      "<- match"]
+									     [])
+								       (MATCH []))
+								  (AND (CALL RML.debug_print
+									     ["v2"
+									      $148:3]
+									     [])
+								       (MATCH [])))))
+						   (AND (AND (CALL RML.debug
+								   ["exp2.rml"
+								    26
+								    31
+								    26
+								    35
+								    "eval"
+								    "return:(v2)"]
+								   [])
+							     (MATCH []))
+							(AND (CALL RML.debug_print
+								   ["v2" $148:3]
+								   [])
+							     (MATCH []))))))
+				    (RETURN [$148:3]))))))
+(MODULE exp2)
+
+(define (UnOp [NEG])
+
+(define (BinOp [ADD SUB MUL DIV])
+
+(define (Exp [INT:1 BINARY:3 UNARY:2])
+
+(define (apply_unop $102:1 $101:1)
+  (CASE [$102:1 $101:1]
+	([(AS $103:0 NEG) (AS $104:3 (WILD))]
+	 (ANDTHEN (CALL RML.debug_print ["NEG" "<- match"] [])
+		  (ANDTHEN (CALL RML.debug_print ["NEG" NEG] [])
+			   (ANDTHEN (CALL RML.debug_print ["v" "<- match"] [])
+				    (ANDTHEN (CALL RML.debug_print
+						   ["v" $104:3]
+						   [])
+					     (ANDTHEN (CALL RML.debug
+							    ["exp2.rml"
+							     52
+							     9
+							     52
+							     24
+							     "apply_unop"
+							     "call:int_neg(v) => (v2)"]
+							    [])
+						      (ANDTHEN (CALL RML.debug_print
+								     ["v"
+								      $104:3]
+								     [])
+							       (ANDTHEN (CALL int_neg
+									      [$104:3]
+									      [$106:1])
+									(CASE [$106:1]
+									      ([(AS $105:2
+										      (WILD))]
+									       (ANDTHEN (CALL RML.debug_print
+											      ["v2"
+											       "<- match"]
+											      [])
+											(ANDTHEN (CALL RML.debug_print
+												       ["v2"
+													$105:2]
+												       [])
+												 (RETURN [$105:2])))))))))))))))
+
+(define (apply_binop $109:1 $108:1 $107:1)
+  (CASE [$109:1 $108:1 $107:1]
+	([(AS $115:0 SUB) (AS $116:3 (WILD)) (AS $117:3 (WILD))]
+	 (ANDTHEN (CALL RML.debug_print ["SUB" "<- match"] [])
+		  (ANDTHEN (CALL RML.debug_print ["SUB" SUB] [])
+			   (ANDTHEN (CALL RML.debug_print ["v1" "<- match"] [])
+				    (ANDTHEN (CALL RML.debug_print
+						   ["v1" $116:3]
+						   [])
+					     (ANDTHEN (CALL RML.debug_print
+							    ["v2" "<- match"]
+							    [])
+						      (ANDTHEN (CALL RML.debug_print
+								     ["v2"
+								      $117:3]
+								     [])
+							       (ANDTHEN (CALL RML.debug
+									      ["exp2.rml"
+									       36
+									       9
+									       36
+									       28
+									       "apply_binop"
+									       "call:int_sub(v1,v2) => (v3)"]
+									      [])
+									(ANDTHEN (CALL RML.debug_print
+										       ["v1"
+											$116:3]
+										       [])
+										 (ANDTHEN (CALL RML.debug_print
+												["v2"
+												 $117:3]
+												[])
+											  (ANDTHEN (CALL int_sub
+													 [$116:3
+													  $117:3]
+													 [$119:1])
+												   (CASE [$119:1]
+													 ([(AS $118:2
+														 (WILD))]
+													  (ANDTHEN (CALL RML.debug_print
+															 ["v3"
+															  "<- match"]
+															 [])
+														   (ANDTHEN (CALL RML.debug_print
+																  ["v3"
+																   $118:2]
+																  [])
+															    (RETURN [$118:2]))))))))))))))))
+	([(AS $125:0 DIV) (AS $126:3 (WILD)) (AS $127:3 (WILD))]
+	 (ANDTHEN (CALL RML.debug_print ["DIV" "<- match"] [])
+		  (ANDTHEN (CALL RML.debug_print ["DIV" DIV] [])
+			   (ANDTHEN (CALL RML.debug_print ["v1" "<- match"] [])
+				    (ANDTHEN (CALL RML.debug_print
+						   ["v1" $126:3]
+						   [])
+					     (ANDTHEN (CALL RML.debug_print
+							    ["v2" "<- match"]
+							    [])
+						      (ANDTHEN (CALL RML.debug_print
+								     ["v2"
+								      $127:3]
+								     [])
+							       (ANDTHEN (CALL RML.debug
+									      ["exp2.rml"
+									       44
+									       9
+									       44
+									       28
+									       "apply_binop"
+									       "call:int_div(v1,v2) => (v3)"]
+									      [])
+									(ANDTHEN (CALL RML.debug_print
+										       ["v1"
+											$126:3]
+										       [])
+										 (ANDTHEN (CALL RML.debug_print
+												["v2"
+												 $127:3]
+												[])
+											  (ANDTHEN (CALL int_div
+													 [$126:3
+													  $127:3]
+													 [$129:1])
+												   (CASE [$129:1]
+													 ([(AS $128:2
+														 (WILD))]
+													  (ANDTHEN (CALL RML.debug_print
+															 ["v3"
+															  "<- match"]
+															 [])
+														   (ANDTHEN (CALL RML.debug_print
+																  ["v3"
+																   $128:2]
+																  [])
+															    (RETURN [$128:2]))))))))))))))))
+	([(AS $120:0 MUL) (AS $121:3 (WILD)) (AS $122:3 (WILD))]
+	 (ANDTHEN (CALL RML.debug_print ["MUL" "<- match"] [])
+		  (ANDTHEN (CALL RML.debug_print ["MUL" MUL] [])
+			   (ANDTHEN (CALL RML.debug_print ["v1" "<- match"] [])
+				    (ANDTHEN (CALL RML.debug_print
+						   ["v1" $121:3]
+						   [])
+					     (ANDTHEN (CALL RML.debug_print
+							    ["v2" "<- match"]
+							    [])
+						      (ANDTHEN (CALL RML.debug_print
+								     ["v2"
+								      $122:3]
+								     [])
+							       (ANDTHEN (CALL RML.debug
+									      ["exp2.rml"
+									       40
+									       9
+									       40
+									       28
+									       "apply_binop"
+									       "call:int_mul(v1,v2) => (v3)"]
+									      [])
+									(ANDTHEN (CALL RML.debug_print
+										       ["v1"
+											$121:3]
+										       [])
+										 (ANDTHEN (CALL RML.debug_print
+												["v2"
+												 $122:3]
+												[])
+											  (ANDTHEN (CALL int_mul
+													 [$121:3
+													  $122:3]
+													 [$124:1])
+												   (CASE [$124:1]
+													 ([(AS $123:2
+														 (WILD))]
+													  (ANDTHEN (CALL RML.debug_print
+															 ["v3"
+															  "<- match"]
+															 [])
+														   (ANDTHEN (CALL RML.debug_print
+																  ["v3"
+																   $123:2]
+																  [])
+															    (RETURN [$123:2]))))))))))))))))
+	([(AS $110:0 ADD) (AS $111:3 (WILD)) (AS $112:3 (WILD))]
+	 (ANDTHEN (CALL RML.debug_print ["ADD" "<- match"] [])
+		  (ANDTHEN (CALL RML.debug_print ["ADD" ADD] [])
+			   (ANDTHEN (CALL RML.debug_print ["v1" "<- match"] [])
+				    (ANDTHEN (CALL RML.debug_print
+						   ["v1" $111:3]
+						   [])
+					     (ANDTHEN (CALL RML.debug_print
+							    ["v2" "<- match"]
+							    [])
+						      (ANDTHEN (CALL RML.debug_print
+								     ["v2"
+								      $112:3]
+								     [])
+							       (ANDTHEN (CALL RML.debug
+									      ["exp2.rml"
+									       32
+									       9
+									       32
+									       28
+									       "apply_binop"
+									       "call:int_add(v1,v2) => (v3)"]
+									      [])
+									(ANDTHEN (CALL RML.debug_print
+										       ["v1"
+											$111:3]
+										       [])
+										 (ANDTHEN (CALL RML.debug_print
+												["v2"
+												 $112:3]
+												[])
+											  (ANDTHEN (CALL int_add
+													 [$111:3
+													  $112:3]
+													 [$114:1])
+												   (CASE [$114:1]
+													 ([(AS $113:2
+														 (WILD))]
+													  (ANDTHEN (CALL RML.debug_print
+															 ["v3"
+															  "<- match"]
+															 [])
+														   (ANDTHEN (CALL RML.debug_print
+																  ["v3"
+																   $113:2]
+																  [])
+															    (RETURN [$113:2]))))))))))))))))))
+
+(define (eval $130:1)
+  (CASE [$130:1]
+	([(AS $133:0
+		(STRUCT BINARY
+			[(AS $134:3 (WILD))
+			 (AS $135:3 (WILD))
+			 (AS $136:3 (WILD))]))]
+	 (ANDTHEN (CALL RML.debug_print ["BINARY(e1,binop,e2)" "<- match"] [])
+		  (ANDTHEN (CALL RML.debug_print ["e1" $134:3] [])
+			   (ANDTHEN (CALL RML.debug_print ["binop" $135:3] [])
+				    (ANDTHEN (CALL RML.debug_print
+						   ["e2" $136:3]
+						   [])
+					     (ANDTHEN (CALL RML.debug
+							    ["exp2.rml"
+							     18
+							     9
+							     18
+							     22
+							     "eval"
+							     "call:eval(e1) => (v1)"]
+							    [])
+						      (ANDTHEN (CALL RML.debug_print
+								     ["e1"
+								      $134:3]
+								     [])
+							       (ANDTHEN (CALL eval
+									      [$134:3]
+									      [$138:1])
+									(CASE [$138:1]
+									      ([(AS $137:3
+										      (WILD))]
+									       (ANDTHEN (CALL RML.debug_print
+											      ["v1"
+											       "<- match"]
+											      [])
+											(ANDTHEN (CALL RML.debug_print
+												       ["v1"
+													$137:3]
+												       [])
+												 (ANDTHEN (CALL RML.debug
+														["exp2.rml"
+														 19
+														 9
+														 19
+														 22
+														 "eval"
+														 "call:eval(e2) => (v2)"]
+														[])
+													  (ANDTHEN (CALL RML.debug_print
+															 ["e2"
+															  $136:3]
+															 [])
+														   (ANDTHEN (CALL eval
+																  [$136:3]
+																  [$140:1])
+															    (CASE [$140:1]
+																  ([(AS $139:3
+																	  (WILD))]
+																   (ANDTHEN (CALL RML.debug_print
+																		  ["v2"
+																		   "<- match"]
+																		  [])
+																	    (ANDTHEN (CALL RML.debug_print
+																			   ["v2"
+																			    $139:3]
+																			   [])
+																		     (ANDTHEN (CALL RML.debug
+																				    ["exp2.rml"
+																				     20
+																				     9
+																				     20
+																				     38
+																				     "eval"
+																				     "call:apply_binop(binop,v1,v2) => (v3)"]
+																				    [])
+																			      (ANDTHEN (CALL RML.debug_print
+																					     ["binop"
+																					      $135:3]
+																					     [])
+																				       (ANDTHEN (CALL RML.debug_print
+																						      ["v1"
+																						       $137:3]
+																						      [])
+																						(ANDTHEN (CALL RML.debug_print
+																							       ["v2"
+																								$139:3]
+																							       [])
+																							 (ANDTHEN (CALL apply_binop
+																									[$135:3
+																									 $137:3
+																									 $139:3]
+																									[$142:1])
+																								  (CASE [$142:1]
+																									([(AS $141:3
+																										(WILD))]
+																									 (ANDTHEN (CALL RML.debug_print
+																											["v3"
+																											 "<- match"]
+																											[])
+																										  (ANDTHEN (CALL RML.debug_print
+																												 ["v3"
+																												  $141:3]
+																												 [])
+																											   (ANDTHEN (CALL RML.debug
+																													  ["exp2.rml"
+																													   22
+																													   37
+																													   22
+																													   41
+																													   "eval"
+																													   "return:(v3)"]
+																													  [])
+																												    (ANDTHEN (CALL RML.debug_print
+																														   ["v3"
+																														    $141:3]
+																														   [])
+																													     (RETURN [$141:3])))))))))))))))))))))))))))))))
+	([(AS $143:0 (STRUCT UNARY [(AS $144:3 (WILD)) (AS $145:3 (WILD))]))]
+	 (ANDTHEN (CALL RML.debug_print ["UNARY(unop,e)" "<- match"] [])
+		  (ANDTHEN (CALL RML.debug_print ["unop" $144:3] [])
+			   (ANDTHEN (CALL RML.debug_print ["e" $145:3] [])
+				    (ANDTHEN (CALL RML.debug
+						   ["exp2.rml"
+						    24
+						    9
+						    24
+						    21
+						    "eval"
+						    "call:eval(e) => (v1)"]
+						   [])
+					     (ANDTHEN (CALL RML.debug_print
+							    ["e" $145:3]
+							    [])
+						      (ANDTHEN (CALL eval
+								     [$145:3]
+								     [$147:1])
+							       (CASE [$147:1]
+								     ([(AS $146:3
+									     (WILD))]
+								      (ANDTHEN (CALL RML.debug_print
+										     ["v1"
+										      "<- match"]
+										     [])
+									       (ANDTHEN (CALL RML.debug_print
+											      ["v1"
+											       $146:3]
+											      [])
+											(ANDTHEN (CALL RML.debug
+												       ["exp2.rml"
+													24
+													27
+													24
+													51
+													"eval"
+													"call:apply_unop(unop,v1) => (v2)"]
+												       [])
+												 (ANDTHEN (CALL RML.debug_print
+														["unop"
+														 $144:3]
+														[])
+													  (ANDTHEN (CALL RML.debug_print
+															 ["v1"
+															  $146:3]
+															 [])
+														   (ANDTHEN (CALL apply_unop
+																  [$144:3
+																   $146:3]
+																  [$149:1])
+															    (CASE [$149:1]
+																  ([(AS $148:3
+																	  (WILD))]
+																   (ANDTHEN (CALL RML.debug_print
+																		  ["v2"
+																		   "<- match"]
+																		  [])
+																	    (ANDTHEN (CALL RML.debug_print
+																			   ["v2"
+																			    $148:3]
+																			   [])
+																		     (ANDTHEN (CALL RML.debug
+																				    ["exp2.rml"
+																				     26
+																				     31
+																				     26
+																				     35
+																				     "eval"
+																				     "return:(v2)"]
+																				    [])
+																			      (ANDTHEN (CALL RML.debug_print
+																					     ["v2"
+																					      $148:3]
+																					     [])
+																				       (RETURN [$148:3]))))))))))))))))))))))
+	([(AS $131:0 (STRUCT INT [(AS $132:3 (WILD))]))]
+	 (ANDTHEN (CALL RML.debug_print ["INT(ival)" "<- match"] [])
+		  (ANDTHEN (CALL RML.debug_print ["ival" $132:3] [])
+			   (ANDTHEN (CALL RML.debug
+					  ["exp2.rml"
+					   16
+					   3
+					   16
+					   33
+					   "eval"
+					   "axiom:"]
+					  [])
+				    (ANDTHEN (CALL RML.debug_print
+						   ["ival" $132:3]
+						   [])
+					     (RETURN [$132:3]))))))))

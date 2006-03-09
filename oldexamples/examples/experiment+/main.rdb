@@ -1,0 +1,26 @@
+v: main.rml:11.5.11.5|range[17.3.21.3]|walk[k:string Main.tree]
+v: main.rml:11.5.11.5|range[21.3.26.1]|walk[k:string Main.tree]
+v: main.rml:25.24.25.30|range[21.3.26.1]|walk[element:string]
+v: main.rml:25.33.25.37|range[21.3.26.1]|walk[right:string Main.tree]
+v: main.rml:25.18.25.21|range[21.3.26.1]|walk[left:string Main.tree]
+v: main.rml:11.5.11.5|range[29.2.29.8]|j[k:string Main.tree]
+v: main.rml:29.14.29.15|range[29.2.29.8]|j[s2:string]
+v: main.rml:29.10.29.11|range[29.2.29.8]|j[s1:string]
+v: main.rml:11.5.11.5|range[34.3.46.1]|main[k:string Main.tree]
+v: main.rml:36.19.36.19|range[34.3.46.1]|main[a:Main.s]
+v: main.rml:38.14.38.15|range[34.3.46.1]|main[s1:string]
+v: main.rml:36.24.36.24|range[34.3.46.1]|main[l:Main.s]
+v: main.rml:37.12.37.12|range[34.3.46.1]|main[p:Main.s]
+v: main.rml:39.14.39.15|range[34.3.46.1]|main[s3:string]
+v: main.rml:38.18.38.19|range[34.3.46.1]|main[s2:string]
+v: main.rml:39.18.39.19|range[34.3.46.1]|main[s4:string]
+v: main.rml:34.12.34.12|range[34.3.46.1]|main[x:int]
+v: main.rml:35.25.35.25|range[34.3.46.1]|main[z:string]
+t: main.rml:6.10.6.10|Main.s
+t: main.rml:4.13.4.16|Main.tree
+c: main.rml:4.20.4.24|Main.Empty:'a Main.tree
+c: main.rml:6.14.6.14|Main.A:(string,string) => Main.s
+c: main.rml:4.28.4.31|Main.Node:('a Main.tree,'a,'a Main.tree) => 'a Main.tree
+r: main.rml:28.10.28.10|Main.j:(string,string) => Main.s
+r: main.rml:32.10.32.13|Main.main:string list => ()
+r: main.rml:16.10.16.13|Main.walk:string Main.tree => ()

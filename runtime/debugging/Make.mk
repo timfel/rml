@@ -34,6 +34,7 @@ distclean:	realclean clean-configure
 realclean:	clean
 
 clean:
-	rm -f *.o core rmldb rmldb-*.c rmldb-*.h a.out core mon.out gmon.out *~ rml-db-*.c rml-db-*.h
+	rm -f *.o core rmldb \
+	      a.out core mon.out gmon.out *~ 
 
 

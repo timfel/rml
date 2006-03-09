@@ -1,28 +1,7 @@
-/*
-    Copyright PELAB, Linkoping University
-
-    This file is part of Relational Meta-Language (RML).
-	http://www.ida.liu.se/~pelab/rml
-
-    RML is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    RML is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Foobar; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
- * Adrian Pop, adrpo@ida.liu.se, http://www.ida.liu.se/~adrpo,
- * RMLDataTree.java 
- *  - created 2004-11-22
- *  - copyright adrpo, IDA/PELAB
- *  - last modified: 2004-12-23
+/**
+ * Adrian Pop, adrpo@ida.liu.se, created 2004-11-22
+ * Copyright adrpo, IDA/PELAB
+ * last modified: 2004-12-23
  */
 import javax.swing.JEditorPane;
 import javax.swing.JFrame;
@@ -60,9 +39,6 @@ public class RMLDataTree extends JPanel implements TreeSelectionListener
 {
     private JEditorPane htmlPane;
 	private JTabbedPane fileView;
-	private RMLEditorKit editorKit;
-	private JScrollPane treeView;
-	private JScrollPane htmlView; 
     private JTree tree;
     private URL helpURL;
 	static JFrame frame = null;
@@ -115,8 +91,6 @@ public class RMLDataTree extends JPanel implements TreeSelectionListener
 	
 	static String rmlFilesPrefix = null;
 
-	FileInputStream fis; 
-
     public RMLDataTree() 
 	{
         super(new GridLayout(1,0));
@@ -134,20 +108,20 @@ public class RMLDataTree extends JPanel implements TreeSelectionListener
 
         if (playWithLineStyle) 
 		{
-            if (DEBUG) System.err.println("line style = " + lineStyle);
+            if (DEBUG) System.out.println("line style = " + lineStyle);
             tree.putClientProperty("JTree.lineStyle", lineStyle);
         }
 
         //Create the scroll pane and add the tree to it. 
-        treeView = new JScrollPane(tree);
+        JScrollPane treeView = new JScrollPane(tree);
                 		
         //Create the HTML viewing pane.
         htmlPane = new JEditorPane();
         htmlPane.setEditable(true);
         initHelp();
 
-        htmlView = new JScrollPane(htmlPane);
-		fileView = new JTabbedPane(JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
+        JScrollPane htmlView = new JScrollPane(htmlPane);
+		fileView = new JTabbedPane();
 		fileView.addTab("Help", null, htmlView, "General Help");
         //Add the scroll panes to a split pane.
         JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
@@ -179,60 +153,41 @@ public class RMLDataTree extends JPanel implements TreeSelectionListener
                            tree.getLastSelectedPathComponent();
 
         if (node == null) return;
-		
-        Object nodeInfo = node.getUserObject();
 
-		int tabIndex = -1;
-		try
+        Object nodeInfo = node.getUserObject();
+		htmlPane = new JEditorPane();
+		htmlPane.setEditable(true);
+		JScrollPane scrollPane = new JScrollPane(htmlPane);
+        if (!node.isRoot()) 
 		{
-	        if (!node.isRoot()) 
-			{
-	            RMLVariableInfo rmlVariable = (RMLVariableInfo)nodeInfo;
-	            if (rmlVariable.nKind != KIND_STRING)
-	            {
-					if ((tabIndex = fileView.indexOfTab(rmlVariable.rmlFile)) == -1) // we don't have it
+            RMLVariableInfo rmlVariable = (RMLVariableInfo)nodeInfo;
+            if (rmlVariable.nKind != KIND_STRING)
+            {
+            	if (rmlVariable.rmlFile.compareTo("RML") == 0)
+            	{
+					fileView.addTab("RML", null, scrollPane, "RML predefined type");
+
+					htmlPane.setContentType("text/plain");
+            		htmlPane.setText("RML predefined type");
+            	}
+            	else
+            	{
+					fileView.addTab(rmlVariable.rmlFile, null, scrollPane, rmlFilesPrefix + rmlVariable.rmlFile);
+
+            		RMLEditorKit editorKit = new RMLEditorKit();
+			        htmlPane.setEditorKitForContentType("text/rml", editorKit);
+					htmlPane.setContentType("text/rml");
+            		/* focus & select the line with the interesting text */
+            		//htmlPane.select(10,30);
+    				try
 					{
-						htmlPane = new JEditorPane();
-						htmlPane.setEditable(true);
-						htmlView = new JScrollPane(htmlPane);
-						if (rmlVariable.rmlFile.compareTo("RML") == 0)
-						{
-							fileView.addTab("RML", null, htmlView, "RML predefined type");
-						}
-						else
-						{
-							fileView.addTab(rmlVariable.rmlFile, null, htmlView, rmlFilesPrefix + rmlVariable.rmlFile);
-						}
-						fileView.setSelectedIndex(fileView.getTabCount()-1);
-					}
-					else // we already have it!
-					{
-						htmlView = (JScrollPane)fileView.getComponentAt(tabIndex);
-						htmlPane = (JEditorPane)htmlView.getViewport().getView();
-						fileView.setSelectedIndex(tabIndex);
-					}
-					if (DEBUG) System.err.println("Tab:" + tabIndex);
-	            	if (rmlVariable.rmlFile.compareTo("RML") == 0)
-	            	{
-						htmlPane.setContentType("text/plain");
-	            		htmlPane.setText("RML predefined type");						            		
-	            	}
-	            	else
-	            	{
-						if (tabIndex == -1)
-						{
-						   if (DEBUG) System.err.println("Reading File: " + rmlFilesPrefix + rmlVariable.rmlFile);
-						   editorKit = new RMLEditorKit();
-						   htmlPane.setEditorKitForContentType("text/rml", editorKit);
-						   htmlPane.setContentType("text/rml");																			
-						   fis = new FileInputStream(rmlFilesPrefix + rmlVariable.rmlFile);
-						   htmlPane.read( fis, null );
-						}
+						FileInputStream fis = new FileInputStream(rmlFilesPrefix + rmlVariable.rmlFile);
+						htmlPane.read( fis, null );
 						htmlPane.requestFocus();
 						int docLength = htmlPane.getDocument().getLength();
 						String text = htmlPane.getDocument().getText(0, 
-										docLength);
-						if (DEBUG) System.err.println("File Length: " + docLength);
+										htmlPane.getDocument().getLength());
+						
 						int startline = 0;
 						int startcolumn = 0;
 						if (rmlVariable.nKind == KIND_VARIABLE)
@@ -250,14 +205,12 @@ public class RMLDataTree extends JPanel implements TreeSelectionListener
 						{
 							start = text.indexOf("\n", start + 1);
 						}
-						int posNewLine = text.indexOf("\n", start + 1);
+						int posNewLine = text.indexOf("\n", start + 1); 
 						String strLine = text.substring(start, posNewLine);
-						if (DEBUG) System.err.println(strLine + " size: " + (posNewLine-start));
-						System.err.println("Before tab handling: startline=" + startline + " startcolumn " + startcolumn);
+						if (DEBUG) System.out.println(strLine + " size: " + (posNewLine-start));
 						/* handle the fact that the damn \t is 8 in the RML parser and here is only 1 */
 						int startPosition = 0; int noTabs = 0;
-						int tabSize = 1;
-						if (strLine.indexOf("\t") != -1)
+						if (strLine.indexOf("\t") != 0)
 						{
 							for (int j = 0; j < strLine.length(); j++)
 							{
@@ -265,71 +218,58 @@ public class RMLDataTree extends JPanel implements TreeSelectionListener
 								{
 									if (strLine.substring(j,j+1).equals("\t")) 
 									{
-										startPosition = startPosition + tabSize; noTabs++;
+										startPosition = startPosition + 8; noTabs++;
 									}
 									else
 										startPosition++;
 								}
 								else break;
 							}
-							startcolumn = startcolumn - (noTabs*tabSize-noTabs);
+							startcolumn = startcolumn - (noTabs*8-noTabs);
 						}
-						System.err.println("Column: " + startcolumn + " Tabs: " + noTabs);
-						System.err.println("After tab handling: startline=" + startline + " startcolumn " + startcolumn);
+						if (DEBUG) System.out.println("Column: " + startcolumn + " Tabs: " + noTabs);
 						if (start < docLength)
 						{
 							htmlPane.setCaretPosition(posNewLine);
 							htmlPane.moveCaretPosition(start + startcolumn);
 						}
-						//displayURL(rmlFilesPrefix + rmlVariable.rmlFile);          		
-						if (DEBUG) System.err.print(rmlFilesPrefix + rmlVariable.rmlFile + " \n ");
-	            	}
-	            }            
-	            if (rmlVariable.nKind == KIND_STRING)
-	            {
-					if ((tabIndex = fileView.indexOfTab("String")) == -1) // we don't have it
-					{
-						htmlPane = new JEditorPane();
-						htmlPane.setEditable(true);
-						htmlView = new JScrollPane(htmlPane);
-						fileView.addTab("String", null, htmlView, "String");
-						fileView.setSelectedIndex(fileView.getTabCount()-1);
 					}
-					else // we already have it!
+					catch(Exception e) 
 					{
-						htmlView = (JScrollPane)fileView.getComponentAt(tabIndex);
-						htmlPane = (JEditorPane)htmlView.getViewport().getView();
-						fileView.setSelectedIndex(tabIndex);
+						System.err.println(e);
 					}
-	            	rmlVariable.rmlFile.trim();
-	            	if ((rmlVariable.rmlFile.startsWith("<html>") || 
-	            		 rmlVariable.rmlFile.startsWith("<HTML>")) /*&&
-	            		(rmlVariable.rmlFile.endsWith("</html>") || 
-	            		 rmlVariable.rmlFile.startsWith("</HTML>"))*/)
-	            	{
-	            		if (DEBUG) System.err.println("HTML!");
-	            		htmlPane.setContentType( "text/html" );
-	            		htmlPane.setText(rmlVariable.rmlFile);
-	            	}
-	            	else
-	            	{
-	            		if (DEBUG) System.err.println("TEXT!");
-				        htmlPane.setContentType("text/plain");
-	            		htmlPane.setText(rmlVariable.rmlFile);
-	            	}
-	            }
-	        } 
-	        else 
-	        {
-	            displayURL(helpURL);
-	        }
-	        if (DEBUG) System.err.println(nodeInfo.toString());
-		}
-		catch(Exception e) 
-		{
-			System.err.println(e);
-			System.err.println(e.toString());
-		}
+            		//displayURL(rmlFilesPrefix + rmlVariable.rmlFile);          		
+    	            if (DEBUG) System.out.print(rmlFilesPrefix + rmlVariable.rmlFile + " \n ");
+            	}
+            }            
+            if (rmlVariable.nKind == KIND_STRING)
+            {
+				fileView.addTab("String", null, scrollPane, "String");
+
+            	rmlVariable.rmlFile.trim();
+            	if ((rmlVariable.rmlFile.startsWith("<html>") || 
+            		 rmlVariable.rmlFile.startsWith("<HTML>")) /*&&
+            		(rmlVariable.rmlFile.endsWith("</html>") || 
+            		 rmlVariable.rmlFile.startsWith("</HTML>"))*/)
+            	{
+            		if (DEBUG) System.out.println("HTML!");
+            		htmlPane.setContentType( "text/html" );
+            		htmlPane.setText(rmlVariable.rmlFile);
+            	}
+            	else
+            	{
+            		if (DEBUG) System.out.println("TEXT!");
+			        htmlPane.setContentType("text/plain");
+            		htmlPane.setText(rmlVariable.rmlFile);
+            	}
+            }
+        } 
+        else 
+        {
+            displayURL(helpURL);
+        }
+		fileView.setSelectedIndex(fileView.getTabCount()-1);
+        if (DEBUG) System.out.println(nodeInfo.toString());
     }
 
     private class RMLVariableInfo 
@@ -425,7 +365,7 @@ public class RMLDataTree extends JPanel implements TreeSelectionListener
 		{
             System.err.println("Couldn't open help file: " + s);
         } 
-		else if (DEBUG) System.err.println("Help URL is " + helpURL);
+		else if (DEBUG) System.out.println("Help URL is " + helpURL);
 
         displayURL(helpURL);
     }
@@ -454,7 +394,7 @@ public class RMLDataTree extends JPanel implements TreeSelectionListener
 			else 
 			{ //null url
 				htmlPane.setText("No file");
-                if (DEBUG) System.err.println("Attempted to display a null URL.");
+                if (DEBUG) System.out.println("Attempted to display a null URL.");
             }
         } 
 		catch (IOException e) 
@@ -474,7 +414,7 @@ public class RMLDataTree extends JPanel implements TreeSelectionListener
 			else 
 			{ //null url
 				htmlPane.setText("No file");
-                if (DEBUG) System.err.println("Attempted to display a null URL.");
+                if (DEBUG) System.out.println("Attempted to display a null URL.");
             }
         } 
 		catch (IOException e) 
@@ -543,7 +483,7 @@ public class RMLDataTree extends JPanel implements TreeSelectionListener
 			rmlServer = new ServerSocket();
 			rmlServer.bind(new InetSocketAddress(rmlServerHostname, rmlServerPort));
 			rmlServer.setSoTimeout(0);			
-			if (DEBUG) System.err.println("Listening on :" + rmlServer.getInetAddress().getHostName() + ":" + rmlServerPort); 
+			if (DEBUG) System.out.println("Listening on :" + rmlServer.getInetAddress().getHostName() + ":" + rmlServerPort); 
 		}
 		catch (IOException e) 
 		{
@@ -559,7 +499,7 @@ public class RMLDataTree extends JPanel implements TreeSelectionListener
 		try 
 		{
 			clientSocket = rmlServer.accept();
-			if (DEBUG) System.err.println("Client connected - now receiving data");
+			if (DEBUG) System.out.println("Client connected - now receiving data");
 			boolean bNext = true;
 			Stack stack = new Stack();
 			DefaultMutableTreeNode node = null;
@@ -602,7 +542,7 @@ public class RMLDataTree extends JPanel implements TreeSelectionListener
 			while (!bServerStop) 
 			{
 				line = is.readLine(); 
-				if (DEBUG) System.err.println("Received:" + line);
+				if (DEBUG) System.out.println("Received:" + line);
 				if (line == null) break;
 				os.println("K");
 				if (line.compareTo("<.$STOP$.>") == 0) 
@@ -613,11 +553,11 @@ public class RMLDataTree extends JPanel implements TreeSelectionListener
 				if (line.compareTo("<.$STRING_START$.>") == 0) 
 				{ 
 					// string reading
-					if (DEBUG) System.err.println("Reading strings");
+					if (DEBUG) System.out.println("Reading strings");
 					String text = "";
 					while (true)
 					{
-						line = is.readLine(); if (DEBUG) System.err.println("Received:" + line);
+						line = is.readLine(); if (DEBUG) System.out.println("Received:" + line);
 						if (line == null) continue;
 						else if (line.compareTo("<.$STRING_END$.>") != 0)
 							 	text += line + "\n"; /* append to the little boy */
@@ -632,7 +572,7 @@ public class RMLDataTree extends JPanel implements TreeSelectionListener
 					
 					((RMLVariableInfo)((DefaultMutableTreeNode)stack.lastElement()).getUserObject()).rmlFile = text;
 					((RMLVariableInfo)((DefaultMutableTreeNode)stack.lastElement()).getUserObject()).nKind = KIND_STRING;
-					if (DEBUG) System.err.println("Read string:" + text);
+					if (DEBUG) System.out.println("Read string:" + text);
 					os.println("string-reading-ended");
 				}
 				else
@@ -727,7 +667,7 @@ public class RMLDataTree extends JPanel implements TreeSelectionListener
 					line = line.substring(line.indexOf("|")+1,line.length());
 					vFile = line.substring(0, line.indexOf("|"));
 					line = line.substring(line.indexOf("|")+1,line.length());
-					//if (DEBUG) System.err.println(sKind+vName+"|"+vType+"|"+vFile+"|"+line);
+					//if (DEBUG) System.out.println(sKind+vName+"|"+vType+"|"+vFile+"|"+line);
 					
 					tmp = line.substring(0, line.indexOf("."));
 					sl = Integer.valueOf(tmp).intValue(); 
@@ -963,13 +903,13 @@ public class RMLDataTree extends JPanel implements TreeSelectionListener
 		public SimpleThread(String str) 
 		{
 			super(str);
-			if (DEBUG) System.err.println("Creating thread"+str);
+			if (DEBUG) System.out.println("Creating thread"+str);
 		}
 		public void run() 
 		{
 			while (!bServerStop) 
 			{
-				if (DEBUG) System.err.println("Calling listen!");
+				if (DEBUG) System.out.println("Calling listen!");
 				listen();
 			}
 			htmlPane.setText("\n!!!!ListenerStopped!!!! - client communication failed - restart!");

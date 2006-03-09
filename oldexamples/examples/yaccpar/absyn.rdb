@@ -1,0 +1,261 @@
+t: absyn.rml:193.12.193.23|Absyn.EquationItem
+t: absyn.rml:284.12.284.20|Absyn.Direction
+t: absyn.rml:243.12.243.15|Absyn.Case
+t: absyn.rml:396.12.396.21|Absyn.Annotation
+t: absyn.rml:225.12.225.20|Absyn.Algorithm
+t: absyn.rml:197.12.197.24|Absyn.AlgorithmItem
+t: absyn.rml:291.8.291.15|Absyn.ArrayDim
+t: absyn.rml:325.12.325.15|Absyn.Code
+t: absyn.rml:100.12.100.19|Absyn.ClassDef
+t: absyn.rml:86.12.86.16|Absyn.Class
+t: absyn.rml:127.12.127.20|Absyn.ClassPart
+t: absyn.rml:186.12.186.20|Absyn.Component
+t: absyn.rml:400.12.400.18|Absyn.Comment
+t: absyn.rml:360.12.360.23|Absyn.ComponentRef
+t: absyn.rml:182.12.182.24|Absyn.ComponentItem
+t: absyn.rml:153.8.153.21|Absyn.ConstrainClass
+t: absyn.rml:471.12.471.19|Absyn.DTMember
+t: absyn.rml:136.12.136.22|Absyn.ElementItem
+t: absyn.rml:142.12.142.18|Absyn.Element
+t: absyn.rml:272.12.272.15|Absyn.Each
+t: absyn.rml:266.12.266.21|Absyn.ElementArg
+t: absyn.rml:275.12.275.28|Absyn.ElementAttributes
+t: absyn.rml:117.12.117.22|Absyn.EnumLiteral
+t: absyn.rml:165.12.165.22|Absyn.ElementSpec
+t: absyn.rml:202.12.202.19|Absyn.Equation
+t: absyn.rml:474.12.474.21|Absyn.RMLDbRange
+t: absyn.rml:49.12.49.15|Absyn.Info
+t: absyn.rml:404.12.404.23|Absyn.ExternalDecl
+t: absyn.rml:298.12.298.14|Absyn.Exp
+t: absyn.rml:56.8.56.12|Absyn.Ident
+t: absyn.rml:334.12.334.23|Absyn.FunctionArgs
+t: absyn.rml:177.12.177.17|Absyn.Import
+t: absyn.rml:343.12.343.19|Absyn.Operator
+t: absyn.rml:263.12.263.23|Absyn.Modification
+t: absyn.rml:174.12.174.21|Absyn.InnerOuter
+t: absyn.rml:339.12.339.19|Absyn.NamedArg
+t: absyn.rml:250.12.250.18|Absyn.Pattern
+t: absyn.rml:363.12.363.15|Absyn.Path
+t: absyn.rml:494.12.494.16|Absyn.RMLDb
+t: absyn.rml:63.12.63.18|Absyn.Program
+t: absyn.rml:412.12.412.22|Absyn.RMLDatatype
+t: absyn.rml:476.12.476.23|Absyn.RMLDbElement
+t: absyn.rml:466.12.466.21|Absyn.RMLLiteral
+t: absyn.rml:446.12.446.18|Absyn.RMLGoal
+t: absyn.rml:414.12.414.18|Absyn.RMLDecl
+t: absyn.rml:424.8.424.14|Absyn.RMLDefs
+t: absyn.rml:463.12.463.19|Absyn.RMLIdent
+t: absyn.rml:423.8.423.19|Absyn.RMLInterface
+t: absyn.rml:426.12.426.23|Absyn.RMLSignature
+t: absyn.rml:442.12.442.20|Absyn.RMLResult
+t: absyn.rml:453.12.453.21|Absyn.RMLPattern
+t: absyn.rml:437.12.437.18|Absyn.RMLRule
+t: absyn.rml:372.12.372.22|Absyn.Restriction
+t: absyn.rml:428.12.428.18|Absyn.RMLType
+t: absyn.rml:281.12.281.22|Absyn.Variability
+t: absyn.rml:350.12.350.20|Absyn.Subscript
+t: absyn.rml:80.12.80.17|Absyn.Within
+c: absyn.rml:167.12.167.18|Absyn.EXTENDS:(Absyn.Path,Absyn.ElementArg list) => Absyn.ElementSpec
+c: absyn.rml:328.5.328.22|Absyn.C_ALGORITHMSECTION:(bool,Absyn.AlgorithmItem list) => Absyn.Code
+c: absyn.rml:309.11.309.14|Absyn.CALL:(Absyn.ComponentRef,Absyn.FunctionArgs) => Absyn.Exp
+c: absyn.rml:226.10.226.25|Absyn.ALG_TUPLE_ASSIGN:(Absyn.Exp,Absyn.Exp) => Absyn.Algorithm
+c: absyn.rml:225.24.225.33|Absyn.ALG_ASSIGN:(Absyn.ComponentRef,Absyn.Exp) => Absyn.Algorithm
+c: absyn.rml:197.28.197.40|Absyn.ALGORITHMITEM:(Absyn.Algorithm,Absyn.Comment option) => Absyn.AlgorithmItem
+c: absyn.rml:343.23.343.25|Absyn.ADD:Absyn.Operator
+c: absyn.rml:198.8.198.23|Absyn.ALGORITHMITEMANN:Absyn.Annotation => Absyn.AlgorithmItem
+c: absyn.rml:131.10.131.19|Absyn.ALGORITHMS:Absyn.AlgorithmItem list => Absyn.ClassPart
+c: absyn.rml:228.10.228.15|Absyn.ALG_IF:(Absyn.Exp,Absyn.AlgorithmItem list,(Absyn.Exp*Absyn.AlgorithmItem list) list,Absyn.AlgorithmItem list) => Absyn.Algorithm
+c: absyn.rml:232.10.232.16|Absyn.ALG_FOR:(string,Absyn.Exp,Absyn.AlgorithmItem list) => Absyn.Algorithm
+c: absyn.rml:238.17.238.25|Absyn.ALG_MATCH:(Absyn.ComponentRef option,Absyn.Exp,Absyn.ElementItem list,Absyn.Case list) => Absyn.Algorithm
+c: absyn.rml:237.10.237.22|Absyn.ALG_NORETCALL:(Absyn.ComponentRef,Absyn.FunctionArgs) => Absyn.Algorithm
+c: absyn.rml:275.32.275.35|Absyn.ATTR:(bool,Absyn.Variability,Absyn.Direction,Absyn.Subscript list) => Absyn.ElementAttributes
+c: absyn.rml:233.10.233.18|Absyn.ALG_WHILE:(Absyn.Exp,Absyn.AlgorithmItem list) => Absyn.Algorithm
+c: absyn.rml:234.10.234.19|Absyn.ALG_WHEN_A:(Absyn.Exp,Absyn.AlgorithmItem list,(Absyn.Exp*Absyn.AlgorithmItem list) list) => Absyn.Algorithm
+c: absyn.rml:396.25.396.34|Absyn.ANNOTATION:Absyn.ElementArg list => Absyn.Annotation
+c: absyn.rml:345.9.345.11|Absyn.AND:Absyn.Operator
+c: absyn.rml:137.12.137.25|Absyn.ANNOTATIONITEM:Absyn.Annotation => Absyn.ElementItem
+c: absyn.rml:310.11.310.15|Absyn.ARRAY:Absyn.Exp list => Absyn.Exp
+c: absyn.rml:303.11.303.16|Absyn.BINARY:(Absyn.Exp,Absyn.Operator,Absyn.Exp) => Absyn.Exp
+c: absyn.rml:65.8.65.23|Absyn.BEGIN_DEFINITION:(Absyn.Path,Absyn.Restriction,bool,bool) => Absyn.Program
+c: absyn.rml:284.41.284.45|Absyn.BIDIR:Absyn.Direction
+c: absyn.rml:302.11.302.14|Absyn.BOOL:bool => Absyn.Exp
+c: absyn.rml:186.24.186.32|Absyn.COMPONENT:(string,Absyn.Subscript list,Absyn.Modification option) => Absyn.Component
+c: absyn.rml:165.26.165.33|Absyn.CLASSDEF:(bool,Absyn.Class) => Absyn.ElementSpec
+c: absyn.rml:243.19.243.22|Absyn.CASE:(Absyn.Pattern list,Absyn.ElementItem list,Absyn.ClassPart,Absyn.Exp) => Absyn.Case
+c: absyn.rml:426.27.426.34|Absyn.CALLSIGN:(Absyn.RMLType list,Absyn.RMLType list) => Absyn.RMLSignature
+c: absyn.rml:86.20.86.24|Absyn.CLASS:(string,bool,bool,bool,Absyn.Restriction,Absyn.ClassDef) => Absyn.Class
+c: absyn.rml:315.11.315.14|Absyn.CODE:Absyn.Code => Absyn.Exp
+c: absyn.rml:263.27.263.34|Absyn.CLASSMOD:(Absyn.ElementArg list,Absyn.Exp option) => Absyn.Modification
+c: absyn.rml:400.22.400.28|Absyn.COMMENT:(Absyn.Annotation option,string option) => Absyn.Comment
+c: absyn.rml:281.51.281.55|Absyn.CONST:Absyn.Variability
+c: absyn.rml:169.12.169.21|Absyn.COMPONENTS:(Absyn.ElementAttributes,Absyn.Path,Absyn.ComponentItem list) => Absyn.ElementSpec
+c: absyn.rml:182.28.182.40|Absyn.COMPONENTITEM:(Absyn.Component,Absyn.Comment option) => Absyn.ComponentItem
+c: absyn.rml:70.8.70.22|Absyn.COMP_DEFINITION:(Absyn.ElementSpec,Absyn.Path option) => Absyn.Program
+c: absyn.rml:361.10.361.19|Absyn.CREF_IDENT:(string,Absyn.Subscript list) => Absyn.ComponentRef
+c: absyn.rml:300.11.300.14|Absyn.CREF:Absyn.ComponentRef => Absyn.Exp
+c: absyn.rml:360.27.360.35|Absyn.CREF_QUAL:(string,Absyn.Subscript list,Absyn.ComponentRef) => Absyn.ComponentRef
+c: absyn.rml:314.11.314.13|Absyn.END:Absyn.Exp
+c: absyn.rml:102.9.102.15|Absyn.DERIVED:(Absyn.Path,Absyn.Subscript list option,Absyn.ElementAttributes,Absyn.ElementArg list,Absyn.Comment option) => Absyn.ClassDef
+c: absyn.rml:325.19.325.28|Absyn.C_TYPENAME:Absyn.Path => Absyn.Code
+c: absyn.rml:327.5.327.21|Absyn.C_EQUATIONSECTION:(bool,Absyn.EquationItem list) => Absyn.Code
+c: absyn.rml:329.5.329.13|Absyn.C_ELEMENT:Absyn.Element => Absyn.Code
+c: absyn.rml:330.5.330.16|Absyn.C_EXPRESSION:Absyn.Exp => Absyn.Code
+c: absyn.rml:331.5.331.18|Absyn.C_MODIFICATION:Absyn.Modification => Absyn.Code
+c: absyn.rml:412.26.412.33|Absyn.DATATYPE:(Absyn.RMLType list,Absyn.RMLIdent,Absyn.DTMember list) => Absyn.RMLDatatype
+c: absyn.rml:326.5.326.18|Absyn.C_VARIABLENAME:Absyn.ComponentRef => Absyn.Code
+c: absyn.rml:415.8.415.19|Absyn.DATATYPEDECL:Absyn.RMLDatatype => Absyn.RMLDecl
+c: absyn.rml:471.23.471.28|Absyn.DTCONS:(Absyn.RMLIdent,Absyn.RMLType list) => Absyn.DTMember
+c: absyn.rml:281.32.281.39|Absyn.DISCRETE:Absyn.Variability
+c: absyn.rml:107.23.107.35|Absyn.DERIVED_TYPES:(Absyn.Path,Absyn.Path list,Absyn.Comment option) => Absyn.ClassDef
+c: absyn.rml:343.50.343.52|Absyn.DIV:Absyn.Operator
+c: absyn.rml:142.22.142.28|Absyn.ELEMENT:(bool,bool,Absyn.InnerOuter,string,Absyn.ElementSpec,string,int,Absyn.ElementSpec option) => Absyn.Element
+c: absyn.rml:272.19.272.22|Absyn.EACH:Absyn.Each
+c: absyn.rml:136.26.136.36|Absyn.ELEMENTITEM:Absyn.Element => Absyn.ElementItem
+c: absyn.rml:217.9.217.15|Absyn.EQ_CALL:(Absyn.Path,Absyn.FunctionArgs,Absyn.Pattern) => Absyn.Equation
+c: absyn.rml:347.48.347.52|Absyn.EQUAL:Absyn.Operator
+c: absyn.rml:110.9.110.19|Absyn.ENUMERATION:(Absyn.EnumLiteral list,Absyn.Comment option) => Absyn.ClassDef
+c: absyn.rml:69.11.69.24|Absyn.END_DEFINITION:string => Absyn.Program
+c: absyn.rml:117.26.117.36|Absyn.ENUMLITERAL:(string,Absyn.Comment option) => Absyn.EnumLiteral
+c: absyn.rml:194.6.194.20|Absyn.EQUATIONITEMANN:Absyn.Annotation => Absyn.EquationItem
+c: absyn.rml:193.27.193.38|Absyn.EQUATIONITEM:(Absyn.Equation,Absyn.Comment option) => Absyn.EquationItem
+c: absyn.rml:129.10.129.18|Absyn.EQUATIONS:Absyn.EquationItem list => Absyn.ClassPart
+c: absyn.rml:214.9.214.14|Absyn.EQ_LET:(Absyn.Pattern,Absyn.Exp) => Absyn.Equation
+c: absyn.rml:206.9.206.17|Absyn.EQ_EQUALS:(Absyn.Exp,Absyn.Exp) => Absyn.Equation
+c: absyn.rml:207.9.207.18|Absyn.EQ_CONNECT:(Absyn.ComponentRef,Absyn.ComponentRef) => Absyn.Equation
+c: absyn.rml:208.9.208.14|Absyn.EQ_FOR:(string,Absyn.Exp,Absyn.EquationItem list) => Absyn.Equation
+c: absyn.rml:202.23.202.27|Absyn.EQ_IF:(Absyn.Exp,Absyn.EquationItem list,(Absyn.Exp*Absyn.EquationItem list) list,Absyn.EquationItem list) => Absyn.Equation
+c: absyn.rml:215.9.215.22|Absyn.EQ_STRUCTEQUAL:(string,Absyn.Exp) => Absyn.Equation
+c: absyn.rml:212.9.212.20|Absyn.EQ_NORETCALL:(string,Absyn.FunctionArgs) => Absyn.Equation
+c: absyn.rml:216.9.216.14|Absyn.EQ_NOT:Absyn.Equation list => Absyn.Equation
+c: absyn.rml:209.9.209.17|Absyn.EQ_WHEN_E:(Absyn.Exp,Absyn.EquationItem list,(Absyn.Exp*Absyn.EquationItem list) list) => Absyn.Equation
+c: absyn.rml:284.32.284.37|Absyn.OUTPUT:Absyn.Direction
+c: absyn.rml:347.17.347.22|Absyn.LESSEQ:Absyn.Operator
+c: absyn.rml:308.11.308.15|Absyn.IFEXP:(Absyn.Exp,Absyn.Exp,Absyn.Exp,(Absyn.Exp*Absyn.Exp) list) => Absyn.Exp
+c: absyn.rml:334.28.334.39|Absyn.FUNCTIONARGS:(Absyn.Exp list,Absyn.NamedArg list) => Absyn.FunctionArgs
+c: absyn.rml:404.27.404.38|Absyn.EXTERNALDECL:(string option,string option,Absyn.ComponentRef option,Absyn.Exp list) => Absyn.ExternalDecl
+c: absyn.rml:133.10.133.17|Absyn.EXTERNAL:(Absyn.ExternalDecl,Absyn.Annotation option) => Absyn.ClassPart
+c: absyn.rml:335.6.335.18|Absyn.FOR_ITER_FARG:(Absyn.Exp,string,Absyn.Exp) => Absyn.FunctionArgs
+c: absyn.rml:347.36.347.44|Absyn.GREATEREQ:Absyn.Operator
+c: absyn.rml:347.26.347.32|Absyn.GREATER:Absyn.Operator
+c: absyn.rml:364.11.364.15|Absyn.IDENT:string => Absyn.Path
+c: absyn.rml:284.24.284.28|Absyn.INPUT:Absyn.Direction
+c: absyn.rml:49.19.49.22|Absyn.INFO:(string,int,int,int,int) => Absyn.Info
+c: absyn.rml:168.12.168.17|Absyn.IMPORT:(Absyn.Import,Absyn.Comment option) => Absyn.ElementSpec
+c: absyn.rml:73.8.73.24|Absyn.IMPORT_DEFINITION:(Absyn.ElementSpec,Absyn.Path option) => Absyn.Program
+c: absyn.rml:130.10.130.25|Absyn.INITIALEQUATIONS:Absyn.EquationItem list => Absyn.ClassPart
+c: absyn.rml:132.10.132.26|Absyn.INITIALALGORITHMS:Absyn.AlgorithmItem list => Absyn.ClassPart
+c: absyn.rml:174.25.174.29|Absyn.INNER:Absyn.InnerOuter
+c: absyn.rml:305.11.305.17|Absyn.LBINARY:(Absyn.Exp,Absyn.Operator,Absyn.Exp) => Absyn.Exp
+c: absyn.rml:298.18.298.24|Absyn.INTEGER:int => Absyn.Exp
+c: absyn.rml:347.9.347.12|Absyn.LESS:Absyn.Operator
+c: absyn.rml:343.40.343.42|Absyn.MUL:Absyn.Operator
+c: absyn.rml:255.6.255.14|Absyn.MIDENTpat:(string,Absyn.Pattern) => Absyn.Pattern
+c: absyn.rml:254.6.254.13|Absyn.MBINDpat:(string,Absyn.Pattern) => Absyn.Pattern
+c: absyn.rml:306.11.306.16|Absyn.LUNARY:(Absyn.Operator,Absyn.Exp) => Absyn.Exp
+c: absyn.rml:311.11.311.16|Absyn.MATRIX:Absyn.Exp list list => Absyn.Exp
+c: absyn.rml:252.6.252.12|Absyn.MCONpat:Absyn.Path => Absyn.Pattern
+c: absyn.rml:266.25.266.36|Absyn.MODIFICATION:(bool,Absyn.Each,Absyn.ComponentRef,Absyn.Modification option,string option) => Absyn.ElementArg
+c: absyn.rml:251.6.251.12|Absyn.MLITpat:Absyn.Exp => Absyn.Pattern
+c: absyn.rml:322.18.322.28|Absyn.MSTRUCTURAL:(Absyn.Path option,Absyn.Exp list) => Absyn.Exp
+c: absyn.rml:253.6.253.15|Absyn.MSTRUCTpat:(Absyn.Path option,Absyn.Pattern list) => Absyn.Pattern
+c: absyn.rml:272.26.272.33|Absyn.NON_EACH:Absyn.Each
+c: absyn.rml:177.21.177.32|Absyn.NAMED_IMPORT:(string,Absyn.Path) => Absyn.Import
+c: absyn.rml:250.22.250.29|Absyn.MWILDpat:Absyn.Pattern
+c: absyn.rml:339.23.339.30|Absyn.NAMEDARG:(string,Absyn.Exp) => Absyn.NamedArg
+c: absyn.rml:347.56.347.61|Absyn.NEQUAL:Absyn.Operator
+c: absyn.rml:345.17.345.18|Absyn.OR:Absyn.Operator
+c: absyn.rml:350.24.350.28|Absyn.NOSUB:Absyn.Subscript
+c: absyn.rml:346.9.346.11|Absyn.NOT:Absyn.Operator
+c: absyn.rml:174.33.174.37|Absyn.OUTER:Absyn.InnerOuter
+c: absyn.rml:469.25.469.35|Absyn.RMLLIT_CHAR:int => Absyn.RMLLiteral
+c: absyn.rml:316.11.316.17|Absyn.RMLCALL:(Absyn.RMLIdent,Absyn.Exp list) => Absyn.Exp
+c: absyn.rml:363.19.363.27|Absyn.QUALIFIED:(string,Absyn.Path) => Absyn.Path
+c: absyn.rml:343.62.343.64|Absyn.POW:Absyn.Operator
+c: absyn.rml:281.43.281.47|Absyn.PARAM:Absyn.Variability
+c: absyn.rml:112.16.112.23|Absyn.OVERLOAD:(Absyn.Path list,Absyn.Comment option) => Absyn.ClassDef
+c: absyn.rml:100.23.100.27|Absyn.PARTS:(Absyn.ClassPart list,string option) => Absyn.ClassDef
+c: absyn.rml:128.10.128.18|Absyn.PROTECTED:Absyn.ElementItem list => Absyn.ClassPart
+c: absyn.rml:63.22.63.28|Absyn.PROGRAM:(Absyn.Class list,Absyn.Within) => Absyn.Program
+c: absyn.rml:127.24.127.29|Absyn.PUBLIC:Absyn.ElementItem list => Absyn.ClassPart
+c: absyn.rml:267.11.267.23|Absyn.REDECLARATION:(bool,Absyn.Each,Absyn.ElementSpec,Absyn.ElementSpec option) => Absyn.ElementArg
+c: absyn.rml:312.11.312.15|Absyn.RANGE:(Absyn.Exp,Absyn.Exp option,Absyn.Exp) => Absyn.Exp
+c: absyn.rml:178.7.178.17|Absyn.QUAL_IMPORT:Absyn.Path => Absyn.Import
+c: absyn.rml:299.11.299.14|Absyn.REAL:real => Absyn.Exp
+c: absyn.rml:420.22.420.40|Absyn.RELATION_DEFINITION:(Absyn.RMLIdent,Absyn.RMLType option,Absyn.RMLRule list) => Absyn.RMLDecl
+c: absyn.rml:307.11.307.18|Absyn.RELATION:(Absyn.Exp,Absyn.Operator,Absyn.Exp) => Absyn.Exp
+c: absyn.rml:414.22.414.39|Absyn.RELATION_INTERFACE:(Absyn.RMLIdent,Absyn.RMLType) => Absyn.RMLDecl
+c: absyn.rml:447.8.447.18|Absyn.RMLGOAL_AND:(Absyn.RMLGoal,Absyn.RMLGoal) => Absyn.RMLGoal
+c: absyn.rml:474.25.474.35|Absyn.RMLDB_RANGE:(int,int,int,int) => Absyn.RMLDbRange
+c: absyn.rml:494.20.494.24|Absyn.RMLDB:Absyn.RMLDbElement list => Absyn.RMLDb
+c: absyn.rml:317.18.317.24|Absyn.RMLCONS:(Absyn.Exp,Absyn.Exp) => Absyn.Exp
+c: absyn.rml:489.27.489.36|Absyn.RMLDB_CTOR:(string,Absyn.RMLIdent,Absyn.RMLDbRange,Absyn.RMLType) => Absyn.RMLDbElement
+c: absyn.rml:486.27.486.34|Absyn.RMLDB_TY:(string,Absyn.RMLIdent,Absyn.RMLDbRange) => Absyn.RMLDbElement
+c: absyn.rml:482.27.482.35|Absyn.RMLDB_REL:(string,Absyn.RMLIdent,Absyn.RMLDbRange,Absyn.RMLType) => Absyn.RMLDbElement
+c: absyn.rml:476.27.476.35|Absyn.RMLDB_VAR:(string,Absyn.RMLIdent,Absyn.RMLDbRange,Absyn.RMLDbRange,Absyn.RMLIdent,Absyn.RMLType) => Absyn.RMLDbElement
+c: absyn.rml:421.22.421.35|Absyn.RMLDECLCOMMENT:string => Absyn.RMLDecl
+c: absyn.rml:448.22.448.32|Absyn.RMLGOAL_PAT:Absyn.RMLPattern => Absyn.RMLGoal
+c: absyn.rml:449.8.449.18|Absyn.RMLGOAL_LET:(Absyn.RMLPattern,Absyn.Exp) => Absyn.RMLGoal
+c: absyn.rml:450.22.450.34|Absyn.RMLGOAL_EQUAL:(Absyn.RMLIdent,Absyn.Exp) => Absyn.RMLGoal
+c: absyn.rml:446.22.446.32|Absyn.RMLGOAL_NOT:Absyn.RMLGoal => Absyn.RMLGoal
+c: absyn.rml:319.18.319.24|Absyn.RMLLIST:Absyn.Exp list => Absyn.Exp
+c: absyn.rml:451.22.451.37|Absyn.RMLGOAL_RELATION:(Absyn.RMLIdent,Absyn.Exp list,Absyn.RMLPattern option) => Absyn.RMLGoal
+c: absyn.rml:320.18.320.23|Absyn.RMLLIT:Absyn.RMLLiteral => Absyn.Exp
+c: absyn.rml:443.24.443.35|Absyn.RMLResultExp:Absyn.Exp list => Absyn.RMLResult
+c: absyn.rml:458.25.458.35|Absyn.RMLPAT_CONS:(Absyn.RMLPattern,Absyn.RMLPattern) => Absyn.RMLPattern
+c: absyn.rml:464.25.464.33|Absyn.RMLLONGID:(string,string) => Absyn.RMLIdent
+c: absyn.rml:468.25.468.35|Absyn.RMLLIT_REAL:real => Absyn.RMLLiteral
+c: absyn.rml:466.25.466.38|Absyn.RMLLIT_INTEGER:int => Absyn.RMLLiteral
+c: absyn.rml:467.25.467.37|Absyn.RMLLIT_STRING:string => Absyn.RMLLiteral
+c: absyn.rml:442.24.442.34|Absyn.RMLNoResult:Absyn.RMLResult
+c: absyn.rml:318.18.318.23|Absyn.RMLNIL:Absyn.Exp
+c: absyn.rml:457.25.457.33|Absyn.RMLPAT_AS:(Absyn.RMLIdent,Absyn.RMLPattern) => Absyn.RMLPattern
+c: absyn.rml:460.25.460.34|Absyn.RMLPAT_NIL:Absyn.RMLPattern
+c: absyn.rml:461.25.461.35|Absyn.RMLPAT_LIST:Absyn.RMLPattern list => Absyn.RMLPattern
+c: absyn.rml:456.25.456.36|Absyn.RMLPAT_IDENT:Absyn.RMLIdent => Absyn.RMLPattern
+c: absyn.rml:455.25.455.38|Absyn.RMLPAT_LITERAL:Absyn.RMLLiteral => Absyn.RMLPattern
+c: absyn.rml:454.27.454.41|Absyn.RMLPAT_WILDCARD:Absyn.RMLPattern
+c: absyn.rml:459.25.459.37|Absyn.RMLPAT_STRUCT:(Absyn.RMLIdent option,Absyn.RMLPattern list) => Absyn.RMLPattern
+c: absyn.rml:437.22.437.28|Absyn.RMLRULE:(Absyn.RMLIdent,Absyn.RMLPattern,Absyn.RMLGoal option,Absyn.RMLResult) => Absyn.RMLRule
+c: absyn.rml:379.12.379.21|Absyn.R_FUNCTION:Absyn.Restriction
+c: absyn.rml:434.22.434.34|Absyn.RMLTYPE_TYVAR:Absyn.RMLIdent => Absyn.RMLType
+c: absyn.rml:432.22.432.38|Absyn.RMLTYPE_SIGNATURE:Absyn.RMLSignature => Absyn.RMLType
+c: absyn.rml:428.22.428.32|Absyn.RMLTYPE_INT:Absyn.RMLType
+c: absyn.rml:444.24.444.36|Absyn.RMLResultFail:Absyn.RMLResult
+c: absyn.rml:463.25.463.34|Absyn.RMLSHORTID:(string,Absyn.Info) => Absyn.RMLIdent
+c: absyn.rml:430.22.430.33|Absyn.RMLTYPE_REAL:Absyn.RMLType
+c: absyn.rml:433.22.433.34|Absyn.RMLTYPE_TUPLE:Absyn.RMLType list => Absyn.RMLType
+c: absyn.rml:429.22.429.35|Absyn.RMLTYPE_STRING:Absyn.RMLType
+c: absyn.rml:431.22.431.35|Absyn.RMLTYPE_TYCONS:(Absyn.RMLType list,Absyn.RMLIdent) => Absyn.RMLType
+c: absyn.rml:375.12.375.18|Absyn.R_BLOCK:Absyn.Restriction
+c: absyn.rml:76.8.76.15|Absyn.RML_FILE:(Absyn.RMLIdent,Absyn.RMLDecl list,Absyn.RMLDecl list) => Absyn.Program
+c: absyn.rml:435.22.435.40|Absyn.RMLTYPE_USERDEFINED:Absyn.RMLIdent => Absyn.RMLType
+c: absyn.rml:321.11.321.23|Absyn.RML_REFERENCE:Absyn.RMLIdent => Absyn.Exp
+c: absyn.rml:376.12.376.22|Absyn.R_CONNECTOR:Absyn.Restriction
+c: absyn.rml:372.26.372.32|Absyn.R_CLASS:Absyn.Restriction
+c: absyn.rml:380.12.380.24|Absyn.R_ENUMERATION:Absyn.Restriction
+c: absyn.rml:377.12.377.17|Absyn.R_TYPE:Absyn.Restriction
+c: absyn.rml:385.12.385.28|Absyn.R_PREDEFINED_ENUM:Absyn.Restriction
+c: absyn.rml:378.12.378.20|Absyn.R_PACKAGE:Absyn.Restriction
+c: absyn.rml:373.12.373.18|Absyn.R_MODEL:Absyn.Restriction
+c: absyn.rml:384.12.384.28|Absyn.R_PREDEFINED_BOOL:Absyn.Restriction
+c: absyn.rml:382.12.382.28|Absyn.R_PREDEFINED_REAL:Absyn.Restriction
+c: absyn.rml:381.12.381.27|Absyn.R_PREDEFINED_INT:Absyn.Restriction
+c: absyn.rml:383.12.383.30|Absyn.R_PREDEFINED_STRING:Absyn.Restriction
+c: absyn.rml:374.12.374.19|Absyn.R_RECORD:Absyn.Restriction
+c: absyn.rml:344.17.344.22|Absyn.UMINUS:Absyn.Operator
+c: absyn.rml:351.10.351.18|Absyn.SUBSCRIPT:Absyn.Exp => Absyn.Subscript
+c: absyn.rml:301.11.301.16|Absyn.STRING:string => Absyn.Exp
+c: absyn.rml:386.26.386.36|Absyn.R_UNIONTYPE:Absyn.Restriction
+c: absyn.rml:343.31.343.33|Absyn.SUB:Absyn.Operator
+c: absyn.rml:313.11.313.15|Absyn.TUPLE:Absyn.Exp list => Absyn.Exp
+c: absyn.rml:80.38.80.40|Absyn.TOP:Absyn.Within
+c: absyn.rml:416.8.416.11|Absyn.TYPE:(Absyn.RMLIdent,Absyn.RMLType) => Absyn.RMLDecl
+c: absyn.rml:344.9.344.13|Absyn.UPLUS:Absyn.Operator
+c: absyn.rml:179.7.179.19|Absyn.UNQUAL_IMPORT:Absyn.Path => Absyn.Import
+c: absyn.rml:304.11.304.15|Absyn.UNARY:(Absyn.Operator,Absyn.Exp) => Absyn.Exp
+c: absyn.rml:174.41.174.51|Absyn.UNSPECIFIED:Absyn.InnerOuter
+c: absyn.rml:418.22.418.33|Absyn.VALINTERFACE:(Absyn.RMLIdent,Absyn.RMLType) => Absyn.RMLDecl
+c: absyn.rml:419.22.419.27|Absyn.VALDEF:(Absyn.RMLIdent,Absyn.Exp) => Absyn.RMLDecl
+c: absyn.rml:417.8.417.11|Absyn.WITH:string => Absyn.RMLDecl
+c: absyn.rml:281.26.281.28|Absyn.VAR:Absyn.Variability
+c: absyn.rml:80.21.80.26|Absyn.WITHIN:Absyn.Path => Absyn.Within

@@ -1,73 +1,87 @@
-package assignment " file assignment.rml "
+package Assignment "file Assignment.mo"
 
-type ExpList = list<Exp>;
+public 
+type ExpLst = list<Exp>;
 
-uniontype Program " Abstract syntax for the Assignments language "
+uniontype Program "Abstract syntax for the Assignments language"
   record PROGRAM
-    ExpList x1;
-    Exp x2;
+    ExpLst expLst;
+    Exp exp;
   end PROGRAM;
+
 end Program;
 
+public 
 uniontype Exp
   record INT
-    Integer x1;
+    Integer integer;
   end INT;
+
   record BINARY
-    Exp x1;
-    BinOp x2;
-    Exp x3;
+    Exp exp1;
+    BinOp binOp2;
+    Exp exp3;
   end BINARY;
+
   record UNARY
-    UnOp x1;
-    Exp x2;
+    UnOp unOp;
+    Exp exp;
   end UNARY;
+
   record ASSIGN
-    Ident x1;
-    Exp x2;
+    Ident ident;
+    Exp exp;
   end ASSIGN;
+
   record IDENT
-    Ident x1;
+    Ident ident;
   end IDENT;
+
 end Exp;
 
+public 
 uniontype BinOp
-  record ADD
-  end ADD;
-  record SUB
-  end SUB;
-  record MUL
-  end MUL;
-  record DIV
-  end DIV;
+  record ADD end ADD;
+
+  record SUB end SUB;
+
+  record MUL end MUL;
+
+  record DIV end DIV;
+
 end BinOp;
 
+public 
 uniontype UnOp
-  record NEG
-  end NEG;
+  record NEG end NEG;
+
 end UnOp;
 
+public 
 type Ident = String;
 
-type Value = Integer " Values stored in environments ";
+public 
+type Value = Integer "Values stored in environments";
 
-type VarBnd = tuple<Ident,Value> " Bindings and environments ";
+public 
+type VarBnd = tuple<Ident,Value> "Bindings and environments";
 
+public 
 type Env = list<VarBnd>;
 
 protected function lookup
-  input Env in_env;
-  input Ident in_ident;
-  output Value out_value;
+  input Env inEnv;
+  input Ident inIdent;
+  output Value outValue;
 algorithm 
-  out_value:=
-  matchcontinue (in_env,in_ident)
+  outValue:=
+  matchcontinue (inEnv,inIdent)
     local
       Ident id2,id;
       Value value;
       Env rest;
-    case ((id2,value) :: _,id) " lookup returns the value associated with an identifier.
- * If no association is present, lookup will fail. "
+    case ((id2,value) :: _,id) "lookup returns the value associated with an identifier.
+  If no association is present, lookup will fail."
       equation 
         equality(id = id2); then value;
     case ((id2,_) :: rest,id)
@@ -78,13 +92,13 @@ algorithm
 end lookup;
 
 protected function lookupextend
-  input Env in_env;
-  input Ident in_ident;
-  output Env out_env;
-  output Value out_value;
+  input Env inEnv;
+  input Ident inIdent;
+  output Env outEnv;
+  output Value outValue;
 algorithm 
-  (out_env,out_value):=
-  matchcontinue (in_env,in_ident)
+  (outEnv,outValue):=
+  matchcontinue (inEnv,inIdent)
     local
       Env env;
       Ident id;
@@ -99,13 +113,13 @@ algorithm
 end lookupextend;
 
 protected function update
-  input Env in_env;
-  input Ident in_ident;
-  input Value in_value;
-  output Env out_env;
+  input Env inEnv;
+  input Ident inIdent;
+  input Value inValue;
+  output Env outEnv;
 algorithm 
-  out_env:=
-  matchcontinue (in_env,in_ident,in_value)
+  outEnv:=
+  matchcontinue (inEnv,inIdent,inValue)
     local
       Env env;
       Ident id;
@@ -115,20 +129,20 @@ algorithm
 end update;
 
 public function evalprogram
-  input Program in_program;
-  output Integer out_integer;
+  input Program inProgram;
+  output Integer outInteger;
 algorithm 
-  out_integer:=
-  matchcontinue (in_program)
+  outInteger:=
+  matchcontinue (inProgram)
     local
-      ExpList assignments_1,assignments;
+      ExpLst assignments_1,assignments;
       Env env2;
       Value value;
       Exp exp;
-    case (PROGRAM(assignments,exp))
+    case (PROGRAM(expLst = assignments,exp = exp))
       equation 
         print("evp1\n");
-        assignments_1 = list_reverse(assignments);
+        assignments_1 = listReverse(assignments);
         print("evp2\n");
         env2 = evals({}, assignments_1);
         print("evp3\n");
@@ -138,23 +152,23 @@ algorithm
 end evalprogram;
 
 protected function evals
-  input Env in_env;
-  input ExpList in_explist;
-  output Env out_env;
+  input Env inEnv;
+  input ExpLst inExpLst;
+  output Env outEnv;
 algorithm 
-  out_env:=
-  matchcontinue (in_env,in_explist)
+  outEnv:=
+  matchcontinue (inEnv,inExpLst)
     local
       Env e,env2,env3,env;
       Value v;
       Ident s;
       Exp exp;
-      ExpList expl;
+      ExpLst expl;
     case (e,{}) then e; 
     case (env,exp :: expl)
       equation 
         (env2,v) = eval(env, exp);
-        s = int_string(v);
+        s = intString(v);
         print("v: ");
         print(s);
         print("\n");
@@ -163,13 +177,13 @@ algorithm
 end evals;
 
 protected function eval
-  input Env in_env;
-  input Exp in_exp;
-  output Env out_env;
-  output Integer out_integer;
+  input Env inEnv;
+  input Exp inExp;
+  output Env outEnv;
+  output Integer outInteger;
 algorithm 
-  (out_env,out_integer):=
-  matchcontinue (in_env,in_exp)
+  (outEnv,outInteger):=
+  matchcontinue (inEnv,inExp)
     local
       Env env,env2,env3,env1;
       Value ival,value,v1,v2,v3;
@@ -177,60 +191,60 @@ algorithm
       Exp exp,e1,e2,e;
       BinOp binop;
       UnOp unop;
-    case (env,INT(ival)) then (env,ival); 
-    case (env,IDENT(id)) " eval of an identifier node will lookup the identifier and return a
-   * value if present; otherwise insert a binding to zero, and return zero.
-   "
+    case (env,INT(integer = ival)) then (env,ival); 
+    case (env,IDENT(ident = id)) "eval of an identifier node will lookup the identifier and return a
+    value if present; otherwise insert a binding to zero, and return zero.
+"
       equation 
         (env2,value) = lookupextend(env, id);
-        s = int_string(value);
+        s = intString(value);
         print("lookup: ");
         print(s);
         print("\n"); then (env2,value);
-    case (env,ASSIGN(id,exp)) " eval of an assignment node returns the updated environment and
-   * the assigned value.
-   "
+    case (env,ASSIGN(ident = id,exp = exp)) "eval of an assignment node returns the updated environment and
+    the assigned value.
+"
       equation 
         (env2,value) = eval(env, exp);
         env3 = update(env2, id, value); then (env3,value);
-    case (env1,BINARY(e1,binop,e2)) " eval of an addition node ADD(e1,e2), etc. in an environment env "
+    case (env1,BINARY(exp1 = e1,binOp2 = binop,exp3 = e2)) "eval of an addition node ADDe1,e2), etc. in an environment env"
       equation 
         (env2,v1) = eval(env1, e1);
         (env3,v2) = eval(env2, e2);
-        v3 = apply_binop(binop, v1, v2); then (env3,v3);
-    case (env1,UNARY(unop,e))
+        v3 = applyBinop(binop, v1, v2); then (env3,v3);
+    case (env1,UNARY(unOp = unop,exp = e))
       equation 
         (env2,v1) = eval(env1, e);
-        v2 = apply_unop(unop, v1); then (env2,v2);
+        v2 = applyUnop(unop, v1); then (env2,v2);
   end matchcontinue;
 end eval;
 
-protected function apply_binop
-  input BinOp in_binop1;
-  input Integer in_integer2;
-  input Integer in_integer3;
-  output Integer out_integer;
+protected function applyBinop
+  input BinOp inBinOp1;
+  input Integer inInteger2;
+  input Integer inInteger3;
+  output Integer outInteger;
 algorithm 
-  out_integer:=
-  matchcontinue (in_binop1,in_integer2,in_integer3)
+  outInteger:=
+  matchcontinue (inBinOp1,inInteger2,inInteger3)
     local Value v1,v2;
     case (ADD(),v1,v2) then v1 + v2; 
     case (SUB(),v1,v2) then v1 - v2; 
-    case (MUL(),v1,v2) then v1 * v2; 
-    case (DIV(),v1,v2) then v1 / v2; 
+    case (MUL(),v1,v2) then v1*v2; 
+    case (DIV(),v1,v2) then v1/v2; 
   end matchcontinue;
-end apply_binop;
+end applyBinop;
 
-protected function apply_unop
-  input UnOp in_unop;
-  input Integer in_integer;
-  output Integer out_integer;
+protected function applyUnop
+  input UnOp inUnOp;
+  input Integer inInteger;
+  output Integer outInteger;
 algorithm 
-  out_integer:=
-  matchcontinue (in_unop,in_integer)
+  outInteger:=
+  matchcontinue (inUnOp,inInteger)
     local Value v;
     case (NEG(),v) then -v; 
   end matchcontinue;
-end apply_unop;
-end assignment;
+end applyUnop;
+end Assignment;
 

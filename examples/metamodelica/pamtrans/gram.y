@@ -2,11 +2,13 @@
 #include <stdio.h>
 #include "yacclib.h"
 #include "rml.h"
-#include "absyn.h"
+#include "Absyn.h"
 
 typedef void *rml_t;
 #define YYSTYPE rml_t
 extern rml_t absyntree;
+
+void yyerror(char*);
 
 %}
 

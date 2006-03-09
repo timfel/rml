@@ -1,0 +1,61 @@
+module exp1:
+  datatype Exp   =  INTconst of  int
+                 |  ADDop    of  Exp * Exp 
+				 |  SUBop    of  Exp * Exp
+                 |  MULop    of  Exp * Exp 
+				 |  DIVop    of  Exp * Exp
+                 |  NEGop    of  Exp
+  datatype Exp1  =  INTconst1 of  int
+                 |  ADDop1    of  Exp * Exp 
+				 |  SUBop1    of  Exp * Exp
+                 |  MULop1    of  Exp * Exp 
+				 |  DIVop1    of  Exp * Exp
+                 |  NEGop1    of  Exp
+  datatype var  = VAR of string * Exp1
+  type varList = var list
+  relation eval:  Exp => int
+end
+relation eval: Exp => int  =
+  axiom eval( INTconst(ival) ) => ival   
+  rule  eval(e1) => v1  &  eval(e2) => v2  &  int_add(v1,v2) => v3 &
+        z( (("e1",e1), ("v1",v1), ("e2",e2), ("v2",v2), ("v3",v3)) )
+        ----------------------------------------------------------
+        eval( ADDop(e1,e2) ) => v3
+  rule  eval(e1) => v1  &  eval(e2) => v2  &  int_sub(v1,v2) => v3 &
+		z( (("e1",e1), ("v1",v1), ("e2",e2), ("v2",v2), ("v3",v3)) )
+        ----------------------------------------------------------
+        eval( SUBop(e1,e2) ) => v3
+  rule  eval(e1) => v1  &  eval(e2) => v2  &  int_mul(v1,v2) => v3 &
+		z( (("v1",v1), ("e1",e1), ("e2",e2), ("v2",v2), ("v3",v3)) )
+        ----------------------------------------------------------
+        eval( MULop(e1,e2) ) => v3
+  rule  eval(e1) => v1  &  eval(e2) => v2  &  int_div(v1,v2) => v3 &
+        z( (("e1",e1), ("v1",v1), ("e2",e2), ("v2",v2), ("e2",e2)) ) 
+        ----------------------------------------------------------
+        eval( DIVop(e1,e2) ) => v3
+  rule  eval(e) => v1  &  int_neg(v1) => v2 &
+        z( (("e1",e1),("v1","v1"),("v2","v2"),("e1",e1)) )
+        -----------------------------------
+        eval( NEGop(e) ) => v2
+end
+
+relation z: (((string*'rml_a)*(string*'rml_b)*(string*'rml_c)*(string*'rml_d)*(string*'rml_e))) => () =
+rule  let ((str1,x1),(str2,x2), (str3,x3), (str4,x4), (str5,x5)) = vars_tuple &
+	  RML.debug_print(str1, x1) &
+	  RML.debug_print(str2, x2) &
+	  RML.debug_print(str3, x3) &
+	  RML.debug_print(str4, x4) &
+	  RML.debug_print(str5, x5)
+      ---------------------------------
+	  z(vars_tuple)
+end
+
+relation z: (((string*'rml_a)*(string*'rml_b)*(string*'rml_c)*(string*'rml_d))) => () =
+rule  let ((str1,x1),(str2,x2), (str3,x3), (str4,x4)) = vars_tuple &
+	  RML.debug_print(str1, x1) &
+	  RML.debug_print(str2, x2) &
+	  RML.debug_print(str3, x3) &
+	  RML.debug_print(str4, x4) 
+      ---------------------------------
+	  z(vars_tuple)
+end

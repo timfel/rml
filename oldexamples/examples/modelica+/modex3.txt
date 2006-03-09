@@ -1,0 +1,659 @@
+----------------
+pam:
+----------------
+
+package Pam
+  import input;
+  type Ident = String;
+  uniontype BinOp
+    record ADD
+    end ADD;
+    record SUB
+    end SUB;
+    record MUL
+    end MUL;
+    record DIV
+    end DIV;
+  end BinOp;
+  uniontype RelOp
+    record EQ
+    end EQ;
+    record GT
+    end GT;
+    record LT
+    end LT;
+    record LE
+    end LE;
+    record GE
+    end GE;
+    record NE
+    end NE;
+  end RelOp;
+  uniontype Exp
+    record INT
+      Integer x1;
+    end INT;
+    record IDENT
+      Ident x1;
+    end IDENT;
+    record BINARY
+      Exp x1;
+      BinOp x2;
+      Exp x3;
+    end BINARY;
+    record RELATION
+      Exp x1;
+      RelOp x2;
+      Exp x3;
+    end RELATION;
+  end Exp;
+  uniontype Stmt
+    type IdentList = list<Ident>;
+    record ASSIGN
+      Ident x1;
+      Exp x2;
+    end ASSIGN;
+    record IF
+      Exp x1;
+      Stmt x2;
+      Stmt x3;
+    end IF;
+    record WHILE
+      Exp x1;
+      Stmt x2;
+    end WHILE;
+    record TODO
+      Exp x1;
+      Stmt x2;
+    end TODO;
+    record READ
+      IdentList x1;
+    end READ;
+    record WRITE
+      IdentList x1;
+    end WRITE;
+    record SEQ
+      Stmt x1;
+      Stmt x2;
+    end SEQ;
+    record SKIP
+    end SKIP;
+  end Stmt;
+  type VarBnd = Ident;
+  type Env = list<VarBnd>;
+  uniontype Value
+    record INTval
+      Integer x1;
+    end INTval;
+    record BOOLval
+      Boolean x1;
+    end BOOLval;
+  end Value;
+  type State = Env;
+  function repeat_eval
+    input State in_value1;
+    input Integer in_value2;
+    input Stmt in_value3;
+    output State out_value1;
+  algorithm 
+    out_value1:=
+    match (in_value1,in_value2,in_value3)
+      local
+        StringValueRecordList state;
+        Integer n;
+        Stmt stmt;
+        Integer n2;
+        StringValueRecordList state2;
+        StringValueRecordList state3;
+      case (state,n,stmt)
+        equation 
+          true = int_le(n, 0);
+        then state;
+      case (state,n,stmt)
+        equation 
+          true = int_gt(n, 0);
+          n2 = int_sub(n, 1);
+          state2 = eval_stmt(state, stmt);
+          state3 = repeat_eval(state2, n2, stmt);
+        then state3;
+    end match;
+  end repeat_eval;
+  function error
+    input String in_value1;
+    input String in_value2;
+  algorithm 
+    match (in_value1,in_value2)
+      local
+        String str1;
+        String str2;
+      case (str1,str2)
+        equation 
+          print("Error - ");
+          print(str1);
+          print(" ");
+          print(str2);
+          print("\n");
+        then fail();
+    end match;
+  end error;
+  function input_item
+    output Integer out_value1;
+  algorithm 
+    out_value1:=
+    match ()
+      local
+        Integer i;
+      case _
+        equation 
+          print("input: ");
+          i = Input.read();
+          print("\n");
+        then i;
+    end match;
+  end input_item;
+  function output_item
+    input Integer in_value1;
+  algorithm 
+    match in_value1
+      local
+        String s;
+        Integer i;
+      case i
+        equation 
+          s = int_string(i);
+          print(s);
+        then ();
+    end match;
+  end output_item;
+  function lookup
+    input Env in_value1;
+    input Ident in_value2;
+    output Value out_value1;
+  algorithm 
+    out_value1:=
+    match (in_value1,in_value2)
+      local
+        String id2;
+        Value value;
+        String id;
+        StringValueRecordList rest;
+      case (cons((id2,value),_),id)
+        equation 
+          id = id2;
+        then value;
+      case (cons((id2,_),rest),id)
+        equation 
+          not id = id2;
+          value = lookup(rest, id);
+        then value;
+    end match;
+  end lookup;
+  function update
+    input Env in_value1;
+    input Ident in_value2;
+    input Value in_value3;
+    output Env out_value1;
+  algorithm 
+    out_value1:=
+    match (in_value1,in_value2,in_value3)
+      local
+        StringValueRecordList env;
+        String id;
+        Value value;
+      case (env,id,value) then cons((id,value),env);
+    end match;
+  end update;
+  function apply_binop
+    input BinOp in_value1;
+    input Integer in_value2;
+    input Integer in_value3;
+    output Integer out_value1;
+  algorithm 
+    out_value1:=
+    match (in_value1,in_value2,in_value3)
+      local
+        Integer z;
+        Integer x;
+        Integer y;
+      case (ADD,x,y)
+        equation 
+          z = int_add(x, y);
+        then z;
+      case (SUB,x,y)
+        equation 
+          z = int_sub(x, y);
+        then z;
+      case (MUL,x,y)
+        equation 
+          z = int_mul(x, y);
+        then z;
+      case (DIV,x,y)
+        equation 
+          z = int_div(x, y);
+        then z;
+    end match;
+  end apply_binop;
+  function apply_relop
+    input RelOp in_value1;
+    input Integer in_value2;
+    input Integer in_value3;
+    output Boolean out_value1;
+  algorithm 
+    out_value1:=
+    match (in_value1,in_value2,in_value3)
+      local
+        Boolean z;
+        Integer x;
+        Integer y;
+      case (LT,x,y)
+        equation 
+          z = int_lt(x, y);
+        then z;
+      case (LE,x,y)
+        equation 
+          z = int_le(x, y);
+        then z;
+      case (EQ,x,y)
+        equation 
+          z = int_eq(x, y);
+        then z;
+      case (NE,x,y)
+        equation 
+          z = int_ne(x, y);
+        then z;
+      case (GE,x,y)
+        equation 
+          z = int_ge(x, y);
+        then z;
+      case (GT,x,y)
+        equation 
+          z = int_gt(x, y);
+        then z;
+    end match;
+  end apply_relop;
+  function eval
+    input Env in_value1;
+    input Exp in_value2;
+    output Value out_value1;
+  algorithm 
+    out_value1:=
+    match (in_value1,in_value2)
+      local
+        Integer v;
+        StringValueRecordList env;
+        String id;
+        Integer v1;
+        Integer v2;
+        Integer v3;
+        Exp e1;
+        BinOp binop;
+        Exp e2;
+        RelOp relop;
+      case (_,INT(v)) then INTval(v);
+      case (env,IDENT(id))
+        local
+          Value v;
+
+        equation 
+          v = lookup(env, id);
+        then v;
+      case (env,IDENT(id))
+        equation 
+          not v = lookup(env, id);
+          error("Undefined identifier", id);
+        then INTval(0);
+      case (env,BINARY(e1,binop,e2))
+        equation 
+          INTval(v1) = eval(env, e1);
+          INTval(v2) = eval(env, e2);
+          v3 = apply_binop(binop, v1, v2);
+        then INTval(v3);
+      case (env,RELATION(e1,relop,e2))
+        local
+          Boolean v3;
+
+        equation 
+          INTval(v1) = eval(env, e1);
+          INTval(v2) = eval(env, e2);
+          v3 = apply_relop(relop, v1, v2);
+        then BOOLval(v3);
+    end match;
+  end eval;
+  function eval_stmt
+    input State in_value1;
+    input Stmt in_value2;
+    output State out_value1;
+  algorithm 
+    out_value1:=
+    match (in_value1,in_value2)
+      local
+        Value v1;
+        StringValueRecordList env2;
+        StringValueRecordList env;
+        String id;
+        Exp e1;
+        StringValueRecordList state2;
+        StringValueRecordList state1;
+        Exp comp;
+        Stmt s1;
+        Stmt s2;
+        StringValueRecordList state;
+        Integer n1;
+        Integer v2;
+        StringList rest;
+        StringValueRecordList state3;
+        Stmt stmt1;
+        Stmt stmt2;
+      case (env,ASSIGN(id,e1))
+        equation 
+          v1 = eval(env, e1);
+          env2 = update(env, id, v1);
+        then env2;
+      case (state1 as env,IF(comp,s1,s2))
+        equation 
+          BOOLval(true) = eval(env, comp);
+          state2 = eval_stmt(state1, s1);
+        then state2;
+      case (state1 as env,IF(comp,s1,s2))
+        equation 
+          BOOLval(false) = eval(env, comp);
+          state2 = eval_stmt(state1, s2);
+        then state2;
+      case (state,WHILE(comp,s1))
+        equation 
+          state2 = eval_stmt(state, IF(comp,SEQ(s1,WHILE(comp,s1)),SKIP));
+        then state2;
+      case (state as env,TODO(e1,s1))
+        equation 
+          INTval(n1) = eval(env, e1);
+          state2 = repeat_eval(state, n1, s1);
+        then state2;
+      case (state,READ()) then state;
+      case (env,READ(cons(id,rest)))
+        equation 
+          v2 = input_item();
+          env2 = update(env, id, INTval(v2));
+          state2 = eval_stmt(env2, READ(rest));
+        then state2;
+      case (state,WRITE()) then state;
+      case (env,WRITE(cons(id,rest)))
+        equation 
+          INTval(v2) = lookup(env, id);
+          output_item(v2);
+          state2 = eval_stmt(env, WRITE(rest));
+        then state2;
+      case (state,SEQ(stmt1,stmt2))
+        equation 
+          state2 = eval_stmt(state, stmt1);
+          state3 = eval_stmt(state2, stmt2);
+        then state3;
+      case (state,SKIP) then state;
+    end match;
+  end eval_stmt;
+end Pam;
+
+
+--------------
+ assignment:
+--------------
+
+
+package assignment
+  uniontype Program
+    type ExpList = list<Exp>;
+    record PROGRAM
+      ExpList x1;
+      Exp x2;
+    end PROGRAM;
+  end Program;
+  uniontype Exp
+    record INT
+      Integer x1;
+    end INT;
+    record BINARY
+      Exp x1;
+      BinOp x2;
+      Exp x3;
+    end BINARY;
+    record UNARY
+      UnOp x1;
+      Exp x2;
+    end UNARY;
+    record ASSIGN
+      Ident x1;
+      Exp x2;
+    end ASSIGN;
+    record IDENT
+      Ident x1;
+    end IDENT;
+  end Exp;
+  uniontype BinOp
+    record ADD
+    end ADD;
+    record SUB
+    end SUB;
+    record MUL
+    end MUL;
+    record DIV
+    end DIV;
+  end BinOp;
+  uniontype UnOp
+    record NEG
+    end NEG;
+  end UnOp;
+  type Ident = String;
+  type Value = Integer;
+  type VarBnd = tuple<Ident,Value>;
+  type Env = list<VarBnd>;
+  function lookup
+    input Env in_value1;
+    input Ident in_value2;
+    output Value out_value1;
+  algorithm 
+    out_value1:=
+    match (in_value1,in_value2)
+      local
+        String id2;
+        Integer value;
+        String id;
+        StringIntegerRecordList rest;
+      case (cons((id2,value),_),id)
+        equation 
+          id = id2;
+        then value;
+      case (cons((id2,_),rest),id)
+        equation 
+          not id = id2;
+          value = lookup(rest, id);
+        then value;
+    end match;
+  end lookup;
+  function lookupextend
+    input Env in_value1;
+    input Ident in_value2;
+    output Env out_value1;
+    output Value out_value2;
+  algorithm 
+    out_value1:=
+    match (in_value1,in_value2)
+      local
+        StringIntegerRecordList env;
+        String id;
+        Integer value;
+      case (env,id)
+        equation 
+          not v = lookup(env, id);
+        then (cons((id,0),env),0);
+      case (env,id)
+        equation 
+          value = lookup(env, id);
+        then (env,value);
+    end match;
+  end lookupextend;
+  function update
+    input Env in_value1;
+    input Ident in_value2;
+    input Value in_value3;
+    output Env out_value1;
+  algorithm 
+    out_value1:=
+    match (in_value1,in_value2,in_value3)
+      local
+        StringIntegerRecordList env;
+        String id;
+        Integer value;
+      case (env,id,value) then cons((id,value),env);
+    end match;
+  end update;
+  function evalprogram
+    input Program in_value1;
+    output Integer out_value1;
+  algorithm 
+    out_value1:=
+    match in_value1
+      local
+        ExpList assignments';
+        StringIntegerRecordList env2;
+        Integer value;
+        ExpList assignments;
+        Exp exp;
+      case PROGRAM(assignments,exp)
+        equation 
+          print("evp1\n");
+          assignments' = list_reverse(assignments);
+          print("evp2\n");
+          env2 = evals((), assignments');
+          print("evp3\n");
+          (_,value) = eval(env2, exp);
+          print("evp4\n");
+        then value;
+    end match;
+  end evalprogram;
+  function evals
+    input Env in_value1;
+    input ExpList in_value2;
+    output Env out_value1;
+  algorithm 
+    out_value1:=
+    match (in_value1,in_value2)
+      local
+        StringIntegerRecordList e;
+        StringIntegerRecordList env2;
+        Integer v;
+        String s;
+        StringIntegerRecordList env3;
+        StringIntegerRecordList env;
+        Exp exp;
+        ExpList expl;
+      case (e,) then e;
+      case (env,cons(exp,expl))
+        equation 
+          (env2,v) = eval(env, exp);
+          s = int_string(v);
+          print("v: ");
+          print(s);
+          print("\n");
+          env3 = evals(env2, expl);
+        then env3;
+    end match;
+  end evals;
+  function eval
+    input Env in_value1;
+    input Exp in_value2;
+    output Env out_value1;
+    output Integer out_value2;
+  algorithm 
+    out_value1:=
+    match (in_value1,in_value2)
+      local
+        StringIntegerRecordList env;
+        Integer ival;
+        StringIntegerRecordList env2;
+        Integer value;
+        String s;
+        String id;
+        StringIntegerRecordList env3;
+        Exp exp;
+        Integer v1;
+        Integer v2;
+        Integer v3;
+        StringIntegerRecordList env1;
+        Exp e1;
+        BinOp binop;
+        Exp e2;
+        UnOp unop;
+        Exp e;
+      case (env,INT(ival)) then (env,ival);
+      case (env,IDENT(id))
+        equation 
+          (env2,value) = lookupextend(env, id);
+          s = int_string(value);
+          print("lookup: ");
+          print(s);
+          print("\n");
+        then (env2,value);
+      case (env,ASSIGN(id,exp))
+        equation 
+          (env2,value) = eval(env, exp);
+          env3 = update(env2, id, value);
+        then (env3,value);
+      case (env1,BINARY(e1,binop,e2))
+        equation 
+          (env2,v1) = eval(env1, e1);
+          (env3,v2) = eval(env2, e2);
+          v3 = apply_binop(binop, v1, v2);
+        then (env3,v3);
+      case (env1,UNARY(unop,e))
+        equation 
+          (env2,v1) = eval(env1, e);
+          v2 = apply_unop(unop, v1);
+        then (env2,v2);
+    end match;
+  end eval;
+  function apply_binop
+    input BinOp in_value1;
+    input Integer in_value2;
+    input Integer in_value3;
+    output Integer out_value1;
+  algorithm 
+    out_value1:=
+    match (in_value1,in_value2,in_value3)
+      local
+        Integer v3;
+        Integer v1;
+        Integer v2;
+      case (ADD,v1,v2)
+        equation 
+          v3 = int_add(v1, v2);
+        then v3;
+      case (SUB,v1,v2)
+        equation 
+          v3 = int_sub(v1, v2);
+        then v3;
+      case (MUL,v1,v2)
+        equation 
+          v3 = int_mul(v1, v2);
+        then v3;
+      case (DIV,v1,v2)
+        equation 
+          v3 = int_div(v1, v2);
+        then v3;
+    end match;
+  end apply_binop;
+  function apply_unop
+    input UnOp in_value1;
+    input Integer in_value2;
+    output Integer out_value1;
+  algorithm 
+    out_value1:=
+    match (in_value1,in_value2)
+      local
+        Integer v2;
+        Integer v;
+      case (NEG,v)
+        equation 
+          v2 = int_neg(v);
+        then v2;
+    end match;
+  end apply_unop;
+end assignment;

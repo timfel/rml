@@ -1,23 +1,23 @@
 
 GOROOT=../../..
 LDLIBS=-lfl
-CLEAN=calc calc.exe $(CALCOBJS) main.c main.h *~ *.rdb *.fol *.ast *.cps *.exe *.stackdump 
+CLEAN=main main.exe $(CALCOBJS) Main.c Main.h *~ *.rdb *.fol *.ast *.cps *.exe *.stackdump 
 #uncomment this to have debugging
 #RMLCFLAGS=-g -Wr,-East
 
 # EVERYTHING
-all:	calc
+all:	main
 
 
 # MAIN PROGRAM
 
-CALCOBJS= main.o  
-calc: $(CALCOBJS)
+CALCOBJS= Main.o  
+main: $(CALCOBJS)
 	$(LINK.rml) -o calc $(CALCOBJS) $(LDLIBS)
 
-main.o:	 main.c main.h
-main.c main.h: main.mo
-	$(COMPILE.rml) main.mo
+Main.o:	 Main.c Main.h
+Main.c Main.h: Main.mo
+	$(COMPILE.rml) Main.mo
 
 include $(GOROOT)/etc/client.mk
 

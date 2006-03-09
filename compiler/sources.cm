@@ -8,8 +8,8 @@ is
 #endif
 
 #if defined(NEW_CM)
-#if (SMLNJ_VERSION <= 110)	(* should use "=", but old CM craps out *)
-#if (SMLNJ_MINOR_VERSION < 29)	(* should use "andalso", but old CM craps out *)
+#if (SMLNJ_VERSION <= 110)      (* should use "=", but old CM craps out *)
+#if (SMLNJ_MINOR_VERSION < 29)  (* should use "andalso", but old CM craps out *)
 #error You need SML/NJ version 110.29 or newer.
 #endif
 #endif
@@ -25,10 +25,11 @@ smlnj-lib.cm
 ml-yacc-lib.cm
 #endif
 
-(* 
+library/sources.cm
+(*
 set for the new compiler!!
 fixme-later
-Control.shareDefError := false 
+Control.shareDefError := false
 also, vector is changed in the new compiler (110.45)
 SMLofNJ.Internals.ProfControl.profMode := true;
 *)
@@ -117,10 +118,24 @@ ABSYN_INSTRUMENTED.sig
 Instrument.sml
 InstrumentFn.sml
 
+ABSYN_PERSIST.sig
+AbsynPersist.sml
+AbsynPersistFn.sml
+
+(* cache *)
+CACHE.sig
+Cache.sml
+CacheFn.sml
+
 (* lexer *)
-LEXARG.sig
+LEXARG.sig (* complicated lexer *)
 LexArg.sml
 LexArgFn.sml
+
+
+LEXARG_SIMPLE.sig (* simple lexer *)
+LexArgSimple.sml
+LexArgSimpleFn.sml
 
 LEXUTIL.sig
 LexUtil.sml
@@ -131,6 +146,9 @@ RMLLex.sml
 mod.lex
 MODLex.sml
 
+persistent.lex
+PERSISTENTLex.sml
+
 (* parser *)
 RMLLrVals.sml
 RMLParser.sml
@@ -140,17 +158,27 @@ MODLrVals.sml
 MODParser.sml
 mod.grm
 
-PARSE.sig
+PERSISTENTLrVals.sml
+PERSISTENTParser.sml
+persistent.grm
+
+RML_PARSE.sig
 RMLParse.sml
 RMLParseFn.sml
 
+MOD_PARSE.sig
 MODParse.sml
 MODParseFn.sml
 
+PERSISTENT_PARSE.sig
+PERSISTENTParse.sml
+PERSISTENTParseFn.sml
+(*
 MOTOMO.sig
 MOToMO.sml
 MOToMOFn.sml
-
+*)
+MOTORML.sig
 MOToRML.sml
 MOToRMLFn.sml
 
@@ -166,11 +194,17 @@ ReorderValFn.sml
 REORDER.sig
 Reorder.sml
 ReorderFn.sml
+(*
 ReorderParse.sml
 ReorderParseFn.sml
+*)
+
+(* frontend *)
+FRONTEND.sig
+FrontEnd.sml
+FrontEndFn.sml
 
 (* fol *)
-
 FOL.sig
 FOL.sml
 FOLFn.sml
@@ -188,7 +222,6 @@ FOLOptim.sml
 FOLOptimFn.sml
 
 (* static *)
-
 TY.sig
 Ty.sml
 TY_COMB.sig
@@ -208,13 +241,11 @@ StatElab.sml
 StatElabFn.sml
 
 (* absyntofol *)
-
 ABSYNTOFOL.sig
 AbsynToFOL.sml
 AbsynToFOLFn.sml
 
 (* foltocps *)
-
 TRANSENV.sig
 TransEnv.sml
 TransEnvFn.sml
@@ -226,7 +257,6 @@ FOLToCPS.sml
 FOLToCPSFn.sml
 
 (* code *)
-
 MANGLE.sig
 Mangle.sml
 MangleFn.sml
@@ -266,21 +296,19 @@ MaskToCFn.sml
 DiffToC.sml
 DiffToCFn.sml
 
-(* cpstocode *)
 
+(* cpstocode *)
 CPSToSwitch.sml
 CPSToPlain.sml
 CPSTOCODE.sig
 CPSToCodeFn.sml
 
 (* cpstosml *)
-
 CPSTOSML.sig
 CPSToSML.sml
 CPSToSMLFn.sml
 
 (* interp *)
-
 INTERP_CORE.sig
 InterpCore.sml
 InterpCoreFn.sml

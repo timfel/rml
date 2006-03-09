@@ -1,0 +1,20 @@
+v:<main.rml>:14.7.14.11|[12.3.16.3]|emit[fcode:FCode.Prog]
+v:<main.rml>:18.7.18.11|[16.3.18.19]|emit[fcode:FCode.Prog]
+v:<main.rml>:22.33.22.37|[22.3.26.3]|flatten[fcode:FCode.Prog]
+v:<main.rml>:24.10.24.14|[22.3.26.3]|flatten[tcode:TCode.Prog]
+v:<main.rml>:28.10.28.14|[26.3.28.22]|flatten[tcode:TCode.Prog]
+v:<main.rml>:34.9.34.11|[32.3.36.3]|static[ast:Absyn.Prog]
+v:<main.rml>:32.32.32.36|[32.3.36.3]|static[tcode:TCode.Prog]
+v:<main.rml>:38.9.38.11|[36.3.38.19]|static[ast:Absyn.Prog]
+v:<main.rml>:42.28.42.30|[42.3.46.3]|parse[ast:Absyn.Prog]
+v:<main.rml>:44.8.44.11|[42.3.46.3]|parse[file:string]
+v:<main.rml>:48.8.48.11|[46.3.48.19]|parse[file:string]
+v:<main.rml>:54.7.54.10|[52.3.55.1]|main[file:string]
+/*  ME_Dict: */
+/*  TE': */
+/*  VE'': */
+r:<main.rml>:21.10.21.16|flatten:TCode.Prog => ()
+r:<main.rml>:11.10.11.13|emit:FCode.Prog => ()
+r:<main.rml>:41.10.41.14|parse:string => ()
+r:<main.rml>:51.10.51.13|main:string list => ()
+r:<main.rml>:31.10.31.15|static:Absyn.Prog => ()

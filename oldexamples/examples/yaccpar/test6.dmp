@@ -1,0 +1,161 @@
+
+rmldb@> - RML debugger
+rmldb@> - 2002, 2003, 2004, LIU/IDA/PELAB, adrpo@ida.liu.se
+rmldb@> - debugging process 25903 
+rmldb@> - on tty:/dev/pts/1 
+rmldb@>rmldb@> - command error, showing help
+---------------------------------- HELP: COMMANDS -----------------------------------
+Seting/unsetting breakpoints:                    b|break|breakpoint [on|off] string
+Clear all breakpoints:                           cl|clear
+Show all breakpoints:                            sh|show
+Print all the backtrace:                         bt|backtrace
+Print filtered backtrace:                        fbt|fbacktrace filter
+Set the maximum of backtrace entries:            maxbt|maxbacktrace integer (0=full)
+Set the depth of variable printing:              [set] de|depth integer (0=full)
+Set how may chars we print from long strings:    [set] maxstr|maxstring integer (0=full)
+Set the execution mode:                          set st|step [on|off]
+Perform one step:                                st|step
+Run the program:                                 ru|run
+Print the current settings:                      stg|settings
+Showing help:                                    he|help
+Printing the status of Modelica runtime:         sts|stat|status
+Set the output to go to file also:               ou|output file {WORK IN PROGRESS}
+Print the names of live variables:               li|live|livevars
+On/Off printing names of livevars each step:     [set] li|live|livevars on|off
+Print the live variable:                         pr|print var_name
+Print sizeof the live variable:                  sz|size|sizeof var_name
+Display the live variable each step:             di|display var_name
+Un-display the live variable :                   ud|undisplay var_name
+Show display variables:                          di|display
+Un-display ALL display variables:                ud|undisplay
+Send the live variable to external viewer:       gr|graph var_name {WORK IN PROGRESS}
+Print type info on any rml id:                   pty|printtype identifier
+VERY FAST debugging, no backtrace, no livevars:  fa|fast
+Exiting the debugger/program:                    qu|quit|ex|exit|by|bye
+Debugging/Undebugging the debugger parser:       dbgp|debugparse on|off {aadebug=1/0}
+-------------------------------------------------------------------------------------
+rmldb@>rmldb@> - command error, showing help
+---------------------------------- HELP: COMMANDS -----------------------------------
+Seting/unsetting breakpoints:                    b|break|breakpoint [on|off] string
+Clear all breakpoints:                           cl|clear
+Show all breakpoints:                            sh|show
+Print all the backtrace:                         bt|backtrace
+Print filtered backtrace:                        fbt|fbacktrace filter
+Set the maximum of backtrace entries:            maxbt|maxbacktrace integer (0=full)
+Set the depth of variable printing:              [set] de|depth integer (0=full)
+Set how may chars we print from long strings:    [set] maxstr|maxstring integer (0=full)
+Set the execution mode:                          set st|step [on|off]
+Perform one step:                                st|step
+Run the program:                                 ru|run
+Print the current settings:                      stg|settings
+Showing help:                                    he|help
+Printing the status of Modelica runtime:         sts|stat|status
+Set the output to go to file also:               ou|output file {WORK IN PROGRESS}
+Print the names of live variables:               li|live|livevars
+On/Off printing names of livevars each step:     [set] li|live|livevars on|off
+Print the live variable:                         pr|print var_name
+Print sizeof the live variable:                  sz|size|sizeof var_name
+Display the live variable each step:             di|display var_name
+Un-display the live variable :                   ud|undisplay var_name
+Show display variables:                          di|display
+Un-display ALL display variables:                ud|undisplay
+Send the live variable to external viewer:       gr|graph var_name {WORK IN PROGRESS}
+Print type info on any rml id:                   pty|printtype identifier
+VERY FAST debugging, no backtrace, no livevars:  fa|fast
+Exiting the debugger/program:                    qu|quit|ex|exit|by|bye
+Debugging/Undebugging the debugger parser:       dbgp|debugparse on|off {aadebug=1/0}
+-------------------------------------------------------------------------------------
+rmldb@>rmldb@> - command error, showing help
+---------------------------------- HELP: COMMANDS -----------------------------------
+Seting/unsetting breakpoints:                    b|break|breakpoint [on|off] string
+Clear all breakpoints:                           cl|clear
+Show all breakpoints:                            sh|show
+Print all the backtrace:                         bt|backtrace
+Print filtered backtrace:                        fbt|fbacktrace filter
+Set the maximum of backtrace entries:            maxbt|maxbacktrace integer (0=full)
+Set the depth of variable printing:              [set] de|depth integer (0=full)
+Set how may chars we print from long strings:    [set] maxstr|maxstring integer (0=full)
+Set the execution mode:                          set st|step [on|off]
+Perform one step:                                st|step
+Run the program:                                 ru|run
+Print the current settings:                      stg|settings
+Showing help:                                    he|help
+Printing the status of Modelica runtime:         sts|stat|status
+Set the output to go to file also:               ou|output file {WORK IN PROGRESS}
+Print the names of live variables:               li|live|livevars
+On/Off printing names of livevars each step:     [set] li|live|livevars on|off
+Print the live variable:                         pr|print var_name
+Print sizeof the live variable:                  sz|size|sizeof var_name
+Display the live variable each step:             di|display var_name
+Un-display the live variable :                   ud|undisplay var_name
+Show display variables:                          di|display
+Un-display ALL display variables:                ud|undisplay
+Send the live variable to external viewer:       gr|graph var_name {WORK IN PROGRESS}
+Print type info on any rml id:                   pty|printtype identifier
+VERY FAST debugging, no backtrace, no livevars:  fa|fast
+Exiting the debugger/program:                    qu|quit|ex|exit|by|bye
+Debugging/Undebugging the debugger parser:       dbgp|debugparse on|off {aadebug=1/0}
+-------------------------------------------------------------------------------------
+rmldb@>rmldb@> - command error, showing help
+---------------------------------- HELP: COMMANDS -----------------------------------
+Seting/unsetting breakpoints:                    b|break|breakpoint [on|off] string
+Clear all breakpoints:                           cl|clear
+Show all breakpoints:                            sh|show
+Print all the backtrace:                         bt|backtrace
+Print filtered backtrace:                        fbt|fbacktrace filter
+Set the maximum of backtrace entries:            maxbt|maxbacktrace integer (0=full)
+Set the depth of variable printing:              [set] de|depth integer (0=full)
+Set how may chars we print from long strings:    [set] maxstr|maxstring integer (0=full)
+Set the execution mode:                          set st|step [on|off]
+Perform one step:                                st|step
+Run the program:                                 ru|run
+Print the current settings:                      stg|settings
+Showing help:                                    he|help
+Printing the status of Modelica runtime:         sts|stat|status
+Set the output to go to file also:               ou|output file {WORK IN PROGRESS}
+Print the names of live variables:               li|live|livevars
+On/Off printing names of livevars each step:     [set] li|live|livevars on|off
+Print the live variable:                         pr|print var_name
+Print sizeof the live variable:                  sz|size|sizeof var_name
+Display the live variable each step:             di|display var_name
+Un-display the live variable :                   ud|undisplay var_name
+Show display variables:                          di|display
+Un-display ALL display variables:                ud|undisplay
+Send the live variable to external viewer:       gr|graph var_name {WORK IN PROGRESS}
+Print type info on any rml id:                   pty|printtype identifier
+VERY FAST debugging, no backtrace, no livevars:  fa|fast
+Exiting the debugger/program:                    qu|quit|ex|exit|by|bye
+Debugging/Undebugging the debugger parser:       dbgp|debugparse on|off {aadebug=1/0}
+-------------------------------------------------------------------------------------
+rmldb@>rmldb@> - command error, showing help
+---------------------------------- HELP: COMMANDS -----------------------------------
+Seting/unsetting breakpoints:                    b|break|breakpoint [on|off] string
+Clear all breakpoints:                           cl|clear
+Show all breakpoints:                            sh|show
+Print all the backtrace:                         bt|backtrace
+Print filtered backtrace:                        fbt|fbacktrace filter
+Set the maximum of backtrace entries:            maxbt|maxbacktrace integer (0=full)
+Set the depth of variable printing:              [set] de|depth integer (0=full)
+Set how may chars we print from long strings:    [set] maxstr|maxstring integer (0=full)
+Set the execution mode:                          set st|step [on|off]
+Perform one step:                                st|step
+Run the program:                                 ru|run
+Print the current settings:                      stg|settings
+Showing help:                                    he|help
+Printing the status of Modelica runtime:         sts|stat|status
+Set the output to go to file also:               ou|output file {WORK IN PROGRESS}
+Print the names of live variables:               li|live|livevars
+On/Off printing names of livevars each step:     [set] li|live|livevars on|off
+Print the live variable:                         pr|print var_name
+Print sizeof the live variable:                  sz|size|sizeof var_name
+Display the live variable each step:             di|display var_name
+Un-display the live variable :                   ud|undisplay var_name
+Show display variables:                          di|display
+Un-display ALL display variables:                ud|undisplay
+Send the live variable to external viewer:       gr|graph var_name {WORK IN PROGRESS}
+Print type info on any rml id:                   pty|printtype identifier
+VERY FAST debugging, no backtrace, no livevars:  fa|fast
+Exiting the debugger/program:                    qu|quit|ex|exit|by|bye
+Debugging/Undebugging the debugger parser:       dbgp|debugparse on|off {aadebug=1/0}
+-------------------------------------------------------------------------------------
+rmldb@>

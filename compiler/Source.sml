@@ -3,17 +3,17 @@
 structure Source : SOURCE =
   struct
 
-	structure Control = Control
-
+	structure ArraySourceMap = ArraySourceMap
+	
     datatype source
-      = SOURCE of
-	  { fileName: string,
-	    newLines: int list }	(* _descending_ order *)
-
-    val dummy = SOURCE{fileName="", newLines=[]}
+      = SOURCE of ArraySourceMap.sourcemap ref (* _descending_ order *) 
+      
+    fun getCurrentDate() = Date.toString(Date.fromTimeLocal(Time.now()))
+    
+    val dummy = SOURCE(ref(ArraySourceMap.new("",getCurrentDate())))
 
 	val debugFlag = false
-	fun debug s = if (debugFlag) then print ("MODParseFn."^s) else ()	
+	fun debug s = if (debugFlag) then Util.outStdErr ("Source."^s) else ()	
 
     (* The pos of an imaginary newline before a file's very
      * first character. This is necessary to adjust for the
@@ -23,23 +23,13 @@ structure Source : SOURCE =
      *)
     val startPos:int = 1
 
-	(*
-	fun prDebugLines (newLines, pos) = 
-	let fun prLines([]) = ()
-		|	prLines(newLine::newLines) = 
-			(
-			print ("["^Int.toString(newLine)^"] ");
-			prLines(newLines)
-			)
-	in
-		print ("\n - POS: "^Int.toString(pos)^" in list of: "^
-			Int.toString(List.length newLines)^" elements: ");
-		prLines(newLines);
-		print  ("\n")
-	end	    
-	
-	*)
-	
+    fun lookup(sourcemap, pos) = 
+    let val {line,column} = ArraySourceMap.decode(sourcemap, pos)
+    in
+      {line=line+1,column=column}
+    end
+    
+    (*	
     fun lookup(newLines, pos) =
       let fun loop([], _, x) = {line = 1, column = pos - startPos, nr_calls = x}
 	    | loop(newLine::newLines, line, x) =
@@ -57,114 +47,56 @@ structure Source : SOURCE =
 				       ^"\n");
 				{line=line, column=column}
 			)
-      end
-	
-	(*
-	local 
-	
-	val linesCache = ref NONE
-	
-	fun getLinesCache (newLines) = 
-	(
-		case !linesCache of
-			NONE => 
-			let val v = Vector.fromList(newLines)
-			in 
-			 linesCache := SOME(v); v
-			end 
-		|	SOME(v) => v
-	)
-    
-    in
-    
-    (* adrpo changed the implementation for more efficiency *)
-    fun lookup(newLines, pos:word) =
-      let val cachedLines = getLinesCache (newLines)
-		  val maxLines =  1 + Int.fromInt (List.length newLines)
-		  fun search(vec, min, max, pos) =
-			let val middle = (min+max) div 2
-			in 
-				(*
-				print ("\nmin: "^Int.toString(min)^
-				       " max: "^Int.toString(max)^
-				       " val: "^Int.toString(Vector.sub(vec, middle))^
-				       " pos: "^Int.toString(pos));
-				*)
-				if (max-min = 1 orelse min = max) 
-				then (min) 
-				else
-				(
-					if pos < Vector.sub(vec, Int.toInt middle)
-					then search(vec, middle, max, pos)
-					else search(vec, min, middle, pos)
-				)
-			end
-      in
-        (* search for the first value, less than pos *)
-        if (pos < Vector.sub(cachedLines, Vector.length(cachedLines)-1))
-        then { line = 1, column = pos } (* first line before the \n *)
-        else 
-        if (pos > Vector.sub(cachedLines, 0)) (* after the \n of last line *)
-        then { line = Int.fromInt (Vector.length(cachedLines)), column = pos - Vector.sub(cachedLines, 0) }  
-        else (* normal case *)
-        if (Vector.length(cachedLines) = 0) 
-        then {line = 1, column = pos - startPos}
-        else 
-			let val l = search(cachedLines, 0, Int.fromInt (Vector.length cachedLines), pos)
-			in
-				{line = l, column = pos - Vector.sub(cachedLines, Int.toInt l)}
-			end
-      end
-    
-    end
-	
+      end	
 	*)
 	
     fun sayErr s = TextIO.output(TextIO.stdErr, s)
     fun sayErr1 c = TextIO.output1(TextIO.stdErr, c)
 
-    fun sayFile file = (sayErr "\n"; sayErr file; sayErr1 #":")
+    fun sayFile file = (sayErr file; sayErr1 #":")
 
-    fun sayPos(newLines, pos) =
-      let val {line,column} = lookup(newLines, pos)
+    fun sayPos(sourcemap, pos) =
+      let val {line,column} = lookup(sourcemap, pos)
       in
 		sayErr(Int.toString line);
 		sayErr1 #".";
 		sayErr(Int.toString column)
       end
       
-    fun sayMsg (SOURCE{fileName,newLines}) (msg,leftPos,rightPos) =
-      (sayFile fileName;
-       sayPos(newLines, leftPos);
+    fun sayMsg (SOURCE(ref(sourcemap))) (msg,leftPos,rightPos) =
+      (sayFile (ArraySourceMap.getFileName(sourcemap));
+       sayPos(sourcemap, leftPos);
        sayErr1 #"-";
-       sayPos(newLines, rightPos);
+       sayPos(sourcemap, rightPos);
        sayErr1 #" ";
-       sayErr msg;
-       sayErr1 #"\n")
+       sayErr msg; sayErr1 #"\n")
        
     fun getLC({line, column}) = (line, column)
        
-    fun getLoc((SOURCE{fileName, newLines}), spos, epos) =
-	if (!Control.doDebug orelse !Control.rdbOnly) 
-	then (* generate line no only if we do trace or program databse *)
-		let val (sline, scolumn) = getLC(lookup(newLines, spos))
-			val (eline, ecolumn) = getLC(lookup(newLines, epos))
-		in
-		{
-		fileName=fileName,
-		sline = sline, 
-		scolumn = scolumn, 
-		eline = eline, 
-		ecolumn = ecolumn
-		}
-		end
-	else (*do not generate line/col no if we don't do trace *)
-		{
-		fileName=fileName,
-		sline =   0, 
-		scolumn = 0, 
-		eline =   0, 
-		ecolumn = 0
-		}
+    fun getLoc((SOURCE(ref(sourcemap))), spos, epos) =
+	let val (sline, scolumn) = getLC(lookup(sourcemap, spos))
+		val (eline, ecolumn) = getLC(lookup(sourcemap, epos))
+	in
+	{
+	fileName = ArraySourceMap.getFileName(sourcemap),
+	sline = sline, 
+	scolumn = scolumn, 
+	eline = eline, 
+	ecolumn = ecolumn
+	}
+	end
+		
+    fun getFileName (SOURCE(ref(sourcemap))) = 
+			ArraySourceMap.getFileName(sourcemap)		    
+    fun getSerializationDate (SOURCE(ref(sourcemap))) = 
+			ArraySourceMap.getSerializationDate(sourcemap)		    
+    fun getLines (SOURCE(ref(sourcemap))) = 
+			ArraySourceMap.getLines(sourcemap)
+			
+    fun getCurrentLine (SOURCE(ref(sourcemap))) = 
+			ArraySourceMap.getCurrentLine(sourcemap)
+			
+    fun getSource (filename, date_str, int_list, curLine) = 
+		SOURCE(ref(ArraySourceMap.getSourceMap(filename, date_str, int_list, curLine)))
 
   end (* structure Source *)

@@ -1,0 +1,56 @@
+module Main:
+  datatype tmp   =  V of real list array
+                 |  Vec of real list array * real list array  
+  relation main: string list => ()
+end
+ 
+(* our AST *)
+val ast = [[1.0],[2.0],[3.0]]
+
+relation loop =
+     rule int_lt(i, max) => true & 
+	 int_add(i, 1) => i' &
+	 int_real(i') => r &
+	 RML.array_update(vli, i', [r]) => vli &
+	 array_nth(vli, i) => l &
+	 RML.debug_print("\nset:", l) &
+	 apply(vli) &
+	 loop(i', max, vli)
+	 --------------------------------
+	 loop(i, max, vli) 
+	 
+    rule int_ge(i,max) => true
+	------------------------------
+	loop(i, max, _)
+end
+
+
+relation apply=
+   rule let li = [10.0]  & 
+        let lli = ast &
+        array_vector(arr) => vec &
+        array_create(10, li) => vli' &
+        list_array(lli) => vli &
+        let li_new = [3.0] &
+        let k = vli &
+        array_setnth(vli', 1, li_new) => vli' &
+        array_setnth(vli, 1, li_new) => vli &
+        array_setnth(vli', 2, li_new) => vli' &
+        array_update(vli', 5, li_new) => vli' &
+        array_setnth(vli, 2, li_new) => vli &
+        array_add(vli', li_new) => vli' &
+        let l = vli' &
+        let z = Vec(k, l)
+        ------------------------------------
+        apply(arr)
+end
+
+relation main: string list => () =
+   rule let max = 100 &
+        let li = [10.0]  & 
+        array_create(max, li) => vli &
+        loop(0, max, vli)
+        -----------------
+        main (_)
+
+end

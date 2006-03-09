@@ -4,6 +4,8 @@ structure Util : UTIL =
   struct
 
     fun sayErr s = TextIO.output(TextIO.stdErr, s)
+    
+    fun outStdErr s = TextIO.output(TextIO.stdErr, s)
 
     exception Bug
     fun bug s =
@@ -12,6 +14,9 @@ structure Util : UTIL =
     exception Error
     fun error s =
       (sayErr "Error: "; sayErr s; sayErr "\n"; raise Error)
+      
+    fun warn s =
+      (sayErr "Warning: "; sayErr s; sayErr "\n")      
 
     val tick =
       let val cnt = ref 99

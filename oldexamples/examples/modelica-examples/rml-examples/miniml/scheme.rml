@@ -1,0 +1,168 @@
+(* scheme.rml *)
+module Scheme:
+  with "types.rml"
+  datatype Comb		= QUOTE of Types.Type
+			| BOUND of int
+			| MKCONS of Comb list * Types.TyName
+  type AlphaScheme	= bool * Types.TyName list option
+  datatype Scheme	= SCHEME of AlphaScheme list * Comb
+  relation inst		: (Scheme, Types.Level) => (Types.Alpha list, Types.Type)
+  relation gen_limit	: (Types.Type, Types.Level) => Scheme
+  relation gen_none	: Types.Type => Scheme
+end
+
+with "util.rml"
+
+(* INSTANTIATION *)
+
+relation mkbvalphas =
+  axiom mkbvalphas([], _) => []
+
+  rule	mkbvalphas(bvars, lev) => alphas & Types.mkAlpha(lev, eq, ovld) => alpha
+	----------------
+	mkbvalphas((eq,ovld)::bvars, lev) => alpha::alphas
+end
+
+relation mkbvtys =
+  axiom mkbvtys([]) => []
+
+  rule	mkbvtys(alphas) => tys
+	----------------
+	mkbvtys(alpha::alphas) => ((Types.VAR alpha) :: tys)
+end
+
+relation inst2 =
+  axiom inst2(QUOTE ty, _) => ty
+
+  rule	vector_nth(bvars, i) => ty
+	----------------
+	inst2(BOUND i, bvars) => ty
+
+  rule	inst3(cs, bvars) => tys
+	----------------
+	inst2(MKCONS(cs,tyname), bvars) => Types.CONS(tys,tyname)
+end
+
+relation inst3 =
+  axiom inst3([], _) => []
+
+  rule	inst2(c, bvars) => ty & inst3(cs, bvars) => tys
+	----------------
+	inst3(c::cs, bvars) => ty::tys
+end
+
+relation inst =
+  rule	mkbvalphas(bvars, lev) => alphas & mkbvtys alphas => tys &
+	list_vector tys => tys' & inst2(comb, tys') => ty
+	----------------
+	inst(SCHEME(bvars,comb), lev) => (alphas, ty)
+end
+
+(* GENERALIZATION *)
+
+relation all_quotes =
+  axiom all_quotes []
+
+  rule	all_quotes cs
+	----------------
+	all_quotes((QUOTE _)::cs)
+end
+
+relation unquote_all =
+  axiom unquote_all [] => []
+
+  rule	unquote_all cs => tys
+	----------------
+	unquote_all((QUOTE ty)::cs) => ty::tys
+end
+
+relation mkcons =
+  rule	all_quotes cs & unquote_all cs => tys
+	----------------
+	mkcons(cs, tyname) => QUOTE(Types.CONS(tys,tyname))
+
+  rule	not all_quotes cs
+	----------------
+	mkcons(cs, tyname) => MKCONS(cs,tyname)
+end
+
+relation next_off =
+  axiom next_off [] => 0	(* domain of vector_nth is [0,nelts-1] *)
+
+  rule	int_add(off, 1) => off'
+	----------------
+	next_off((_,off)::_) => off'
+end
+
+relation gen_bound =
+  rule	Util.bound(bvars_in, alpha) => SOME off
+	----------------
+	gen_bound(alpha, bvars_in) => (bvars_in, BOUND off)
+
+  rule	Util.bound(bvars_in, alpha) => NONE & next_off bvars_in => off
+	----------------
+	gen_bound(alpha, bvars_in) => ((alpha,off)::bvars_in, BOUND off)
+end
+
+relation cannot_gen =
+  axiom	cannot_gen(Types.ALPHA(_,_,_,SOME _,_), _) => true
+
+  rule	int_le(lev, limit) => flag
+	----------------
+	cannot_gen(Types.ALPHA(_,lev,_,NONE,_), limit) => flag
+end
+
+relation gen_alpha =
+  rule	cannot_gen(alpha, limit) => true
+	----------------
+	gen_alpha(alpha, bvars_in, limit) => (bvars_in, QUOTE(Types.VAR alpha))
+
+  rule	cannot_gen(alpha, limit) => false &
+	gen_bound(alpha, bvars_in) => (bvars_out, comb)
+	----------------
+	gen_alpha(alpha, bvars_in, limit) => (bvars_out, comb)
+end
+
+relation gen1 =
+  rule	Types.deref ty => ty' & gen2(ty', bvars_in, limit) => (bvars_out, c)
+	----------------
+	gen1(ty,  bvars_in, limit) => (bvars_out, c)
+end
+
+relation gen2 =
+  rule	gen_alpha(alpha, bvars_in, limit) => (bvars_out, c)
+	----------------
+	gen2(Types.VAR alpha, bvars_in, limit) => (bvars_out, c)
+
+  rule	gen3(tys, bvars_in, limit) => (bvars_out, cs) & mkcons(cs,tyname) => c
+	----------------
+	gen2(Types.CONS(tys,tyname), bvars_in, limit) => (bvars_out, c)
+end
+
+relation gen3 =
+  axiom gen3([], bvars_in, _) => (bvars_in, [])
+
+  rule	gen3(tys, bvars_in, limit) => (bvars_tmp, cs) &
+	gen1(ty, bvars_tmp, limit) => (bvars_out, c)
+	----------------
+	gen3(ty::tys, bvars_in, limit) => (bvars_out, c::cs)
+end
+
+relation gen_bvars =
+  axiom gen_bvars([], info) => info
+
+  rule	gen_bvars(bvars, (eq,ovld)::info) => info'
+	----------------
+	gen_bvars((Types.ALPHA(_,_,eq,ovld,_),_)::bvars, info) => info'
+end
+
+relation gen_limit =
+  rule	gen1(ty, [], limit) => (bvars_out, comb) &
+	gen_bvars(bvars_out, []) => info
+	----------------
+	gen_limit(ty, limit) => SCHEME(info, comb)
+end
+
+relation gen_none =
+  axiom gen_none ty => SCHEME([], QUOTE ty)
+end

@@ -1,0 +1,202 @@
+module assigntwotype:
+datatype Ty2 
+	= INT2 of int*int
+	| REAL2 of real*real
+datatype Value 
+	= INTval of int
+	| REALval of real
+type Ident = string
+type VarBnd = Ident*Value
+type Env = (VarBnd)list
+datatype UnOp 
+	= NEG of 
+datatype BinOp 
+	= ADD of 
+	| SUB of 
+	| MUL of 
+	| DIV of 
+datatype Exp 
+	= INT of int
+	| REAL of real
+	| BINARY of Exp*BinOp*Exp
+	| UNARY of UnOp*Exp
+	| ASSIGN of Ident*Exp
+	| IDENT of Ident
+type ExpList = (Exp)list
+datatype Program 
+	= PROGRAM of ExpList*Exp
+relation evalprogram: (Program) => (bool)
+end
+relation update: (Env,Ident,Value) => (Env) =
+	rule	
+		----------------
+		update(env,id,value) => (RML.cons((id,value),env))
+
+end
+relation lookup: (Env,Ident) => (Value) =
+	rule	id = id2
+		----------------
+		lookup(RML.cons((id2,value),_),id) => (value)
+
+	rule	not id = id2 &
+		lookup(rest,id) => (value)
+		----------------
+		lookup(RML.cons((id2,_),rest),id) => (value)
+
+end
+relation lookupextend: (Env,Ident) => (Env,Value) =
+	rule	not lookup(env,id) => (v) &
+		INTval(0) => (value)
+		----------------
+		lookupextend(env,id) => (RML.cons((id,value),env),value)
+
+	rule	lookup(env,id) => (value)
+		----------------
+		lookupextend(env,id) => (env,value)
+
+end
+relation apply_real_unop: (UnOp,real) => (real) =
+	rule	real_neg(x) => (temp110)
+		----------------
+		apply_real_unop(NEG(),x) => (temp110)
+
+end
+relation apply_int_unop: (UnOp,int) => (int) =
+	rule	int_neg(x) => (temp109)
+		----------------
+		apply_int_unop(NEG(),x) => (temp109)
+
+end
+relation apply_real_binop: (BinOp,real,real) => (real) =
+	rule	real_add(x,y) => (temp105)
+		----------------
+		apply_real_binop(ADD(),x,y) => (temp105)
+
+	rule	real_sub(x,y) => (temp106)
+		----------------
+		apply_real_binop(SUB(),x,y) => (temp106)
+
+	rule	real_mul(x,y) => (temp107)
+		----------------
+		apply_real_binop(MUL(),x,y) => (temp107)
+
+	rule	real_div(x,y) => (temp108)
+		----------------
+		apply_real_binop(DIV(),x,y) => (temp108)
+
+end
+relation apply_int_binop: (BinOp,int,int) => (int) =
+	rule	int_add(x,y) => (temp101)
+		----------------
+		apply_int_binop(ADD(),x,y) => (temp101)
+
+	rule	int_sub(x,y) => (temp102)
+		----------------
+		apply_int_binop(SUB(),x,y) => (temp102)
+
+	rule	int_mul(x,y) => (temp103)
+		----------------
+		apply_int_binop(MUL(),x,y) => (temp103)
+
+	rule	int_div(x,y) => (temp104)
+		----------------
+		apply_int_binop(DIV(),x,y) => (temp104)
+
+end
+relation type_lub: (Value,Value) => (Ty2) =
+	rule	
+		----------------
+		type_lub(INTval(x),INTval(y)) => (INT2(x,y))
+
+	rule	int_real(x) => (x2)
+		----------------
+		type_lub(INTval(x),REALval(y)) => (REAL2(x2,y))
+
+	rule	int_real(y) => (y2)
+		----------------
+		type_lub(REALval(x),INTval(y)) => (REAL2(x,y2))
+
+	rule	
+		----------------
+		type_lub(REALval(x),REALval(y)) => (REAL2(x,y))
+
+end
+relation eval: (Env,Exp) => (Env,Value) =
+	rule	
+		----------------
+		eval(env,INT(ival)) => (env,INTval(ival))
+
+	rule	
+		----------------
+		eval(env,REAL(rval)) => (env,REALval(rval))
+
+	rule	lookupextend(env,id) => (env2,value)
+		----------------
+		eval(env,IDENT(id)) => (env2,value)
+
+	rule	eval(env,e1) => (env1,v1) &
+		eval(env,e2) => (env2,v2) &
+		type_lub(v1,v2) => (INT2(x,y)) &
+		apply_int_binop(binop,x,y) => (z)
+		----------------
+		eval(env,BINARY(e1,binop,e2)) => (env2,INTval(z))
+
+	rule	eval(env,e1) => (env1,v1) &
+		eval(env,e2) => (env2,v2) &
+		type_lub(v1,v2) => (REAL2(x,y)) &
+		apply_real_binop(binop,x,y) => (z)
+		----------------
+		eval(env,BINARY(e1,binop,e2)) => (env2,REALval(z))
+
+	rule	eval(env,e) => (env1,INTval(x)) &
+		apply_int_unop(unop,x) => (y)
+		----------------
+		eval(env,UNARY(unop,e)) => (env1,INTval(y))
+
+	rule	eval(env,e) => (env1,REALval(x)) &
+		apply_real_unop(unop,x) => (y)
+		----------------
+		eval(env,UNARY(unop,e)) => (env1,REALval(y))
+
+	rule	eval(env,exp) => (env1,value) &
+		update(env1,id,value) => (env2)
+		----------------
+		eval(env,ASSIGN(id,exp)) => (env2,value)
+
+end
+relation evals: (Env,ExpList) => (Env) =
+	rule	
+		----------------
+		evals(e,RML.nil) => (e)
+
+	rule	eval(env,exp) => (env2,_) &
+		evals(env2,expl) => (env3)
+		----------------
+		evals(env,RML.cons(exp,expl)) => (env3)
+
+end
+relation printvalue: (Value) => (bool) =
+	rule	int_string(x) => (x_1) &
+		print(x_1) => ()
+		----------------
+		printvalue(INTval(x)) => (true)
+
+	rule	real_string(x) => (x_1) &
+		print(x_1) => ()
+		----------------
+		printvalue(REALval(x)) => (true)
+
+end
+relation evalprogram: (Program) => (bool) =
+	rule	print("evp1\n") => () &
+		list_reverse(assignments) => (assignments_1) &
+		print("evp2\n") => () &
+		evals(RML.nil,assignments_1) => (env2) &
+		print("evp3\n") => () &
+		eval(env2,exp) => (_,value) &
+		print("evp4\n") => () &
+		printvalue(value) => ()
+		----------------
+		evalprogram(PROGRAM(assignments,exp)) => (true)
+
+end

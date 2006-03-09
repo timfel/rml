@@ -44,7 +44,10 @@ RML_BEGIN_LABEL(RML__string_5fchar_5flist_5fstring)
 	unsigned char *s = (unsigned char*)str->data;
 	rmlA0 = RML_TAGPTR(str);
 	for(; len > 0; --len, lst = RML_CDR(lst))
+	{
+		/* printf ("%c ",RML_STRINGDATA(RML_CAR(lst))[0]) */
 	    *s++ = RML_STRINGDATA(RML_CAR(lst))[0];
+	}
 	*s = '\0';
     }
     RML_TAILCALLK(rmlSC);

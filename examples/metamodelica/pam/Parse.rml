@@ -1,0 +1,8 @@
+
+module Parse:
+
+	with "pam.rml"
+
+	relation parse: () => Pam.Stmt
+
+end

@@ -1,29 +1,6 @@
-/*
-    Copyright PELAB, Linkoping University
-
-    This file is part of Relational Meta-Language (RML).
-	http://www.ida.liu.se/~pelab/rml
-
-    RML is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    RML is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Foobar; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
- * Adrian Pop, adrpo@ida.liu.se, http://www.ida.liu.se/~adrpo,
- * SyntaxDocument.java 
- *  - created 2004-12-23
- *  - copyright adrpo, IDA/PELAB
- *  - last modified: 2005-01-18
- *  - syntax hightlighting for RML in JEditorPane :)
+/* Adrian Pop, adrpo@ida.liu.se, http://www.ida.liu.se/~adrpo
+ * created 2004-12-23 
+ * syntax hightlighting for RML :)
  */
 
 import java.awt.*;

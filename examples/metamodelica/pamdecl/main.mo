@@ -1,21 +1,16 @@
 package Main
-import scanparse;
-import eval;
 
+(*
+public import OpenModelica.Compiler.ScanParse;
+
+public import OpenModelica.Compiler.Eval;
+*)
 public function main
-  input StringList in_stringlist;
-  output Boolean dummy;
-protected 
-  type StringList = list<String>;
+  (*Absyn.Prog ast;*)
 algorithm 
-  dummy:=
-  matchcontinue (in_stringlist)
-    local Absyn.Prog ast;
-    case _
-      equation 
-        ast = ScanParse.scanparse();
-        Eval.evalprog(ast); then true;
-  end matchcontinue;
+  (*ast := ScanParse.scanparse();
+  Eval.evalprog(ast);*)
+  print("bla");
 end main;
 end Main;
 

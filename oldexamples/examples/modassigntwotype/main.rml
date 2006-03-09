@@ -1,0 +1,51 @@
+(* file: main.rml *)
+module Main:
+  relation main: string list  =>  ()
+end
+
+with "parse.rml"
+with "eval.rml"
+
+relation printvalue:(Eval.Value) => () =
+  rule  int_string(x) => x' &
+        print x'
+        ---------------------
+        printvalue(Eval.INTval(x))
+
+  rule  real_string(x) => x' &
+        print x'
+        ----------------------
+        printvalue(Eval.REALval(x))
+end (* printvalue *)
+
+
+relation eval_loop:  Eval.Env => ()  =
+  rule  print("\n> ") &
+        Parse.parse => ast &
+        Eval.eval(env,ast) => (env2,value)  &
+        printvalue(value) &
+        eval_loop(env2)
+        ---------------
+        eval_loop(env)
+
+(*** INCOMPLETE!! *)
+ rule  not Parse.parse => ast &
+        print("Syntax error in input line\n")
+         ---------------
+        eval_loop(env)
+end (* eval_loop *)
+
+(*
+relation safe_parse_expr   (t.ex. via option NONE vid fel or SOME vid OK )
+
+
+relation safe_eval *)  (** om evaluering går fel; två fall eval.eval och not eval.eval vid fail *)
+
+
+relation main:  string list => ()  =
+  rule  eval_loop(Eval.init_env) 
+        ------------------------
+        main _
+end (* main *)
+
+(* end of module main *)

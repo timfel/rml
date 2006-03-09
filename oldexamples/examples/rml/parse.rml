@@ -1,0 +1,46 @@
+(*
+    Copyright PELAB, Linkoping University
+
+    This file is part of Open Source Modelica (OSM).
+
+    OSM is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    OSM is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with OpenModelica; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+*)
+
+(**
+ ** file:	 parse.rml
+ ** module:      Parser
+ ** description: Interface to external code for parsing
+ **
+ ** The parser module is used for both parsing of files and statements in
+ ** interactive mode. Some relations never fails, even if parsing fails. Instead,
+ ** they return an error message other than "Ok".
+ **
+ ** Input: String to parse
+ ** Output: Absyn.Program or InteractiveStmts
+ **
+ ** $Id: parse.rml,v 1.12 2004/09/28 09:14:38 levsa Exp $
+ **
+ **)
+
+
+module Parser:
+  with "absyn.rml"
+  with "interactive.rml"							
+  relation parse: string => Absyn.Program
+  relation parseexp: string => Interactive.InteractiveStmts
+  relation parsestring: string => (Absyn.Program, string) (* Always succeeds, string contains "Ok" or error message *)
+  relation parsestringexp: string => (Interactive.InteractiveStmts, string)  (* Always succeeds, string contains "Ok" or error message *)
+end

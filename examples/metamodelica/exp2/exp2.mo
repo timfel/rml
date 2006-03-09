@@ -1,86 +1,92 @@
-package exp2 " file exp2.rml "
+package exp2 "file exp2.rml"
 
+public 
 uniontype Exp
   record INT
-    Integer x1;
+    Integer integer;
   end INT;
+
   record BINARY
-    Exp x1;
-    BinOp x2;
-    Exp x3;
+    Exp exp1;
+    BinOp binOp2;
+    Exp exp3;
   end BINARY;
+
   record UNARY
-    UnOp x1;
-    Exp x2;
+    UnOp unOp;
+    Exp exp;
   end UNARY;
+
 end Exp;
 
+public 
 uniontype BinOp
-  record ADD
-  end ADD;
-  record SUB
-  end SUB;
-  record MUL
-  end MUL;
-  record DIV
-  end DIV;
+  record ADD end ADD;
+
+  record SUB end SUB;
+
+  record MUL end MUL;
+
+  record DIV end DIV;
+
 end BinOp;
 
+public 
 uniontype UnOp
-  record NEG
-  end NEG;
+  record NEG end NEG;
+
 end UnOp;
 
 public function eval
-  input Exp in_exp;
-  output Integer out_integer;
+  input Exp inExp;
+  output Integer outInteger;
 algorithm 
-  out_integer:=
-  matchcontinue (in_exp)
+  outInteger:=
+  matchcontinue (inExp)
     local
       Integer ival,v1,v2,v3;
       Exp e1,e2,e;
       BinOp binop;
       UnOp unop;
-    case (INT(ival)) then ival; 
-    case (BINARY(e1,binop,e2))
+    case (INT(integer = ival)) then ival; 
+    case (BINARY(exp1 = e1,binOp2 = binop,exp3 = e2))
       equation 
         v1 = eval(e1);
         v2 = eval(e2);
-        v3 = apply_binop(binop, v1, v2); then v3;
-    case (UNARY(unop,e))
+        v3 = applyBinop(binop, v1, v2); then v3;
+    case (UNARY(unOp = unop,exp = e))
       equation 
         v1 = eval(e);
-        v2 = apply_unop(unop, v1); then v2;
+        v2 = applyUnop(unop, v1); then v2;
   end matchcontinue;
 end eval;
 
-protected function apply_binop
-  input BinOp in_binop1;
-  input Integer in_integer2;
-  input Integer in_integer3;
-  output Integer out_integer;
+protected function applyBinop
+  input BinOp inBinOp1;
+  input Integer inInteger2;
+  input Integer inInteger3;
+  output Integer outInteger;
 algorithm 
-  out_integer:=
-  matchcontinue (in_binop1,in_integer2,in_integer3)
+  outInteger:=
+  matchcontinue (inBinOp1,inInteger2,inInteger3)
     local Integer v1,v2;
     case (ADD(),v1,v2) then v1 + v2; 
     case (SUB(),v1,v2) then v1 - v2; 
     case (MUL(),v1,v2) then v1*v2; 
     case (DIV(),v1,v2) then v1/v2; 
   end matchcontinue;
-end apply_binop;
+end applyBinop;
 
-protected function apply_unop
-  input UnOp in_unop;
-  input Integer in_integer;
-  output Integer out_integer;
+protected function applyUnop
+  input UnOp inUnOp;
+  input Integer inInteger;
+  output Integer outInteger;
 algorithm 
-  out_integer:=
-  matchcontinue (in_unop,in_integer)
+  outInteger:=
+  matchcontinue (inUnOp,inInteger)
     local Integer v;
     case (NEG(),v) then -v; 
   end matchcontinue;
-end apply_unop;
+end applyUnop;
 end exp2;
 

@@ -147,6 +147,9 @@
 					RelativePath=".\common\bool-or.c">
 				</File>
 				<File
+					RelativePath=".\common\external-rml.c">
+				</File>
+				<File
 					RelativePath=".\common\int-abs.c">
 				</File>
 				<File
@@ -469,6 +472,12 @@
 					RelativePath=".\debugging\Makefile">
 				</File>
 				<File
+					RelativePath=".\debugging\rml-db-load.c">
+				</File>
+				<File
+					RelativePath=".\debugging\rml-db-load.h">
+				</File>
+				<File
 					RelativePath=".\debugging\rml-db-parse.c">
 				</File>
 				<File
@@ -780,6 +789,9 @@
 			Filter="">
 			<File
 				RelativePath="..\config\x86-cygwin-gcc\config.h">
+			</File>
+			<File
+				RelativePath="..\Copyright">
 			</File>
 			<File
 				RelativePath="..\config\x86-cygwin-gcc\labtab.h">

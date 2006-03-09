@@ -1,0 +1,26 @@
+module Exp1:
+  datatype Exp  =  RCONST of  real
+		|  ICONST of  int
+		|  SPECop of Exp * Exp 
+
+(* relation eval:  Exp => real *)
+end
+
+relation eval: Exp => int  =
+  
+  rule  
+	-----------------------
+	eval( RCONST(ival) ) => 1 
+
+  rule	
+	----------------------------
+	eval(ICONST(ival)) => ival
+
+(*  rule	eval(e1) => v1
+	---------------
+	eval(SPECop(e1,e2)) => v1
+
+  rule	int_add(i1,i2) => v
+	-------------
+	eval(SPECop(ICONST(i1),ICONST(i2))) => v *)
+end 

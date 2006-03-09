@@ -6,12 +6,10 @@
 
 (* the main functor *)
 functor MainFn(
+	       structure Cache   : CACHE
            structure Version : VERSION
 	       structure Util : UTIL
-	       structure RMLParse : PARSE
-	       structure MODParse : PARSE
-	       structure StatElab : STAT_ELAB
-	       structure AbsynPrint : ABSYN_PRINT
+	       structure FrontEnd : FRONTEND where type repository = Cache.repository
 	       structure AbsynToFOL : ABSYNTOFOL
 	       structure FOLPrint : FOL_PRINT
 	       structure FOLOptim : FOL_OPTIM
@@ -28,11 +26,7 @@ functor MainFn(
 	       structure Interp : INTERP
 	       structure CPSToSML : CPSTOSML
 	       structure Control : CONTROL
-	       structure Instrument : ABSYN_INSTRUMENTED
-	       sharing MODParse.Absyn = RMLParse.Absyn = AbsynPrint.Absyn = Instrument.Absyn
-	       sharing MODParse.Absyn = RMLParse.Absyn = StatElab.Absyn
-	       sharing MODParse.Absyn = RMLParse.Absyn = Interp.Absyn
-	       sharing MODParse.Absyn = RMLParse.Absyn = AbsynToFOL.Absyn
+           sharing FrontEnd.Absyn = Interp.Absyn = AbsynToFOL.Absyn
 	       sharing AbsynToFOL.FOL = FOLPrint.FOL = FOLOptim.FOL = FOLToCPS.FOL
 	       sharing FOLToCPS.CPS = CPSOptim.CPS = CPSPrint.CPS
 	       sharing CPSPrint.CPS = CPSToSwitch.CPS
@@ -42,21 +36,10 @@ functor MainFn(
 	       sharing CPSToSML.CPS = FOLToCPS.CPS
 		 ) : MAIN =
   struct
-
+		
     (* error printing *)
     fun sayErr msg = TextIO.output(TextIO.stdErr, msg)
-
-    (* flag to write the symboltable or not*)
-    val emitDebug = ref false
-    (* flag to emit the program database or not *)
-    val emitRdb = ref false
-    (* flag to emit the AST or not *)
-    val emitAst = ref false
-    (* flag to emit the FOL form or not *)
-    val emitFol = ref false
-    (* flag to emit the CPS form or not *)
-    val emitCps = ref false
-    
+        
     (* enumeration datatype of code generation schemes (backends) *)
     datatype cgscheme = PLAIN | MASK | DIFF | SML
     (* default code generation scheme is set to PLAIN *)
@@ -67,46 +50,29 @@ functor MainFn(
     val optCps = ref true
     (* flag to optimize Code representation or not *)
     val optCode = ref true
-
-    (* datatype for the result if is ok or if is error *)
-    datatype 'a outcome = OK of 'a | ERR of exn
     
-    (* function to write files with error handling *)
-    fun withOutputOption f arg2 file =
-      let val os = TextIO.openOut file
-	  val outcome = (OK(f(SOME(os), arg2))) handle exn => ERR exn
-      in
-	    TextIO.closeOut os;
-	    case outcome of (OK result) => result | (ERR exn) => raise exn
-      end
-
-    (* function to write files with error handling *)
-    fun withOutput f arg2 file =
-      let val os = TextIO.openOut file
-	  val outcome = (OK(f(os, arg2))) handle exn => ERR exn
-      in
-	    TextIO.closeOut os;
-	    case outcome of (OK result) => result | (ERR exn) => raise exn
-      end
-
+    structure StrDict = Cache.StrDict
+    
     (* function that does the rml to sml translation *)
     fun doSml((prefix, ext), cpsModule) =
-      (withOutput CPSToSML.emitModule ((prefix, ext), cpsModule) (prefix ^ ".sml");
-       withOutput CPSToSML.emitInterface cpsModule (prefix ^ ".sig"))
+      (Control.withOutput CPSToSML.emitModule ((prefix, ext), cpsModule) (prefix ^ ".sml");
+       Control.withOutput CPSToSML.emitInterface cpsModule (prefix ^ ".sig"))
 
     (* generates code according to Switch runtime *)
     fun doSwitch((prefix, ext), switchModule) =
-      let val switchModule = if !optCode then SwitchOptim.optimize switchModule
-			     else switchModule
+      let val switchModule = 
+		  if !optCode 
+		  then SwitchOptim.optimize switchModule
+		  else switchModule
 	  val cFile = prefix ^ ".c" and hFile = prefix ^ ".h"
       in
-	case !cgScheme
-	  of DIFF =>
-	      (withOutput DiffToC.emitModule ((prefix, ext), switchModule) cFile;
-	       withOutput DiffToC.emitInterface switchModule hFile)
-	   | _ =>
-	      (withOutput MaskToC.emitModule ((prefix, ext), switchModule) cFile;
-	       withOutput MaskToC.emitInterface switchModule hFile)
+		case !cgScheme of 
+			DIFF =>
+	      (Control.withOutput DiffToC.emitModule ((prefix, ext), switchModule) cFile;
+	       Control.withOutput DiffToC.emitInterface switchModule hFile)
+	    | _ =>
+	      (Control.withOutput MaskToC.emitModule ((prefix, ext), switchModule) cFile;
+	       Control.withOutput MaskToC.emitInterface switchModule hFile)
       end
 
     (* generates code according to Plain runtime *)
@@ -114,25 +80,9 @@ functor MainFn(
       let val plainModule = if !optCode then PlainOptim.optimize plainModule
 			    else plainModule
       in
-		withOutput PlainToC.emitModule ((prefix, ext), plainModule) (prefix ^ ".c");
-		withOutput PlainToC.emitInterface plainModule (prefix ^ ".h")
+		Control.withOutput PlainToC.emitModule ((prefix, ext), plainModule) (prefix ^ ".c");
+		Control.withOutput PlainToC.emitInterface plainModule (prefix ^ ".h")
       end
-
-    (* generates the AST representation *)
-    fun doAst((prefix, ext), astModule) =
-      (
-       if !emitAst (* check if we should dump the AST *)
-       then withOutput AbsynPrint.printModule astModule (prefix ^ ".ast")
-       else ();
-       if !emitDebug (* check if we should dump the DEBUG instrumented AST *)
-       then withOutput AbsynPrint.printModule astModule (prefix ^ ".dbg")
-       else ()       
-      )
-
-    (* instrument  *)
-    fun doInstrument(prefix, astModule) =
-       if !Control.doDebug then Instrument.instrument(prefix, astModule)
-       else astModule
       
     (* dump the FOL representation *)
     fun folPrintOptim(folOs, folModule) =
@@ -143,13 +93,13 @@ functor MainFn(
       
     (* generate the FOL representation *)
     fun doFol((prefix, ext), folModule) =
-      if !emitFol 
+      if !Control.emitFol 
       then if !optFol then
-			withOutput folPrintOptim 
-				(withOutput folPrint folModule (prefix ^ ".fol")) 
+			Control.withOutput folPrintOptim 
+				(Control.withOutput folPrint folModule (prefix ^ ".fol")) 
 				(prefix ^ ".optim.fol")
 		   else
-			withOutput folPrint folModule (prefix ^ ".fol")
+			Control.withOutput folPrint folModule (prefix ^ ".fol")
       else if !optFol then 
 			FOLOptim.optimize(NONE, folModule)
 		   else 
@@ -162,58 +112,43 @@ functor MainFn(
     
     (* generate the CPS representation *)
     fun doCps((prefix, ext), cpsModule) =
-      if !emitCps then withOutput cpsPrint cpsModule (prefix ^ ".cps")
-      else if !optCps then CPSOptim.optimize(NONE, cpsModule)
-      else cpsModule
-
-    (* parse a module *)
-    fun   parse ((prefix, ext as SOME("rml"))) = 
-			RMLParse.parseModule( OS.Path.joinBaseExt {base = prefix, ext = ext} )
-		| parse ((prefix, ext as SOME("mo"))) = 
-			MODParse.parseModule ( OS.Path.joinBaseExt {base = prefix, ext = ext} )
-
-    (* statically elaborate a module (typecheck) *)
-    fun checkModule((prefix, ext), module) = 
-		if !emitRdb
-		then withOutputOption StatElab.checkModule module (prefix ^ ".rdb")
-		else StatElab.checkModule(NONE, module)
-
-    (* statically elaborate an entire program (typecheck) *)
-    fun checkProgram modseq = 
-		if !emitRdb
-		then withOutputOption StatElab.checkProgram modseq ("_all_.rdb")
-		else StatElab.checkProgram(NONE, modseq)
-    
-
-    (* flag that specifies if only typecheck should be performed, no codegen *)
-    val onlyTypeCheck = ref false       
-       
-
+      if !Control.emitCps 
+      then Control.withOutput cpsPrint cpsModule (prefix ^ ".cps")
+      else  if !optCps 
+			then CPSOptim.optimize(NONE, cpsModule)
+			else cpsModule
+           
     (* function that translates a RML file into C representation (actual compilation) *)
     fun translate ( (prefix, ext) )=
-      let  val astModule = 
-			doInstrument(
-				OS.Path.joinBaseExt {base = prefix, ext = ext}, 
-				parse (prefix, ext) )
-	  val _ = doAst((prefix, ext), astModule)
-	  val _ = checkModule((prefix, ext), astModule)
-      in
-		if !onlyTypeCheck then () (* check if we only do typecheck *)
-		else
-		let val folModule = doFol((prefix, ext), AbsynToFOL.translate astModule)
-			val cpsModule = doCps((prefix, ext), FOLToCPS.translate folModule)
-		in
-			case !cgScheme (* what backend should we use for codegen *)
-			of PLAIN => doPlain((prefix, ext), CPSToPlain.translate cpsModule)
-			| MASK => doSwitch((prefix, ext), CPSToSwitch.translate cpsModule)
-			| DIFF => doSwitch((prefix, ext), CPSToSwitch.translate cpsModule)
-			| SML => doSml((prefix, ext), cpsModule)
-		end;
-		()
+      let	val fileName = OS.Path.joinBaseExt {base = prefix, ext = ext}
+			val astModule = 
+					FrontEnd.processFile(
+						(prefix,ext),
+						Cache.new(
+							Cache.new(
+								Cache.new(
+									ref StrDict.empty, Cache.rmlCache), 
+								Cache.modCache), 
+							Cache.srzCache)) 
+	  in	  		
+		case astModule of
+			SOME(astModule) =>
+				let (* print the FOL ast if required by -Efol *)
+					val folModule = doFol((prefix, ext), AbsynToFOL.translate astModule)
+					(* print the CPS ast if required by -Ecps *)
+					val cpsModule = doCps((prefix, ext), FOLToCPS.translate folModule)
+				in
+					case !cgScheme (* what backend should we use for codegen *)
+					of PLAIN => doPlain((prefix, ext), CPSToPlain.translate cpsModule)
+					|  MASK  => doSwitch((prefix, ext), CPSToSwitch.translate cpsModule)
+					|  DIFF  => doSwitch((prefix, ext), CPSToSwitch.translate cpsModule)
+					|  SML   => doSml((prefix, ext), cpsModule)
+				end
+		|	NONE => ()
       end
 
-    fun usage badarg = (* check the compiler line arguments (parameters) *)
-      (sayErr("rml: invalid argument '" ^ badarg ^ "'\n");
+	fun help() =
+	(
        sayErr "usage: rml [options] file.(rml|mo) ...\n";
        sayErr "valid options are:\n";
        sayErr "--\n";
@@ -229,7 +164,9 @@ functor MainFn(
        sayErr "-f{,no-}trace\n";
        sayErr "-f{,no-}debug\n";
        sayErr "-f{,no-}qualified-rdb\n";
-       sayErr "-f{,no-}rdb-only\n";              
+       sayErr "-f{,no-}rdb-only\n";
+       sayErr "-fdump-interface\n";
+       sayErr "-fdump-depends\n";
        sayErr "-O\n";
        sayErr "-O0\n";
        sayErr "-O{,no-}code\n";
@@ -238,11 +175,17 @@ functor MainFn(
        sayErr "-i\n";
        sayErr "-v\n";
        sayErr "-W{no-,}non-exhaustive\n";
+       sayErr "-help|--help|-h\n"
+    )
+
+    fun usage badarg = (* check the compiler line arguments (parameters) *)
+      (sayErr("rml: invalid argument '" ^ badarg ^ "'\n");
+       help();
        Util.error "Usage")
     
     (* function that outputs the version of the compiler *)
     fun version() = 
-      (sayErr "rml and Meta-Modelica compiler version ";
+      (sayErr "rml+mmc compiler version ";
        sayErr Version.versionNumber;
        sayErr " built ";
        sayErr Version.builtDate;
@@ -253,53 +196,73 @@ functor MainFn(
     (* function that eats the compiler options and sets the flags *)
     fun option arg = 
       case arg
-	of "-East" => emitAst := true
-	 | "-Eno-ast" => emitAst := false
-	 | "-Efol" => emitFol := true
-	 | "-Eno-fol" => emitFol := false
-	 | "-Ecps" => emitCps := true
-	 | "-Eno-cps" => emitCps := false
-	 | "-Erdb" => emitRdb := true
-	 | "-Eno-rdb" => emitRdb := false
-	 | "-Ofol" => optFol := true
-	 | "-Ono-fol" => optFol := false
-	 | "-Ocps" => optCps := true
-	 | "-Ono-cps" => optCps := false
-	 | "-Ocode" => optCode := true
+	of "-East"     => Control.emitAst := true
+	 | "-Eno-ast"  => Control.emitAst := false
+	 | "-Efol"     => Control.emitFol := true
+	 | "-Eno-fol"  => Control.emitFol := false
+	 | "-Ecps"     => Control.emitCps := true
+	 | "-Eno-cps"  => Control.emitCps := false
+	 | "-Erdb"     => Control.emitRdb := true
+	 | "-Eno-rdb"  => Control.emitRdb := false
+	 | "-Ofol"     => optFol := true
+	 | "-Ono-fol"  => optFol := false
+	 | "-Ocps"     => optCps := true
+	 | "-Ono-cps"  => optCps := false
+	 | "-Ocode"    => optCode := true
 	 | "-Ono-code" => optCode := false
-	 | "-O" => (optFol := true; optCps := true; optCode := true)
-	 | "-O0" => (optFol := false; optCps := false; optCode := false)
-	 | "-Eplain" => cgScheme := PLAIN
-	 | "-Emask" => cgScheme := MASK
-	 | "-Ediff" => cgScheme := DIFF
-	 | "-Esml" => cgScheme := SML
-	 | "-fimplicit-let" => Control.allowImplicitLet := true
-	 | "-fno-implicit-let" => Control.allowImplicitLet := false
-	 | "-freorder" => Control.doReorder := true
-	 | "-fno-reorder" => Control.doReorder := false
-	 | "-ftypecheck-only" => onlyTypeCheck := true
-	 | "-fno-typecheck-only" => onlyTypeCheck := false
-         (* --start adrpo@ida.liu.se added 2002-06-14 *)
-	 | "-fdebug" => (Control.doDebug := true; emitRdb := true; Control.qualifiedRdb := true)
-	 | "-fno-debug" => Control.doDebug := false
-         (* --end adrpo@ida.liu.se added 2002-06-14 *)
-	 | "-ftrace" =>    Control.doTrace := true
-	 | "-fno-trace" => Control.doTrace := false
-	 | "-fqualified-rdb" => Control.qualifiedRdb := true
+	 | "-O"        => (optFol := true; optCps := true; optCode := true)
+	 | "-O0"       => (optFol := false; optCps := false; optCode := false)
+	 | "-Eplain"   => cgScheme := PLAIN
+	 | "-Emask"    => cgScheme := MASK
+	 | "-Ediff"    => cgScheme := DIFF
+	 | "-Esml"     => cgScheme := SML
+	 | "-fimplicit-let"      => Control.allowImplicitLet := true
+	 | "-fno-implicit-let"   => Control.allowImplicitLet := false
+	 | "-freorder"           => Control.doReorder := true
+	 | "-fno-reorder"        => Control.doReorder := false
+	 | "-ftypecheck-only"    => Control.onlyTypeCheck := true
+	 | "-fno-typecheck-only" => Control.onlyTypeCheck := false
+	 | "-fdebug" => 
+	 (
+		Control.doDebug := true; 
+		Control.emitRdb := true; 
+		Control.qualifiedRdb := true
+	 )
+	 | "-fno-debug"         => Control.doDebug := false
+	 | "-ftrace"            => Control.doTrace := true
+	 | "-fno-trace"         => Control.doTrace := false
+	 | "-fqualified-rdb"    => Control.qualifiedRdb := true
 	 | "-fno-qualified-rdb" => Control.qualifiedRdb := false
-
 	 | "-frdb-only" => 
 		(
-		 emitRdb := true; 
+		 Control.emitRdb := true; 
 		 Control.rdbOnly := true;
 		 Control.qualifiedRdb := false; 
-		 onlyTypeCheck := true
+		 Control.onlyTypeCheck := true
 		)
-	 | "-fno-rdb-only" => ()
-	 
-	 | "-Wnon-exhaustive" => Control.warnNonExhaustive := true
+	 | "-fno-rdb-only" => ()	 
+	 | "-Wnon-exhaustive"    => Control.warnNonExhaustive := true
 	 | "-Wno-non-exhaustive" => Control.warnNonExhaustive := false
+	 | "-ffix-java-names" => 
+		(
+		  Control.fixJavaNames := true;
+		  Util.warn("#include \"ExternalRMLDefines.h\" will be added to the  generated .c file!")
+		)	 
+	 | "-fdump-interface" => 
+		(
+		  Control.dumpInterface := true
+		)
+	 | "-fdump-depends" => 
+		(
+		  Control.dumpDepends := true
+		  (*
+		  Control.dumpInterface := true (* do not load additional files *)	
+		  *)	  
+		)		
 	 | "-v" => version()
+	 | "--help" => usage arg
+	 | "-help"  => usage arg
+	 | "-h"     => usage arg
 	 | _ =>
 	    let val size = String.size arg
 		val srtPfx = "-fswitch-rewrite-threshold="
@@ -318,18 +281,33 @@ functor MainFn(
       let fun process arg =
 	    if String.sub(arg, 0) = #"-" then option arg
 	    else
-	      case (Control.fileType arg)
-			of Control.RML_FILE => translate (Control.pathSplit arg)
-			 | Control.MO_FILE  => translate (Control.pathSplit arg)
-		     | _ => usage arg
+	      case (Control.fileType arg) of 
+				Control.RML_FILE => 
+				(
+				Control.currentlyCompiling := Control.RML_FILE;
+				translate (Control.pathSplit arg)
+				)
+		  |		Control.MO_FILE  => 
+				(
+				Control.currentlyCompiling := Control.MO_FILE;				
+				translate (Control.pathSplit arg)
+				)
+		  |		_ => usage arg
       in
 		List.app process argv
       end
 
     (* function to run the interpreter *)
     fun run(prefixes, argv) =
-      let val modseq = map parse prefixes
-	  val _ = checkProgram modseq
+	  let val modseq = 
+				FrontEnd.processProgram(
+					prefixes,
+						Cache.new(
+							Cache.new(
+								Cache.new(
+									ref StrDict.empty, Cache.rmlCache), 
+								Cache.modCache), 
+							Cache.srzCache))
       in
 	    Interp.run(modseq, argv)
       end
@@ -355,21 +333,11 @@ functor MainFn(
 		loop(argv, [])
       end
 
-    fun dependency argv =
-      let fun process arg =
-	      case (Control.fileType arg)
-			of Control.RML_FILE => translate (Control.pathSplit arg)
-			 | Control.MO_FILE  => translate (Control.pathSplit arg)
-		     | _ => usage arg
-      in
-		List.app process argv
-      end
-
     (* the main function *)
     fun main argv =
       let fun loop("-i"::argv) = interpreter argv
 	    | loop("-v"::argv) = (version(); loop argv)
-	    | loop("-dep"::argv) = dependency argv
+	    (* | loop("-dep"::argv) = dependency argv *)
 	    | loop argv = compiler argv
       in
 	    loop argv

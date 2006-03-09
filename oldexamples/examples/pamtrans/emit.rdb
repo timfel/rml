@@ -1,0 +1,29 @@
+v: emit.rml:83.18.83.18|range[80.3.85.1]|emit_int[i:int]
+v: emit.rml:80.25.80.25|range[80.3.85.1]|emit_int[s:string]
+v: emit.rml:91.32.91.33|range[89.3.93.3]|emit_moperand[id:string]
+v: emit.rml:95.32.95.37|range[93.3.97.3]|emit_moperand[number:int]
+v: emit.rml:99.32.99.36|range[97.3.101.3]|emit_moperand[labno:int]
+v: emit.rml:103.32.103.37|range[101.3.105.1]|emit_moperand[tempnr:int]
+v: emit.rml:74.33.74.36|range[71.3.76.1]|emit_op_operand[mopr:Mcode.MOperand]
+v: emit.rml:74.26.74.30|range[71.3.76.1]|emit_op_operand[opstr:string]
+v: emit.rml:31.30.31.35|range[28.3.33.3]|emit_instr[mbinop:Mcode.MBinOp]
+v: emit.rml:31.38.31.41|range[28.3.33.3]|emit_instr[mopr:Mcode.MOperand]
+v: emit.rml:28.34.28.35|range[28.3.33.3]|emit_instr[op:string]
+v: emit.rml:36.30.36.34|range[33.3.38.3]|emit_instr[jmpop:Mcode.MCondJmp]
+v: emit.rml:36.37.36.40|range[33.3.38.3]|emit_instr[mlab:Mcode.MOperand]
+v: emit.rml:33.33.33.34|range[33.3.38.3]|emit_instr[op:string]
+v: emit.rml:40.32.40.35|range[38.3.42.3]|emit_instr[mlab:Mcode.MOperand]
+v: emit.rml:44.33.44.36|range[42.3.46.3]|emit_instr[mopr:Mcode.MOperand]
+v: emit.rml:48.32.48.35|range[46.3.50.3]|emit_instr[mopr:Mcode.MOperand]
+v: emit.rml:52.32.52.35|range[50.3.54.3]|emit_instr[mopr:Mcode.MOperand]
+v: emit.rml:56.32.56.35|range[54.3.58.3]|emit_instr[mopr:Mcode.MOperand]
+v: emit.rml:60.34.60.37|range[58.3.62.3]|emit_instr[mlab:Mcode.MOperand]
+v: emit.rml:19.24.19.28|range[16.3.21.1]|emit_assembly[instr:Mcode.MCode]
+v: emit.rml:19.31.19.34|range[16.3.21.1]|emit_assembly[rest:Mcode.MCode list]
+r: emit.rml:87.10.87.22|Emit.emit_moperand:Mcode.MOperand => ()
+r: emit.rml:25.10.25.19|Emit.emit_instr:Mcode.MCode => ()
+r: emit.rml:9.10.9.22|Emit.emit_assembly:Mcode.MCode list => ()
+r: emit.rml:78.10.78.17|Emit.emit_int:int => ()
+r: emit.rml:107.10.107.22|Emit.mbinop_to_str:Mcode.MBinOp => string
+r: emit.rml:69.10.69.24|Emit.emit_op_operand:(string,Mcode.MOperand) => ()
+r: emit.rml:115.10.115.22|Emit.mjmpop_to_str:Mcode.MCondJmp => string

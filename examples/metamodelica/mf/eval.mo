@@ -1,126 +1,129 @@
-package Eval " eval.rml -- Mini-Freja Evaluator "
-import Absyn;
+package Eval
 
+public import Absyn.*;
+
+protected 
 type envlvar = lvar<env>;
 
 uniontype value
   record CONSTval
-    Absyn.const_ x1;
+    Absyn.const const;
   end CONSTval;
+
   record CLOval
-    env x1;
-    Absyn.var x2;
-    Absyn.exp x3;
+    env env;
+    Absyn.var var;
+    Absyn.exp exp;
   end CLOval;
+
   record CONSval
-    value x1;
-    value x2;
+    value value1;
+    value value2;
   end CONSval;
+
   record SUSPval
-    env x1;
-    Absyn.exp x2;
+    env env;
+    Absyn.exp exp;
   end SUSPval;
+
   record RSUSPval
-    envlvar x1;
-    Absyn.exp x2 " for RECexp ";
+    envlvar envlvar;
+    Absyn.exp exp;
   end RSUSPval;
+
 end value;
 
-type TupleAbsynvarvalue = tuple<Absyn.var,value>;
-
-type env = list<TupleAbsynvarvalue>;
-
-protected function primapp1 " Apply a unary strict primop. The argument must be a constant. "
-  input Absyn.prim1 in_prim1;
-  input Absyn.const_ in_const_;
-  output Absyn.const_ out_const_;
+protected function primapp1
+  input Absyn.prim1 inprim1;
+  input Absyn.const inconst;
+  output Absyn.const outconst;
 algorithm 
-  out_const_:=
-  matchcontinue (in_prim1,in_const_)
+  outconst:=
+  matchcontinue (inprim1,inconst)
     local Boolean y,x;
-    case (Absyn.NOT(),Absyn.BOOLcnst(x))
+    case (Absyn.NOT(),Absyn.BOOLcnst(boolean = x))
       equation 
-        y = bool_not(x); then Absyn.BOOLcnst(y);
-    case (Absyn.NEG(),Absyn.INTcnst(x))
+        y = boolNot(x); then Absyn.BOOLcnst(y);
+    case (Absyn.NEG(),Absyn.INTcnst(integer = x))
       local Integer y,x;
       equation 
         y = -x; then Absyn.INTcnst(y);
   end matchcontinue;
 end primapp1;
 
-protected function primapp2 " Apply a binary strict primop. The arguments must be constants. "
-  input Absyn.prim2 in_prim21;
-  input Absyn.const_ in_const_2;
-  input Absyn.const_ in_const_3;
-  output Absyn.const_ out_const_;
+protected function primapp2
+  input Absyn.prim2 inprim21;
+  input Absyn.const inconst2;
+  input Absyn.const inconst3;
+  output Absyn.const outconst;
 algorithm 
-  out_const_:=
-  matchcontinue (in_prim21,in_const_2,in_const_3)
+  outconst:=
+  matchcontinue (inprim21,inconst2,inconst3)
     local
       Boolean z;
       Integer x,y;
-    case (Absyn.LT(),Absyn.INTcnst(x),Absyn.INTcnst(y))
+    case (Absyn.LT(),Absyn.INTcnst(integer = x),Absyn.INTcnst(integer = y))
       equation 
         z = (x < y); then Absyn.BOOLcnst(z);
-    case (Absyn.LE(),Absyn.INTcnst(x),Absyn.INTcnst(y))
+    case (Absyn.LE(),Absyn.INTcnst(integer = x),Absyn.INTcnst(integer = y))
       equation 
         z = (x <= y); then Absyn.BOOLcnst(z);
-    case (Absyn.EQ(),Absyn.INTcnst(x),Absyn.INTcnst(y))
+    case (Absyn.EQ(),Absyn.INTcnst(integer = x),Absyn.INTcnst(integer = y))
       equation 
         z = (x == y); then Absyn.BOOLcnst(z);
-    case (Absyn.NE(),Absyn.INTcnst(x),Absyn.INTcnst(y))
+    case (Absyn.NE(),Absyn.INTcnst(integer = x),Absyn.INTcnst(integer = y))
       equation 
         z = (x <> y); then Absyn.BOOLcnst(z);
-    case (Absyn.GE(),Absyn.INTcnst(x),Absyn.INTcnst(y))
+    case (Absyn.GE(),Absyn.INTcnst(integer = x),Absyn.INTcnst(integer = y))
       equation 
         z = (x >= y); then Absyn.BOOLcnst(z);
-    case (Absyn.GT(),Absyn.INTcnst(x),Absyn.INTcnst(y))
+    case (Absyn.GT(),Absyn.INTcnst(integer = x),Absyn.INTcnst(integer = y))
       equation 
         z = (x > y); then Absyn.BOOLcnst(z);
-    case (Absyn.AND(),Absyn.BOOLcnst(x),Absyn.BOOLcnst(y))
+    case (Absyn.AND(),Absyn.BOOLcnst(boolean = x),Absyn.BOOLcnst(boolean = y))
       local Boolean x,y;
       equation 
-        z = bool_and(x, y); then Absyn.BOOLcnst(z);
-    case (Absyn.OR(),Absyn.BOOLcnst(x),Absyn.BOOLcnst(y))
+        z = boolAnd(x, y); then Absyn.BOOLcnst(z);
+    case (Absyn.OR(),Absyn.BOOLcnst(boolean = x),Absyn.BOOLcnst(boolean = y))
       local Boolean x,y;
       equation 
-        z = bool_or(x, y); then Absyn.BOOLcnst(z);
-    case (Absyn.ADD(),Absyn.INTcnst(x),Absyn.INTcnst(y))
+        z = boolOr(x, y); then Absyn.BOOLcnst(z);
+    case (Absyn.ADD(),Absyn.INTcnst(integer = x),Absyn.INTcnst(integer = y))
       local Integer z;
       equation 
         z = x + y; then Absyn.INTcnst(z);
-    case (Absyn.SUB(),Absyn.INTcnst(x),Absyn.INTcnst(y))
+    case (Absyn.SUB(),Absyn.INTcnst(integer = x),Absyn.INTcnst(integer = y))
       local Integer z;
       equation 
         z = x - y; then Absyn.INTcnst(z);
-    case (Absyn.MUL(),Absyn.INTcnst(x),Absyn.INTcnst(y))
+    case (Absyn.MUL(),Absyn.INTcnst(integer = x),Absyn.INTcnst(integer = y))
       local Integer z;
       equation 
         z = x*y; then Absyn.INTcnst(z);
-    case (Absyn.DIV(),Absyn.INTcnst(x),Absyn.INTcnst(y))
+    case (Absyn.DIV(),Absyn.INTcnst(integer = x),Absyn.INTcnst(integer = y))
       local Integer z;
       equation 
         z = x/y; then Absyn.INTcnst(z);
-    case (Absyn.MOD(),Absyn.INTcnst(x),Absyn.INTcnst(y))
+    case (Absyn.MOD(),Absyn.INTcnst(integer = x),Absyn.INTcnst(integer = y))
       local Integer z;
       equation 
-        z = int_mod(x, y); then Absyn.INTcnst(z);
+        z = intMod(x, y); then Absyn.INTcnst(z);
   end matchcontinue;
 end primapp2;
 
-protected function lookup " Find the most recent binding of an identifier in an environment. "
-  input env in_env;
-  input Absyn.var in_var;
-  output value out_value;
+protected function lookup
+  input env inenv;
+  input Absyn.var invar;
+  output value outvalue;
 algorithm 
-  out_value:=
-  matchcontinue (in_env,in_var)
+  outvalue:=
+  matchcontinue (inenv,invar)
     local
-      type TupleStringvalue = tuple<String,value>;
-      type TupleStringvalueList = list<TupleStringvalue>;
+      type TplStringvalue = tuple<String,value>;
+      type TplStringvalueLst = list<TplStringvalue>;
       String id,id_1;
       value v;
-      TupleStringvalueList rho;
+      TplStringvalueLst rho;
     case ((id,v) :: _,id_1)
       equation 
         equality(id = id_1); then v;
@@ -131,36 +134,27 @@ algorithm
   end matchcontinue;
 end lookup;
 
-protected function newenv " Augment an environment with a set of recursive declarations
- * Step 1: construct an uninstantiated reference ptrNewRho
- * Step 2: construct newRho: for every declaration (id,exp), push
- *	   a binding (id, RSUSPval(ptrNewRho,exp)) onto the old rho
- * Step 3: tie the knot by instantiating ptrNewRho to newRho
- *
- * The force and strict functions automatically dereference these
- * rho references.
- "
-  input env in_env;
-  input TupleAbsynvarAbsynexpList in_tupleabsynvarabsynexplist;
-  input envlvar in_envlvar;
-  output env out_env;
-protected 
-  type TupleAbsynvarAbsynexp = tuple<Absynvar,Absynexp>;
-  type TupleAbsynvarAbsynexpList = list<TupleAbsynvarAbsynexp>;
+protected function newenv
+  input env inenv;
+  input TplAbsyn_varAbsyn_expLst inTplAbsynVarAbsynExpLst;
+  input envlvar inenvlvar;
+  output env outenv;
+  type TplAbsyn_varAbsyn_exp = tuple<Absyn.var,Absyn.exp>;
+  type TplAbsyn_varAbsyn_expLst = list<TplAbsyn_varAbsyn_exp>;
 algorithm 
-  out_env:=
-  matchcontinue (in_env,in_tupleabsynvarabsynexplist,in_envlvar)
+  outenv:=
+  matchcontinue (inenv,inTplAbsynVarAbsynExpLst,inenvlvar)
     local
-      type TupleStringvalue = tuple<String,value>;
-      type TupleStringvalueList = list<TupleStringvalue>;
-      type TupleStringAbsynexp = tuple<String,Absynexp>;
-      type TupleStringAbsynexpList = list<TupleStringAbsynexp>;
-      type TupleStringvalueListlvar = lvar<TupleStringvalueList>;
-      TupleStringvalueList rho,newRho;
+      type TplStringvalue = tuple<String,value>;
+      type TplStringvalueLst = list<TplStringvalue>;
+      type TplStringAbsyn_exp = tuple<String,Absyn.exp>;
+      type TplStringAbsyn_expLst = list<TplStringAbsyn_exp>;
+      type TplStringvalueLstlvar = lvar<TplStringvalueLst>;
+      TplStringvalueLst rho,newRho;
       String id;
       Absyn.exp exp;
-      TupleStringAbsynexpList decls;
-      TupleStringvalueListlvar ptrNewRho;
+      TplStringAbsyn_expLst decls;
+      TplStringvalueLstlvar ptrNewRho;
     case (rho,{},_) then rho; 
     case (rho,(id,exp) :: decls,ptrNewRho)
       equation 
@@ -170,343 +164,339 @@ end newenv;
 
 protected function recenv
   input env rho;
-  input TupleAbsynvarAbsynexpList decls;
+  input TplAbsyn_varAbsyn_expLst decls;
   output env newRho;
-protected 
-  type TupleAbsynvarAbsynexp = tuple<Absynvar,Absynexp>;
-  type TupleAbsynvarAbsynexpList = list<TupleAbsynvarAbsynexp>;
-  type TupleStringvalue = tuple<String,value>;
-  type TupleStringvalueList = list<TupleStringvalue>;
-  type TupleStringvalueListlvar = lvar<TupleStringvalueList>;
-  TupleStringvalueListlvar ptrNewRho;
+  type TplAbsyn_varAbsyn_exp = tuple<Absyn.var,Absyn.exp>;
+  type TplAbsyn_varAbsyn_expLst = list<TplAbsyn_varAbsyn_exp>;
+  type TplStringvalue = tuple<String,value>;
+  type TplStringvalueLst = list<TplStringvalue>;
+  type TplStringvalueLstlvar = lvar<TplStringvalueLst>;
+  TplStringvalueLstlvar ptrNewRho;
 algorithm 
-  ptrNewRho := lvar_new();
+  ptrNewRho := lvarNew();
   newRho := newenv(rho, decls, ptrNewRho);
-  lvar_set(ptrNewRho, newRho);
+  lvarSet(ptrNewRho, newRho);
 end recenv;
 
-uniontype match_result " Match a pattern with a value. Return augmented environment or error. "
+protected 
+uniontype match_result
   record MYES
-    env x1;
+    env env;
   end MYES;
-  record MNO
-  end MNO;
+
+  record MNO end MNO;
+
 end match_result;
 
 protected function match_
-  input env in_env;
-  input value in_value;
-  input Absyn.pat in_pat;
-  output match_result out_match_result;
+  input env inenv;
+  input value invalue;
+  input Absyn.pat inpat;
+  output match_result outmatchResult;
 algorithm 
-  out_match_result:=
-  matchcontinue (in_env,in_value,in_pat)
+  outmatchResult:=
+  matchcontinue (inenv,invalue,inpat)
     local
-      type TupleStringvalue = tuple<String,value>;
-      type TupleStringvalueList = list<TupleStringvalue>;
-      TupleStringvalueList rho;
+      type TplStringvalue = tuple<String,value>;
+      type TplStringvalueLst = list<TplStringvalue>;
+      TplStringvalueLst rho;
       value v,v1,v2;
       String id;
-      Absyn.const_ c,c_1;
+      Absyn.const c,c_1;
       match_result res1,res2;
       Absyn.pat p1,p2;
-    case (rho,v,Absyn.VARpat(id)) then MYES((id,v) :: rho); 
-    case (rho,CONSTval(c),Absyn.CONSTpat(c_1))
+    case (rho,v,Absyn.VARpat(var = id)) then MYES((id,v) :: rho); 
+    case (rho,CONSTval(const = c),Absyn.CONSTpat(const = c_1))
       equation 
         equality(c = c_1); then MYES(rho);
-    case (rho,CONSTval(c),Absyn.CONSTpat(c_1))
+    case (rho,CONSTval(const = c),Absyn.CONSTpat(const = c_1))
       equation 
         failure(equality(c = c_1)); then MNO();
-    case (rho,CONSval(v1,v2),Absyn.CONSpat(p1,p2))
+    case (rho,CONSval(value1 = v1,value2 = v2),Absyn.CONSpat(pat1 = p1,pat2 = p2))
       equation 
         res1 = match_(rho, v1, p1);
-        res2 = match_cdr(res1, v2, p2); then res2;
-    case (_,CONSTval(_),Absyn.CONSpat(_,_)) then MNO(); 
-    case (_,CONSval(_,_),Absyn.CONSTpat(_)) then MNO(); 
+        res2 = matchCdr(res1, v2, p2); then res2;
+    case (_,CONSTval(const = _),Absyn.CONSpat(pat1 = _)) then MNO(); 
+    case (_,CONSval(value1 = _),Absyn.CONSTpat(const = _)) then MNO(); 
   end matchcontinue;
 end match_;
 
-protected function match_cdr
-  input match_result in_match_result;
-  input value in_value;
-  input Absyn.pat in_pat;
-  output match_result out_match_result;
+protected function matchCdr
+  input match_result inmatchResult;
+  input value invalue;
+  input Absyn.pat inpat;
+  output match_result outmatchResult;
 algorithm 
-  out_match_result:=
-  matchcontinue (in_match_result,in_value,in_pat)
+  outmatchResult:=
+  matchcontinue (inmatchResult,invalue,inpat)
     local
-      type TupleStringvalue = tuple<String,value>;
-      type TupleStringvalueList = list<TupleStringvalue>;
+      type TplStringvalue = tuple<String,value>;
+      type TplStringvalueLst = list<TplStringvalue>;
       match_result res;
-      TupleStringvalueList rho;
+      TplStringvalueLst rho;
       value v2;
       Absyn.pat p2;
-    case (MYES(rho),v2,p2)
+    case (MYES(env = rho),v2,p2)
       equation 
         res = match_(rho, v2, p2); then res;
-    case (MNO(),_,_) then MNO();  " could use AS pattern here "
+    case (MNO(),_,_) then MNO(); 
   end matchcontinue;
-end match_cdr;
+end matchCdr;
 
-protected function if_choose " Using result of IF predicate, choose between the alternative expressions "
-  input Boolean in_boolean1;
-  input Absyn.exp in_exp2;
-  input Absyn.exp in_exp3;
-  output Absyn.exp out_exp;
+protected function ifChoose
+  input Boolean inBoolean1;
+  input Absyn.exp inexp2;
+  input Absyn.exp inexp3;
+  output Absyn.exp outexp;
 algorithm 
-  out_exp:=
-  matchcontinue (in_boolean1,in_exp2,in_exp3)
+  outexp:=
+  matchcontinue (inBoolean1,inexp2,inexp3)
     local Absyn.exp e2,e3;
     case (true,e2,_) then e2; 
     case (false,_,e3) then e3; 
   end matchcontinue;
-end if_choose;
+end ifChoose;
 
-protected function eval_case " Evaluate the expression of the first pattern to match the value. Result in whnf "
-  input env in_env;
-  input value in_value;
-  input AbsyncruleList in_absyncrulelist;
-  output value out_value;
-protected 
-  type AbsyncruleList = list<Absyn.crule>;
+protected function evalCase
+  input env inenv;
+  input value invalue;
+  input Absyn_cruleLst inAbsynCruleLst;
+  output value outvalue;
+  type Absyn_cruleLst = list<Absyn.crule>;
 algorithm 
-  out_value:=
-  matchcontinue (in_env,in_value,in_absyncrulelist)
+  outvalue:=
+  matchcontinue (inenv,invalue,inAbsynCruleLst)
     local
-      type TupleStringvalue = tuple<String,value>;
-      type TupleStringvalueList = list<TupleStringvalue>;
-      type TupleAbsynpatAbsynexp = tuple<Absynpat,Absynexp>;
-      type TupleAbsynpatAbsynexpList = list<TupleAbsynpatAbsynexp>;
+      type TplStringvalue = tuple<String,value>;
+      type TplStringvalueLst = list<TplStringvalue>;
+      type TplAbsyn_patAbsyn_exp = tuple<Absyn.pat,Absyn.exp>;
+      type TplAbsyn_patAbsyn_expLst = list<TplAbsyn_patAbsyn_exp>;
       match_result result;
       value v_1,v;
-      TupleStringvalueList rho;
+      TplStringvalueLst rho;
       Absyn.pat pat;
       Absyn.exp exp;
-      TupleAbsynpatAbsynexpList rules;
+      TplAbsyn_patAbsyn_expLst rules;
     case (rho,v,(pat,exp) :: rules)
       equation 
         result = match_(rho, v, pat);
-        v_1 = case_choose(result, exp, rho, v, rules); then v_1;
+        v_1 = caseChoose(result, exp, rho, v, rules); then v_1;
   end matchcontinue;
-end eval_case;
+end evalCase;
 
-protected function case_choose
-  input match_result in_match_result;
-  input Absyn.exp in_exp;
-  input env in_env;
-  input value in_value;
-  input AbsyncruleList in_absyncrulelist;
-  output value out_value;
-protected 
-  type AbsyncruleList = list<Absyn.crule>;
+protected function caseChoose
+  input match_result inmatchResult;
+  input Absyn.exp inexp;
+  input env inenv;
+  input value invalue;
+  input Absyn_cruleLst inAbsynCruleLst;
+  output value outvalue;
+  type Absyn_cruleLst = list<Absyn.crule>;
 algorithm 
-  out_value:=
-  matchcontinue (in_match_result,in_exp,in_env,in_value,in_absyncrulelist)
+  outvalue:=
+  matchcontinue (inmatchResult,inexp,inenv,invalue,inAbsynCruleLst)
     local
-      type TupleStringvalue = tuple<String,value>;
-      type TupleStringvalueList = list<TupleStringvalue>;
-      type TupleAbsynpatAbsynexp = tuple<Absynpat,Absynexp>;
-      type TupleAbsynpatAbsynexpList = list<TupleAbsynpatAbsynexp>;
+      type TplStringvalue = tuple<String,value>;
+      type TplStringvalueLst = list<TplStringvalue>;
+      type TplAbsyn_patAbsyn_exp = tuple<Absyn.pat,Absyn.exp>;
+      type TplAbsyn_patAbsyn_expLst = list<TplAbsyn_patAbsyn_exp>;
       value v_1,v;
-      TupleStringvalueList rho_1,rho;
+      TplStringvalueLst rho_1,rho;
       Absyn.exp exp;
-      TupleAbsynpatAbsynexpList rules;
-    case (MYES(rho_1),exp,_,_,_)
+      TplAbsyn_patAbsyn_expLst rules;
+    case (MYES(env = rho_1),exp,_,_,_)
       equation 
         v_1 = eval(rho_1, exp); then v_1;
     case (MNO(),_,rho,v,rules)
       equation 
-        v_1 = eval_case(rho, v, rules); then v_1;
+        v_1 = evalCase(rho, v, rules); then v_1;
   end matchcontinue;
-end case_choose;
+end caseChoose;
 
-protected function eval " Compute the whnf of an expression in an environment "
-  input env in_env;
-  input Absyn.exp in_exp;
-  output value out_value;
+protected function eval
+  input env inenv;
+  input Absyn.exp inexp;
+  output value outvalue;
 algorithm 
-  out_value:=
-  matchcontinue (in_env,in_exp)
+  outvalue:=
+  matchcontinue (inenv,inexp)
     local
-      type TupleStringvalue = tuple<String,value>;
-      type TupleStringvalueList = list<TupleStringvalue>;
-      type TupleAbsynpatAbsynexp = tuple<Absynpat,Absynexp>;
-      type TupleAbsynpatAbsynexpList = list<TupleAbsynpatAbsynexp>;
-      type TupleStringAbsynexp = tuple<String,Absynexp>;
-      type TupleStringAbsynexpList = list<TupleStringAbsynexp>;
-      Absyn.const_ c,c_1,c1,c2,c3;
+      type TplStringvalue = tuple<String,value>;
+      type TplStringvalueLst = list<TplStringvalue>;
+      type TplAbsyn_patAbsyn_exp = tuple<Absyn.pat,Absyn.exp>;
+      type TplAbsyn_patAbsyn_expLst = list<TplAbsyn_patAbsyn_exp>;
+      type TplStringAbsyn_exp = tuple<String,Absyn.exp>;
+      type TplStringAbsyn_expLst = list<TplStringAbsyn_exp>;
+      Absyn.const c,c_1,c1,c2,c3;
       value v,v_1;
-      TupleStringvalueList rho,rho_1;
+      TplStringvalueLst rho,rho_1;
       String id,formal;
       Absyn.exp e1,e2,exp,e,e3,body,f,arg;
-      TupleAbsynpatAbsynexpList rules;
+      TplAbsyn_patAbsyn_expLst rules;
       Absyn.prim1 p;
       Boolean flag;
-      TupleStringAbsynexpList d;
-    case (_,Absyn.CONSTexp(c)) then CONSTval(c); 
-    case (rho,Absyn.VARexp(id))
+      TplStringAbsyn_expLst d;
+    case (_,Absyn.CONSTexp(const = c)) then CONSTval(c); 
+    case (rho,Absyn.VARexp(var = id))
       equation 
         v = lookup(rho, id);
         v_1 = force(v); then v_1;
-    case (rho,Absyn.CONSexp(e1,e2)) then CONSval(SUSPval(rho,e1),SUSPval(rho,e2)); 
-    case (rho,Absyn.LAMexp(id,exp)) then CLOval(rho,id,exp); 
-    case (rho,Absyn.CASEexp(e,rules))
+    case (rho,Absyn.CONSexp(exp1 = e1,exp2 = e2)) then CONSval(SUSPval(rho,e1),SUSPval(rho,e2)); 
+    case (rho,Absyn.LAMexp(var = id,exp = exp)) then CLOval(rho,id,exp); 
+    case (rho,Absyn.CASEexp(exp = e,cruleLst = rules))
       equation 
         v = eval(rho, e);
-        v_1 = eval_case(rho, v, rules); then v_1;
-    case (rho,Absyn.PRIM1exp(p,e))
+        v_1 = evalCase(rho, v, rules); then v_1;
+    case (rho,Absyn.PRIM1exp(prim1 = p,exp = e))
       equation 
-        CONSTval(c) = eval(rho, e);
+        CONSTval(const = c) = eval(rho, e);
         c_1 = primapp1(p, c); then CONSTval(c_1);
-    case (rho,Absyn.PRIM2exp(p,e1,e2))
+    case (rho,Absyn.PRIM2exp(prim21 = p,exp2 = e1,exp3 = e2))
       local Absyn.prim2 p;
       equation 
-        CONSTval(c1) = eval(rho, e1);
-        CONSTval(c2) = eval(rho, e2);
+        CONSTval(const = c1) = eval(rho, e1);
+        CONSTval(const = c2) = eval(rho, e2);
         c3 = primapp2(p, c1, c2); then CONSTval(c3);
-    case (rho,Absyn.IFexp(e1,e2,e3))
+    case (rho,Absyn.IFexp(exp1 = e1,exp2 = e2,exp3 = e3))
       equation 
-        CONSTval(Absyn.BOOLcnst(flag)) = eval(rho, e1);
-        e = if_choose(flag, e2, e3);
+        CONSTval(const = Absyn.BOOLcnst(boolean = flag)) = eval(rho, e1);
+        e = ifChoose(flag, e2, e3);
         v = eval(rho, e); then v;
-    case (rho,Absyn.APPexp(f,arg))
+    case (rho,Absyn.APPexp(exp1 = f,exp2 = arg))
       equation 
-        CLOval(rho_1,formal,body) = eval(rho, f);
+        CLOval(env = rho_1,var = formal,exp = body) = eval(rho, f);
         v = eval((formal,SUSPval(rho,arg)) :: rho_1, body); then v;
-    case (rho,Absyn.RECexp(d,e))
+    case (rho,Absyn.RECexp(tplvarexpLst = d,exp = e))
       equation 
         rho_1 = recenv(rho, d);
         v = eval(rho_1, e); then v;
   end matchcontinue;
 end eval;
 
-protected function force " Force a value to be in whnf "
-  input value in_value;
-  output value out_value;
+protected function force
+  input value invalue;
+  output value outvalue;
 algorithm 
-  out_value:=
-  matchcontinue (in_value)
+  outvalue:=
+  matchcontinue (invalue)
     local
-      type TupleStringvalue = tuple<String,value>;
-      type TupleStringvalueList = list<TupleStringvalue>;
-      type TupleStringvalueListlvar = lvar<TupleStringvalueList>;
+      type TplStringvalue = tuple<String,value>;
+      type TplStringvalueLst = list<TplStringvalue>;
+      type TplStringvalueLstlvar = lvar<TplStringvalueLst>;
       value v,v_1;
-      TupleStringvalueList rho;
+      TplStringvalueLst rho;
       Absyn.exp exp;
-      TupleStringvalueListlvar ptrRho;
-    case ((v = CONSTval(_))) then v; 
-    case ((v = CLOval(_,_,_))) then v; 
-    case ((v = CONSval(_,_))) then v; 
-    case SUSPval(rho,exp)
+      TplStringvalueLstlvar ptrRho;
+    case ((v as CONSTval(const = _))) then v; 
+    case ((v as CLOval(env = _))) then v; 
+    case ((v as CONSval(value1 = _))) then v; 
+    case SUSPval(env = rho,exp = exp)
       equation 
         v = eval(rho, exp);
         v_1 = force(v); then v_1;
-    case RSUSPval(ptrRho,exp)
+    case RSUSPval(envlvar = ptrRho,exp = exp)
       equation 
-        SOME(rho) = lvar_get(ptrRho);
-        v = eval(rho, exp) " fails is still unbound ";
+        SOME(rho) = lvarGet(ptrRho);
+        v = eval(rho, exp);
         v_1 = force(v); then v_1;
   end matchcontinue;
 end force;
 
-protected function strict " Force a value to be fully evaluated "
-  input value in_value;
-  output value out_value;
+protected function strict
+  input value invalue;
+  output value outvalue;
 algorithm 
-  out_value:=
-  matchcontinue (in_value)
+  outvalue:=
+  matchcontinue (invalue)
     local
-      type TupleStringvalue = tuple<String,value>;
-      type TupleStringvalueList = list<TupleStringvalue>;
-      type TupleStringvalueListlvar = lvar<TupleStringvalueList>;
+      type TplStringvalue = tuple<String,value>;
+      type TplStringvalueLst = list<TplStringvalue>;
+      type TplStringvalueLstlvar = lvar<TplStringvalueLst>;
       value v,v1_1,v2_1,v1,v2,v_1;
-      TupleStringvalueList rho;
+      TplStringvalueLst rho;
       Absyn.exp exp;
-      TupleStringvalueListlvar ptrRho;
-    case ((v = CONSTval(_))) then v; 
-    case ((v = CLOval(_,_,_))) then v; 
-    case CONSval(v1,v2)
+      TplStringvalueLstlvar ptrRho;
+    case ((v as CONSTval(const = _))) then v; 
+    case ((v as CLOval(env = _))) then v; 
+    case CONSval(value1 = v1,value2 = v2)
       equation 
         v1_1 = strict(v1);
         v2_1 = strict(v2); then CONSval(v1_1,v2_1);
-    case SUSPval(rho,exp)
+    case SUSPval(env = rho,exp = exp)
       equation 
         v = eval(rho, exp);
         v_1 = strict(v); then v_1;
-    case RSUSPval(ptrRho,exp)
+    case RSUSPval(envlvar = ptrRho,exp = exp)
       equation 
-        SOME(rho) = lvar_get(ptrRho);
-        v = eval(rho, exp) " fails if still unbound ";
+        SOME(rho) = lvarGet(ptrRho);
+        v = eval(rho, exp);
         v_1 = strict(v); then v_1;
   end matchcontinue;
 end strict;
 
-protected function bool_string " print a strict value "
-  input Boolean in_boolean;
-  output String out_string;
+protected function boolString
+  input Boolean inBoolean;
+  output String outString;
 algorithm 
-  out_string:=
-  matchcontinue (in_boolean)
+  outString:=
+  matchcontinue (inBoolean)
     case true then "true"; 
     case false then "false"; 
   end matchcontinue;
-end bool_string;
+end boolString;
 
-protected function print_const
-  input Absyn.const_ in_const_;
-  output Boolean dummy;
+protected function printConst
+  input Absyn.const inconst;
 algorithm 
-  dummy:=
-  matchcontinue (in_const_)
+  _:=
+  matchcontinue (inconst)
     local
       String s;
       Integer i;
       Boolean b;
-    case (Absyn.INTcnst(i))
+    case (Absyn.INTcnst(integer = i))
       equation 
-        s = int_string(i);
-        print(s); then true;
-    case (Absyn.BOOLcnst(b))
+        s = intString(i);
+        print(s); then ();
+    case (Absyn.BOOLcnst(boolean = b))
       equation 
-        s = bool_string(b);
-        print(s); then true;
+        s = boolString(b);
+        print(s); then ();
     case (Absyn.NILcnst())
       equation 
-        print("[]"); then true;
+        print("[]"); then ();
   end matchcontinue;
-end print_const;
+end printConst;
 
-protected function print_value
-  input value in_value;
-  output Boolean dummy;
+protected function printValue
+  input value invalue;
 algorithm 
-  dummy:=
-  matchcontinue (in_value)
+  _:=
+  matchcontinue (invalue)
     local
-      Absyn.const_ c;
+      Absyn.const c;
       value car,cdr;
-    case (CONSTval(c))
+    case (CONSTval(const = c))
       equation 
-        print_const(c); then true;
-    case (CLOval(_,_,_))
+        printConst(c); then ();
+    case (CLOval(env = _))
       equation 
-        print("<closure>"); then true;
-    case (CONSval(car,cdr))
+        print("<closure>"); then ();
+    case (CONSval(value1 = car,value2 = cdr))
       equation 
-        print_value(car);
+        printValue(car);
         print("::");
-        print_value(cdr); then true;
+        printValue(cdr); then ();
   end matchcontinue;
-end print_value;
+end printValue;
 
-public function exec " Evaluate an expression and print the result "
+public function exec
   input Absyn.exp e;
-protected 
   value v,v_1;
 algorithm 
   v := eval({}, e);
   v_1 := strict(v);
-  print_value(v_1);
+  printValue(v_1);
   print("\n");
 end exec;
 end Eval;

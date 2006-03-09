@@ -65,6 +65,13 @@ case `uname -s` in
       *) exit 1;;
     esac
     ;;
+  MINGW32_*)
+    OPSYS=mingw32
+    case `uname -m` in
+      i[3456]86) ARCH=x86;;
+      *) exit 1;;
+    esac
+    ;;
   Darwin)
      OPSYS=darwin
      case `uname -m` in

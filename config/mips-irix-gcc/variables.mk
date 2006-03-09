@@ -5,7 +5,7 @@ COFLAGS=-O2
 # got no libprof.a
 CPFLAGS=
 # no -g flags at all supported by this gcc
-CGFLAGS= -DRML_DEBUG
+CGFLAGS=-DRML_DEBUG
 RANLIB=echo
 CPP=gcc -x c -E -ansi
 AS=/usr/bin/as -nocpp

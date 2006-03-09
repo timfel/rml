@@ -7,22 +7,22 @@ SHELL = /bin/sh
 LDLIBS = -lrml -lfl 
  
 # EVERYTHING
-all:    pamtrans
+all:    pamTrans
  
 # EXECUTABLE
  
 COMMONOBJS=yacclib.o
-VSLOBJS=main.o lexer.o gram.o parse.o absyn.o mcode.o trans.o emit.o
-CLEAN=pamtrans pamtrans.exe $(COMMONOBJS) $(VSLOBJS) main.c main.h lexer.c parser.c parser.h gram.c gram.h absyn.c absyn.h emit.c emit.h mcode.c mcode.h trans.c trans.h *~ 
+VSLOBJS=Main.o lexer.o gram.o Parse.o Absyn.o Mcode.o Trans.o Emit.o
+CLEAN=pamTrans pamTrans.exe $(COMMONOBJS) $(VSLOBJS) Main.c Main.h lexer.c Parser.c Parser.h gram.c gram.h Absyn.c Absyn.h Emit.c Emit.h Mcode.c Mcode.h Trans.c Trans.h *~ 
 
-pamtrans: $(VSLOBJS) $(COMMONOBJS)
-	$(LINK.rml) $(VSLOBJS) $(COMMONOBJS) $(LDLIBS) -o pamtrans
+pamTrans: $(VSLOBJS) $(COMMONOBJS)
+	$(LINK.rml) $(VSLOBJS) $(COMMONOBJS) $(LDLIBS) -o pamTrans
  
-# MAIN ROUTINE WRITTEN IN RML NOW
+# Main ROUTINE WRITTEN IN RML NOW
  
-main.o: main.c
-main.c main.h: main.rml
-	$(COMPILE.rml) main.rml
+Main.o: Main.c
+Main.c Main.h: Main.rml
+	$(COMPILE.rml) Main.rml
  
 # YACCLIB
  
@@ -31,11 +31,11 @@ yacclib.o:  yacclib.c
  
 # LEXER
  
-lexer.o:  lexer.c gram.h absyn.h
+lexer.o:  lexer.c gram.h Absyn.h
 lexer.c:  lexer.l
 	flex -t -l lexer.l >lexer.c
  
-# PARSER
+# ParseR
  
 gram.o:  gram.c gram.h
 gram.c gram.h:  gram.y
@@ -43,33 +43,33 @@ gram.c gram.h:  gram.y
 	mv gram.tab.c gram.c
 	mv gram.tab.h gram.h
 
-# INTERFACE TO SCANNER/PARSER (RML CALLING C)
+# INTERFACE TO SCANNER/ParseR (RML CALLING C)
  
-parse.o:  parse.c absyn.h
+Parse.o:  Parse.c Absyn.h
  
 # ABSTRACT SYNTAX
  
-absyn.o:  absyn.c
-absyn.c absyn.h:  absyn.rml
-	$(COMPILE.rml) absyn.rml
+Absyn.o:  Absyn.c
+Absyn.c Absyn.h:  Absyn.rml
+	$(COMPILE.rml) Absyn.rml
  
-# TRANSLATION
+# TransLATION
  
-trans.o:  trans.c 
-trans.c trans.h:  trans.rml absyn.h 
-	$(COMPILE.rml) trans.rml
+Trans.o:  Trans.c 
+Trans.c Trans.h:  Trans.rml Absyn.h 
+	$(COMPILE.rml) Trans.rml
 
 # EMISSION
  
-emit.o:  emit.c 
-emit.c emit.h:  emit.rml
-	$(COMPILE.rml) emit.rml
+Emit.o:  Emit.c 
+Emit.c Emit.h:  Emit.rml
+	$(COMPILE.rml) Emit.rml
 
 # INTERMEDIATE FORM
  
-mcode.o:  mcode.c 
-mcode.c mcode.h:  mcode.rml
-	$(COMPILE.rml) mcode.rml
+Mcode.o:  Mcode.c 
+Mcode.c Mcode.h:  Mcode.rml
+	$(COMPILE.rml) Mcode.rml
 
  
 # AUX

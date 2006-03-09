@@ -3,8 +3,11 @@
 signature UTIL =
   sig
 
-    val bug		: string -> 'a
+    val bug			: string -> 'a
     val error		: string -> 'a
+    val warn		: string -> unit
+    
+    val outStdErr	: string -> unit    
 
     val tick		: unit -> int
 

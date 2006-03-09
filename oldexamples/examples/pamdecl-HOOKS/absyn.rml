@@ -1,0 +1,68 @@
+module Absyn:
+
+datatype BinOp = ADD | SUB | MUL | DIV
+datatype UnOp  = NEG
+datatype RelOp = LT | LE | GT | GE | NE | EQ
+
+type Ident = string
+
+datatype Expr   = INTCONST of int
+                | REALCONST of real
+                | BINARY of Expr * BinOp * Expr
+                | UNARY of UnOp * Expr
+                | RELATION of Expr * RelOp * Expr
+                | VARIABLE of Ident
+
+datatype Stmt   = ASSIGN of Ident * Expr
+                | WRITE of Expr
+                | NOOP
+                | IF of Expr * Stmt list * Stmt list
+                | WHILE of Expr * Stmt list
+
+type StmtList = Stmt list
+
+datatype Decl   = NAMEDECL of Ident * Ident
+
+type DeclList = Decl list
+
+datatype Prog    = PROG of DeclList * StmtList
+
+(* generic declarations *)
+  type HookName = string
+  datatype GBinOp = HOOKBinOp of HookName
+                  | NORMALBinOp BinOp             (* binary operations *)
+  datatype GUnOp  = HOOKUnOp of HookName
+                  | NORMALUnOp UnOp               (* unary operators *)
+  datatype GRelOp = HOOKRelOp of HookName
+                  | NORMALRelOp of RelOp          (* relational operators *)
+  datatype GExpr = HOOKExpr of HookName
+                 | NORMALExpr of Expr             (* expressions *)
+  datatype GStmt = HOOKStmt of HookName
+                 | EXTENDStmt of GStmt
+                 | NORMALStmt of Stmt             (* statements *)
+  type GStmtList = GStmt list
+  datatype GDecl = HOOKGDecl of HookName
+                 | EXTENDDecl of GDecl
+                 | NORMALDecl of Decl             (* declarations *)
+  type GDeclList = GDecl list
+  datatype GProg = HOOKProg of HookName
+                 | NORMALProg of Prog             (* programs *)
+                 | GPROG of GDeclList * GStmtList (* generic programs *)
+  
+  (* composers *)
+  relation bindGDecl: (HookName,Decl,GDecl) => GDecl
+  relation bind
+end
+
+relation bindGDecl: (HookName,Decl,GDecl) => GDecl =
+      (* if the hook name is the one we want, we do the bind *)
+	rule hookname = name &
+	     ------------------------------------
+	     bindGDecl (hookname, decl, HOOK1(name)) => NORMALDecl(decl)
+      (* if the hook name is not the one we want, keep the hook intact *)
+	rule not hookname = name
+	     --------------------------------------------
+	     bindGDecl (hookname, decl, hook as HOOK1(name) ) => hook
+      (* is is already bound, leave it like that *)
+	axiom bindGDecl (_,_,_, NORMALDecl(decl)) => NORMALDecl(decl) 
+end

@@ -1,5 +1,9 @@
 %{
 
+#include "rmldb-parse.h"
+
+#ifdef RML_DEBUG
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -7,7 +11,6 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include "rml.h"
-#include "rmldb-parse.h"
 
 /* Using flex, we can ask for a smaller input buffer.  With lex, this
    does nothing! */
@@ -110,6 +113,9 @@ rl_input (buf, result, max)
 
 /* --- readline end */
 /* %option always-interactive */
+
+#endif /* RML_DEBUG */
+
 %}
 
 
@@ -275,15 +281,23 @@ dbgp|debugparser {
 
 [[:alnum:]|"."|":"|"'"|"_"|[:graph:]|[:punct:]]* { 
 	aalval.id = (char*)malloc(strlen(aatext)+1);
+#ifdef RML_DEBUG
 	if (aadebug) printf("FLEX:[ID:%s]",aatext); 
+#endif
 	strcpy(aalval.id, aatext); 
 	return T_ID; 
 }
 
 \n              { return T_EOL; }
 <<EOF>>			{ yyterminate(); }
-.				{ if (aadebug) printf("FLEX:bad character %s:\n", aatext); }
+.				{ 
+#ifdef RML_DEBUG
+if (aadebug) printf("FLEX:bad character %s:\n", aatext); 
+#endif
+}
 %%
+
+#ifdef RML_DEBUG
 
 /* This is the way to get multiple files input into lex. */
 int aawrap()
@@ -293,3 +307,4 @@ int aawrap()
   return (0);				         /* We have more input. */
 }
 
+#endif /* RML_DEBUG */

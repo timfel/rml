@@ -1,0 +1,12 @@
+module exp1:
+
+ relation eval:  Exp => real 
+end
+
+relation eval: Exp => real  =
+  
+  rule  eval f 
+	-----------------------
+	eval( RCONST(ival) ) => ival   
+
+end 

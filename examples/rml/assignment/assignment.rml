@@ -1,6 +1,6 @@
 (* file assignment.rml *)
 
-module assignment:
+module Assignment:
 
 (* Abstract syntax for the Assignments language *)
 

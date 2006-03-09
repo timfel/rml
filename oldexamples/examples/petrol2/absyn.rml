@@ -1,0 +1,56 @@
+(* absyn.rml *)
+module Absyn:
+    type Ident          = string
+    datatype Constant   = INTcon of int                (* Ex: 55, 36, 999 *)  
+                        | REALcon of real              (* Ex: 3.1459, 1.2E-35 *)
+                        | IDENTcon of Ident            (* Ex: foo, fum *)
+    datatype ConBnd     = CONBND of Ident * Constant   (* fooconst = 444 *)
+
+(* Types and variables *)
+    datatype Ty         = NAME of Ident							       (* typename *)												
+                        | PTR of Ty                    (* ^typename *)
+                        | ARR of Constant * Ty         (* array [const] of ty *)
+                        | REC of VarBnd list           (* record a:b; c:d;...end*)
+
+    and VarBnd          = VARBND of Ident * Ty         (* id1:ty1 *)
+    datatype TyBnd      = TYBND of Ident * Ty          (* newreal = real; *)
+
+(* Operators *)
+    datatype UnOp       = ADDR | INDIR | NOT           (*  &,  ^,  not *)
+    datatype BinOp      = ADD | SUB | MUL | RDIV |     (*  +, -, *, /, *)
+                          IDIV | IMOD | IAND | IOR     (*  div, mod, and, or *)
+    datatype RelOp      = LT | LE                      (*  <, <=  *)
+
+(* Expression nodes *)
+    datatype Exp        = INT of int                     (*  55, 999, *)
+                        | REAL of real                   (*  3.1459, ... *)
+                        | IDENT of Ident                 (*  foo, fum ... *)
+                        | CAST of Ty * Exp               (*  real(3+5)   *)
+                        | FIELD of Exp * Ident           (*  recexp.fieldid *)
+                        | UNARY of UnOp * Exp            (*  unop expr *)
+                        | BINARY of Exp * BinOp * Exp    (*  e1 binop e2 *)
+                        | RELATION of Exp * RelOp * Exp  (*  e1 relop e2 *)
+                        | EQUALITY of Exp * Exp          (*  e1 = e2 *)
+                        | FCALL of Ident * Exp list      (*  foo(e1,e2,...) *)
+(* Statements *)
+    datatype Stmt       = ASSIGN of Exp * Exp            (*  x := 1+y;  *)
+                        | PCALL of Ident * Exp list      (*  f2(a1,a2+5,a3,...) *)
+                        | FRETURN of Exp					                (*  return e1+5  *)		
+                        | PRETURN			                       (*  return  *)												
+                        | WHILE of Exp * Stmt            (*  while e1 do s1 end *)
+                        | IF of Exp * Stmt * Stmt      (*  if e1 then s1 else s2*)
+                        | SEQ of Stmt * Stmt             (*  s1;  s2  *)
+                        | SKIP                           (*  empty statement *)
+
+(* Subprograms *)
+(* Block option is needed for Petrol extern declarations without body *)
+
+    datatype SubBnd     = FUNCBND of Ident * VarBnd list * Ty * Block option
+                        | PROCBND of Ident * VarBnd list * Block option
+    and Block           = BLOCK of ConBnd list * TyBnd list * VarBnd list *
+                                                              SubBnd list * Stmt
+(* Programs *)
+    datatype Prog       = PROG of Ident * Block
+
+
+end (* of interface section of Absyn *)

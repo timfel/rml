@@ -1,0 +1,84 @@
+(*
+    Copyright PELAB, Linkoping University
+
+    This file is part of Open Source Modelica (OSM).
+
+    OSM is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    OSM is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with OpenModelica; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+*)
+(**
+ ** file:	 modsim.rml
+ ** module:      Modsim
+ ** description: 
+ **
+ ** RCS: $Id: modsim.rml,v 1.6 2004/09/28 09:14:02 haklu Exp $
+ ** 
+ ** This module communicates with the backend (through files) for simulation
+ ** plotting etc.
+ **
+ ** Used from Ceval 
+ **)
+
+module ModSim :
+  
+  relation compile_flat_class: (string,string) => (string)
+  relation run_simulation: (string,real,real,int,string) => int
+
+end
+with "system.rml"
+with "util.rml" 
+
+relation compile_flat_class: (string,string) => (string) =
+
+  rule	System.read_env("MOSHHOME") => moshhome &
+    System.path_delimiter => pd &
+    Util.string_append_list([moshhome,pd,"..",pd,"modeq",pd,"scripts",pd]) 
+      => dirname &
+	System.pwd() => pwd &
+	Util.string_append_list([dirname, "runModelicaOpt ",
+				 "\"",flatfile,"\""]) => call &
+	System.system_call(call) => 0 &
+	print "Compiled model to C-code, compiling C-code...\n" &
+	Util.string_append_list([pwd,pd,exefile, ".exe"]) => exefile' &
+	Util.string_append_list([moshhome,pd,"..",pd,"modeq",pd,
+	  "scripts",pd,"Compile ","\"",exefile',"\""])=> compcall &
+	System.system_call(compcall) => 0 &
+	print "Done.\n" &
+	Util.string_append_list([pwd,pd,exefile,".exe"])
+	  => res
+	-----------------------------
+	compile_flat_class(flatfile,exefile) => res
+end
+
+relation run_simulation: (string,real,real,int,string) => int =
+
+  rule	real_string(start) => t1 &
+    System.path_delimiter => pd &
+	real_string(stop) => t2 &
+	int_string(interval) => steps &
+	System.read_env("MOSHHOME") => moshhome &
+	Util.string_append_list([moshhome,pd,"..",pd,"ModSimPack",pd,"bin",pd]) 
+	  => bindir &
+	Util.string_append_list([moshhome,pd,"..",pd,"modeq",pd,"scripts",pd]) 
+	  => scriptsdir &
+	Util.string_append_list([scriptsdir,"runsim \"",bindir,"\" \"",exefile,
+	   "\" ",t1," ",t2," ",steps," \"",outfile,"\""]) => call &
+	print call &
+	System.system_call(call) => res 
+	-----------------------------------
+	run_simulation(exefile,start,stop,interval,outfile) 
+	  => res
+
+end

@@ -1,134 +1,132 @@
 package Emit
-import mcode;
 
-public function emit_assembly
-  input McodeMCodeList in_mcodemcodelist;
-  output Boolean dummy;
-protected 
-  type McodeMCodeList = list<Mcode.MCode>;
+public import Mcode.*;
+
+public function emitAssembly "Print out the MCode in textual assembly format
+  Note: this is not really part of the specification of PAM semantics
+"
+  input Mcode_MCodeLst inMcodeMCodeLst;
+  type Mcode_MCodeLst = list<Mcode.MCode>;
 algorithm 
-  dummy:=
-  matchcontinue (in_mcodemcodelist)
+  _:=
+  matchcontinue (inMcodeMCodeLst)
     local
       Mcode.MCode instr;
-      McodeMCodeList rest;
-    case ({}) then true; 
+      Mcode_MCodeLst rest;
+    case ({}) then (); 
     case (instr :: rest)
       equation 
-        emit_instr(instr);
-        emit_assembly(rest); then true;
+        emitInstr(instr);
+        emitAssembly(rest); then ();
   end matchcontinue;
-end emit_assembly;
+end emitAssembly;
 
-protected function emit_instr
-  input Mcode.MCode in_mcode;
-  output Boolean dummy;
+protected function emitInstr "Print an MCode instruction"
+  input Mcode.MCode inMCode;
 algorithm 
-  dummy:=
-  matchcontinue (in_mcode)
+  _:=
+  matchcontinue (inMCode)
     local
       String op;
       Mcode.MBinOp mbinop;
       Mcode.MOperand mopr,mlab;
       Mcode.MCondJmp jmpop;
-    case (Mcode.MB(mbinop,mopr)) " Print an MCode instruction "
+    case (Mcode.MB(mBinOp = mbinop,binary = mopr))
       equation 
-        op = mbinop_to_str(mbinop);
-        emit_op_operand(op, mopr); then true;
-    case (Mcode.MJ(jmpop,mlab))
+        op = mbinopToStr(mbinop);
+        emitOpOperand(op, mopr); then ();
+    case (Mcode.MJ(mCondJmp = jmpop,conditional = mlab))
       equation 
-        op = mjmpop_to_str(jmpop);
-        emit_op_operand(op, mlab); then true;
-    case (Mcode.MJMP(mlab))
+        op = mjmpopToStr(jmpop);
+        emitOpOperand(op, mlab); then ();
+    case (Mcode.MJMP(mOperand = mlab))
       equation 
-        emit_op_operand("J", mlab); then true;
-    case (Mcode.MLOAD(mopr))
+        emitOpOperand("J", mlab); then ();
+    case (Mcode.MLOAD(mOperand = mopr))
       equation 
-        emit_op_operand("LOAD", mopr); then true;
-    case (Mcode.MSTO(mopr))
+        emitOpOperand("LOAD", mopr); then ();
+    case (Mcode.MSTO(mOperand = mopr))
       equation 
-        emit_op_operand("STO", mopr); then true;
-    case (Mcode.MGET(mopr))
+        emitOpOperand("STO", mopr); then ();
+    case (Mcode.MGET(mOperand = mopr))
       equation 
-        emit_op_operand("GET", mopr); then true;
-    case (Mcode.MPUT(mopr))
+        emitOpOperand("GET", mopr); then ();
+    case (Mcode.MPUT(mOperand = mopr))
       equation 
-        emit_op_operand("PUT", mopr); then true;
-    case (Mcode.MLABEL(mlab))
+        emitOpOperand("PUT", mopr); then ();
+    case (Mcode.MLABEL(mOperand = mlab))
       equation 
-        emit_moperand(mlab);
-        print("\tLAB\n"); then true;
+        emitMoperand(mlab);
+        print("\tLAB\n"); then ();
     case (Mcode.MHALT())
       equation 
-        print("\tHALT\n"); then true;
+        print("\tHALT\n"); then ();
   end matchcontinue;
-end emit_instr;
+end emitInstr;
 
-protected function emit_op_operand
+protected function emitOpOperand
   input String opstr;
   input Mcode.MOperand mopr;
 algorithm 
   print("\t");
   print(opstr);
   print("\t");
-  emit_moperand(mopr);
+  emitMoperand(mopr);
   print("\n");
-end emit_op_operand;
+end emitOpOperand;
 
-protected function emit_int
+protected function emitInt
   input Integer i;
-protected 
   String s;
 algorithm 
-  s := int_string(i);
+  s := intString(i);
   print(s);
-end emit_int;
+end emitInt;
 
-protected function emit_moperand
-  input Mcode.MOperand in_moperand;
-  output Boolean dummy;
+protected function emitMoperand
+  input Mcode.MOperand inMOperand;
 algorithm 
-  dummy:=
-  matchcontinue (in_moperand)
+  _:=
+  matchcontinue (inMOperand)
     local
       String id;
       Integer number,labno,tempnr;
-    case (Mcode.I(id))
+    case (Mcode.I(id = id))
       equation 
-        print(id); then true;
-    case (Mcode.N(number))
+        print(id); then ();
+    case (Mcode.N(integer = number))
       equation 
-        emit_int(number); then true;
-    case (Mcode.L(labno))
+        emitInt(number); then ();
+    case (Mcode.L(datatype = labno))
       equation 
         print("L");
-        emit_int(labno); then true;
-    case (Mcode.T(tempnr))
+        emitInt(labno); then ();
+    case (Mcode.T(integer = tempnr))
       equation 
         print("T");
-        emit_int(tempnr); then true;
+        emitInt(tempnr); then ();
   end matchcontinue;
-end emit_moperand;
+end emitMoperand;
 
-protected function mbinop_to_str
-  input Mcode.MBinOp in_mbinop;
-  output String out_string;
+protected function mbinopToStr
+  input Mcode.MBinOp inMBinOp;
+  output String outString;
 algorithm 
-  out_string:=
-  matchcontinue (in_mbinop)
+  outString:=
+  matchcontinue (inMBinOp)
     case (Mcode.MADD()) then "ADD"; 
     case (Mcode.MSUB()) then "SUB"; 
     case (Mcode.MMULT()) then "MULT"; 
     case (Mcode.MDIV()) then "DIV"; 
   end matchcontinue;
-end mbinop_to_str;
+end mbinopToStr;
 
-protected function mjmpop_to_str
-  input Mcode.MCondJmp in_mcondjmp;
-  output String out_string;
+protected function mjmpopToStr
+  input Mcode.MCondJmp inMCondJmp;
+  output String outString;
 algorithm 
-  out_string:=
-  matchcontinue (in_mcondjmp)
+  outString:=
+  matchcontinue (inMCondJmp)
     case (Mcode.MJNP()) then "JNP"; 
     case (Mcode.MJP()) then "JP"; 
     case (Mcode.MJN()) then "JN"; 
@@ -136,6 +134,6 @@ algorithm
     case (Mcode.MJPZ()) then "JPZ"; 
     case (Mcode.MJZ()) then "JZ"; 
   end matchcontinue;
-end mjmpop_to_str;
+end mjmpopToStr;
 end Emit;
 

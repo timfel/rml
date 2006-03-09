@@ -1,8 +1,9 @@
 package ScanParse
-import absyn;
+
+public import OpenModelica.Compiler.Absyn;
 
 public function scanparse
-  output Absyn.Prog out_prog;
+  output Absyn.Prog outProg;
 
   external "C" ;
 end scanparse;

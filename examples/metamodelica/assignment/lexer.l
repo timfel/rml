@@ -2,7 +2,7 @@
 #include "parser.h"
 #include "yacclib.h"
 #include "rml.h"
-#include "assignment.h"
+#include "Assignment.h"
 
 typedef void *rml_t;
 /* extern rml_t yylval; */
@@ -35,7 +35,7 @@ digits       {digit}+
 
 int lex_icon()
 {
-  yylval = (rml_t) assignment__INT(mk_icon(atoi(yytext)));  
+  yylval = (rml_t) Assignment__INT(mk_icon(atoi(yytext)));  
   return T_INTCONST;        
 }
 

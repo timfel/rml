@@ -3,6 +3,7 @@
 functor StatObjFn(structure Absyn : ABSYN
 		  structure TyFcn : TY_FCN
 		  structure TyScheme : TY_SCHEME
+		  structure Control  : CONTROL
 		  sharing TyFcn.Ty = TyScheme.Ty
 		    ) : STAT_OBJ =
   struct
@@ -103,8 +104,8 @@ functor StatObjFn(structure Absyn : ABSYN
 	
     (* Source object for the standard environment *)
     val sourceInit =
-      Absyn.Source.SOURCE{fileName = "(pervasive RML environment)",
-			  newLines = []}
+      Absyn.Source.SOURCE(
+		ref(Absyn.Source.ArraySourceMap.new("(pervasive RML environment)",Absyn.Source.getCurrentDate())))
 
     (* standard value environment *)
     val VE_init =
@@ -207,7 +208,9 @@ functor StatObjFn(structure Absyn : ABSYN
 	  val VE = bindRel(VE,"string_setnth_string_char",[tau_string,tau_int,tau_string],[tau_string])
 	  val VE = bindRel(VE,"string_update",[tau_string,tau_int,tau_char],[tau_string])	  
 	  val VE = bindRel(VE,"string_update_string_char",[tau_string,tau_int,tau_string],[tau_string])	  
-	  
+	  val VE = bindRel(VE,"string_equal",[tau_string,tau_string],[tau_bool])	  
+	  val VE = bindRel(VE,"string_compare",[tau_string,tau_string],[tau_int])
+	  	  
 	  (* immutable vectors *)
 	  val VE = bindRel(VE,"vector_length",[tau_alpha_vector],[tau_int])
 	  val VE = bindRel(VE,"vector_list",[tau_alpha_vector],[tau_alpha_list])
@@ -231,71 +234,10 @@ functor StatObjFn(structure Absyn : ABSYN
       val VE = bindRel(VE,"array_add",[tau_alpha_array,tau_alpha],[tau_alpha_array])
       val VE = bindRel(VE,"array_vector",[tau_alpha_array],[tau_alpha_vector])
       val VE = bindRel(VE,"array_copy",[tau_alpha_array],[tau_alpha_array])      
-      	  
-	  (* misc *)
-	  val VE = bindRel(VE,"clock",[],[tau_real])
-	  val VE = bindRel(VE,"print",[tau_string],[])
-	  val VE = bindRel(VE,"tick",[],[tau_int])
-	  (* debug *)
-	  (* adrpo added *)
-	  (* the debug buildin function takes 7 arguments
-	   * file name
-	   * sline, scolumn, eline, ecolumn
-	   * relation
-	   * goal as string
-	   * values of the previous term (if exists) [32 tuples for now]
-	   * parameters of the next term (if exists) [32 tuples for now]
-	   *)
-	  val VE = bindRel(VE,"debug", 
-	            [
-	             tau_string,		(* filename *) 
-	             tau_int,			(* sline *)
-	             tau_int,			(* scolumn *)
-	             tau_int,			(* eline *)
-	             tau_int,			(* ecolumn *)
-	             tau_string,		(* relation *)
-	             tau_string			(* goal *)
-	             (* maybe these later on *)
-	             (*tau_debug_params,*)  (* results of previous goal *)
-	             (*tau_debug_params *)   (* actual parameters to next goal *)
-	            ],[])
-	  val VE = bindRel(VE, "debug_push_vars", [tau_debug_params], [])
-	  val VE = bindRel(VE, "debug_print", tau_debug_param, [])
-	  val VE = bindRel(VE, "debug_push_in01", makeParameterTyList([], 1), [])
-	  val VE = bindRel(VE, "debug_push_in02", makeParameterTyList([], 2), [])
-	  val VE = bindRel(VE, "debug_push_in03", makeParameterTyList([], 3), [])
-	  val VE = bindRel(VE, "debug_push_in04", makeParameterTyList([], 4), [])	  
-	  val VE = bindRel(VE, "debug_push_in05", makeParameterTyList([], 5), [])
-	  val VE = bindRel(VE, "debug_push_in06", makeParameterTyList([], 6), [])
-	  val VE = bindRel(VE, "debug_push_in07", makeParameterTyList([], 7), [])
-	  val VE = bindRel(VE, "debug_push_in08", makeParameterTyList([], 8), [])
-	  val VE = bindRel(VE, "debug_push_in09", makeParameterTyList([], 9), [])
-	  val VE = bindRel(VE, "debug_push_in10", makeParameterTyList([],10), [])
-	  val VE = bindRel(VE, "debug_push_in11", makeParameterTyList([],11), [])
-	  val VE = bindRel(VE, "debug_push_in12", makeParameterTyList([],12), [])
-	  val VE = bindRel(VE, "debug_push_in13", makeParameterTyList([],13), [])
-	  val VE = bindRel(VE, "debug_push_in14", makeParameterTyList([],14), [])
-	  val VE = bindRel(VE, "debug_push_in15", makeParameterTyList([],15), [])
-	  val VE = bindRel(VE, "debug_push_in16", makeParameterTyList([],16), [])
-	   
-	  val VE = bindRel(VE, "debug_push_out01", tau_debug_param, [])
-	  val VE = bindRel(VE, "debug_push_out02", makeParameterTyList([], 2), [])
-	  val VE = bindRel(VE, "debug_push_out03", makeParameterTyList([], 3), [])
-	  val VE = bindRel(VE, "debug_push_out04", makeParameterTyList([], 4), [])	  
-	  val VE = bindRel(VE, "debug_push_out05", makeParameterTyList([], 5), [])
-	  val VE = bindRel(VE, "debug_push_out06", makeParameterTyList([], 6), [])
-	  val VE = bindRel(VE, "debug_push_out07", makeParameterTyList([], 7), [])
-	  val VE = bindRel(VE, "debug_push_out08", makeParameterTyList([], 8), [])
-	  val VE = bindRel(VE, "debug_push_out09", makeParameterTyList([], 9), [])
-	  val VE = bindRel(VE, "debug_push_out10", makeParameterTyList([],10), [])
-	  val VE = bindRel(VE, "debug_push_out11", makeParameterTyList([],11), [])
-	  val VE = bindRel(VE, "debug_push_out12", makeParameterTyList([],12), [])
-	  val VE = bindRel(VE, "debug_push_out13", makeParameterTyList([],13), [])
-	  val VE = bindRel(VE, "debug_push_out14", makeParameterTyList([],14), [])
-	  val VE = bindRel(VE, "debug_push_out15", makeParameterTyList([],15), [])
-	  val VE = bindRel(VE, "debug_push_out16", makeParameterTyList([],16), []) 	  
-	  (* adrpo ----- *)
-
+      
+      (* if expressions *)
+      val VE = bindRel(VE,"if_exp",[tau_bool,tau_alpha,tau_alpha],[tau_alpha])
+            
       (* the environment using Java name convention 2005-11-10 *)	  
 	  val VE = bindRel(VE,"boolAnd",[tau_bool,tau_bool],[tau_bool])
 	  val VE = bindRel(VE,"boolNot",[tau_bool],[tau_bool])
@@ -378,6 +320,8 @@ functor StatObjFn(structure Absyn : ABSYN
 	  val VE = bindRel(VE,"stringSetNthStringChar",[tau_string,tau_int,tau_string],[tau_string])
 	  val VE = bindRel(VE,"stringUpdate",[tau_string,tau_int,tau_char],[tau_string])	  
 	  val VE = bindRel(VE,"stringUpdateStringChar",[tau_string,tau_int,tau_string],[tau_string])	  
+	  val VE = bindRel(VE,"stringEqual",[tau_string,tau_string],[tau_bool])	  
+	  val VE = bindRel(VE,"stringCompare",[tau_string,tau_string],[tau_int])
 
 	  (* immutable vectors *)
 	  val VE = bindRel(VE,"vectorLength",[tau_alpha_vector],[tau_int])
@@ -401,7 +345,75 @@ functor StatObjFn(structure Absyn : ABSYN
 	  val VE = bindRel(VE,"arrayCreate",[tau_int, tau_alpha],[tau_alpha_array])
       val VE = bindRel(VE,"arrayAdd",[tau_alpha_array,tau_alpha],[tau_alpha_array])
       val VE = bindRel(VE,"arrayVector",[tau_alpha_array],[tau_alpha_vector])
-      val VE = bindRel(VE,"arrayCopy",[tau_alpha_array],[tau_alpha_array])      
+      val VE = bindRel(VE,"arrayCopy",[tau_alpha_array],[tau_alpha_array])            
+      	  
+      (* if expressions *)
+      val VE = bindRel(VE,"ifExp",[tau_bool,tau_alpha,tau_alpha],[tau_alpha])
+
+	  (* misc *)
+	  val VE = bindRel(VE,"clock",[],[tau_real])
+	  val VE = bindRel(VE,"print",[tau_string],[])
+	  val VE = bindRel(VE,"tick",[],[tau_int])
+	  
+	  (* debug *)
+	  (* adrpo added *)
+	  (* the debug buildin function takes 7 arguments
+	   * file name
+	   * sline, scolumn, eline, ecolumn
+	   * relation
+	   * goal as string
+	   * values of the previous term (if exists) [32 tuples for now]
+	   * parameters of the next term (if exists) [32 tuples for now]
+	   *)
+	  val VE = bindRel(VE,"debug", 
+	            [
+	             tau_string,		(* filename *) 
+	             tau_int,			(* sline *)
+	             tau_int,			(* scolumn *)
+	             tau_int,			(* eline *)
+	             tau_int,			(* ecolumn *)
+	             tau_string,		(* relation *)
+	             tau_string			(* goal *)
+	             (* maybe these later on *)
+	             (*tau_debug_params,*)  (* results of previous goal *)
+	             (*tau_debug_params *)   (* actual parameters to next goal *)
+	            ],[])
+	  val VE = bindRel(VE, "debug_push_vars", [tau_debug_params], [])
+	  val VE = bindRel(VE, "debug_print", tau_debug_param, [])
+	  val VE = bindRel(VE, "debug_push_in01", makeParameterTyList([], 1), [])
+	  val VE = bindRel(VE, "debug_push_in02", makeParameterTyList([], 2), [])
+	  val VE = bindRel(VE, "debug_push_in03", makeParameterTyList([], 3), [])
+	  val VE = bindRel(VE, "debug_push_in04", makeParameterTyList([], 4), [])	  
+	  val VE = bindRel(VE, "debug_push_in05", makeParameterTyList([], 5), [])
+	  val VE = bindRel(VE, "debug_push_in06", makeParameterTyList([], 6), [])
+	  val VE = bindRel(VE, "debug_push_in07", makeParameterTyList([], 7), [])
+	  val VE = bindRel(VE, "debug_push_in08", makeParameterTyList([], 8), [])
+	  val VE = bindRel(VE, "debug_push_in09", makeParameterTyList([], 9), [])
+	  val VE = bindRel(VE, "debug_push_in10", makeParameterTyList([],10), [])
+	  val VE = bindRel(VE, "debug_push_in11", makeParameterTyList([],11), [])
+	  val VE = bindRel(VE, "debug_push_in12", makeParameterTyList([],12), [])
+	  val VE = bindRel(VE, "debug_push_in13", makeParameterTyList([],13), [])
+	  val VE = bindRel(VE, "debug_push_in14", makeParameterTyList([],14), [])
+	  val VE = bindRel(VE, "debug_push_in15", makeParameterTyList([],15), [])
+	  val VE = bindRel(VE, "debug_push_in16", makeParameterTyList([],16), [])
+	   
+	  val VE = bindRel(VE, "debug_push_out01", tau_debug_param, [])
+	  val VE = bindRel(VE, "debug_push_out02", makeParameterTyList([], 2), [])
+	  val VE = bindRel(VE, "debug_push_out03", makeParameterTyList([], 3), [])
+	  val VE = bindRel(VE, "debug_push_out04", makeParameterTyList([], 4), [])	  
+	  val VE = bindRel(VE, "debug_push_out05", makeParameterTyList([], 5), [])
+	  val VE = bindRel(VE, "debug_push_out06", makeParameterTyList([], 6), [])
+	  val VE = bindRel(VE, "debug_push_out07", makeParameterTyList([], 7), [])
+	  val VE = bindRel(VE, "debug_push_out08", makeParameterTyList([], 8), [])
+	  val VE = bindRel(VE, "debug_push_out09", makeParameterTyList([], 9), [])
+	  val VE = bindRel(VE, "debug_push_out10", makeParameterTyList([],10), [])
+	  val VE = bindRel(VE, "debug_push_out11", makeParameterTyList([],11), [])
+	  val VE = bindRel(VE, "debug_push_out12", makeParameterTyList([],12), [])
+	  val VE = bindRel(VE, "debug_push_out13", makeParameterTyList([],13), [])
+	  val VE = bindRel(VE, "debug_push_out14", makeParameterTyList([],14), [])
+	  val VE = bindRel(VE, "debug_push_out15", makeParameterTyList([],15), [])
+	  val VE = bindRel(VE, "debug_push_out16", makeParameterTyList([],16), []) 	  
+	  (* adrpo ----- *)
 	  
       in
 		VE

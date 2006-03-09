@@ -1,7 +1,7 @@
 %{
 #include <stdio.h>
 #include "yacclib.h"
-#include "absyn.h"
+#include "Absyn.h"
  
 typedef void *rml_t;
 #define YYSTYPE rml_t

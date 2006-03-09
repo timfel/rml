@@ -4,7 +4,7 @@
 
 RML_BEGIN_LABEL(RML__debug)
 {
-#ifdef _RMLDB_DEFINED_
+#ifdef RML_DEBUG
 	/*
 	   * A0=fileName:string
 	   * A1=sline:int, A2=scolumn:int, A3=eline:int, A4=ecolumn:int
@@ -105,7 +105,7 @@ RML_BEGIN_LABEL(RML__debug)
 	}
 	if (rmldb_execution_type != RMLDB_FAST) rmldb_clear_vars();
 
-#endif /* _RMLDB_DEFINED_ */
+#endif /* RML_DEBUG */
 
 	RML_TAILCALLK(rmlSC);
 }

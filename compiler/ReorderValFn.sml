@@ -23,7 +23,7 @@ functor ReorderValFn(structure Util : UTIL
 
     fun sayMsg msg = TextIO.output(TextIO.stdErr, msg)
 
-    fun sayIdError(source, msg, Absyn.IDENT(name, ref(Absyn.INFO(filename, left, right, _)))) =
+    fun sayIdError(source, msg, Absyn.IDENT(name, Absyn.INFO(filename, left, right, _))) =
       Absyn.Source.sayMsg source ("Error: "^msg^name, left, right)
 
     exception ReorderValueDeclarationsError

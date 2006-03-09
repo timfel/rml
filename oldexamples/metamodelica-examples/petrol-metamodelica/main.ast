@@ -1,0 +1,61 @@
+module Main:
+with "fcemit.mo"
+with "flatten.mo"
+with "static.mo"
+with "parse.mo"
+type StringList = (string)list
+relation main: (StringList) => (bool)
+end
+relation emit: (FCode.Prog) => (bool) =
+	rule	FCEmit.emit(fcode) => ()
+		----------------
+		emit(fcode) => (true)
+
+	rule	not FCEmit.emit(fcode) => () &
+		print("FCEmit.emit failed\n") => ()
+		----------------
+		emit(fcode) => (fail())
+
+end
+relation flatten: (TCode.Prog) => (bool) =
+	rule	Flatten.flatten(tcode) => (fcode) &
+		emit(fcode) => ()
+		----------------
+		flatten(tcode) => (true)
+
+	rule	not Flatten.flatten(tcode) => (_) &
+		print("Flatten.flatten failed\n") => ()
+		----------------
+		flatten(tcode) => (fail())
+
+end
+relation static: (Absyn.Prog) => (bool) =
+	rule	Static.elaborate(ast) => (tcode) &
+		flatten(tcode) => ()
+		----------------
+		static(ast) => (true)
+
+	rule	not Static.elaborate(ast) => (_) &
+		print("Static.elaborate failed\n") => ()
+		----------------
+		static(ast) => (fail())
+
+end
+relation parse: (string) => (bool) =
+	rule	Parse.parse(file) => (ast) &
+		static(ast) => ()
+		----------------
+		parse(file) => (true)
+
+	rule	not Parse.parse(file) => (_) &
+		print("Parse.parse failed\n") => ()
+		----------------
+		parse(file) => (fail())
+
+end
+relation main: (StringList) => (bool) =
+	rule	parse(file) => ()
+		----------------
+		main(RML.cons(file,_)) => (true)
+
+end

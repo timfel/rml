@@ -1,0 +1,512 @@
+(* static.rml *)
+module Static:
+  with "absyn.rml"
+  with "tcode.rml"
+  relation elaborate: Absyn.Prog => TCode.Prog
+end
+
+with "types.rml"
+
+relation map =
+  axiom map(_, []) => []
+
+  rule	R x => y & map(R, xs) => ys
+	----------------
+	map(R, x::xs) => y::ys
+end
+
+(*
+ * Static environment
+ *)
+datatype Con	= INTcon of int
+		| REALcon of real
+datatype Bnd	= VARbnd of Types.Ty
+		| CONSTbnd of Con
+		| FUNCbnd of Types.Ty list * Types.Ty
+		| PROCbnd of Types.Ty list
+		| TYPEbnd of Types.Ty
+		| NILbnd
+
+val env_init =
+[	("integer",	TYPEbnd(Types.ARITH Types.INT))
+,	("real",	TYPEbnd(Types.ARITH Types.REAL))
+,	("char",	TYPEbnd(Types.ARITH Types.CHAR))
+,	("read",	FUNCbnd([], Types.ARITH Types.INT))
+,	("write",	PROCbnd[Types.ARITH Types.INT])
+,	("trunc",	FUNCbnd([Types.ARITH Types.REAL], Types.ARITH Types.INT))
+,	("nil",		NILbnd)
+]
+
+relation lookup =
+  rule	key1 = key0
+	----------------
+	lookup((key1,bnd)::_, key0) => bnd
+
+  rule	not key1 = key0 & lookup(env, key0) => bnd
+	----------------
+	lookup((key1,_)::env, key0) => bnd
+end
+
+(* Constants and Types
+ *)
+relation elab_constant =	(* env |- Const => Con *)
+  axiom	elab_constant(env, Absyn.INTcon i) => INTcon i
+
+  axiom	elab_constant(env, Absyn.REALcon r) => REALcon r
+
+  rule	lookup(env, id) => CONSTbnd c
+	----------------
+	elab_constant(env, Absyn.IDENTcon id) => c
+end
+
+relation elab_const =	(* env |- Const => env' *)
+  rule	elab_constant(env0, c) => con
+	----------------
+	elab_const(env0, Absyn.CONBND(id,c)) => ((id,CONSTbnd con)::env0)
+end
+
+relation elab_consts =	(* env |- Const* => env' *)
+  axiom	elab_consts(env, []) => env
+
+  rule	elab_const(env, c) => env' &
+	elab_consts(env', consts) => env''
+	----------------
+	elab_consts(env, c::consts) => env''
+end
+
+relation elab_ty =	(* env |- Absyn.Ty => Types.Ty *)
+  rule	lookup(env, id) => TYPEbnd ty'
+	----------------
+	elab_ty(env, Absyn.NAME id) => ty'
+
+  rule	elab_ty(env, ty) => ty'
+	----------------
+	elab_ty(env, Absyn.PTR ty) => Types.PTR ty'
+
+  rule	elab_constant(env, c) => INTcon sz &
+	elab_ty(env, ty) => ty'
+	----------------
+	elab_ty(env, Absyn.ARR(c,ty)) => Types.ARR(sz,ty')
+
+  rule	tick => stamp &
+	elab_ty_bnds(env, bnds, []) => bnds'
+	----------------
+	elab_ty(env, Absyn.REC bnds) => Types.REC(Types.RECORD(stamp, bnds'))
+end
+
+relation elab_ty_bnds =
+  rule	list_reverse bnds' => bnds''
+	----------------
+	elab_ty_bnds(env, [], bnds') => bnds''
+
+  rule	elab_ty(env, ty) => ty' &
+	elab_ty_bnds(env, bnds, (id,ty')::bnds') => bnds''
+	----------------
+	elab_ty_bnds(env, Absyn.VARBND(id,ty)::bnds, bnds') => bnds''
+end
+
+relation isunfold =
+  axiom isunfold(Types.UNFOLD _) => true
+  axiom isunfold(Types.ARITH _) => false
+  axiom isunfold(Types.PTR _) => false
+  axiom isunfold(Types.ARR(_,_)) => false
+  axiom isunfold(Types.REC _) => false
+end
+
+relation check_ty =
+  axiom check_ty(Types.ARITH _)
+
+  rule	check_ty ty
+	----------------
+	check_ty(Types.ARR(_,ty))
+
+  rule	check_bnds bnds
+	----------------
+	check_ty(Types.REC(Types.RECORD(_,bnds)))
+
+  rule	isunfold ty => true
+	----------------
+	check_ty(Types.PTR ty)
+
+  rule	isunfold ty => false & check_ty ty
+	----------------
+	check_ty(Types.PTR ty)
+end
+
+relation check_bnds =
+  axiom	check_bnds []
+
+  rule	check_ty ty & check_bnds bnds
+	----------------
+	check_bnds((_,ty)::bnds)
+end
+
+datatype IsRec = NOREC of Absyn.Ty | ISREC of Absyn.VarBnd list
+
+relation isrec =
+  axiom	isrec(ty as Absyn.NAME _) => NOREC ty
+  axiom isrec(ty as Absyn.PTR _) => NOREC ty
+  axiom isrec(ty as Absyn.ARR(_,_)) => NOREC ty
+  axiom isrec(Absyn.REC bnds) => ISREC bnds
+end
+
+relation elab_tybnd' =
+  rule	tick => stamp &
+	elab_ty_bnds((id,TYPEbnd(Types.UNFOLD stamp))::env0, bnds, []) => bnds' &
+	check_bnds bnds'
+	----------------
+	elab_tybnd'(ISREC bnds, env0, id) => Types.REC(Types.RECORD(stamp,bnds'))
+
+  rule	elab_ty(env0, ty) => ty'
+	----------------
+	elab_tybnd'(NOREC ty, env0, id) => ty'
+end
+
+relation elab_tybnd =
+  rule	isrec ty => xxx &
+	elab_tybnd'(xxx, env0, id) => ty'
+	----------------
+	elab_tybnd(env0, Absyn.TYBND(id,ty)) => ((id,TYPEbnd ty')::env0)
+end
+
+relation elab_types =
+  axiom elab_types(env, []) => env
+
+  rule	elab_tybnd(env, tybnd) => env' &
+	elab_types(env', tybnds) => env''
+	----------------
+	elab_types(env, tybnd::tybnds) => env''
+end
+
+(*
+ * Expressions
+ *)
+
+(*relation lvalue_id =
+  rule	Types.ty_cnv ty => ty'
+	----------------
+	lvalue_id(Types.ARR(_,ty), addr) => TCode.UNARY(TCode.TOPTR ty', addr)
+
+  axiom lvalue_id(Types.ARITH _, addr) => addr
+  axiom lvalue_id(Types.PTR _, addr) => addr
+  axiom lvalue_id(Types.REC _, addr) => addr
+end*)
+relation lvalue_id =
+  axiom lvalue_id(_, addr) => addr
+end
+
+relation mkload =
+  rule	Types.ty_cnv ty => ty'
+	----------------
+	mkload(ty, addr) => TCode.UNARY(TCode.LOAD ty', addr)
+end
+
+relation rvalue_var =
+  rule	mkload(ty, addr) => exp
+	----------------
+	rvalue_var(ty as Types.ARITH _, addr) => (exp, ty)
+
+  rule	mkload(ty, addr) => exp
+	----------------
+	rvalue_var(ty as Types.PTR _, addr) => (exp, ty)
+
+  rule	mkload(ty, addr) => exp
+	----------------
+	rvalue_var(ty as Types.REC _, addr) => (exp, ty)
+
+  rule	Types.ty_cnv ty => ty'
+	----------------
+	rvalue_var(Types.ARR(_,ty), addr)
+	=> (TCode.UNARY(TCode.TOPTR ty', addr), Types.PTR ty)
+end
+
+relation rvalue_id =
+  axiom	rvalue_id(CONSTbnd(INTcon i), _) => (TCode.ICON i, Types.ARITH Types.INT)
+  axiom	rvalue_id(CONSTbnd(REALcon r), _) => (TCode.RCON r, Types.ARITH Types.REAL)
+  axiom rvalue_id(NILbnd, _) => (TCode.ICON 0, Types.PTRNIL)
+
+  rule	rvalue_var(ty, TCode.ADDR id) => (exp', ty')
+	----------------
+	rvalue_id(VARbnd ty, id) => (exp', ty')
+end
+
+relation elab_arg =
+  rule	elab_rvalue(env, exp) => (exp', ty') &		(* no auto decay *)
+	Types.asg_cnv(exp', ty', ty) => exp''
+	----------------
+	elab_arg(env, exp, ty) => exp''
+end
+
+relation elab_args =
+  rule	list_reverse args' => args''
+	----------------
+	elab_args(_, [], [], args') => args''
+
+  rule	elab_arg(env, exp, ty) => exp' &
+	elab_args(env, exps, tys, exp'::exps') => exps''
+	----------------
+	elab_args(env, exp::exps, ty::tys, exps') => exps''
+end
+
+relation elab_unary_rvalue =
+  rule	elab_lvalue(env, exp) => (exp', ty)
+	----------------
+	elab_unary_rvalue(env, Absyn.ADDR, exp) => (exp', Types.PTR ty)
+
+  rule	elab_rvalue_decay(env, exp) => (exp', Types.PTR ty) &
+	Types.ty_cnv ty => ty'
+	----------------
+	elab_unary_rvalue(env, Absyn.INDIR, exp) => (TCode.UNARY(TCode.LOAD ty',exp'), ty)
+
+  rule	elab_rvalue_decay(env, exp) => (exp', ty) &
+	Types.cond_cnv(exp', ty) => exp''
+	----------------
+	elab_unary_rvalue(env, Absyn.NOT, exp)
+	=> (TCode.BINARY(exp'', TCode.IEQ, TCode.ICON 0), Types.ARITH Types.INT)
+end
+
+relation elab_rvalue =
+  axiom elab_rvalue(env, Absyn.INT i) => (TCode.ICON i, Types.ARITH Types.INT)
+  axiom elab_rvalue(env, Absyn.REAL r) => (TCode.RCON r, Types.ARITH Types.REAL)
+
+  rule	lookup(env, id) => bnd & rvalue_id(bnd, id) => (exp, ty)
+	----------------
+	elab_rvalue(env, Absyn.IDENT id) => (exp, ty)
+
+  rule	elab_rvalue_decay(env, exp) => (exp', ty') &
+	elab_ty(env, ty) => ty'' &
+	Types.cast_cnv(exp', ty', ty'') => exp''
+	----------------
+	elab_rvalue(env,Absyn.CAST(ty,exp)) => (exp'', ty'')
+
+  rule	elab_field(env, exp, id) => (exp', ty) & rvalue_var(ty, exp') => (exp'', ty')
+	----------------
+	elab_rvalue(env,Absyn.FIELD(exp,id)) => (exp'', ty')
+
+  rule	elab_unary_rvalue(env, unop, exp) => (exp', rty)
+	----------------
+	elab_rvalue(env, Absyn.UNARY(unop,exp)) => (exp', rty)
+
+  rule	elab_rvalue_decay(env, exp1) => (exp1', rty1) &
+	elab_rvalue_decay(env, exp2) => (exp2', rty2) &
+	Types.bin_cnv(exp1', rty1, binop, exp2', rty2) => (exp3, rty3)
+	----------------
+	elab_rvalue(env, Absyn.BINARY(exp1,binop,exp2)) => (exp3, rty3)
+
+  rule	elab_rvalue_decay(env, exp1) => (exp1', rty1) &
+	elab_rvalue_decay(env, exp2) => (exp2', rty2) &
+	Types.rel_cnv(exp1', rty1, relop, exp2', rty2) => exp3
+	----------------
+	elab_rvalue(env,Absyn.RELATION(exp1,relop,exp2)) => (exp3,Types.ARITH Types.INT)
+
+  rule	elab_rvalue_decay(env, exp1) => (exp1', rty1) &
+	elab_rvalue_decay(env, exp2) => (exp2', rty2) &
+	Types.eq_cnv(exp1', rty1, exp2', rty2) => exp3
+	----------------
+	elab_rvalue(env, Absyn.EQUALITY(exp1,exp2)) => (exp3, Types.ARITH Types.INT)
+
+  rule	lookup(env, id) => FUNCbnd(argtys,resty) &
+	elab_args(env, args, argtys, []) => args'
+	----------------
+	elab_rvalue(env, Absyn.FCALL(id,args)) => (TCode.FCALL(id, args'), resty)
+end
+
+relation elab_rvalue_decay =
+  rule	elab_rvalue(env, exp) => (exp', ty) &
+	Types.decay(exp', ty) => (exp'', ty')
+	----------------
+	elab_rvalue_decay(env, exp) => (exp'', ty')
+end
+
+(*
+ * LValue Expressions.
+ * Elaboration results in (exp,ty), where exp evaluates to
+ * _a_pointer_to_ the lvalue, and ty is its type.
+ *)
+relation elab_lvalue =	(* env |- exp => ptr_exp,ty *)
+  rule	lookup(env, id) => VARbnd ty & lvalue_id(ty, TCode.ADDR id) => exp'
+	----------------
+	elab_lvalue(env, Absyn.IDENT id) => (exp', ty)
+
+  rule	elab_field(env, exp, id) => (exp', ty)
+	----------------
+	elab_lvalue(env, Absyn.FIELD(exp,id)) => (exp', ty)
+
+  rule	elab_rvalue_decay(env, exp) => (exp', Types.PTR ty)
+	----------------
+	elab_lvalue(env, Absyn.UNARY(Absyn.INDIR,exp)) => (exp', ty)
+end
+
+relation elab_field =
+  rule	elab_lvalue(env, exp) => (exp', Types.REC r) &
+	Types.unfold_rec r => bnds &	(*N.B.*)
+	lookup(bnds, id) => ty &
+	Types.rec_cnv r => r' &
+	lvalue_id(ty, TCode.UNARY(TCode.OFFSET(r',id),exp')) => exp''
+	----------------
+	elab_field(env, exp, id) => (exp'', ty)
+end
+
+(*
+ * Statements
+ *)
+
+relation elab_stmt =	(* ty_opt,env |- stmt => stmt' *)
+  rule	elab_lvalue(env, lhs) => (lval, lvalty) &
+	elab_rvalue(env, rhs) => (rval, rvalty) &	(* no auto decay *)
+	Types.asg_cnv(rval, rvalty, lvalty) => rval' &
+	Types.ty_cnv lvalty => lvalty'
+	----------------
+	elab_stmt(fty, env, Absyn.ASSIGN(lhs,rhs)) => TCode.STORE(lvalty',lval,rval')
+
+  rule	lookup(env, id) => PROCbnd argtys &
+	elab_args(env, args, argtys, []) => args'
+	----------------
+	elab_stmt(fty, env, Absyn.PCALL(id,args)) => TCode.PCALL(id, args')
+
+  rule	elab_rvalue(env, exp) => (exp', ety) &		(* no auto decay *)
+	Types.asg_cnv(exp', ety, rty) => exp'' &
+	Types.ty_cnv rty => rty'
+	----------------
+	elab_stmt(SOME rty,env,Absyn.FRETURN exp) => TCode.RETURN(SOME((rty',exp'')))
+
+  axiom	elab_stmt(NONE, env, Absyn.PRETURN) => TCode.RETURN NONE
+
+  rule	elab_rvalue_decay(env, exp) => (exp', ety) &
+	Types.cond_cnv(exp', ety) => exp'' &
+	elab_stmt(fty, env, stmt) => stmt'
+	----------------
+	elab_stmt(fty, env, Absyn.WHILE(exp,stmt)) => TCode.WHILE(exp'', stmt')
+
+  rule	elab_rvalue_decay(env, exp) => (exp', ety) &
+	Types.cond_cnv(exp', ety) => exp'' &
+	elab_stmt(fty, env, stmt1) => stmt1' &
+	elab_stmt(fty, env, stmt2) => stmt2'
+	----------------
+	elab_stmt(fty,env,Absyn.IF(exp,stmt1,stmt2)) => TCode.IF(exp'',stmt1',stmt2')
+
+  rule	elab_stmt(fty, env, stmt1) => stmt1' &
+	elab_stmt(fty, env, stmt2) => stmt2'
+	----------------
+	elab_stmt(fty, env, Absyn.SEQ(stmt1,stmt2)) => TCode.SEQ(stmt1', stmt2')
+
+  axiom	elab_stmt(fty, env, Absyn.SKIP) => TCode.SKIP
+end
+
+(*
+ * Declarations
+ *)
+
+relation elab_var =	(* env |- Var => (id,ty) *)
+  rule	elab_ty(env, ty) => ty'
+	----------------
+	elab_var(env, Absyn.VARBND(id,ty)) => (id,ty')
+end
+
+relation elab_vars =
+  rule	list_reverse vars' => vars''
+	----------------
+	elab_vars(_, [], vars') => vars''
+
+  rule	elab_var(env, var) => (id,ty) &
+	elab_vars(env, vars, (id,ty)::vars') => vars''
+	----------------
+	elab_vars(env, var::vars, vars') => vars''
+end
+
+relation mkvar =
+  rule	Types.ty_cnv ty => ty'
+	----------------
+	mkvar((id,ty)) => TCode.VAR(id,ty')
+end
+
+relation mkvarbnd =
+  axiom mkvarbnd((id,ty)) => ((id, VARbnd ty))
+end
+
+relation decay_formal_ty =
+  axiom decay_formal_ty(Types.ARR(_,ty)) => Types.PTR ty
+  axiom decay_formal_ty(ty as Types.ARITH _) => ty
+  axiom decay_formal_ty(ty as Types.PTR _) => ty
+  axiom decay_formal_ty(ty as Types.REC _) => ty
+end
+
+relation decay_formal =
+  rule	decay_formal_ty ty => ty'
+	----------------
+	decay_formal((id,ty)) => ((id,ty'))
+end
+
+relation snd =
+  axiom snd((_,y)) => y
+end
+
+relation elab_formals =
+  rule	elab_vars(env, formals, []) => pre_formals &
+	map(decay_formal, pre_formals) => pre_formals' &
+	map(mkvar, pre_formals') => formals' &
+	map(mkvarbnd, pre_formals') => argenv &
+	map(snd, pre_formals') => argtys
+	----------------
+	elab_formals(env, formals) => (formals', argenv, argtys)
+end
+
+relation elab_subbnd =
+  rule	elab_ty(env0, ty) => ty0 &
+	decay_formal_ty ty0 => ty1 &	(* ret ARR ==> ret PTR *)
+	Types.ty_cnv ty1 => ty2 &
+	elab_formals(env0, formals) => (formals', argenv, argtys) &
+	let env1 = (id, FUNCbnd(argtys,ty1))::env0 &
+	list_append(argenv, env1) => env2 &
+	elab_body(SOME ty1, env2, block) => block'
+	----------------
+	elab_subbnd(env0, Absyn.FUNCBND(id,formals,ty,block))
+	=> (env1, TCode.PROC(id,formals',SOME ty2,block'))
+
+  rule	elab_formals(env0, formals) => (formals', argenv, argtys) &
+	let env1 = (id, PROCbnd argtys)::env0 &
+	list_append(argenv, env1) => env2 &
+	elab_body(NONE, env2, block) => block'
+	----------------
+	elab_subbnd(env0, Absyn.PROCBND(id,formals,block))
+	=> (env1, TCode.PROC(id,formals',NONE,block'))
+end
+
+relation elab_subbnds =
+  rule	list_reverse subbnds' => subbnds''
+	----------------
+	elab_subbnds(env, [], subbnds') => (env,subbnds'')
+
+  rule	elab_subbnd(env, subbnd) => (env',subbnd') &
+	elab_subbnds(env', subbnds, subbnd'::subbnds') => (env'',subbnds'')
+	----------------
+	elab_subbnds(env, subbnd::subbnds, subbnds') => (env'',subbnds'')
+end
+
+relation elab_body =
+  axiom elab_body(_, _, NONE) => NONE
+
+  rule	elab_block(fty, env, block) => block'
+	----------------
+	elab_body(fty, env, SOME block) => SOME block'
+end
+
+relation elab_block =
+  rule	elab_consts(env0, consts) => env1 &
+	elab_types(env1, types) => env2 &
+	elab_vars(env2, vars, []) => pre_vars &
+	map(mkvar, pre_vars) => vars' &
+	map(mkvarbnd, pre_vars) => varenv &
+	list_append(varenv, env2) => env3 &
+	elab_subbnds(env3, subbnds, []) => (env4,subbnds') &
+	elab_stmt(fty, env4, stmt) => stmt'
+	----------------
+	elab_block(fty, env0, Absyn.BLOCK(consts,types,vars,subbnds,stmt))
+	=> TCode.BLOCK(vars', subbnds', stmt')
+end
+
+relation elaborate =
+  rule	elab_block(NONE, env_init, block) => block'
+	----------------
+	elaborate(Absyn.PROG(id,block)) => TCode.PROG(id,block')
+end

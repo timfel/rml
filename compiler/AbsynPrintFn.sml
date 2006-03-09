@@ -2,7 +2,8 @@
 
 functor AbsynPrintFn(structure MakeString : MAKESTRING
 		     structure Util : UTIL
-		     structure Absyn : ABSYN) : ABSYN_PRINT =
+		     structure Absyn : ABSYN
+		     structure Control: CONTROL) : ABSYN_PRINT =
   struct
 
     structure Absyn = Absyn
@@ -99,7 +100,7 @@ functor AbsynPrintFn(structure MakeString : MAKESTRING
       | print_goal(os, Absyn.NOTgoal(g, _)) =
 	  (prStr(os, "not "); print_atomic_goal(os, g))
       | print_goal(os, Absyn.ANDgoal(g1, g2, _)) =
-	  (print_goal(os, g1); prStr(os, " &\n\t\t"); print_goal(os, g2))
+	  (print_goal(os, g1); prStr(os, " &\n       "); print_goal(os, g2))
 
     and print_atomic_goal(os, Absyn.ANDgoal(g1, g2, _)) =
 	  (prStr(os, "("); print_goal(os, g1); prStr(os, " & ");
@@ -113,9 +114,9 @@ functor AbsynPrintFn(structure MakeString : MAKESTRING
       | prResult(os, Absyn.FAIL _) = prStr(os, "fail")
 
     fun print_clause(os, Absyn.CLAUSE1(g_opt, id, pat_star, result, _, _)) =
-	  (prStr(os, "\n\trule\t");
+	  (prStr(os, "\n  rule ");
 	   print_g_opt(os, g_opt);
-	   prStr(os, "\n\t\t----------------\n\t\t");
+	   prStr(os, "\n       ----\n       ");
 	   print_ident(os, id);
 	   print_parens_comma(os, pat_star, print_pat);
 	   prStr(os, " => ");
@@ -129,7 +130,7 @@ functor AbsynPrintFn(structure MakeString : MAKESTRING
 	  (print_ident(os, id); prStr(os, " of "); print_tuple_ty(os, tyseq))
 
     fun print_conbind_star(os, conbind_star) =
-      print_sequence(os, "\n\t= ", "\n\t| ", "\n", conbind_star, print_conbind)
+      print_sequence(os, "\n  = ", "\n  | ", "\n", conbind_star, print_conbind)
 
     fun print_tyvarseq_tycon(os, tyvarseq, tycon) =
       (print_list(os, tyvarseq, print_tyvar); print_ident(os, tycon))
@@ -184,13 +185,35 @@ functor AbsynPrintFn(structure MakeString : MAKESTRING
       | print_dec os (Absyn.VALdec(ident, exp, _)) =
 	  (prStr(os, "val "); print_ident(os, ident); prStr(os, " = ");
 	   print_exp(os, exp); prStr(os, "\n"))
+      | print_dec os (Absyn.RELdec([], _)) = ()
       | print_dec os (Absyn.RELdec(relbind_star, _)) =
 	  (prStr(os, "relation "); print_relbind_star(os, relbind_star))
 
-    fun printModule(os, Absyn.MODULE(Absyn.INTERFACE({modid,specs,...}, _), dec_star, _)) =
-      (prStr(os, "module "); print_ident(os, modid); prStr(os, ":\n");
+    fun printModule(os, Absyn.MODULE(Absyn.INTERFACE({modid,specs,source}, _), dec_star, _)) =
+      (prStr(os,"(*moduleOf["); prStr(os, Absyn.Source.getFileName(source)); prStr(os, "]*)\n");
+       prStr(os, "module "); print_ident(os, modid); prStr(os, ":\n");
        List.app (print_spec os) specs;
        prStr(os, "end\n");
        List.app (print_dec os) dec_star)
+
+    fun printInterface(os, Absyn.MODULE(Absyn.INTERFACE({modid,specs,source}, _), dec_star, _)) =
+      (prStr(os,"(*interfaceOf["); prStr(os, Absyn.Source.getFileName(source)); prStr(os, "]*)\n");
+       prStr(os, "module "); print_ident(os, modid); prStr(os, ":\n");
+       List.app (print_spec os) specs;
+       prStr(os, "end\n"))
+
+    fun print_spec_with os (Absyn.WITHspec(str, _, _)) = 
+		(prStr(os, Control.getFileName(str, Control.INTERFACE_FILE)); prStr(os, " "))
+      | print_spec_with os (_) = ()
+
+    fun print_dec_with os (Absyn.WITHdec(str, _, _)) = 
+		(prStr(os, Control.getFileName(str, Control.INTERFACE_FILE)); prStr(os, " "))
+      | print_dec_with os (_) = ()
+       
+    fun printDependencies(os, Absyn.MODULE(Absyn.INTERFACE({modid,specs,...}, _), dec_star, _)) =
+      (List.app (print_spec_with os) specs;
+       List.app (print_dec_with os) dec_star)
+       
+    fun printGoal(os, goal) = print_goal(os, goal)
 
   end (* functor AbsynPrintFn *)

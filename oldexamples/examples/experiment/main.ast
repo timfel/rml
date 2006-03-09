@@ -1,0 +1,83 @@
+module Main:
+datatype wrong 
+	= C of e:(int)*k:(int)
+datatype ('a)handle 
+	= HANDLERS of evals:(((z:(('a)array)) => ())list)
+datatype tmp 
+	= V of ((real)list)array
+	| Vec of ((real)list)array*((real)list)array
+relation main: ((string)list) => ()
+relation print_array: (('a)array) => ()
+end
+relation apply =
+	rule	let li = RML.cons(10.0,RML.nil) &
+		let lli = RML.cons(RML.cons(1.0,RML.cons(10.1,RML.nil)),RML.cons(RML.cons(2.0,RML.nil),RML.cons(RML.cons(3.0,RML.nil),RML.nil))) &
+		array_vector(arr) => (vec) &
+		array_create(10,li) => (vli') &
+		list_array(lli) => (vli) &
+		let li_new = RML.cons(3.0,RML.nil) &
+		let k = vli &
+		array_setnth(vli',1,li_new) => (vli') &
+		array_setnth(vli,1,li_new) => (vli) &
+		array_setnth(vli',2,li_new) => (vli') &
+		array_update(vli',5,li_new) => (vli') &
+		array_setnth(vli,2,li_new) => (vli) &
+		array_add(vli',li_new) => (vli') &
+		let l = vli' &
+		let z = Vec(k,l)
+		----------------
+		apply(arr) => ()
+
+end
+relation loop: (first:(int),last:(int),ar:(((real)list)array)) => () =
+	rule	int_lt(i,max) => (true) &
+		int_add(i,1) => (i') &
+		int_real(i') => (r) &
+		array_update(vli,i',RML.cons(r,RML.nil)) => (vli) &
+		array_nth(vli,i) => (l) &
+		debug_print("\nset:",l) => () &
+		apply(vli) => () &
+		loop(i',max,vli) => ()
+		----------------
+		loop(i,last = max,ar = vli) => ()
+
+	rule	int_ge(i,max) => (true)
+		----------------
+		loop(i,max,_) => ()
+
+end
+relation print_a =
+	rule	array_length(ar) => (arl) &
+		int_lt(i,arl) => (true) &
+		array_nth(ar,i) => (el) &
+		debug_print("el",el) => () &
+		RML.int_add(i,1) => (iplus) &
+		print_a(ar,iplus) => ()
+		----------------
+		print_a(ar,i) => ()
+
+	rule	
+		----------------
+		print_a(_,_) => ()
+
+end
+relation print_array: (z:(('a)array)) => () =
+	rule	print_a(ar,0) => ()
+		----------------
+		print_array(ar) => ()
+
+end
+val handlers = HANDLERS(RML.cons(print_array,RML.cons(print_array,RML.nil)))
+relation main: ((string)list) => () =
+	rule	let max = 20 &
+		let li = RML.cons(10.0,RML.nil) &
+		array_create(max,li) => (vli) &
+		array_setnth(vli,1,li) => (vli) &
+		let HANDLERS(RML.cons(x,_)) = handlers &
+		x(vli) => () &
+		loop(0,max,vli) => ()
+		----------------
+		main(_) => ()
+
+end
+val ast = RML.cons(RML.cons(1.0,RML.nil),RML.cons(RML.cons(2.0,RML.nil),RML.cons(RML.cons(3.0,RML.nil),RML.nil)))

@@ -34,7 +34,9 @@ algorithm
     case NEG(e1) equation
        v1 = eval(e1);
        then -. v1;
+    else equation print("blah"); then fail();
    end match;
+   exp_1 := k;
 end eval;
 
 function main

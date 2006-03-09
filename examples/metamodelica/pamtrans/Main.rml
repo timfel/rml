@@ -1,0 +1,23 @@
+module Main:
+
+  relation main: () => ()
+
+end
+
+with "Parse.rml"
+with "Trans.rml"
+with "Emit.rml"
+
+(* Parse and translate a PAM program into MCode,
+ * then emit it as textual assembly code.
+ *)
+relation main: () => ()  =
+
+  rule  Parse.parse() => program &
+        Trans.trans_program(program)  =>  mcode  &
+        Emit.emit_assembly(mcode)
+        --------------------
+        main
+
+end (* main *)
+

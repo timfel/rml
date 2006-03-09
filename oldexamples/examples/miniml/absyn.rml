@@ -1,0 +1,42 @@
+(* absyn.rml *)
+module Absyn:
+  type Ident	= string
+  datatype Exp	= INT of int
+		| REAL of real
+		| STRING of string
+		| UNIT
+		| VAR of Ident
+		| LAM of Lambda
+		| APP of Exp * Exp
+		| PAIR of Exp * Exp
+		| IF of Exp * Exp * Exp
+		| LET of Ident * Exp * Exp
+		| LETREC of Ident * Lambda * Exp
+  and Lambda	= LAMBDA of Ident * Exp
+  datatype Dec	= VAL of Ident * Exp
+  val var_add	: Exp
+  val var_cons	: Exp
+  val var_eq	: Exp
+  val var_idiv	: Exp
+  val var_imod	: Exp
+  val var_le	: Exp
+  val var_lt	: Exp
+  val var_mul	: Exp
+  val var_nil	: Exp
+  val var_rdiv	: Exp
+  val var_set	: Exp
+  val var_sub	: Exp
+end
+
+val var_add	= VAR "+"
+val var_cons	= VAR "::"
+val var_eq	= VAR "="
+val var_idiv	= VAR "idiv"
+val var_imod	= VAR "imod"
+val var_le	= VAR "<="
+val var_lt	= VAR "<"
+val var_mul	= VAR "*"
+val var_nil	= VAR "nil"
+val var_rdiv	= VAR "rdiv"
+val var_set	= VAR ":="
+val var_sub	= VAR "-"

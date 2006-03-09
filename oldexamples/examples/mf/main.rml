@@ -1,0 +1,19 @@
+(* main.rml -- Mini-Freja test driver *)
+module Main:
+    relation main: string list => ()
+end
+
+with "absyn.rml"
+with "eval.rml"
+with "test.rml"
+
+relation main =
+	axiom	main []
+
+	rule	string_int arg => k &
+		Test.test k => prog &
+		Eval.exec prog &
+		main argv
+		----------------
+		main arg::argv
+end

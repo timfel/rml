@@ -1,0 +1,109 @@
+module Main:
+  datatype tmp   =  V of real list array
+                 |  Vec of real list array * real list array  
+
+  datatype 'a handle = HANDLERS of evals: (z: 'a array => ()) list
+
+  datatype wrong = C of e: int * k:int
+
+  datatype super = C1 of g: wrong * l: real
+                 | C2 of f: ((na1:int) => na1:int)
+                 | C3 of o: int handle * j: super
+
+  relation print_array: 'a array => () 
+  relation main: string list => ()
+end
+ 
+(* our AST *)
+val ast = [[1.0],[2.0],[3.0]]
+
+val handlers = HANDLERS([print_array, print_array])
+
+val data = C3(HANDLERS([print_array]), C1(C(1, 2), 1.2))
+
+
+relation walk_shit: (na1: super, na2: wrong, na3: tmp) => (f:wrong, g:int) =
+    rule 
+         ------------------------------------------
+         walk_shit(C1(l=h), na2=C(k=u)) => (C(1, u), 1)
+
+    rule walk_shit(h, na2, na3) => (g=1) &
+         let C3(j=i,o=y) = na1  
+         --------------------------------------------------------
+         walk_shit(na3=na3 as V(_), na2=na2 as C(k=u), na1 = na1 as C3(j=h, o=b)) => (C(1, u), 1)
+
+    rule 
+         -------------------------------------------
+         walk_shit(C2(f=_), C(_, _), na3=V(y)) => (C(1, 2), 1)
+
+    axiom walk_shit(_, _, _) => fail
+end
+
+
+relation print_a =
+    rule array_length(ar) => arl &
+	     int_lt(i, arl) => true &
+		 array_nth(ar, i) => el &
+	     debug_print("el", el) &
+		 i + 1 => iplus &
+		 print_a(ar, iplus)  
+	     -------------------------
+		 print_a(ar, i) => ()
+    axiom print_a(_, _) => ()
+end
+
+relation print_array: (z: 'a array) => () =
+	rule print_a(ar, 0) 
+		 ---------------------
+		 print_array(ar) => ()
+end
+
+relation loop: (first:int, last:int, ar:real list array) => () =
+     rule int_lt(i, max) => true & 
+	 int_add(i, 1) => i' &
+	 int_real(i') => r &
+	 array_update(vli, i', [r]) => vli &
+	 array_nth(vli, i) => l &
+	 debug_print("\nset:", l) &
+	 apply(vli) &
+	 loop(i', max, vli)
+	 --------------------------------
+	 loop(last=max, ar=vli, first=i) 
+	 
+    rule int_ge(i,max) => true
+	------------------------------
+	loop(i, max, _)
+end
+
+
+relation apply=
+   rule let li = [10.0]  & 
+        let lli = [[1.0,10.1],[2.0],[3.0]] &
+        array_vector(arr) => vec &
+        array_create(10, li) => vli' &
+        list_array(lli) => vli &
+        let li_new = [3.0] &
+        let k = vli &
+        array_setnth(vli', 1, li_new) => vli' &
+        array_setnth(vli, 1, li_new) => vli &
+        array_setnth(vli', 2, li_new) => vli' &
+        array_update(vli', 5, li_new) => vli' &
+        array_setnth(vli, 2, li_new) => vli &
+        array_add(vli', li_new) => vli' &
+        let l = vli' &
+        let z = Vec(k, l)
+        ----------------------------------------
+        apply(arr)
+end
+
+relation main: string list => () =
+   rule let max=20 &
+        let li = [10.0]  & 
+        array_create(max, li) => vli &
+        array_setnth(vli, 1, li) => vli &
+		let HANDLERS(x::_) = handlers &
+		x(vli) &
+        loop(0, max, vli)
+        ------------------
+        main (_)
+end

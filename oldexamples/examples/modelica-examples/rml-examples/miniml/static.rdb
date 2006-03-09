@@ -1,0 +1,253 @@
+v:<static.rml>:93.40.93.45|[93.3.97.1]|check_c[tyname:string]
+v:<static.rml>:96.15.96.16|[93.3.97.1]|check_c[ty:Types.Type]
+v:<static.rml>:96.19.96.25|[93.3.97.1]|check_c[tynames:string list]
+v:<static.rml>:104.20.104.20|[102.3.105.1]|check_constraints[c:Constraint]
+v:<static.rml>:104.23.104.24|[102.3.105.1]|check_constraints[cs:Constraint list]
+v:<static.rml>:73.21.73.22|[71.3.75.3]|pure[e2:Absyn.Exp]
+v:<static.rml>:73.18.73.19|[71.3.75.3]|pure[e1:Absyn.Exp]
+v:<static.rml>:77.16.77.17|[75.3.78.1]|pure[e1:Absyn.Exp]
+v:<static.rml>:77.22.77.23|[75.3.78.1]|pure[e3:Absyn.Exp]
+v:<static.rml>:77.19.77.20|[75.3.78.1]|pure[e2:Absyn.Exp]
+v:<static.rml>:83.19.83.21|[81.3.83.35]|gen[lev:int]
+v:<static.rml>:81.52.81.60|[81.3.83.35]|gen[rhs_sigma:Scheme.Scheme]
+v:<static.rml>:83.6.83.8|[81.3.83.35]|gen[rhs:Absyn.Exp]
+v:<static.rml>:83.11.83.16|[81.3.83.35]|gen[rhs_ty:Types.Type]
+v:<static.rml>:87.19.87.21|[85.3.87.35]|gen[lev:int]
+v:<static.rml>:85.49.85.57|[85.3.87.35]|gen[rhs_sigma:Scheme.Scheme]
+v:<static.rml>:87.6.87.8|[85.3.87.35]|gen[rhs:Absyn.Exp]
+v:<static.rml>:87.11.87.16|[85.3.87.35]|gen[rhs_ty:Types.Type]
+v:<static.rml>:108.29.108.30|[108.3.108.37]|add_constraints[cs:'a]
+v:<static.rml>:17.5.17.10|[108.3.108.37]|add_constraints[tyBOOL:Types.Type]
+v:<static.rml>:113.18.113.21|[110.3.113.41]|add_constraints[alfa:Types.Alpha]
+v:<static.rml>:113.24.113.29|[110.3.113.41]|add_constraints[alphas:Types.Alpha list]
+v:<static.rml>:113.32.113.33|[110.3.113.41]|add_constraints[cs:Constraint list]
+v:<static.rml>:111.63.111.65|[110.3.113.41]|add_constraints[cs':Constraint list]
+v:<static.rml>:17.5.17.10|[110.3.113.41]|add_constraints[tyBOOL:Types.Type]
+v:<static.rml>:110.38.110.44|[110.3.113.41]|add_constraints[tynames:string list]
+v:<static.rml>:118.18.118.21|[115.3.118.41]|add_constraints[alfa:Types.Alpha]
+v:<static.rml>:118.24.118.29|[115.3.118.41]|add_constraints[alphas:Types.Alpha list]
+v:<static.rml>:118.32.118.33|[115.3.118.41]|add_constraints[cs:Constraint list]
+v:<static.rml>:116.33.116.35|[115.3.118.41]|add_constraints[cs':Constraint list]
+v:<static.rml>:17.5.17.10|[115.3.118.41]|add_constraints[tyBOOL:Types.Type]
+v:<static.rml>:123.34.123.38|[122.3.126.52]|lookup_and_inst[bvars:Types.Alpha list]
+v:<static.rml>:126.28.126.29|[122.3.126.52]|lookup_and_inst[cs:Constraint list]
+v:<static.rml>:124.32.124.34|[122.3.126.52]|lookup_and_inst[cs':Constraint list]
+v:<static.rml>:126.18.126.20|[122.3.126.52]|lookup_and_inst[env:('a*Scheme.Scheme) list]
+v:<static.rml>:126.23.126.25|[122.3.126.52]|lookup_and_inst[lev:int]
+v:<static.rml>:126.32.126.34|[122.3.126.52]|lookup_and_inst[var:'a]
+v:<static.rml>:17.5.17.10|[122.3.126.52]|lookup_and_inst[tyBOOL:Types.Type]
+v:<static.rml>:122.33.122.41|[122.3.126.52]|lookup_and_inst[var_sigma:Scheme.Scheme]
+v:<static.rml>:123.40.123.45|[122.3.126.52]|lookup_and_inst[var_ty:Types.Type]
+v:<static.rml>:130.24.130.25|[130.3.130.54]|elab_exp[cs:'a]
+v:<static.rml>:14.5.14.9|[130.3.130.54]|elab_exp[tyINT:Types.Type]
+v:<static.rml>:17.5.17.10|[130.3.130.54]|elab_exp[tyBOOL:Types.Type]
+v:<static.rml>:16.5.16.12|[130.3.130.54]|elab_exp[tySTRING:Types.Type]
+v:<static.rml>:15.5.15.10|[130.3.130.54]|elab_exp[tyREAL:Types.Type]
+v:<static.rml>:18.5.18.10|[130.3.130.54]|elab_exp[tyUNIT:Types.Type]
+v:<static.rml>:131.24.131.25|[131.3.131.56]|elab_exp[cs:'a]
+v:<static.rml>:14.5.14.9|[131.3.131.56]|elab_exp[tyINT:Types.Type]
+v:<static.rml>:17.5.17.10|[131.3.131.56]|elab_exp[tyBOOL:Types.Type]
+v:<static.rml>:16.5.16.12|[131.3.131.56]|elab_exp[tySTRING:Types.Type]
+v:<static.rml>:15.5.15.10|[131.3.131.56]|elab_exp[tyREAL:Types.Type]
+v:<static.rml>:18.5.18.10|[131.3.131.56]|elab_exp[tyUNIT:Types.Type]
+v:<static.rml>:132.24.132.25|[132.3.132.60]|elab_exp[cs:'a]
+v:<static.rml>:14.5.14.9|[132.3.132.60]|elab_exp[tyINT:Types.Type]
+v:<static.rml>:17.5.17.10|[132.3.132.60]|elab_exp[tyBOOL:Types.Type]
+v:<static.rml>:16.5.16.12|[132.3.132.60]|elab_exp[tySTRING:Types.Type]
+v:<static.rml>:15.5.15.10|[132.3.132.60]|elab_exp[tyREAL:Types.Type]
+v:<static.rml>:18.5.18.10|[132.3.132.60]|elab_exp[tyUNIT:Types.Type]
+v:<static.rml>:133.24.133.25|[133.3.133.54]|elab_exp[cs:'a]
+v:<static.rml>:14.5.14.9|[133.3.133.54]|elab_exp[tyINT:Types.Type]
+v:<static.rml>:17.5.17.10|[133.3.133.54]|elab_exp[tyBOOL:Types.Type]
+v:<static.rml>:16.5.16.12|[133.3.133.54]|elab_exp[tySTRING:Types.Type]
+v:<static.rml>:15.5.15.10|[133.3.133.54]|elab_exp[tyREAL:Types.Type]
+v:<static.rml>:18.5.18.10|[133.3.133.54]|elab_exp[tyUNIT:Types.Type]
+v:<static.rml>:137.21.137.22|[135.3.137.55]|elab_exp[cs:Constraint list]
+v:<static.rml>:135.55.135.57|[135.3.137.55]|elab_exp[cs':Constraint list]
+v:<static.rml>:137.11.137.13|[135.3.137.55]|elab_exp[env:(string*Scheme.Scheme) list]
+v:<static.rml>:14.5.14.9|[135.3.137.55]|elab_exp[tyINT:Types.Type]
+v:<static.rml>:137.16.137.18|[135.3.137.55]|elab_exp[lev:int]
+v:<static.rml>:17.5.17.10|[135.3.137.55]|elab_exp[tyBOOL:Types.Type]
+v:<static.rml>:16.5.16.12|[135.3.137.55]|elab_exp[tySTRING:Types.Type]
+v:<static.rml>:15.5.15.10|[135.3.137.55]|elab_exp[tyREAL:Types.Type]
+v:<static.rml>:137.35.137.37|[135.3.137.55]|elab_exp[var:string]
+v:<static.rml>:18.5.18.10|[135.3.137.55]|elab_exp[tyUNIT:Types.Type]
+v:<static.rml>:135.47.135.52|[135.3.137.55]|elab_exp[var_ty:Types.Type]
+v:<static.rml>:141.21.141.22|[139.3.141.55]|elab_exp[cs:Constraint list]
+v:<static.rml>:139.48.139.50|[139.3.141.55]|elab_exp[cs':Constraint list]
+v:<static.rml>:141.11.141.13|[139.3.141.55]|elab_exp[env:(string*Scheme.Scheme) list]
+v:<static.rml>:14.5.14.9|[139.3.141.55]|elab_exp[tyINT:Types.Type]
+v:<static.rml>:141.16.141.18|[139.3.141.55]|elab_exp[lev:int]
+v:<static.rml>:141.35.141.37|[139.3.141.55]|elab_exp[lam:Absyn.Lambda]
+v:<static.rml>:139.40.139.45|[139.3.141.55]|elab_exp[lam_ty:Types.Type]
+v:<static.rml>:17.5.17.10|[139.3.141.55]|elab_exp[tyBOOL:Types.Type]
+v:<static.rml>:16.5.16.12|[139.3.141.55]|elab_exp[tySTRING:Types.Type]
+v:<static.rml>:15.5.15.10|[139.3.141.55]|elab_exp[tyREAL:Types.Type]
+v:<static.rml>:18.5.18.10|[139.3.141.55]|elab_exp[tyUNIT:Types.Type]
+v:<static.rml>:149.40.149.42|[143.3.149.61]|elab_exp[arg:Absyn.Exp]
+v:<static.rml>:145.27.145.30|[143.3.149.61]|elab_exp[alfa:Types.Alpha]
+v:<static.rml>:144.35.144.40|[143.3.149.61]|elab_exp[arg_ty:Types.Type]
+v:<static.rml>:149.21.149.22|[143.3.149.61]|elab_exp[cs:Constraint list]
+v:<static.rml>:143.50.143.52|[143.3.149.61]|elab_exp[cs1:Constraint list]
+v:<static.rml>:144.43.144.45|[143.3.149.61]|elab_exp[cs2:Constraint list]
+v:<static.rml>:149.11.149.13|[143.3.149.61]|elab_exp[env:(string*Scheme.Scheme) list]
+v:<static.rml>:149.35.149.38|[143.3.149.61]|elab_exp[func:Absyn.Exp]
+v:<static.rml>:143.41.143.47|[143.3.149.61]|elab_exp[func_ty:Types.Type]
+v:<static.rml>:14.5.14.9|[143.3.149.61]|elab_exp[tyINT:Types.Type]
+v:<static.rml>:149.16.149.18|[143.3.149.61]|elab_exp[lev:int]
+v:<static.rml>:146.6.146.11|[143.3.149.61]|elab_exp[res_ty:Types.Type]
+v:<static.rml>:17.5.17.10|[143.3.149.61]|elab_exp[tyBOOL:Types.Type]
+v:<static.rml>:16.5.16.12|[143.3.149.61]|elab_exp[tySTRING:Types.Type]
+v:<static.rml>:15.5.15.10|[143.3.149.61]|elab_exp[tyREAL:Types.Type]
+v:<static.rml>:18.5.18.10|[143.3.149.61]|elab_exp[tyUNIT:Types.Type]
+v:<static.rml>:154.21.154.22|[151.3.154.82]|elab_exp[cs:Constraint list]
+v:<static.rml>:151.39.151.43|[151.3.154.82]|elab_exp[e1_ty:Types.Type]
+v:<static.rml>:152.41.152.43|[151.3.154.82]|elab_exp[cs2:Constraint list]
+v:<static.rml>:151.46.151.48|[151.3.154.82]|elab_exp[cs1:Constraint list]
+v:<static.rml>:154.36.154.37|[151.3.154.82]|elab_exp[e1:Absyn.Exp]
+v:<static.rml>:154.39.154.40|[151.3.154.82]|elab_exp[e2:Absyn.Exp]
+v:<static.rml>:152.34.152.38|[151.3.154.82]|elab_exp[e2_ty:Types.Type]
+v:<static.rml>:154.11.154.13|[151.3.154.82]|elab_exp[env:(string*Scheme.Scheme) list]
+v:<static.rml>:14.5.14.9|[151.3.154.82]|elab_exp[tyINT:Types.Type]
+v:<static.rml>:154.16.154.18|[151.3.154.82]|elab_exp[lev:int]
+v:<static.rml>:17.5.17.10|[151.3.154.82]|elab_exp[tyBOOL:Types.Type]
+v:<static.rml>:16.5.16.12|[151.3.154.82]|elab_exp[tySTRING:Types.Type]
+v:<static.rml>:15.5.15.10|[151.3.154.82]|elab_exp[tyREAL:Types.Type]
+v:<static.rml>:18.5.18.10|[151.3.154.82]|elab_exp[tyUNIT:Types.Type]
+v:<static.rml>:162.21.162.22|[156.3.162.59]|elab_exp[cs:Constraint list]
+v:<static.rml>:162.37.162.38|[156.3.162.59]|elab_exp[e2:Absyn.Exp]
+v:<static.rml>:158.41.158.43|[156.3.162.59]|elab_exp[cs2:Constraint list]
+v:<static.rml>:156.46.156.48|[156.3.162.59]|elab_exp[cs1:Constraint list]
+v:<static.rml>:162.34.162.35|[156.3.162.59]|elab_exp[e1:Absyn.Exp]
+v:<static.rml>:159.41.159.43|[156.3.162.59]|elab_exp[cs3:Constraint list]
+v:<static.rml>:156.39.156.43|[156.3.162.59]|elab_exp[e1_ty:Types.Type]
+v:<static.rml>:162.40.162.41|[156.3.162.59]|elab_exp[e3:Absyn.Exp]
+v:<static.rml>:158.34.158.38|[156.3.162.59]|elab_exp[e2_ty:Types.Type]
+v:<static.rml>:159.34.159.38|[156.3.162.59]|elab_exp[e3_ty:Types.Type]
+v:<static.rml>:162.11.162.13|[156.3.162.59]|elab_exp[env:(string*Scheme.Scheme) list]
+v:<static.rml>:14.5.14.9|[156.3.162.59]|elab_exp[tyINT:Types.Type]
+v:<static.rml>:162.16.162.18|[156.3.162.59]|elab_exp[lev:int]
+v:<static.rml>:17.5.17.10|[156.3.162.59]|elab_exp[tyBOOL:Types.Type]
+v:<static.rml>:16.5.16.12|[156.3.162.59]|elab_exp[tySTRING:Types.Type]
+v:<static.rml>:15.5.15.10|[156.3.162.59]|elab_exp[tyREAL:Types.Type]
+v:<static.rml>:18.5.18.10|[156.3.162.59]|elab_exp[tyUNIT:Types.Type]
+v:<static.rml>:169.43.169.46|[164.3.169.66]|elab_exp[body:Absyn.Exp]
+v:<static.rml>:167.53.167.59|[164.3.169.66]|elab_exp[body_ty:Types.Type]
+v:<static.rml>:169.21.169.22|[164.3.169.66]|elab_exp[cs:Constraint list]
+v:<static.rml>:165.43.165.45|[164.3.169.66]|elab_exp[cs1:Constraint list]
+v:<static.rml>:167.62.167.64|[164.3.169.66]|elab_exp[cs2:Constraint list]
+v:<static.rml>:169.11.169.13|[164.3.169.66]|elab_exp[env:(string*Scheme.Scheme) list]
+v:<static.rml>:169.35.169.37|[164.3.169.66]|elab_exp[lhs:string]
+v:<static.rml>:169.16.169.18|[164.3.169.66]|elab_exp[lev:int]
+v:<static.rml>:164.27.164.30|[164.3.169.66]|elab_exp[lev1:int]
+v:<static.rml>:166.27.166.35|[164.3.169.66]|elab_exp[lhs_sigma:Scheme.Scheme]
+v:<static.rml>:14.5.14.9|[164.3.169.66]|elab_exp[tyINT:Types.Type]
+v:<static.rml>:165.35.165.40|[164.3.169.66]|elab_exp[rhs_ty:Types.Type]
+v:<static.rml>:169.39.169.41|[164.3.169.66]|elab_exp[rhs:Absyn.Exp]
+v:<static.rml>:17.5.17.10|[164.3.169.66]|elab_exp[tyBOOL:Types.Type]
+v:<static.rml>:16.5.16.12|[164.3.169.66]|elab_exp[tySTRING:Types.Type]
+v:<static.rml>:15.5.15.10|[164.3.169.66]|elab_exp[tyREAL:Types.Type]
+v:<static.rml>:18.5.18.10|[164.3.169.66]|elab_exp[tyUNIT:Types.Type]
+v:<static.rml>:180.46.180.49|[171.3.180.69]|elab_exp[body:Absyn.Exp]
+v:<static.rml>:172.28.172.31|[171.3.180.69]|elab_exp[alfa:Types.Alpha]
+v:<static.rml>:178.54.178.60|[171.3.180.69]|elab_exp[body_ty:Types.Type]
+v:<static.rml>:180.21.180.22|[171.3.180.69]|elab_exp[cs:Constraint list]
+v:<static.rml>:175.61.175.63|[171.3.180.69]|elab_exp[cs1:Constraint list]
+v:<static.rml>:178.63.178.65|[171.3.180.69]|elab_exp[cs2:Constraint list]
+v:<static.rml>:180.11.180.13|[171.3.180.69]|elab_exp[env:(string*Scheme.Scheme) list]
+v:<static.rml>:180.38.180.40|[171.3.180.69]|elab_exp[lhs:string]
+v:<static.rml>:180.16.180.18|[171.3.180.69]|elab_exp[lev:int]
+v:<static.rml>:180.42.180.44|[171.3.180.69]|elab_exp[lam:Absyn.Lambda]
+v:<static.rml>:175.53.175.58|[171.3.180.69]|elab_exp[lam_ty:Types.Type]
+v:<static.rml>:171.27.171.30|[171.3.180.69]|elab_exp[lev1:int]
+v:<static.rml>:14.5.14.9|[171.3.180.69]|elab_exp[tyINT:Types.Type]
+v:<static.rml>:173.6.173.11|[171.3.180.69]|elab_exp[lhs_ty:Types.Type]
+v:<static.rml>:177.35.177.44|[171.3.180.69]|elab_exp[lhs_sigma0:Scheme.Scheme]
+v:<static.rml>:174.28.174.37|[171.3.180.69]|elab_exp[lhs_sigma1:Scheme.Scheme]
+v:<static.rml>:17.5.17.10|[171.3.180.69]|elab_exp[tyBOOL:Types.Type]
+v:<static.rml>:16.5.16.12|[171.3.180.69]|elab_exp[tySTRING:Types.Type]
+v:<static.rml>:15.5.15.10|[171.3.180.69]|elab_exp[tyREAL:Types.Type]
+v:<static.rml>:18.5.18.10|[171.3.180.69]|elab_exp[tyUNIT:Types.Type]
+v:<static.rml>:189.39.189.42|[184.3.189.87]|elab_lam[body:Absyn.Exp]
+v:<static.rml>:184.33.184.36|[184.3.189.87]|elab_lam[alfa:Types.Alpha]
+v:<static.rml>:187.52.187.58|[184.3.189.87]|elab_lam[body_ty:Types.Type]
+v:<static.rml>:189.19.189.20|[184.3.189.87]|elab_lam[cs:Constraint list]
+v:<static.rml>:187.60.187.62|[184.3.189.87]|elab_lam[cs':Constraint list]
+v:<static.rml>:189.11.189.13|[184.3.189.87]|elab_lam[env:(string*Scheme.Scheme) list]
+v:<static.rml>:14.5.14.9|[184.3.189.87]|elab_lam[tyINT:Types.Type]
+v:<static.rml>:189.15.189.17|[184.3.189.87]|elab_lam[lev:int]
+v:<static.rml>:17.5.17.10|[184.3.189.87]|elab_lam[tyBOOL:Types.Type]
+v:<static.rml>:16.5.16.12|[184.3.189.87]|elab_lam[tySTRING:Types.Type]
+v:<static.rml>:15.5.15.10|[184.3.189.87]|elab_lam[tyREAL:Types.Type]
+v:<static.rml>:189.35.189.37|[184.3.189.87]|elab_lam[var:string]
+v:<static.rml>:18.5.18.10|[184.3.189.87]|elab_lam[tyUNIT:Types.Type]
+v:<static.rml>:186.28.186.36|[184.3.189.87]|elab_lam[var_sigma:Scheme.Scheme]
+v:<static.rml>:185.6.185.11|[184.3.189.87]|elab_lam[var_ty:Types.Type]
+v:<static.rml>:193.41.193.42|[193.3.197.55]|elaborate[cs:Constraint list]
+v:<static.rml>:197.12.197.14|[193.3.197.55]|elaborate[env:(string*Scheme.Scheme) list]
+v:<static.rml>:197.30.197.32|[193.3.197.55]|elaborate[exp:Absyn.Exp]
+v:<static.rml>:14.5.14.9|[193.3.197.55]|elaborate[tyINT:Types.Type]
+v:<static.rml>:197.27.197.28|[193.3.197.55]|elaborate[id:string]
+v:<static.rml>:193.38.193.39|[193.3.197.55]|elaborate[ty:Types.Type]
+v:<static.rml>:195.30.195.34|[193.3.197.55]|elaborate[sigma:Scheme.Scheme]
+v:<static.rml>:17.5.17.10|[193.3.197.55]|elaborate[tyBOOL:Types.Type]
+v:<static.rml>:16.5.16.12|[193.3.197.55]|elaborate[tySTRING:Types.Type]
+v:<static.rml>:15.5.15.10|[193.3.197.55]|elaborate[tyREAL:Types.Type]
+v:<static.rml>:18.5.18.10|[193.3.197.55]|elaborate[tyUNIT:Types.Type]
+/*  ME_Dict: */
+/*  - start external M_VE_CON: */
+c:<absyn.rml>:6.5.6.10|Absyn.STRING:string => Absyn.Exp
+c:<absyn.rml>:15.16.15.21|Absyn.LAMBDA:(string,Absyn.Exp) => Absyn.Lambda
+c:<absyn.rml>:12.5.12.6|Absyn.IF:(Absyn.Exp,Absyn.Exp,Absyn.Exp) => Absyn.Exp
+c:<absyn.rml>:10.5.10.7|Absyn.APP:(Absyn.Exp,Absyn.Exp) => Absyn.Exp
+c:<absyn.rml>:4.18.4.20|Absyn.INT:int => Absyn.Exp
+c:<absyn.rml>:9.5.9.7|Absyn.LAM:Absyn.Lambda => Absyn.Exp
+c:<absyn.rml>:14.5.14.10|Absyn.LETREC:(string,Absyn.Lambda,Absyn.Exp) => Absyn.Exp
+c:<absyn.rml>:13.5.13.7|Absyn.LET:(string,Absyn.Exp,Absyn.Exp) => Absyn.Exp
+c:<absyn.rml>:11.5.11.8|Absyn.PAIR:(Absyn.Exp,Absyn.Exp) => Absyn.Exp
+c:<absyn.rml>:5.5.5.8|Absyn.REAL:real => Absyn.Exp
+c:<absyn.rml>:16.18.16.20|Absyn.VAL:(string,Absyn.Exp) => Absyn.Dec
+c:<absyn.rml>:7.5.7.8|Absyn.UNIT:Absyn.Exp
+c:<absyn.rml>:8.5.8.7|Absyn.VAR:string => Absyn.Exp
+/* - end external */
+/*  - start external M_VE_CON: */
+c:<scheme.rml>:8.21.8.26|Scheme.SCHEME:((bool*string list option) list,Scheme.Comb) => Scheme.Scheme
+c:<scheme.rml>:6.6.6.11|Scheme.MKCONS:(Scheme.Comb list,string) => Scheme.Comb
+c:<scheme.rml>:5.6.5.10|Scheme.BOUND:int => Scheme.Comb
+c:<scheme.rml>:4.20.4.24|Scheme.QUOTE:Types.Type => Scheme.Comb
+/* - end external */
+/*  TE': */
+t:<static.rml>:90.10.90.19|Constraint
+t:<static.rml>:5.8.5.10|Env
+/*  VE'': */
+r:<static.rml>:80.10.80.12|gen:(Absyn.Exp,Types.Type,int) => Scheme.Scheme
+l:<static.rml>:29.5.29.13|alphaList:Scheme.Comb
+r:<static.rml>:107.10.107.24|add_constraints:(Types.Alpha list,Constraint list) => Constraint list
+c:<static.rml>:90.23.90.26|OVLD:(Types.Type,string list) => Constraint
+l:<static.rml>:25.5.25.9|alpha:Scheme.Comb
+r:<static.rml>:92.10.92.16|check_c:Constraint => ()
+l:<static.rml>:26.5.26.8|beta:Scheme.Comb
+l:<static.rml>:27.5.27.12|alphaRef:Scheme.Comb
+l:<static.rml>:28.5.28.14|alphaXbeta:Scheme.Comb
+l:<static.rml>:23.5.23.11|bv_free:bool*'a option
+r:<static.rml>:129.10.129.17|elab_exp:((string*Scheme.Scheme) list,int,Constraint list,Absyn.Exp) => (Types.Type,Constraint list)
+r:<static.rml>:99.10.99.26|check_constraints:Constraint list => ()
+r:<static.rml>:192.10.192.18|elaborate:((string*Scheme.Scheme) list,Absyn.Dec) => (string*Scheme.Scheme) list
+r:<static.rml>:183.10.183.17|elab_lam:((string*Scheme.Scheme) list,int,Constraint list,Absyn.Lambda) => (Types.Type,Constraint list)
+l:<static.rml>:38.5.38.8|env0:(string*Scheme.Scheme) list
+l:<static.rml>:20.5.20.9|qunit:Scheme.Comb
+l:<static.rml>:31.5.31.16|intXintTOint:Types.Type
+l:<static.rml>:30.5.30.11|intXint:Types.Type
+r:<static.rml>:63.10.63.13|pure:Absyn.Exp => ()
+r:<static.rml>:121.10.121.24|lookup_and_inst:(('a*Scheme.Scheme) list,int,Constraint list,'a) => (Types.Type,Constraint list)
+l:<static.rml>:21.5.21.9|qbool:Scheme.Comb
+l:<static.rml>:14.5.14.9|tyINT:Types.Type
+l:<static.rml>:34.5.34.24|scheme_numXnumTObool:Scheme.Scheme
+l:<static.rml>:36.5.36.32|scheme_eqalphaXeqalphaTObool:Scheme.Scheme
+l:<static.rml>:32.5.32.23|scheme_intXintTOint:Scheme.Scheme
+l:<static.rml>:35.5.35.26|scheme_realXrealTOreal:Scheme.Scheme
+l:<static.rml>:33.5.33.23|scheme_numXnumTOnum:Scheme.Scheme
+l:<static.rml>:17.5.17.10|tyBOOL:Types.Type
+l:<static.rml>:16.5.16.12|tySTRING:Types.Type
+l:<static.rml>:15.5.15.10|tyREAL:Types.Type
+l:<static.rml>:18.5.18.10|tyUNIT:Types.Type

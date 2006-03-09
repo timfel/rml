@@ -22,12 +22,11 @@ CSRC=	bool-and.c bool-not.c bool-or.c\
 	str-append.c str-int.c str-length.c str-list.c str-nth.c str-setnth.c \
 	vec-length.c vec-list.c vec-nth.c vec-setnth.c vec-update.c vec-create.c vec-add.c vec-arr.c\
 	arr-length.c arr-list.c arr-nth.c arr-setnth.c arr-update.c arr-create.c arr-add.c arr-vec.c\
-	rml-debug.c rmldb-parse.c rmldb-scan.c rml-db-parse.c rml-db-scan.c \
-	debug-debug.c debug-print.c debug-push-vars.c \
+	rml-debug.c rmldb-parse.c rmldb-scan.c rml-db-load.c rml-db-parse.c rml-db-scan.c \
+	debug-debug.c debug-print.c debug-push-vars.c external-rml.c \
 	main.c
-RMLHSRC=../common/rml-core.h ../common/rml-state.h rml-labels.h ../common/rml-predef.h ../debugging/rml-debug.h
+RMLHSRC=../common/rml-core.h ../common/rml-state.h rml-labels.h ../common/rml-predef.h ../debugging/rml-db-load.h ../debugging/rml-debug.h
 p-gccore.h=../common/p-gccore.h 
-rml-debug.h=../debugging/rml-debug.h
 
 default:	librml.a
 

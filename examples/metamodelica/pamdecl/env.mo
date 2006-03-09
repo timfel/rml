@@ -1,76 +1,87 @@
 package Env
 
+public 
 type Ident = String;
 
+public 
 uniontype Value
   record INTVAL
-    Integer x1;
+    Integer integer;
   end INTVAL;
+
   record REALVAL
-    Real x1;
+    Real real;
   end REALVAL;
+
   record BOOLVAL
-    Boolean x1;
+    Boolean boolean;
   end BOOLVAL;
+
 end Value;
 
+public 
 uniontype Value2
   record INTVAL2
-    Integer x1;
-    Integer x2;
+    Integer integer1;
+    Integer integer2;
   end INTVAL2;
+
   record REALVAL2
-    Real x1;
-    Real x2;
+    Real real1;
+    Real real2;
   end REALVAL2;
+
 end Value2;
 
+public 
 uniontype Type
-  record INTTYPE
-  end INTTYPE;
-  record REALTYPE
-  end REALTYPE;
-  record BOOLTYPE
-  end BOOLTYPE;
+  record INTTYPE end INTTYPE;
+
+  record REALTYPE end REALTYPE;
+
+  record BOOLTYPE end BOOLTYPE;
+
 end Type;
 
+public 
 uniontype Bind
   record BIND
-    Ident x1;
-    Type x2;
-    Value x3;
+    Ident ident;
+    Type type_;
+    Value value;
   end BIND;
+
 end Bind;
 
+public 
 type Env = list<Bind>;
 
 public function initial_
-  output BindList out_bindlist;
-protected 
-  type BindList = list<Bind>;
+  output BindLst outBindLst;
+  type BindLst = list<Bind>;
 algorithm 
-  out_bindlist:=
-  matchcontinue (true)
-    case true then list(BIND("false",BOOLTYPE(),BOOLVAL(false)),
-          BIND("true",BOOLTYPE(),BOOLVAL(true))); 
+  outBindLst:=
+  matchcontinue ()
+    case  then {BIND("false",BOOLTYPE(),BOOLVAL(false)),
+          BIND("true",BOOLTYPE(),BOOLVAL(true))}; 
   end matchcontinue;
 end initial_;
 
 public function lookup
-  input Env in_env;
-  input Ident in_ident;
-  output Value out_value;
+  input Env inEnv;
+  input Ident inIdent;
+  output Value outValue;
 algorithm 
-  out_value:=
-  matchcontinue (in_env,in_ident)
+  outValue:=
+  matchcontinue (inEnv,inIdent)
     local
       Ident idenv,id;
       Value v;
       Env rest;
-    case (BIND(idenv,_,v) :: _,id)
+    case ((BIND(ident = idenv,value = v) :: _),id)
       equation 
         equality(id = idenv); then v;
-    case (BIND(idenv,_,_) :: rest,id)
+    case ((BIND(ident = idenv) :: rest),id)
       equation 
         failure(equality(id = idenv));
         v = lookup(rest, id); then v;
@@ -78,20 +89,20 @@ algorithm
 end lookup;
 
 public function lookuptype
-  input Env in_env;
-  input Ident in_ident;
-  output Type out_type;
+  input Env inEnv;
+  input Ident inIdent;
+  output Type outType;
 algorithm 
-  out_type:=
-  matchcontinue (in_env,in_ident)
+  outType:=
+  matchcontinue (inEnv,inIdent)
     local
       Ident idenv,id;
       Type t;
       Env rest;
-    case (BIND(idenv,t,_) :: _,id)
+    case ((BIND(ident = idenv,type_ = t) :: _),id)
       equation 
         equality(id = idenv); then t;
-    case (BIND(idenv,_,_) :: rest,id)
+    case ((BIND(ident = idenv) :: rest),id)
       equation 
         failure(equality(id = idenv));
         t = lookuptype(rest, id); then t;
@@ -105,7 +116,7 @@ public function update
   input Value v;
   output Env newenv;
 algorithm 
-  newenv := BIND(id,ty,v) :: env;
+  newenv := (BIND(id,ty,v) :: env);
 end update;
 end Env;
 

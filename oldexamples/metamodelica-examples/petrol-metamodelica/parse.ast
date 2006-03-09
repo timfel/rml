@@ -1,0 +1,4 @@
+module Parse:
+with "absyn.mo"
+relation parse: (string) => (Absyn.Prog)
+end

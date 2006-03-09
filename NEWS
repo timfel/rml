@@ -2,6 +2,64 @@ RML SYSTEM RELEASE HISTORY
 ==========================
 Adrian Pop, adrpo@ida.liu.se, http://www.ida.liu.se/~adrpo
 
+Source Release 2.3.4 2006-03-08
+-----------------------------------------------------------------
+- rml+mmc 
+- faster .mo or .rml compilation
+- better MetaModelica handling
+- unused import warnings
+- new operators and buildin functions:
+  + ==& string_equal(string, string) => bool
+  + +&  string_append
+  + if_exp or ifExp(bool, 'a, 'a)
+  + string_setnth(string, int, char) => string                (index from 0)
+  + string_setnth_string_char(string, int, string) => string  (index from 0)
+  + string_update(string, int, char) => string                (index from 1)
+  + string_update_string_char(string, int, string) => string  (index from 1)
+  + string_nth(string, int) => char                           (index from 0)
+  + string_nth_string_char(string, int) => string             (index from 0)
+  + string_get(string, int) => char                           (index from 1)
+  + string_get_string_char(string, int) => string             (index from 1)
+  + string_compare(string, string) => int (-1, 0, +1)         (calls strcmp)
+  + all these have duplicates using Java names ex: stringNth=string_nth
+  
+
+Source Release 2.3.3 with named arguments in patterns, 2006-01-26
+-----------------------------------------------------------------
+- rml+mmc (rml=Relational Meta-Language compiler, mmc=Meta-Modelica compiler)
+- new flags:
+  + -fdump-interface : dumps the interface of the module to stdout
+  + -fdump-depends   : dumps the module depencies in .depends format to stdout
+  + -ffix-java-names : causes to include in every .c file generated a file 
+                       called ExternalRMLDefines.h which can be used to re-define
+		       the names of the externally declared RML relations.
+		       look into doc/ExternalRMLDefines.h
+
+Enjoy!
+Adrian Pop/		    
+		       
+  
+Source Release 2.3.2 with named arguments in patterns, 2005-12-30
+-----------------------------------------------------------------
+- THIS IS A BETA RELEASE! Don't trust it!
+- fixes the VC7 compilation problem "program too complex" 
+  + blocks nested too deeply fixed!
+
+Source Release 2.3.1 with named arguments in patterns, 2005-11-11
+-----------------------------------------------------------------
+- THIS IS A BETA RELEASE! Don't trust it!
+- general:
+  - named arguments in patterns are now supported
+    for datatype definition: CONS of na1:ty1 * na2:ty2 ... nan:tyn 
+    + patterns: CONS(nan=patern1, na1=pattern2, na10=pattern3)
+    for relation definition: relation x: (na1:ty1, na2:ty2, na3:ty3) => (na4:ty4, na5:ty5, na6:ty6)
+    + pattern: rule x(v1, v2, v3) => (na5=v4)
+                    -------------------------
+                    x(na3=pattern) => ....
+  - of course named arguments in patterns for relations won't work if you don't
+    declare the relation signature type. 
+
+
 Binary Release 2.3.0 with operators, 2005-06-13
 ---------------------------------------------------
 - general

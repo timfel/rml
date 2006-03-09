@@ -29,7 +29,7 @@
 (provide 'mo-mode)
 
 (defconst rml-mode-version-string
-  "MODELICA-MODE, Version 0.6 (17 March 1998), mikpe@ida.liu.se")
+  "MODELICA-MODE, Version 0.1 (23 Oct 2005), adrpo@ida.liu.se")
 
 ;;; key bindings
 
@@ -93,7 +93,7 @@
 ;;; font-lock
 
 (defvar rml-mode-font-lock-keywords
-  '(("\\(function\\|package\\|uniontype\\|end\\|list\\|tuple\\|option\\|import\\|type\\|input\\|output\\|matchcontinue\\|match\\|constant\\|parameter\\|model\\|case\\|record\\)\\s-+\\(\\sw+\\)"
+  '(("\\(function\\|package\\|uniontype\\|end\\|list\\|tuple\\|option\\|import\\|type\\|input\\|output\\|matchcontinue\\|match\\|constant\\|parameter\\|model\\|class\\|case\\|record\\|equation\\|algorithm\\)\\s-+\\(\\sw+\\)"
      (1 font-lock-keyword-face)
      (2 font-lock-variable-name-face))
     ("\\(\\(data\\|union\\)?type\\)\\s-+\\(\\sw+\\)"
@@ -102,7 +102,7 @@
     ("\\(--*\\)\\s-+\\(\\sw+\\)"
      (1 font-lock-keyword-face)
      (2 font-lock-variable-name-face))
-    ("\\<\\(local\\|of\\|in\\|algorithm\\|end\\|else\\|assert\\|not\\|fail\\|match\\|matchcontinue\\|equation\\|then\\|of\\|record\\|input\\|output\\|package\\|import\\|model\\|case\\|constant\\|of\\|record\\|function\\|list\\|tuple\\|option\\|public\\|protected\\)\\>"
+    ("\\<\\(local\\|of\\|in\\|algorithm\\|end\\|else\\|assert\\|not\\|fail\\|match\\|matchcontinue\\|equation\\|then\\|of\\|record\\|input\\|output\\|package\\|import\\|model\\||class\\||case\\|constant\\|of\\|record\\|function\\|list\\|tuple\\|option\\|public\\|protected\\)\\>"
      (1 font-lock-keyword-face))))
 
 ;;;

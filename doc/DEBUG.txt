@@ -1,13 +1,8 @@
 RML debugger crashcourse
-------------------------
+
 Look into RML/elisp directory to see how to set
 your .emacs so that rml-db.el is loaded at emacs
 startup.
-
-Adrian Pop, adrpo@ida.liu.se, 2005-03-01
-
-NOTE: in this version, rmlc -g doesn't send the -g to the
-      C compiler, use rmlc -g -Wc,-g for that
 
 =============================================================
 To debug a rml module follow these steps:
@@ -15,19 +10,18 @@ To debug a rml module follow these steps:
 
 1. compiling the rml project again with -g to rmlc for the
    modules you want to instrument. also you MUST link with
-   rml_g library of RML and -lreadline and -lfl
+   rml_g library of RML
 
 2. if you need parameters to the debugged executable
    you will have to wrap them in a file like: run-program.sh
    #!/bin/sh
    ./your_program parameters
    #-- end here
-   chmod +x run-program.sh
+   chmod +x rmldb
 
 3. run the rmldb
    M-x rmldb 
-   change run-program.sh to your executable name or leave
-   it like that if you have written a run-program.sh script.
+   change rmldb to your executable name 
 
 6. now you should get a prompt like: 
    rmldb>
@@ -36,37 +30,62 @@ To debug a rml module follow these steps:
    - you can stop on:
      + rules
      + axioms
-   hit C-x SPACE or C-x-a-b to set a breakpoint
-   hit C-x-a-d to delete a breakpoint
+   type C-x SPACE or C-x-a-b to set a breakpoint
+   type C-x-a-d to delete a breakpoint
 
-8. hit C-x-a-s to step
-   hit C-x-a-r to run
-   
-9. type "help" to get info on commands
+8. type C-x-a-s to step
+   type C-x-a-r to run
 
 =============================================================
 Notes:
 =============================================================
 The debugger:
 - will stop the program at init
-- will stop at the breakpoints
+- will stop the program right before end
+- will stop at the brekpoints
 - CTRL+C it will stop at the next available site 
   if it is in 'run' mode.
 - if is in 'run' mode it won't display variables use
   'step' for that
 - will show help if you type 'help' at the prompt
 
+=============================================================
+Understanding output:
+=============================================================
+* look into: 
+   /home/pelab/pub/pkg/rml-2.1.9-debug/output/exp1.rml
+   and the instrumented:
+   /home/pelab/pub/pkg/rml-2.1.9-debug/output/exp1.ast
+   to understand how the output is generated.
+
+* the structures (datatypes, lists, vectors) are printed like:
+  e1 = [{S(1)[2]}]
+  and e1 is of type Exp:
+  datatype Exp   =  INTconst of  int         
+                 |  ADDop    of  Exp * Exp
+                 |  SUBop    of  Exp * Exp
+                 |  MULop    of  Exp * Exp
+                 |  DIVop    of  Exp * Exp
+                 |  NEGop    of  Exp
+   then e1 can be read like this:
+   {
+    S(1)[2]       -> Structure with constructor 1 (ADDop) and 2 slots of Exp follow
+   }
+   -> ADDop(INTconst(1), INTconst(2))
+
+* i know is hard to follow, but this will be fixed when 
+  view of the datatypes are added
 
 =============================================================
-External Data Viewer
+What doesn't work yet in this version:
 =============================================================
-Look into RMLDataTree directory.
-There are several .bat files that give an idea on how you can
-run it. It goes like this:
-java -cp . RMLDataTree path_to_rml_files
+- datatypes
 
-Then, from the debugger you just say 
-rmldb@>gr variable
+
+WARNING: do NOT run mosh without -noserv parameter
+         the debug version of modeq WANTS an terminal.
+	 Otherwise the log will grow and the system will
+	 go crazy.
 
 
 

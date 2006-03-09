@@ -1,9 +1,11 @@
 (* reorder/reorder.sml *)
 
-functor ReorderFn(structure ReorderTy : REORDER_TY
-		  structure ReorderVal : REORDER_VAL
-		  sharing ReorderTy.Absyn = ReorderVal.Absyn
-		    ) : REORDER =
+functor ReorderFn(
+	structure ReorderTy : REORDER_TY
+	structure ReorderVal : REORDER_VAL
+	structure Control : CONTROL		  
+	sharing ReorderTy.Absyn = ReorderVal.Absyn		  
+	) : REORDER =
   struct
 
     structure Absyn = ReorderTy.Absyn
@@ -12,12 +14,12 @@ functor ReorderFn(structure ReorderTy : REORDER_TY
     fun addDat(datbnd, ts) = ReorderTy.DATBND(datbnd)::ts
 
     (* ADI!!!*) 
-    fun typSpec(ReorderTy.TYPDEC typbnd) = Absyn.TYPEspec([typbnd], ref(Absyn.dummyInfo))
-      | typSpec(ReorderTy.DATDEC(datbnds,typbnds)) = Absyn.DATAspec(datbnds,typbnds, ref(Absyn.dummyInfo))
+    fun typSpec(ReorderTy.TYPDEC typbnd) = Absyn.TYPEspec([typbnd], Absyn.dummyInfo)
+      | typSpec(ReorderTy.DATDEC(datbnds,typbnds)) = Absyn.DATAspec(datbnds,typbnds, Absyn.dummyInfo)
 
     (* ADI!!!*) 
-    fun typDec(ReorderTy.TYPDEC typbnd) = Absyn.TYPEdec([typbnd], ref(Absyn.dummyInfo))
-      | typDec(ReorderTy.DATDEC(datbnds,typbnds)) = Absyn.DATAdec(datbnds,typbnds, ref(Absyn.dummyInfo))
+    fun typDec(ReorderTy.TYPDEC typbnd) = Absyn.TYPEdec([typbnd], Absyn.dummyInfo)
+      | typDec(ReorderTy.DATDEC(datbnds,typbnds)) = Absyn.DATAdec(datbnds,typbnds, Absyn.dummyInfo)
 
     fun reorderSpecs(source, specs) =
       let fun split([], wsas, ts, vs) =
@@ -43,8 +45,8 @@ functor ReorderFn(structure ReorderTy : REORDER_TY
     fun addVal(var, exp, vs) = ReorderVal.VALBND(var,exp) :: vs
     fun addRel(relbnd, vs) = ReorderVal.RELBND(relbnd) :: vs
 
-    fun valDec(ReorderVal.VALDEC(var,exp)) = Absyn.VALdec(var, exp, ref(Absyn.dummyInfo))
-      | valDec(ReorderVal.RELDEC relbnds) = Absyn.RELdec (relbnds, ref(Absyn.dummyInfo))
+    fun valDec(ReorderVal.VALDEC(var,exp)) = Absyn.VALdec(var, exp, Absyn.dummyInfo)
+      | valDec(ReorderVal.RELDEC relbnds) = Absyn.RELdec (relbnds, Absyn.dummyInfo)
 
     fun reorderDecs(source, decs) =
       let fun split([], ws, ts, vs) =
@@ -72,16 +74,22 @@ functor ReorderFn(structure ReorderTy : REORDER_TY
 		split(decs, [], [], [])
       end
 
-    fun reorderInterface(Absyn.INTERFACE({modid, specs, source}, infoI)) =
+    fun reorderInterface(interface as Absyn.INTERFACE({modid, specs, source}, infoI)) =
+	  if !Control.doReorder  
+      then 
       let val specs = reorderSpecs(source, specs)
       in
 		Absyn.INTERFACE({modid=modid, specs=specs, source=source}, infoI)
       end
+      else interface
 
-    fun reorderModule(Absyn.MODULE(interface, decs, infoM)) =
+    fun reorderModule(module as Absyn.MODULE(interface, decs, infoM)) =
+	  if !Control.doReorder 
+      then 
       let val Absyn.INTERFACE({source,...}, infoI) = interface
       in
 		Absyn.MODULE(reorderInterface interface, reorderDecs(source, decs), infoM)
       end
+      else module
 
   end (* functor ReorderFn *)

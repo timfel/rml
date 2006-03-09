@@ -1,0 +1,257 @@
+module Main:
+  with "absyn.rml"
+  with "scanparse.rml"
+  with "rmldump.rml"
+  with "rmlrefactor.rml"
+  with "rmltomod.rml"
+  with "moddump.rml"
+  with "loadprogramdb.rml"
+ 
+  relation main: string list => ()
+end
+ 
+relation main = (* this now gets only a name, we put the extension *) 
+  rule  (*LoadProgramDB.debug_on() &*) 
+	string_append(filename, ".rdb") => file_rdb &
+	string_append(filename, ".rml") => file_rml &
+	LoadProgramDB.parse(file_rdb) => pdb &
+	let Absyn.RMLDB(entries) = pdb &
+	(*
+	print_pdb(entries) => () &
+	debug_parse(args) & 
+         *)
+	ScanParse.scanparse(file_rml) => ast &
+         (*
+	debug_ast(args,ast) &	
+	rml_dump(args,ast) &
+	rml_refactor(args,ast) &
+	*)
+	modelica_unparse(args,ast,entries)
+        -------------------------------
+	main (filename::args)
+end
+
+relation pr_el=
+   rule print file & print " variable " & 
+	RMLDump.print_id(id) & 
+	print " in relation: " & 
+	RMLDump.print_id(rel_name) & 
+	print " has type: " & 
+	RMLDump.dump_type(ty) & 
+	print "\n"
+        --------------------------------------------------
+	pr_el(Absyn.RMLDB_VAR(file, id, _, _,rel_name,ty))
+
+   rule
+	---------
+	pr_el(_)
+end
+
+relation print_pdb=
+  rule	(* print "pdp" & *)
+	pr_el head & print_pdb(rest)   
+	--------------------------------- 
+	print_pdb(head::rest)
+  
+  rule	(* print "empty\n" *)
+	---------------
+	print_pdb([])
+end
+
+relation modelica_unparse =
+
+  rule	is_option_set(args,"dumpmodelica") => true &
+	RMLToMod.transform(ast,entries) => modast &
+	ModDump.dump(modast) 
+	---------------
+	modelica_unparse(args,ast,entries)
+
+  rule	is_option_set(args,"dm") => true &
+	RMLToMod.transform(ast,entries) => modast &
+	ModDump.dump(modast) 
+	---------------
+	modelica_unparse(args,ast,entries)
+
+  rule	is_option_set(args,"notransform") => true
+	-----------------------------------------
+	modelica_unparse(args,ast,entries)
+	
+  rule	is_option_set(args,"ntf") => true
+	-----------------------------------------
+	modelica_unparse(args,ast,entries)
+
+
+  rule	RMLToMod.transform(ast,entries) => modast &
+	ModDump.unparse_str(modast) => str &
+	print str
+	---------------------------
+	modelica_unparse(args,ast,entries)
+
+end
+
+(*IS OPTION SET?*)
+relation is_option_set =
+
+  axiom	is_option_set([],option) => false
+
+  rule	last = option 
+	----------------
+	is_option_set(last::[],option) => true
+	
+  rule	not last = option 
+ 	-----------------
+	is_option_set(last::[],option) => false
+
+  rule	first = option
+	------------------
+	is_option_set(first::rest,option) => true
+
+  rule	not first = option &
+	is_option_set(rest,option) => b
+	--------------------
+	is_option_set(first::rest,option) => b
+
+end
+
+(* move to a module called debug ? *)
+
+relation debug_parse =
+
+  rule	is_option_set(params,"debugparse") => true &
+	ScanParse.debug_on() 
+	-------------------------------
+	debug_parse(params) 
+
+  rule	is_option_set(params,"dp") => true &
+	ScanParse.debug_on() 
+	-------------------------------
+	debug_parse(params) 
+
+  
+  axiom	debug_parse(params)
+
+end
+
+relation debug_ast =
+
+  rule	is_option_set(params,"debugast") => true &
+	RML.debug_print("ast", ast) 
+	-------------------------------
+	debug_ast(params,ast) 
+
+  rule	is_option_set(params,"da") => true &
+	RML.debug_print("ast", ast) 
+	-------------------------------
+	debug_ast(params,ast) 
+
+  
+  axiom	debug_ast(params,ast) 
+
+end
+
+relation rml_dump =
+
+  rule	is_option_set(params,"nodump") => true 
+	-------------------------------
+	rml_dump(params,ast) 
+
+  rule	is_option_set(params,"nd") => true 
+	-------------------------------
+	rml_dump(params,ast) 
+
+  
+  rule	RMLDump.dump ast 
+	--------------------------------------
+	rml_dump(params,ast) 
+
+end
+
+
+relation rml_refactor =
+
+  rule	is_option_set(args,"refactor") => true &
+	do_refactor(args,ast) 
+	-------------------------
+	rml_refactor(args,ast) 
+
+rule	is_option_set(args,"rf") => true &
+	do_refactor(args,ast) 
+	-----------------------------
+	rml_refactor(args,ast) 
+
+  axiom rml_refactor(params,ast)
+
+end
+
+relation do_refactor =
+
+  rule	print "Illegal refactor.\n" 
+	----------------------
+	do_refactor([],ast) 
+
+  rule	last = "rf" &
+	print "Wrong format. e.g, refactor type id1 id2\n"
+	----------------------------------
+	do_refactor(last::[],ast) 
+	
+  rule	not last = "rf" & 
+	print "Illegal refactor.\n" 
+ 	---------------------
+	do_refactor(last::[],ast) 
+
+  rule	first = "rf" &
+	refactor(rtype,id1,id2,ast)
+	---------------------
+	do_refactor(first::rtype::id1::id2::rest,ast) => ()
+
+
+  rule	first = "rf" &
+	print "Wrong format\n"
+	------------------
+	do_refactor(first::rest,ast) 
+
+  rule	not first = "rf" &
+	do_refactor(rest,ast) 
+	--------------------
+	do_refactor(first::rest,ast) 
+ 
+
+end
+
+relation refactor =
+
+  rule	rtype = "id" &
+	RMLRefactor.refactor(ast,RMLRefactor.RENAME_ID(id1,id2)) => rast &
+	RMLDump.dump(rast)
+	-------------------------------------------------------
+	refactor(rtype,id1,id2,ast)
+  
+  rule	print "Unsupported refactor: "&  print rtype & print  "\n"
+	----------------------------
+	refactor(rtype,_,_,_)
+
+end
+
+
+relation dump_chars =
+
+  rule	int_ge(i,l) => true
+	-----------
+	dump_chars(i,l)
+	
+  rule	int_char(i) => c &
+	list_string([c]) => s &
+	int_string(i) => is &
+	print "(" &
+	print is &
+	print " : " &
+	print s &
+	print ")\n" &
+	int_add(i,1) => ic &
+	dump_chars(ic,l)
+	-------------------
+	dump_chars(i,l)
+	
+
+
+end

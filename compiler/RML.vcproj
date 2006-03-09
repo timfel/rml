@@ -54,10 +54,19 @@
 				RelativePath="ABSYN_INSTRUMENTED.sig">
 			</File>
 			<File
+				RelativePath=".\ABSYN_PERSIST.sig">
+			</File>
+			<File
 				RelativePath="ABSYN_PRINT.sig">
 			</File>
 			<File
 				RelativePath="AbsynFn.sml">
+			</File>
+			<File
+				RelativePath=".\AbsynPersist.sml">
+			</File>
+			<File
+				RelativePath=".\AbsynPersistFn.sml">
 			</File>
 			<File
 				RelativePath="AbsynPrint.sml">
@@ -75,16 +84,13 @@
 				RelativePath="AbsynToFOLFn.sml">
 			</File>
 			<File
-				RelativePath=".\c.grm">
+				RelativePath=".\CACHE.sig">
 			</File>
 			<File
-				RelativePath=".\c.lex">
+				RelativePath=".\Cache.sml">
 			</File>
 			<File
-				RelativePath="calc.grm">
-			</File>
-			<File
-				RelativePath="calc.lex">
+				RelativePath=".\CacheFn.sml">
 			</File>
 			<File
 				RelativePath="CODE.sig">
@@ -255,6 +261,15 @@
 				RelativePath="FOLUsagesFn.sml">
 			</File>
 			<File
+				RelativePath=".\FRONTEND.sig">
+			</File>
+			<File
+				RelativePath=".\FrontEnd.sml">
+			</File>
+			<File
+				RelativePath=".\FrontEndFn.sml">
+			</File>
+			<File
 				RelativePath="Instrument.sml">
 			</File>
 			<File
@@ -291,7 +306,16 @@
 				RelativePath="LexArg.sml">
 			</File>
 			<File
+				RelativePath=".\LEXARG_SIMPLE.sig">
+			</File>
+			<File
 				RelativePath="LexArgFn.sml">
+			</File>
+			<File
+				RelativePath=".\LexArgSimple.sml">
+			</File>
+			<File
+				RelativePath=".\LexArgSimpleFn.sml">
 			</File>
 			<File
 				RelativePath="LEXUTIL.sig">
@@ -348,6 +372,9 @@
 				RelativePath=".\mod.lex.sml">
 			</File>
 			<File
+				RelativePath=".\MOD_PARSE.sig">
+			</File>
+			<File
 				RelativePath=".\MODLex.sml">
 			</File>
 			<File
@@ -363,13 +390,7 @@
 				RelativePath=".\MODParser.sml">
 			</File>
 			<File
-				RelativePath=".\MOTOMO.sig">
-			</File>
-			<File
-				RelativePath=".\MOToMO.sml">
-			</File>
-			<File
-				RelativePath=".\MOToMOFn.sml">
+				RelativePath=".\MOTORML.sig">
 			</File>
 			<File
 				RelativePath=".\MOToRML.sml">
@@ -384,7 +405,40 @@
 				RelativePath="ORD_KEY.sig">
 			</File>
 			<File
-				RelativePath="PARSE.sig">
+				RelativePath=".\persistent.grm">
+			</File>
+			<File
+				RelativePath=".\persistent.grm.desc">
+			</File>
+			<File
+				RelativePath=".\persistent.grm.sig">
+			</File>
+			<File
+				RelativePath=".\persistent.grm.sml">
+			</File>
+			<File
+				RelativePath=".\persistent.lex">
+			</File>
+			<File
+				RelativePath=".\persistent.lex.sml">
+			</File>
+			<File
+				RelativePath=".\PERSISTENT_PARSE.sig">
+			</File>
+			<File
+				RelativePath=".\PERSISTENTLex.sml">
+			</File>
+			<File
+				RelativePath=".\PERSISTENTLrVals.sml">
+			</File>
+			<File
+				RelativePath=".\PERSISTENTParse.sml">
+			</File>
+			<File
+				RelativePath=".\PERSISTENTParseFn.sml">
+			</File>
+			<File
+				RelativePath=".\PERSISTENTParser.sml">
 			</File>
 			<File
 				RelativePath="PLAIN.sig">
@@ -444,16 +498,19 @@
 				RelativePath="ReorderFn.sml">
 			</File>
 			<File
-				RelativePath="ReorderParse.sml">
-			</File>
-			<File
-				RelativePath="ReorderParseFn.sml">
+				RelativePath=".\ReorderSCC.sml">
 			</File>
 			<File
 				RelativePath="ReorderTy.sml">
 			</File>
 			<File
+				RelativePath=".\ReorderTyFn.sml">
+			</File>
+			<File
 				RelativePath="ReorderVal.sml">
+			</File>
+			<File
+				RelativePath=".\ReorderValFn.sml">
 			</File>
 			<File
 				RelativePath="rml.grm">
@@ -475,6 +532,9 @@
 			</File>
 			<File
 				RelativePath="RML.sml">
+			</File>
+			<File
+				RelativePath=".\RML_PARSE.sig">
 			</File>
 			<File
 				RelativePath=".\RMLLex.sml">
@@ -501,6 +561,9 @@
 				RelativePath="Source.sml">
 			</File>
 			<File
+				RelativePath="sources.cm">
+			</File>
+			<File
 				RelativePath="START.sig">
 			</File>
 			<File
@@ -517,9 +580,6 @@
 			</File>
 			<File
 				RelativePath="StatElab.sml">
-			</File>
-			<File
-				RelativePath=".\StatElabFn-2005-11-06-saved-code.sml">
 			</File>
 			<File
 				RelativePath="StatElabFn.sml">
@@ -632,81 +692,149 @@
 			<File
 				RelativePath="VersionFn.sml">
 			</File>
+		</Filter>
+		<Filter
+			Name="library"
+			Filter="">
+			<File
+				RelativePath=".\library\sources.cm">
+			</File>
 			<Filter
-				Name="new"
+				Name="common"
 				Filter="">
 				<File
-					RelativePath=".\new\ReorderSCC.sml">
+					RelativePath=".\library\common\ARRAY_SOURCE_MAP.sig">
 				</File>
 				<File
-					RelativePath=".\new\ReorderTyFn.sml">
+					RelativePath=".\library\common\ArraySourceMap.sml">
 				</File>
 				<File
-					RelativePath=".\new\ReorderValFn.sml">
+					RelativePath=".\library\common\DARRAY.sig">
+				</File>
+				<File
+					RelativePath=".\library\common\DynIntArray.sml">
+				</File>
+				<File
+					RelativePath=".\library\common\IntMap.sml">
+				</File>
+				<File
+					RelativePath=".\library\common\IntSet.sml">
+				</File>
+				<File
+					RelativePath=".\library\common\sources.cm">
+				</File>
+			</Filter>
+			<Filter
+				Name="pickle"
+				Filter="">
+				<File
+					RelativePath=".\library\pickle\BasePickleFun.sml">
+				</File>
+				<File
+					RelativePath=".\library\pickle\BASEPICKLESIG.sig">
+				</File>
+				<File
+					RelativePath=".\library\pickle\BitPickle.sml">
+				</File>
+				<File
+					RelativePath=".\library\pickle\BytePickle.sml">
+				</File>
+				<File
+					RelativePath=".\library\pickle\CODEC.sig">
+				</File>
+				<File
+					RelativePath=".\library\pickle\Pickle.sml">
+				</File>
+				<File
+					RelativePath=".\library\pickle\PickleFun.sml">
+				</File>
+				<File
+					RelativePath=".\library\pickle\PICKLESIG.sig">
+				</File>
+				<File
+					RelativePath=".\library\pickle\sources.cm">
 				</File>
 			</Filter>
 		</Filter>
 		<Filter
-			Name="modelica+"
+			Name="Additional Files"
 			Filter="">
 			<File
-				RelativePath="..\examples\modelica+\assignment.mo">
+				RelativePath=".\files\absyn.doc">
 			</File>
 			<File
-				RelativePath="..\examples\modelica+\eval.mo">
+				RelativePath=".\files\absyn.pdf">
 			</File>
 			<File
-				RelativePath="..\examples\modelica+\Make.mk">
+				RelativePath=".\files\c.grm">
 			</File>
 			<File
-				RelativePath="..\examples\modelica+\Makefile">
+				RelativePath=".\files\c.lex">
 			</File>
 			<File
-				RelativePath="..\examples\modelica+\modex3.txt">
+				RelativePath=".\files\calc.grm">
 			</File>
 			<File
-				RelativePath="..\examples\modelica+\modex4.txt">
+				RelativePath=".\files\calc.lex">
 			</File>
 			<File
-				RelativePath="..\examples\modelica+\pam.mo">
+				RelativePath=".\files\compile-warnings.txt">
+			</File>
+			<File
+				RelativePath=".\files\grammar-modelica-2.1.txt">
+			</File>
+			<File
+				RelativePath=".\files\improve.txt">
+			</File>
+			<File
+				RelativePath=".\files\InstrumentFn-saved-2004-11-23.sml">
+			</File>
+			<File
+				RelativePath=".\files\profile-2006-02-12.txt">
+			</File>
+			<File
+				RelativePath=".\files\profile-rml.txt">
+			</File>
+			<File
+				RelativePath=".\files\profile-smlnj-rml.txt">
+			</File>
+			<File
+				RelativePath=".\files\ReorderParse.sml">
+			</File>
+			<File
+				RelativePath=".\files\ReorderParseFn.sml">
+			</File>
+			<File
+				RelativePath=".\files\ReorderValFn_old.sml">
+			</File>
+			<File
+				RelativePath=".\files\rml-2004-09-17.grm">
+			</File>
+			<File
+				RelativePath=".\files\rml-2004-09-17.grm.sig">
+			</File>
+			<File
+				RelativePath=".\files\rml-2004-09-17.grm.sml">
+			</File>
+			<File
+				RelativePath=".\files\rml-operators-addition.txt">
+			</File>
+			<File
+				RelativePath=".\files\rmlplan.txt">
+			</File>
+			<File
+				RelativePath=".\files\Saved-Instrument-Source.txt">
+			</File>
+			<File
+				RelativePath=".\files\saved.c">
+			</File>
+			<File
+				RelativePath=".\files\StatElabFn-2005-11-06-saved-code.sml">
+			</File>
+			<File
+				RelativePath=".\files\warnings-compile.txt">
 			</File>
 		</Filter>
-		<File
-			RelativePath="..\..\yaccpar\modelica+\absyn.mo">
-		</File>
-		<File
-			RelativePath=".\compilation-warnings-2005-10-27.txt">
-		</File>
-		<File
-			RelativePath=".\grammar-modelica-2.1.txt">
-		</File>
-		<File
-			RelativePath=".\improve.txt">
-		</File>
-		<File
-			RelativePath=".\make.sml">
-		</File>
-		<File
-			RelativePath=".\profile-rml.txt">
-		</File>
-		<File
-			RelativePath=".\profile-smlnj-rml.txt">
-		</File>
-		<File
-			RelativePath="README.html">
-		</File>
-		<File
-			RelativePath="rmls\rml.h">
-		</File>
-		<File
-			RelativePath="rmlplan.txt">
-		</File>
-		<File
-			RelativePath="sources-old.cm">
-		</File>
-		<File
-			RelativePath="sources.cm">
-		</File>
 	</Files>
 	<Globals>
 	</Globals>

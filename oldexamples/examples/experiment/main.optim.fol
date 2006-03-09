@@ -1,0 +1,297 @@
+(MODULE Main)
+
+(define (handle [HANDLERS:1])
+
+(define (wrong [C:2])
+
+(define (super [C1:2 C2:1 C3:2])
+
+(define (tmp [V:1 Vec:2])
+
+(define (apply $101:1)
+  (CASE [$101:1]
+	([(AS $102:1 (WILD))]
+	 (ANDTHEN (BIND $104:1 (STRUCT RML.cons [10.0 RML.nil]))
+		  (CASE [$104:1]
+			([(AS $103:1 (WILD))]
+			 (ANDTHEN (BIND $106:1
+					 (STRUCT RML.cons
+						 [(STRUCT RML.cons
+							  [1.0
+							   (STRUCT RML.cons
+								   [10.1
+								    RML.nil])])
+						  (STRUCT RML.cons
+							  [(STRUCT RML.cons
+								   [2.0
+								    RML.nil])
+							   (STRUCT RML.cons
+								   [(STRUCT RML.cons
+									    [3.0
+									     RML.nil])
+								    RML.nil])])]))
+				  (CASE [$106:1]
+					([(AS $105:1 (WILD))]
+					 (ANDTHEN (CALL array_vector
+							[$102:1]
+							[$108:1])
+						  (CASE [$108:1]
+							([(AS $107:0 (WILD))]
+							 (ANDTHEN (CALL array_create
+									[10
+									 $103:1]
+									[$110:1])
+								  (CASE [$110:1]
+									([(AS $109:1
+										(WILD))]
+									 (ANDTHEN (CALL list_array
+											[$105:1]
+											[$112:1])
+										  (CASE [$112:1]
+											([(AS $111:2
+												(WILD))]
+											 (ANDTHEN (BIND $114:1
+													 (STRUCT RML.cons
+														 [3.0
+														  RML.nil]))
+												  (CASE [$114:1]
+													([(AS $113:6
+														(WILD))]
+													 (ANDTHEN (BIND $116:1
+															 $111:2)
+														  (CASE [$116:1]
+															([(AS $115:1
+																(WILD))]
+															 (ANDTHEN (CALL array_setnth
+																	[$109:1
+																	 1
+																	 $113:6]
+																	[$118:1])
+																  (CASE [$118:1]
+																	([(AS $117:1
+																		(WILD))]
+																	 (ANDTHEN (CALL array_setnth
+																			[$111:2
+																			 1
+																			 $113:6]
+																			[$120:1])
+																		  (CASE [$120:1]
+																			([(AS $119:1
+																				(WILD))]
+																			 (ANDTHEN (CALL array_setnth
+																					[$117:1
+																					 2
+																					 $113:6]
+																					[$122:1])
+																				  (CASE [$122:1]
+																					([(AS $121:1
+																						(WILD))]
+																					 (ANDTHEN (CALL array_update
+																							[$121:1
+																							 5
+																							 $113:6]
+																							[$124:1])
+																						  (CASE [$124:1]
+																							([(AS $123:1
+																								(WILD))]
+																							 (ANDTHEN (CALL array_setnth
+																									[$119:1
+																									 2
+																									 $113:6]
+																									[$126:1])
+																								  (CASE [$126:1]
+																									([(AS $125:0
+																										(WILD))]
+																									 (ANDTHEN (CALL array_add
+																											[$123:1
+																											 $113:6]
+																											[$128:1])
+																										  (CASE [$128:1]
+																											([(AS $127:1
+																												(WILD))]
+																											 (ANDTHEN (BIND $130:1
+																													 $127:1)
+																												  (CASE [$130:1]
+																													([(AS $129:1
+																														(WILD))]
+																													 (ANDTHEN (BIND $132:1
+																															 (STRUCT Vec
+																																 [$115:1
+																																  $129:1]))
+																														  (CASE [$132:1]
+																															([(AS $131:0
+																																(WILD))]
+																															 (RETURN [])))))))))))))))))))))))))))))))))))))))))))))))))
+
+(define (loop $135:1 $134:1 $133:1)
+  (CASE [$135:1 $134:1 $133:1]
+	([(AS $149:4 (WILD)) (AS $150:3 (WILD)) (AS $151:1 (WILD))]
+	 (ORELSE (ANDTHEN (CALL int_lt [$149:4 $150:3] [$140:1])
+			  (CASE [$140:1]
+				([(AS $139:0 true)]
+				 (ANDTHEN (CALL int_add [$149:4 1] [$142:1])
+					  (CASE [$142:1]
+						([(AS $141:3 (WILD))]
+						 (ANDTHEN (CALL int_real
+								[$141:3]
+								[$144:1])
+							  (CASE [$144:1]
+								([(AS $143:1
+									(WILD))]
+								 (ANDTHEN (CALL array_update
+										[$151:1
+										 $141:3
+										 (STRUCT RML.cons
+											 [$143:1
+											  RML.nil])]
+										[$146:1])
+									  (CASE [$146:1]
+										([(AS $145:3
+											(WILD))]
+										 (ANDTHEN (CALL array_nth
+												[$145:3
+												 $149:4]
+												[$148:1])
+											  (CASE [$148:1]
+												([(AS $147:1
+													(WILD))]
+												 (ANDTHEN (CALL debug_print
+														["\nset:"
+														 $147:1]
+														[])
+													  (ANDTHEN (CALL apply
+															 [$145:3]
+															 [])
+														   (ANDTHEN (CALL loop
+																  [$141:3
+																   $150:3
+																   $145:3]
+																  [])
+															    (RETURN [])))))))))))))))))))
+		 (ANDTHEN (CALL int_ge [$149:4 $150:3] [$153:1])
+			  (CASE [$153:1] ([(AS $152:0 true)] (RETURN []))))))))
+
+(define (print_a $155:1 $154:1)
+  (CASE [$155:1 $154:1]
+	([(AS $166:3 (WILD)) (AS $167:3 (WILD))]
+	 (ORELSE (ANDTHEN (CALL array_length [$166:3] [$159:1])
+			  (CASE [$159:1]
+				([(AS $158:1 (WILD))]
+				 (ANDTHEN (CALL int_lt [$167:3 $158:1] [$161:1])
+					  (CASE [$161:1]
+						([(AS $160:0 true)]
+						 (ANDTHEN (CALL array_nth
+								[$166:3 $167:3]
+								[$163:1])
+							  (CASE [$163:1]
+								([(AS $162:1
+									(WILD))]
+								 (ANDTHEN (CALL debug_print
+										["el"
+										 $162:1]
+										[])
+									  (ANDTHEN (CALL RML.int_add
+											 [$167:3
+											  1]
+											 [$165:1])
+										   (CASE [$165:1]
+											 ([(AS $164:1
+												 (WILD))]
+											  (ANDTHEN (CALL print_a
+													 [$166:3
+													  $164:1]
+													 [])
+												   (RETURN [])))))))))))))))
+		 (RETURN [])))))
+
+(define (print_array $168:1)
+  (CASE [$168:1]
+	([(AS $169:1 (WILD))]
+	 (ANDTHEN (CALL print_a [$169:1 0] []) (RETURN [])))))
+
+(define handlers
+  (STRUCT HANDLERS
+	  [(STRUCT RML.cons
+		   [print_array (STRUCT RML.cons [print_array RML.nil])])]))
+
+(define (main $170:1)
+  (CASE [$170:1]
+	([(AS $171:0 (WILD))]
+	 (ANDTHEN (BIND $173:1 20)
+		  (CASE [$173:1]
+			([(AS $172:2 (WILD))]
+			 (ANDTHEN (BIND $175:1 (STRUCT RML.cons [10.0 RML.nil]))
+				  (CASE [$175:1]
+					([(AS $174:2 (WILD))]
+					 (ANDTHEN (CALL array_create
+							[$172:2 $174:2]
+							[$177:1])
+						  (CASE [$177:1]
+							([(AS $176:1 (WILD))]
+							 (ANDTHEN (CALL array_setnth
+									[$176:1
+									 1
+									 $174:2]
+									[$179:1])
+								  (CASE [$179:1]
+									([(AS $178:2
+										(WILD))]
+									 (ANDTHEN (BIND $184:1
+											 handlers)
+										  (CASE [$184:1]
+											([(AS $180:0
+												(STRUCT HANDLERS
+													[(AS $181:0
+													       (STRUCT RML.cons
+														       [(AS $182:1
+															      (WILD))
+															(AS $183:0
+															      (WILD))]))]))]
+											 (ANDTHEN (CALL $182:1
+													[$178:2]
+													[])
+												  (ANDTHEN (CALL loop
+														 [0
+														  $172:2
+														  $178:2]
+														 [])
+													   (RETURN [])))))))))))))))))))))
+
+(define (walk_shit $187:1 $186:1 $185:1)
+  (CASE [$187:1 $186:1 $185:1]
+	([(AS $195:1 (STRUCT C3 [(AS $196:0 (WILD)) (AS $197:1 (WILD))]))
+	  (AS $198:1 (STRUCT C [(AS $199:0 (WILD)) (AS $200:1 (WILD))]))
+	  (AS $201:1 (STRUCT V [(AS $202:0 (WILD))]))]
+	 (ANDTHEN (CALL walk_shit [$197:1 $198:1 $201:1] [$206:1 $205:1])
+		  (CASE [$206:1 $205:1]
+			([(AS $203:0 (WILD)) (AS $204:0 1)]
+			 (ANDTHEN (BIND $210:1 $195:1)
+				  (CASE [$210:1]
+					([(AS $207:0
+						(STRUCT C3
+							[(AS $208:0 (WILD))
+							 (AS $209:0 (WILD))]))]
+					 (RETURN [(STRUCT C [1 $200:1])
+						  1]))))))))
+	([(AS $211:0 (STRUCT C2 [(AS $212:0 (WILD))]))
+	  (AS $213:0 (STRUCT C [(AS $214:0 (WILD)) (AS $215:0 (WILD))]))
+	  (AS $216:0 (STRUCT V [(AS $217:0 (WILD))]))]
+	 (RETURN [(STRUCT C [1 2]) 1]))
+	([(AS $188:0 (STRUCT C1 [(AS $189:0 (WILD)) (AS $190:0 (WILD))]))
+	  (AS $191:0 (STRUCT C [(AS $192:0 (WILD)) (AS $193:1 (WILD))]))
+	  (AS $194:0 (WILD))]
+	 (RETURN [(STRUCT C [1 $193:1]) 1]))
+	([(AS $218:0 (WILD)) (AS $219:0 (WILD)) (AS $220:0 (WILD))] (FAIL))))
+
+(define data
+  (STRUCT C3
+	  [(STRUCT HANDLERS [(STRUCT RML.cons [print_array RML.nil])])
+	   (STRUCT C1 [(STRUCT C [1 2]) 1.2])]))
+
+(define ast
+  (STRUCT RML.cons
+	  [(STRUCT RML.cons [1.0 RML.nil])
+	   (STRUCT RML.cons
+		   [(STRUCT RML.cons [2.0 RML.nil])
+		    (STRUCT RML.cons
+			    [(STRUCT RML.cons [3.0 RML.nil]) RML.nil])])]))

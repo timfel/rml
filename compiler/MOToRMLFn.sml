@@ -2,31 +2,50 @@
 (* MOToRMLFn.sml *)
 
 functor MOToRMLFn(
-			   structure Absyn : ABSYN
-		       structure Control  : CONTROL
-		       structure Util     : UTIL
-		       structure MOToMO   : MOTOMO
-		       sharing type MOToMO.Absyn.modelica = Absyn.modelica
-		       sharing type MOToMO.Absyn.Package  = Absyn.Package
-			 ) : PARSE =
+		structure Absyn      : ABSYN
+		structure Control    : CONTROL
+		structure Util       : UTIL
+		structure AbsynPrint : ABSYN_PRINT
+		structure StrDict    : STR_DICT
+		structure Cache      : CACHE
+		sharing type AbsynPrint.Absyn.module = Cache.Absyn.module
+		sharing type AbsynPrint.Absyn.goal = Cache.Absyn.goal
+		) : MOTORML =
   struct
 
-    structure Absyn = Absyn
-    structure IdentDict = Absyn.IdentDict
+    structure Absyn   = Cache.Absyn
+	structure StrDict = Cache.StrDict
+	structure Cache   =  Cache
+	
+	type repository = Cache.repository
 
     fun bug s = Util.bug("MOToRMLFn."^s)
-
-	val debugFlag = false	
-
-	fun warn s = 
-	if (debugFlag) 
-	then 
-	print ("\nWARNING: MOToRMLFn."^s^"\n\n") 
-	else ()
-
-	fun debug s = if (debugFlag) then print ("MOToRMLFn."^s) else ()
+    
+	fun getBugLoc(Absyn.INFO(file, _, _, Absyn.LOC(sl,sc,el,ec))) =
+	("\n"^file^":"^(Int.toString sl)^"."^(Int.toString sc)^"-"^(Int.toString el)^"."^(Int.toString ec)^" ")
 	
+	exception MetaModelicaToRMLTranslation
+    fun errorAt(info, msg) = 
+		(Util.outStdErr(getBugLoc(info)^"Error: "^msg^"\n"); raise MetaModelicaToRMLTranslation)   
+		
+    fun errorAtFunction(info, msg, function) = 
+		(Util.outStdErr(getBugLoc(info)^"Error: "^msg^" [MOToRMLFn."^function^"]\n"); raise MetaModelicaToRMLTranslation)   		
+
+	val debugFlag = false
+	
+	val modidRML = SOME(Absyn.rmlIdent "RML")
+
+	fun warn s = Util.warn("MOToRMLFn."^s)
+	fun warnAt(info, msg) = 
+		Util.outStdErr(getBugLoc(info)^"Warning: "^msg^"\n")
+		
+	fun warnAtFunction(info, msg, function) = 
+		Util.outStdErr(getBugLoc(info)^"Warning: "^msg^" [MOToRMLFn."^function^"]\n")
+
+	fun debug s = if (debugFlag) then Util.outStdErr("MOToRMLFn."^s) else ()
+		
 	fun L(x) = (Int.toString (List.length x))	
+
 
 	fun mklst(xlst, xnil, xcons) =
 	let fun loop([], rest) = rest
@@ -37,15 +56,15 @@ functor MOToRMLFn(
 
 
 	fun getShortId(Absyn.LONGID(NONE, ident, _)) = ident
-	|	getShortId(_) = bug ("getShortId: expecting a LONGID(NONE, id, _)")
+	|	getShortId(Absyn.LONGID(_,_,info)) = 
+			errorAtFunction(info, "unexpected qualified identifier", "getShortId")
 
 	fun mkCtxInfo(
-		ref(Absyn.INFO(file1,loc1,loc2,ref(Absyn.LOC(sl1,sc1,el1,ec1)))),
-        ref(Absyn.INFO(file2,loc3,loc4,ref(Absyn.LOC(sl2,sc2,el2,ec2))))) =
-              ref(Absyn.INFO(file1,loc1,loc4,
-              ref(Absyn.LOC(sl1,sc1,el2,ec2))))
+		Absyn.INFO(file1,loc1,loc2,Absyn.LOC(sl1,sc1,el1,ec1)),
+        Absyn.INFO(file2,loc3,loc4,Absyn.LOC(sl2,sc2,el2,ec2))) =
+              Absyn.INFO(file1,loc1,loc4, Absyn.LOC(sl1,sc1,el2,ec2))
 
-	fun getStringLoc(ref(Absyn.INFO(file, _, _, ref(Absyn.LOC(sl,sc,el,ec))))) =
+	fun getStringLoc(Absyn.INFO(file, _, _, Absyn.LOC(sl,sc,el,ec))) =
 	(
 		" file: "^file^":"^
 		(Int.toString sl)^"."^
@@ -54,7 +73,7 @@ functor MOToRMLFn(
 		(Int.toString ec)
 	)
 
-	fun prLoc(ref(Absyn.INFO(file, _, _, ref(Absyn.LOC(sl,sc,el,ec))))) =
+	fun prLoc(Absyn.INFO(file, _, _, Absyn.LOC(sl,sc,el,ec))) =
 	(
 		debug (" file: "^file^":"^
 		(Int.toString sl)^"."^(Int.toString sc)^"."^(Int.toString el)^"."^(Int.toString ec)^
@@ -66,30 +85,24 @@ functor MOToRMLFn(
 		debug("IDENT("^identstr^")\n");
 		prLoc(info)
 	)
-
-	fun prBugLoc(ref(Absyn.INFO(file, _, _, ref(Absyn.LOC(sl,sc,el,ec))))) =
-	(
-		print (" file: "^file^":"^
-		(Int.toString sl)^"."^(Int.toString sc)^"."^(Int.toString el)^"."^(Int.toString ec))
-	)
     
-    fun getTemp() = "temp"^Int.toString(Util.tick())
+    fun getTemp() = "temp_t_"^Int.toString(Util.tick())
      
 	fun mktuplety([ty])  = ty
-		| mktuplety(tyseq) = Absyn.TUPLEty(tyseq, ref(Absyn.dummyInfo)) 
+		| mktuplety(tyseq) = Absyn.TUPLEty(tyseq, Absyn.dummyInfo) 
 	
 
 	val modidRML = SOME(Absyn.rmlIdent "RML")
-	val id_cons = Absyn.LONGID(modidRML, Absyn.rmlIdent "cons", ref(Absyn.dummyInfo))
+	val id_cons = Absyn.LONGID(modidRML, Absyn.rmlIdent "cons", Absyn.dummyInfo)
 	val ctor_cons = SOME id_cons
-	val id_nil = Absyn.LONGID(modidRML, Absyn.rmlIdent "nil", ref(Absyn.dummyInfo))
+	val id_nil = Absyn.LONGID(modidRML, Absyn.rmlIdent "nil", Absyn.dummyInfo)
 	
-	val pat_nil = Absyn.CONpat(id_nil, ref(Absyn.dummyInfo))
-	fun pat_cons(p,ps) = Absyn.STRUCTpat(ctor_cons, [p,ps], ref [], ref(Absyn.dummyInfo))
+	val pat_nil = Absyn.CONpat(id_nil, Absyn.dummyInfo)
+	fun pat_cons(p,ps) = Absyn.STRUCTpat(ctor_cons, [p,ps], ref [], Absyn.dummyInfo)
 	fun mkpatlst lst = mklst(lst, pat_nil, pat_cons)
 
-	val exp_nil = Absyn.CONexp(id_nil, ref(Absyn.dummyInfo))
-	fun exp_cons(e,es) = Absyn.STRUCTexp(ctor_cons, [e,es], ref(Absyn.dummyInfo))
+	val exp_nil = Absyn.CONexp(id_nil, Absyn.dummyInfo)
+	fun exp_cons(e,es) = Absyn.STRUCTexp(ctor_cons, [e,es], Absyn.dummyInfo)
 	fun mkexplst lst = mklst(lst, exp_nil, exp_cons)
 
     datatype kind	    = CON | FUN | FUNTYPE
@@ -160,11 +173,11 @@ functor MOToRMLFn(
 
     and getTyseq(tyseq, bindtylist) = getSeq(tyseq, getTyVar, bindtylist)
 	(*
-    datatype ty	= VARty of tyvar * info ref
-				| CONSty of ty list * longid * info ref
-				| TUPLEty of ty list * info ref
-				| RELty of ty list * ty list * info ref	 
-				| NAMEDty of ident * ty * info ref
+    datatype ty	= VARty of tyvar * info
+				| CONSty of ty list * longid * info
+				| TUPLEty of ty list * info
+				| RELty of ty list * ty list * info	 
+				| NAMEDty of ident * ty * info
 	*)
 
     and getTypeDispatch(ty, bindtylist) =
@@ -204,11 +217,11 @@ functor MOToRMLFn(
 
     and getVARTYTyseq(tyseq, bindtylist) = getVARTYSeq(tyseq, getVARTYTyVar, bindtylist)
 	(*
-    datatype ty	= VARty of tyvar * info ref
-				| CONSty of ty list * longid * info ref
-				| TUPLEty of ty list * info ref
-				| RELty of ty list * ty list * info ref	
-				| NAMEDty of ident * ty * info ref
+    datatype ty	= VARty of tyvar * info
+				| CONSty of ty list * longid * info
+				| TUPLEty of ty list * info
+				| RELty of ty list * ty list * info	
+				| NAMEDty of ident * ty * info
 	*)
 
     and getVARTYTypeDispatch(ty, bindtylist) =
@@ -248,10 +261,10 @@ functor MOToRMLFn(
 
     and setTyseq(tyseq, bindtylist) = setSeq(tyseq, setTyVar, bindtylist)
 	(*
-    datatype ty	= VARty of tyvar * info ref
-				| CONSty of ty list * longid * info ref
-				| TUPLEty of ty list * info ref
-				| RELty of ty list * ty list * info ref	 
+    datatype ty	= VARty of tyvar * info
+				| CONSty of ty list * longid * info
+				| TUPLEty of ty list * info
+				| RELty of ty list * ty list * info	 
 	*)
 
     and setTypeDispatch(ty, bindtylist) =
@@ -278,91 +291,368 @@ functor MOToRMLFn(
 	
 	fun getPathLastIdent(Absyn.QUALIFIED(_, x, _)) = getPathLastIdent(x)
 	|	getPathLastIdent(Absyn.PATHIDENT(id, _)) = id
-	|	getPathLastIdent(_) = bug("getPathLastIdent: identifier of qualified identifier expected")	
+	|	getPathLastIdent(Absyn.TYPEVARIABLE(id, info)) = 
+			errorAtFunction(info, "unexpected type variable", "getPathLastIdent")	
 
-    (* what can we find in a package/uniontype/function/functiontype/record *)
- 
-	datatype construct = CoB of Absyn.conbind (* constructors   *)
-	                   | TyB of Absyn.typbind (* type bindings  *)
-	                   | TyV of Absyn.tyvar   (* type variables *)
-				       | CLAUSE of Absyn.clause * Absyn.info ref          (* match clauses  *)
-				       | VAL of Absyn.ident * Absyn.exp option * Absyn.ty option * Absyn.info ref  (* value bindings *)
-	                   | INTy of Absyn.ty  (* type input    *) * Absyn.ident (* component name *)
-	                   | OUTTy of Absyn.ty (* type output   *) * Absyn.ident (* component name *)
-	                   | ALGORITHM of Absyn.clause * Absyn.info ref      (* algorithms != match *)
+    (* what can we find in a package/uniontype/function/functiontype/record *) 
+    (* TODO LATER! collect all this info!
+    datatype visibility = PUBLIC
+                        | PROTECTED
+                        | LOCAL
+                        
+    datatype range = RANGE of int * int * int * int (* local visibility of match/case/else *)
+    (* if there is a range then is always local declaration *)
+    
+    datatype scope = SCOPE of (Absyn.ident * visibility) list * range option
+        
+    datatype vardecl  = VARDECL of Absyn.ElementAttributes *
+								   Absyn.ident * (* variable identifier *)
+								   Absyn.exp option * (* variable initialization *)
+								   Absyn.ty * (* variable type *)
+								   Absyn.info (* variable position *)
+    
+	datatype construct = CoB of scope * (* scope *)
+								Absyn.conbind      (* constructors   *)
+	                   | TyB of scope * (* scope *)
+								Absyn.typbind      (* type bindings  *)
+	                   | TyV of scope * (* scope *)
+								Absyn.tyvar        (* type variables *)
+						 (* match clauses  *)		
+				       | CLAUSE of scope * (* scope *)
+								   vardecl list * (* local variable declarations in this clause *)
+								   Absyn.clause *   (* clause *)
+								   Absyn.info   (* position *)
+						 (* variables and constants not declared as input/output *)
+				       | VAR of scope * 
+				                vardecl
+	                   | INTy of scope * 
+								 Absyn.ty * (* type input *) 
+								 vardecl   (* variable name & properties *)
+	                   | OUTTy of scope * (* scope *)
+								  Absyn.ty * (* type output *) 
+								  vardecl (* variable name & properties *)
+	                   | ALGORITHM of scope * 
+									  Absyn.clause * Absyn.info      (* algorithms != match *)
+	                   | FUNCTYPE of scope *			   (* scope  *) 
+									 Absyn.ident *		   (* name   *)
+									 construct list		   (* in/out *)
+	                   | EXTERNAL of scope * 
+	                                 string
+	                   | REL of scope *
+								Absyn.ident * 
+	                            Absyn.ty * 
+	                            Absyn.clause option * 
+	                            Absyn.info
+	*)
+    (* what can we find in a package/uniontype/function/functiontype/record *) 	
+	datatype construct = CoB of Absyn.conbind      (* constructors   *)
+	                   | TyB of Absyn.typbind      (* type bindings  *)
+	                   | TyV of Absyn.tyvar        (* type variables *)
+						 (* match clauses  *)		
+				       | CLAUSE of Absyn.clause *   (* clause *)
+								   Absyn.info   (* position *)
+						 (* variables and constants not declared as input/output *)
+				       | VAL of Absyn.ident * (* variable identifier *)
+								Absyn.exp option * (* variable initialization *)
+								Absyn.ty option * (* variable type *)
+								Absyn.info (* variable position *)
+	                   | INTy of Absyn.ty * (* type input *) 
+								 Absyn.ident (* variable name *)
+	                   | OUTTy of Absyn.ty * (* type output *) 
+								  Absyn.ident (* variable name *)
+	                   | ALGORITHM of Absyn.clause * Absyn.info      (* algorithms != match *)
 	                   | FUNCTYPE of Absyn.ident option *  (* scope  *) 
 									 Absyn.ident *		   (* name   *)
 									 construct list		   (* in/out *)
 	                   | EXTERNAL of string
-	                   | REL of Absyn.ident * Absyn.ty * Absyn.clause option * Absyn.info ref
-	                   
+	                   | REL of Absyn.ident * 
+	                            Absyn.ty * 
+	                            Absyn.clause option * 
+	                            Absyn.info
+	                            
 	type constructs = construct list
-
 
 	 (* only 1 DOT please *)
 	fun cref2Ident(Absyn.CREF_QUAL(ident1, _, Absyn.CREF_IDENT(ident2, _, _), info)) = 
 		Absyn.LONGID(SOME(ident1), ident2, info)
 	| cref2Ident(Absyn.CREF_IDENT(ident, _,  info)) = 
 		Absyn.LONGID(NONE, ident, info)
-	| cref2Ident(Absyn.CREF_IDENT_TYPES(id, pathlist, info)) =
-		(prBugLoc(info); print " "; bug ("cref2Ident - unexpected component ref"))
 	| cref2Ident(Absyn.CREF_QUAL(_, _, _, info)) = 
-		(prBugLoc(info); print " "; bug ("cref2Ident - we only allow one DOT in cref !"))
+		errorAtFunction(info, "only one DOT in component reference is allowed", "cref2Ident")
+				
+	val rmlEnvironmentConstructors = ["cons","list","NONE","SOME","nil"]
+    val rmlEnvironmentRelations = 
+      [
+      (* booleans *)
+	  "bool_and","bool_not","bool_or",
+	  (* characters *)
+	  "char_int","string_char_int",
+	  (* integers *)
+	  "int_abs","int_add","int_char","int_string_char","int_div","int_eq","int_ge","int_gt",
+	  "int_le","int_lt","int_max","int_min","int_mod","int_mul","int_ne","int_neg","int_real",
+	  "int_string","int_sub",
+	  (* lists *)
+	  "list_append","list_delete","list_length","list_member","list_nth","list_reverse",
+	  "list_string","string_char_list_string","list_vector","list_array",	  
+	  (* logical variables *)
+	  "lvar_get","lvar_new","lvar_set",
+	  (* reals *)
+	  "real_abs","real_add","real_atan","real_cos","real_div","real_eq","real_exp","real_floor",
+	  "real_ge","real_gt","real_int","real_le","real_ln","real_lt","real_max","real_min",
+	  "real_mod","real_mul","real_ne","real_neg","real_pow","real_sin","real_sqrt",
+	  "real_string","real_sub",
+	  (* strings *)
+	  "string_append","string_int","string_length","string_list","string_list_string_char",
+	  "string_nth","string_nth_string_char","string_get","string_get_string_char",
+	  "string_setnth","string_setnth_string_char","string_update","string_update_string_char",
+	  "string_equal", "string_compare",
+	  (* immutable vectors *)
+	  "vector_length","vector_list","vector_nth","vector_get","vector_setnth",
+	  "vector_update","vector_create","vector_add","vector_array","vector_copy",
+	  (* mutable arrays *)      
+	  "array_length","array_list","array_nth","array_get","array_setnth",
+	  "array_update","array_create","array_add","array_vector","array_copy",      
+      (* the environment using Java name convention 2005-11-10 *)	  
+	  "boolAnd","boolNot","boolOr",
+	  (* characters *)
+	  "charInt","stringCharInt",
+	  (* integers *)
+	  "intAbs","intAdd","intChar","intStringChar","intDiv","intEq","intGe","intGt","intLe","intLt",
+	  "intMax","intMin","intMod","intMul","intNe","intNeg","intReal","intString","intSub",
+	  (* lists *)
+	  "listAppend","listDelete","listLength","listMember","listNth","listReverse",
+	  "listString","stringCharListString","listVector","listArray",
+	  (* logical variables *)
+	  "lvarGet","lvarNew","lvarSet",
+	  (* reals *)
+	  "realAbs","realAdd","realAtan","realCos","realDiv","realEq","realExp","realFloor","realGe",
+	  "realGt","realInt","realLe","realLn","realLt","realMax","realMin","realMod","realMul",
+	  "realNe","realNeg","realPow","realSin","realSqrt","realString","realSub",
+	  (* strings *)
+	  "stringAppend","stringInt","stringLength","stringList","stringListStringChar","stringNth",
+	  "stringNthStringChar","stringGet","stringGetStringChar","stringSetNth","stringSetNthStringChar",
+	  "stringUpdate","stringUpdateStringChar","stringEqual","stringCompare", 
+	  (* immutable vectors *)
+	  "vectorLength","vectorList","vectorNth","vectorGet","vectorSetNth",
+	  "vectorUpdate","vectorCreate","vectorAdd","vectorArray","vectorCopy",      
+	  (* mutable arrays *)      
+	  "arrayLength","arrayList","arrayNth","arrayGet","arraySetNth","arrayUpdate",	  
+	  "arrayCreate","arrayAdd","arrayVector","arrayCopy","arrayGet",
+	  (* if expressions *)
+	  "if_exp", "ifExp",
+	  (* misc *)
+	  "clock","print","tick",
+	  (* debug *)
+	  "debug","debug_push_vars","debug_print", "debug_push_in01", "debug_push_in02", "debug_push_in03", "debug_push_in04", 
+	  "debug_push_in05", "debug_push_in06", "debug_push_in07", "debug_push_in08", "debug_push_in09", "debug_push_in10", 
+	  "debug_push_in11", "debug_push_in12", "debug_push_in13", "debug_push_in14", "debug_push_in15", "debug_push_in16", 
+	  "debug_push_out01", "debug_push_out02", "debug_push_out03", "debug_push_out04", 
+	  "debug_push_out05", "debug_push_out06", "debug_push_out07", "debug_push_out08", "debug_push_out09", "debug_push_out10", 
+	  "debug_push_out11", "debug_push_out12", "debug_push_out13", "debug_push_out14", "debug_push_out15", "debug_push_out16"
+	]	
 
-			
-    fun mo2rmlmodule(
-		Absyn.MODELICA(
-			program as 
-			Absyn.PROGRAM(
-				_, 
-				_, 
-				interface as Absyn.INTERFACE({modid=current_modid,source,...}, infoI), 
-				info),
-			externalDeclarations)) = 
-	let
 
+	fun getMODRestrictions(file, repository) =
+	let val entryRML = Cache.getCacheEntry(repository, Cache.rmlCache, file)
+		val entrySRZ = Cache.getCacheEntry(repository, Cache.srzCache, file)
+		val entryMOD = Cache.getCacheEntry(repository, Cache.modCache, file)
+		val externals = 
+			case (entryRML, entrySRZ) of
+				(SOME(entryR),SOME(entryS)) => 
+					if Cache.hasRML_M(entryR) 
+					then (Cache.getModId(entryR),Cache.getRestrictions(Cache.rmlM_info(entryR)))
+					else
+					if Cache.hasRML_I(entryR) 
+					then (Cache.getModId(entryR),Cache.getRestrictions(Cache.rmlI_info(entryR)))
+					else 
+					if Cache.hasSRZ_M(entryS) 
+					then (Cache.getModId(entryS),Cache.getRestrictions(Cache.srzM_info(entryS)))
+					else 
+					if Cache.hasSRZ_I(entryS) 
+					then (Cache.getModId(entryS),Cache.getRestrictions(Cache.srzI_info(entryS)))
+					else (case entryMOD of
+								SOME(entryM) => 
+									(Cache.getModId(entryM),Cache.getRestrictions(Cache.modM_info(entryM)))
+							  | NONE => bug("getMODRestrictions!"))
+			|	(SOME(entryR),_) =>
+					if Cache.hasRML_M(entryR) 
+					then (Cache.getModId(entryR),Cache.getRestrictions(Cache.rmlM_info(entryR)))
+					else 
+					if Cache.hasRML_I(entryR) 
+					then (Cache.getModId(entryR),Cache.getRestrictions(Cache.rmlI_info(entryR)))
+					else (case entryMOD of
+								SOME(entryM) => 
+									(Cache.getModId(entryM),Cache.getRestrictions(Cache.modM_info(entryM)))
+							  | NONE => bug("getMODRestrictions!"))
+			|	(_,SOME(entryS)) =>
+					if Cache.hasSRZ_M(entryS)
+					then (Cache.getModId(entryS),Cache.getRestrictions(Cache.srzM_info(entryS)))
+					else 
+					if Cache.hasSRZ_I(entryS) 
+					then (Cache.getModId(entryS),Cache.getRestrictions(Cache.srzI_info(entryS)))
+					else (case entryMOD of
+								SOME(entryM) => 
+									(Cache.getModId(entryM),Cache.getRestrictions(Cache.modM_info(entryM)))
+							  | NONE => bug("getMODRestrictions!"))
+			|	(_,_) => (case entryMOD of
+								SOME(entryM) => 
+									(Cache.getModId(entryM),Cache.getRestrictions(Cache.modM_info(entryM)))
+							  | NONE => bug("getMODRestrictions!"))
+	in
+		externals
+	end
+
+
+    fun transformMOToRML(modelica, imports, repository) =
+	let 
 	
+	val Absyn.PROGRAM(_,_,
+			interface as Absyn.INTERFACE({modid=current_modid,source,...}, infoI), 
+			info) = modelica
+			
+	val currModIdFileName = Absyn.Source.getFileName(source)
+	
+	val translatingThen = ref false		(* this one tells me if 
+	                                       I'm translating case ... then (THIS_PART)
+	                                       because if i do, then tuples are tuples
+	                                       not expressions!!! *)
+	                                       
+	val globalEnv = 
+		let	val pk = StrDict.empty
+			val	se = StrDict.empty
+			fun insert(old, [], restr) = old
+			|	insert(old, x::rest, restr) = 
+					StrDict.insert(insert(old,rest,restr), x, restr)
+			val se = insert(
+						se, 
+						rmlEnvironmentConstructors, 
+						Absyn.R_RECORD(Absyn.dummyInfo))
+			val se = insert(
+						se, 
+						rmlEnvironmentRelations, 
+						Absyn.R_FUNCTION(Absyn.dummyInfo))
+			val pk = StrDict.insert(pk, "RML", se)
+			fun loop(old,[],_) = old
+			|	loop(old,import::rest,onlyPublic) =
+				let val (importModId, externals) = getMODRestrictions(import, repository)
+					val importModuleDict = ref StrDict.empty
+					fun prExternals (old,externals) = 
+					let fun pr(str, (Cache.FUN,visibility),  dict) =
+						(
+							case visibility of 
+								Cache.PUBLIC =>
+								(
+								debug ("Inserting: "^str^" as public function\n");
+								importModuleDict := 
+								StrDict.insert(!importModuleDict, str, Absyn.R_FUNCTION(Absyn.dummyInfo))
+								)
+							|	Cache.BOTH =>
+								(
+								debug ("Inserting: "^str^" as public function\n");
+								importModuleDict := 
+								StrDict.insert(!importModuleDict, str, Absyn.R_FUNCTION(Absyn.dummyInfo))
+								)								
+							|	Cache.PROTECTED =>
+								if onlyPublic
+								then ()
+								else
+								(
+								debug ("Inserting: "^str^" as protected function\n");
+								importModuleDict := 
+								StrDict.insert(!importModuleDict, str, Absyn.R_FUNCTION(Absyn.dummyInfo))
+								)								
+						)
+						|	 pr(str, (Cache.REC,visibility),  dict) =
+							case visibility of 
+								Cache.PUBLIC =>
+								(
+								debug ("Inserting: "^str^" as public record\n");
+								importModuleDict := 
+								StrDict.insert(!importModuleDict, str, Absyn.R_RECORD(Absyn.dummyInfo))
+								)
+							|	Cache.BOTH =>
+								(
+								debug ("Inserting: "^str^" as public record\n");
+								importModuleDict := 
+								StrDict.insert(!importModuleDict, str, Absyn.R_RECORD(Absyn.dummyInfo))
+								)
+							|	Cache.PROTECTED =>
+								if onlyPublic
+								then ()
+								else
+								(
+								debug ("Inserting: "^str^" as protected record\n");
+								importModuleDict := 
+								StrDict.insert(!importModuleDict, str, Absyn.R_RECORD(Absyn.dummyInfo))
+								)								
+					in
+						StrDict.fold(pr, (), externals)
+					end
+					val _ = prExternals(!importModuleDict,externals)
+				in
+					StrDict.insert(
+						loop(old,rest,onlyPublic),
+						Absyn.identName importModId,!importModuleDict)
+				end    
+			val pk = loop(loop(pk, imports, true), [currModIdFileName], false)
+			(*
+			fun insertPackages(old, []) = old
+			|	insertPackages(old, Absyn.PACKAGE(id_mod, externalDecl)::rest) =
+				let val se = StrDict.empty
+					fun insertDecls(oldD, []) = oldD
+					|	insertDecls(oldD, Absyn.CLASS(id, _, _, _, restriction, _, _)::restd) =
+							StrDict.insert(insertDecls(oldD,restd), Absyn.identName id, restriction)
+					val se = insertDecls(se, externalDecl)
+				in
+					StrDict.insert(insertPackages(old, rest), Absyn.identName id_mod, se)
+				end
+			val pk = insertPackages(pk, externalDeclarations)
+			*)
+		in
+		  pk
+		end	
+	
+	(*
 	fun getPackageDecl([], id) = []
 	|	getPackageDecl(Absyn.PACKAGE(id_mod, externalDecl)::rest, id) = 
 		if (Absyn.identName id_mod) = (Absyn.identName id) 
 		then (debug (" in package: "^(Absyn.identName id)); externalDecl)
-		else getPackageDecl(rest, id)
-
-	(* rml environment first *)
-	fun getRestriction(_, Absyn.IDENT("cons", info))			= SOME(Absyn.R_RECORD(info))
-	|	getRestriction(_, Absyn.IDENT("array_get", info))		= SOME(Absyn.R_FUNCTION(info))
-	|	getRestriction(_, Absyn.IDENT("array_create", info))	= SOME(Absyn.R_FUNCTION(info))
-	(* add more RML here *)
-	|	getRestriction([], id) = NONE
-	|	getRestriction(
-			Absyn.CLASS(
-				identclass, 
-				partial, 
-				final, 
-				encapsulated, 
-				restriction, 
-				classdef, _)::rest, id) = 
-		if (Absyn.identName id) = (Absyn.identName identclass)
-		then SOME(restriction) 
-		else getRestriction(rest, id)
-	
-
-	(* for in the same module declarations, use current_modid here *)
-	fun lookupIdent(shortId) = 
-		let val extDecl = getPackageDecl(externalDeclarations,current_modid)
-		in
-			getRestriction(extDecl, shortId)
-		end
+		else getPackageDecl(rest, id)	  
+	*)
+        
+	fun getRMLEnvironmentRestriction(Absyn.IDENT(x, info)) =
+	let 
+	in
+		case StrDict.find(globalEnv, "RML") of
+			SOME(dict) => StrDict.find(dict, x)
+		|	NONE       => bug("getRMLEnvironmentRestriction: could not find the RML environment!")
+	end
 	
 	(* for external declarations *)
 	fun lookupLIdent(longId as Absyn.LONGID(SOME(mod_id), shortId, _)) = 
-			let val extDecl = getPackageDecl(externalDeclarations, mod_id)
-			in
-			    debug ("\nsearching for:"^(Absyn.lidentName longId)^" which is ");
-				getRestriction(extDecl, shortId)
-			end
-	|   lookupLIdent(longId as Absyn.LONGID(NONE, shortId, _)) = lookupIdent(shortId)
-	
+		let val strModId   = Absyn.identName mod_id
+			val strShortId = Absyn.identName shortId
+		in
+			(* print ("\nSearching for "^strShortId^" in "^strModId); *)
+			case StrDict.find(globalEnv, strModId) of
+				SOME(dict) => StrDict.find(dict, strShortId)
+			|	NONE       => NONE
+		end
+	|   lookupLIdent(longId as Absyn.LONGID(NONE, shortId, _)) = (* lookupIdent(shortId) *)
+		let val strModId   = Absyn.identName current_modid
+			val strShortId = Absyn.identName shortId
+			val modEnv = StrDict.find(globalEnv, strModId)
+		in
+			(* print ("\nSearching for "^strShortId^" in "^strModId); *)
+			case modEnv of
+				SOME(dict) => 
+				(
+					case StrDict.find(dict, strShortId) of
+						NONE => getRMLEnvironmentRestriction(shortId)
+					|		x => x
+				)
+			|	NONE       => getRMLEnvironmentRestriction(shortId)
+		end
 	
 	fun appendSD((s1, d1), (s2, d2)) = ((s1 @ s2), (d1 @ d2))
 	
@@ -377,56 +667,80 @@ functor MOToRMLFn(
 	| path2Ident(Absyn.TYPEVARIABLE(ident, info)) =
 		Absyn.LONGID(NONE, ident, info)
 	| path2Ident(Absyn.QUALIFIED(_, _, info)) = 
-		(prBugLoc(info); print " "; bug ("path2Ident - we only allow one DOT in name_path !"))
+		errorAtFunction(info, "only one DOT in path is allowed","path2Ident")
 			
 	fun caseType(Absyn.IDENT("Real", info))    = Absyn.IDENT("real", info)
 	  | caseType(Absyn.IDENT("Integer", info)) = Absyn.IDENT("int", info)
 	  | caseType(Absyn.IDENT("String", info))  = Absyn.IDENT("string", info)
 	  | caseType(Absyn.IDENT("Boolean", info)) = Absyn.IDENT("bool", info)
 	  | caseType(x) = x 		
-	 (* only 1 DOT please *)
-	fun getType(Absyn.QUALIFIED(ident1, Absyn.PATHIDENT(ident2, _), info)) = 
+	  
+	fun getComplexType(path, ty) = 
+		case path of 
+			Absyn.PATHIDENT(Absyn.IDENT("TUPLE", _), _) => 
+			(
+				ty
+			)
+		 |  Absyn.PATHIDENT(Absyn.IDENT("LIST", info), _) => 
+			(
+					Absyn.CONSty(
+						[ty], 
+						Absyn.LONGID(
+							NONE, 
+							Absyn.IDENT("list", info), 
+							info),
+						info)
+			)
+		 |  Absyn.PATHIDENT(Absyn.IDENT("Option", info), _) => 
+			(
+					Absyn.CONSty(
+						[ty], 
+						Absyn.LONGID(
+							NONE, 
+							Absyn.IDENT("option", info), 
+							info),
+						info)
+			)
+		 |  Absyn.PATHIDENT(Absyn.IDENT("ARRAY", info), _) => 
+			(
+					Absyn.CONSty(
+						[ty], 
+						Absyn.LONGID(
+							NONE, 
+							Absyn.IDENT("array", info), 
+							info),
+						info)
+			)
+		 | x =>  
+			(
+					Absyn.CONSty([ty], path2Ident x, Absyn.lidentCtxInfo(path2Ident x))
+			)		 
+		  	  
+	fun getTypeFromPath(Absyn.QUALIFIED(ident1, Absyn.PATHIDENT(ident2, _), info)) = 
 		Absyn.CONSty([], Absyn.LONGID(SOME(caseType(ident1)), caseType(ident2), info), info)
-	| getType(Absyn.PATHIDENT(ident as Absyn.IDENT(_, info), _)) = 
+	| getTypeFromPath(Absyn.PATHIDENT(ident as Absyn.IDENT(_, info), _)) = 
 		Absyn.CONSty([], Absyn.LONGID(NONE, caseType(ident), info), info)
-	| getType(Absyn.TYPEVARIABLE(ident as Absyn.IDENT(_, info), _)) = 
+	| getTypeFromPath(Absyn.TYPEVARIABLE(ident as Absyn.IDENT(_, info), _)) = 
 		Absyn.VARty(caseType(ident), info)
-	| getType(_) = bug ("getType - we only allow one DOT in name_path !")
+	| getTypeFromPath(Absyn.QUALIFIED(_, _, info)) = 
+		errorAtFunction(info, "only one DOT in path is allowed","getTypeFromPath")
+	  
+	fun getType(Absyn.TPATH(path, info)) = 
+		getTypeFromPath(path)
+	| getType(Absyn.TCOMPLEX(path, [], info)) =
+		errorAtFunction(info, "type list cannot be empty!", "getType")
+	| getType(Absyn.TCOMPLEX(path, typeSpecLst, info)) =
+		let val ty = buildTypes(typeSpecLst)
+		in 
+			getComplexType(path, ty)
+		end	 
 
-	
-	fun fixNamedTypes([],ty) = []
-	|	fixNamedTypes(Absyn.COMPONENTITEM(Absyn.COMPONENT(id,_,_,info),_,_)::rest,ty) = 
-			Absyn.NAMEDty(id, ty, info) :: fixNamedTypes(rest, ty)
-	
-
-	fun getTypes([]) = []
-		| getTypes(x::rest) = 
-			let fun loop ([]) = [] 
-				| loop(Absyn.ELEMENTITEM(
-							Absyn.ELEMENT(_,_,_,
-								ident, 
-								elementSpec as Absyn.COMPONENTS(_, path, components, _),
-								info, 
-								NONE),
-							_)::elems) =
-					let val ty =  getType(path)
-					in 
-						fixNamedTypes(components,ty) @ loop(elems)
-					end
-				| loop(_::_) = bug("getTypes/loop: expecting ELEMENTITEM(ELEMENT(COMPONENTS(_)))")
-			in
-			  case x of
-				  Absyn.PUBLIC(elementItems, _) => loop(elementItems) @ getTypes(rest)
-				| Absyn.PROTECTED(elementItems, _) => loop(elementItems) @ getTypes(rest)
-				| _ => bug ("getTypes: expecting just PUBLIC/PROTECTED")
-			end
-						
-	fun buildTypes(path_list) = 
-		if List.length path_list = 1
-		then getType(List.last path_list)
-		else if (List.length path_list > 1)
-			 then Absyn.TUPLEty(map getType path_list, ref(Absyn.dummyInfo))
-			 else bug("buildTypes - type cannot be empty")
+	and buildTypes(typeSpecLst) = 
+		if List.length typeSpecLst = 1
+		then getType(List.last typeSpecLst)
+		else if (List.length typeSpecLst > 1)
+			 then Absyn.TUPLEty(map getType typeSpecLst, Absyn.dummyInfo)
+			 else bug("buildTypes - type cannot be empty!")	
 
 	fun getVarTysFromList([]) = []
 	|	getVarTysFromList(x::rest) = getVarTys(x) @ getVarTysFromList(rest)
@@ -437,80 +751,51 @@ functor MOToRMLFn(
 	|	getVarTys(Absyn.RELty(list1, list2, _)) = 
 			getVarTysFromList(list1) @ getVarTysFromList(list2)
 
-    (* datatype typbind = TYPBIND of tyvar list * ident * ty * info ref *)
-
-	fun getDerivedType(identclass, path, []) = 
-		Absyn.TYPBIND([], 
+	fun getDerivedType(identclass, typeSpec) = 
+	let val ty = getType(typeSpec)
+		val vartys = getVarTys ty
+	in 
+		Absyn.TYPBIND(
+			vartys,
 			identclass,
-			getType path, 
-			ref(Absyn.identCtxInfo(identclass)))
-	| getDerivedType(identclass, path, path_list) =
-		let val ty = buildTypes(path_list)
-		in 
-		case path of 
-			Absyn.PATHIDENT(Absyn.IDENT("TUPLE", _), _) => 
-			(
-			   Absyn.TYPBIND(
-					getVarTys ty, 
-					identclass,
-					ty,
-					ref(Absyn.identCtxInfo(identclass)))
-			)
-		 |  Absyn.PATHIDENT(Absyn.IDENT("LIST", info), _) => 
-			(
-			   Absyn.TYPBIND(
-					getVarTys ty, 
-					identclass,					
-					Absyn.CONSty(
-						[ty], 
-						Absyn.LONGID(
-							NONE, 
-							Absyn.IDENT("list", info), 
-							info),
-						info),
-					ref(Absyn.identCtxInfo(identclass)))
-			)
-		 |  Absyn.PATHIDENT(Absyn.IDENT("Option", info), _) => 
-			(
-			   Absyn.TYPBIND(
-					getVarTys ty,
-					identclass, 
-					Absyn.CONSty(
-						[ty], 
-						Absyn.LONGID(
-							NONE, 
-							Absyn.IDENT("option", info), 
-							info),
-						info),
-					ref(Absyn.identCtxInfo(identclass)))
-			)
-		 |  Absyn.PATHIDENT(Absyn.IDENT("ARRAY", info), _) => 
-			(
-			   Absyn.TYPBIND(
-					getVarTys ty,
-					identclass, 
-					Absyn.CONSty(
-						[ty], 
-						Absyn.LONGID(
-							NONE, 
-							Absyn.IDENT("array", info), 
-							info),
-						info),
-					ref(Absyn.identCtxInfo(identclass)))
-			)
-		 | x =>  
-			(
-			   Absyn.TYPBIND(
-					getVarTys ty,
-					identclass,					 
-					Absyn.CONSty(
-						[ty],
-						path2Ident x,
-						ref(Absyn.lidentCtxInfo(path2Ident x))),
-					ref(Absyn.identCtxInfo(identclass)))
-			)		 
-		end
-					
+			ty,Absyn.identCtxInfo(identclass))
+	end	  
+	
+	fun fixNamedTypes([],ty) = []
+	|	fixNamedTypes(Absyn.COMPONENTITEM(Absyn.COMPONENT(id,_,info),_,_)::rest,ty) = 
+			Absyn.NAMEDty(id, ty, info) :: fixNamedTypes(rest, ty)
+	
+
+	fun getTypesFromRecords([]) = []
+		| getTypesFromRecords(x::rest) = 
+			let fun loop ([]) = [] 
+				| loop(Absyn.ELEMENTITEM(
+							Absyn.ELEMENT(_,_,_,
+								ident, 
+								elementSpec as Absyn.COMPONENTS(_, typeSpec, components, _),
+								info, 
+								NONE),
+							infoElmItem)::elems) =
+					let val ty =  getType(typeSpec)
+					in 
+						fixNamedTypes(components,ty) @ loop(elems)
+					end
+				| loop(Absyn.ANNOTATIONITEM(_,info)::rest) = 
+					(warnAtFunction(info, "ignoring annotation", "getTypes.loop"); loop(rest))
+				| loop(Absyn.ELEMENTITEM(_, info)::rest) =
+					errorAtFunction(info, "unexpected element!", "getTypes.loop")
+			in
+			  case x of
+				  Absyn.PUBLIC(elementItems, _) => loop(elementItems) @ getTypesFromRecords(rest)
+				| Absyn.PROTECTED(elementItems, _) => loop(elementItems) @ getTypesFromRecords(rest)
+				| Absyn.EQUATIONS(_, info) => 
+					errorAtFunction(info, "equation sections are not allowed in records", "getTypesFromRecords")
+				| Absyn.ALGORITHMS(algorithmItems, info) => 
+					errorAtFunction(info, "algorithm sections are not allowed in records", "getTypesFromRecords")				
+				| Absyn.EXTERNAL(_,_,_,info) => 
+					errorAtFunction(info, "external function declaration sections are not allowed in records", "getTypesFromRecords")				
+			end
+											
 	(* returns either a conbind or a typbind or a typevariabile *)	                    
 	fun sweepRecords([]) = []
         (* 
@@ -536,7 +821,15 @@ functor MOToRMLFn(
 					_), 
 					info, 
 					NONE),
-				_)::rest) = (debug("sweepRecords\n"); TyV(identclass)::sweepRecords(rest))        
+				_)::rest) = 
+				(debug("sweepRecords\n");
+				 let val Absyn.IDENT(idstr, tmpInfo) = identclass
+					 val varty = Absyn.IDENT("'"^idstr, tmpInfo)
+					 val tyvar = Absyn.VARty(varty, tmpInfo)
+					 val tybind = Absyn.TYPBIND([varty],identclass,tyvar,tmpInfo)
+				 in 
+				  TyV(varty)::(TyB(tybind)::sweepRecords(rest))
+				 end)        
 		| sweepRecords(
 			Absyn.ELEMENTITEM(
 				Absyn.ELEMENT(_,_,_,
@@ -553,21 +846,23 @@ functor MOToRMLFn(
 					info, 
 					NONE),
 				_)::rest) = 
-			let val types = getTypes(classparts)
+			let val types = getTypesFromRecords(classparts)
 			in
 				debug("sweepRecords\n");
 				if (List.length types = 0)
 				then CoB(Absyn.CONcb(identclass, 
-						ref(Absyn.identCtxInfo identclass)))::sweepRecords(rest)
+						Absyn.identCtxInfo identclass))::sweepRecords(rest)
 				else CoB(Absyn.CTORcb(identclass, types, 
-						ref(Absyn.identCtxInfo identclass)))::sweepRecords(rest)
+						Absyn.identCtxInfo identclass))::sweepRecords(rest)
 			end
-        (* type declarations inside uniontype
-           type = IDENT<TYPE list>, 
-           ex: type T1 = tuple<Typ1,Typ2>; DERIVED_TYPE
-               type T2 = list<Typ3>;        DERIVED_TYPE
-               type T3 = T2[:];             DERIVED array/vector here
-        *)			
+		(* 
+				type X = option<Type>            -> option type
+				type O = list<Type>              -> list type
+				type Y = record<Type,Type,Type>  -> tuple type
+				type Z = Tree<Type>              -> uniontype with replaceable type variables
+				type K = TypeSpec[:] -> _MMARRAY_<TypeSpec>
+		*)   
+		(* arrays: TypeSpec[:] are represented as ARRAY<TypeSpec> *)
 		| sweepRecords( 
 			Absyn.ELEMENTITEM(
 				Absyn.ELEMENT(_,_,_,
@@ -588,21 +883,17 @@ functor MOToRMLFn(
 			(debug("sweepRecords\n");
 			 case classdef of
 				(* list, option, record, polymorphic *)
- 				Absyn.DERIVED_TYPE(path, path_list,	_, infoDerived) =>  
- 				TyB((getDerivedType(identclass, path, path_list)))
+ 				Absyn.DERIVED(typeSpec,	_, _, _, infoDerived) =>  
+ 				TyB((getDerivedType(identclass, typeSpec)))
  				::sweepRecords(rest)
- 			|   Absyn.DERIVED(path, SOME([]), _, _, _, infoDerived)	=> 
- 				TyB(getDerivedType(identclass, path, []))
-				::sweepRecords(rest)
- 				(* array / vector *)
- 			|   Absyn.DERIVED(path, _, _, _, _, infoDerived)	=> 
- 				TyB(getDerivedType(identclass, 
- 					Absyn.PATHIDENT(Absyn.IDENT("ARRAY", ref(Absyn.dummyInfo)), ref(Absyn.dummyInfo)), 
- 				 [path]))
-				::sweepRecords(rest)
-			| _ => bug("sweepRecords: expecting DERIVED_TYPE or DERIVED!")
+ 			| _ => errorAtFunction(info,"derived class definition expected!", "sweepRecords")
  			)
-		| sweepRecords(_) = bug("sweepRecords - bug in uniontype: ELEMENTITEM(ELEMENT(CLASSDEF(CLASS(PARTS(R_RECORD)))|CLASS(DERIVED_TYPE)|CLASS(R_TYPEVARIABLE)))! ")
+		| sweepRecords(Absyn.ELEMENTITEM(_, info)::rest) = 
+			(warnAtFunction(info, "ignored element in uniontype!", "sweepRecords");
+			 sweepRecords(rest))
+		| sweepRecords(Absyn.ANNOTATIONITEM(_, info)::rest) = 
+			(warnAtFunction(info, "ignored annotation in uniontype!", "sweepRecords");
+			 sweepRecords(rest))
 
 
 	fun getTyVars([]) = []
@@ -620,27 +911,36 @@ functor MOToRMLFn(
 	fun getTypsSpec([]) = []
 	|	getTypsSpec(x::rest) = 
 			case x of 
-				TyB(y) => Absyn.TYPEspec([y], ref(Absyn.dummyInfo))::getTypsSpec(rest)
+				TyB(y) => Absyn.TYPEspec([y], Absyn.dummyInfo)::getTypsSpec(rest)
 			|	_ => getTypsSpec(rest)
 
 	fun getTypsDec([]) = []
 	|	getTypsDec(x::rest) = 
 			case x of 
-				TyB(y) => Absyn.TYPEdec([y], ref(Absyn.dummyInfo))::getTypsDec(rest)
+				TyB(y) => Absyn.TYPEdec([y], Absyn.dummyInfo)::getTypsDec(rest)
 			|	_ => getTypsDec(rest)
 		   
 	(* this one looks inside uniontype for constructors/types/type variables *)			
 	fun buildConstructors([]) = []
-		| buildConstructors(Absyn.PUBLIC(elementItems, _)::rest) = 
+	|	buildConstructors(Absyn.PUBLIC(elementItems, _)::rest) = 
 			sweepRecords(elementItems) @ buildConstructors(rest)
-		| buildConstructors(Absyn.PROTECTED(elementItems, _)::rest) = 
+	|	buildConstructors(Absyn.PROTECTED(elementItems, _)::rest) = 
 			sweepRecords(elementItems) @ buildConstructors(rest)
-		| buildConstructors(_) = bug("buildConstructors - only PUBLIC and PROTECTED are handled in UNIONTYPE ")	
+	|	buildConstructors(Absyn.EQUATIONS(_, info)::rest) = 
+			errorAtFunction(info, "equation sections are not allowed in uniontypes", "getTypesFromRecords")
+	|	buildConstructors(Absyn.ALGORITHMS(algorithmItems, info)::rest) =
+			errorAtFunction(info, "algorithm sections are not allowed in uniontypes", "getTypesFromRecords")				
+	|	buildConstructors(Absyn.EXTERNAL(_,_,_,info)::rest) =
+			errorAtFunction(info, "external function declaration sections are not allowed in uniontypes", "getTypesFromRecords")				
 					
 	fun buildDatatype (ident as Absyn.IDENT(name, info), classdef, isPublic, specs, decs) = 
 		let val classparts = case classdef of
 							  Absyn.PARTS(classparts, _, _) => classparts
-							  | _ => bug("buildDatatype - other classparts than PARTS are not handled in the UNIONTYPE ")
+							  | _ => 
+								errorAtFunction(
+									info, 
+									"only public and protected elements are allowed in uniontypes", 
+									"buildDatatype")				
 			val contytyvar_list = buildConstructors(classparts)
 			val (tyspecs, tydecs, cons, tyvars) = 
 					(getTypsSpec(contytyvar_list),
@@ -665,817 +965,6 @@ functor MOToRMLFn(
 			)
 		end
 		
-	(****************** RELATIONS ************************)	(****************** RELATIONS ************************)
-	(****************** RELATIONS ************************)	(****************** RELATIONS ************************)
-	(****************** RELATIONS ************************)	(****************** RELATIONS ************************)
-
-
-	fun dummyEq(str, infoEq) = 
-		let val goal = Absyn.CALLgoal(
-			Absyn.LONGID(NONE, Absyn.IDENT("print", infoEq), infoEq),
-			[Absyn.LITexp(Absyn.SCONlit("stuff", infoEq), infoEq)],
-			[], ref [],
-			infoEq)
-		in
-			debug(str);
-			(goal, infoEq)
-		end			
-
-	fun dummyFail(str, info) =	
-		let
-		   val result = Absyn.FAIL(info)
-		in
-		 debug(str);
-		 (result,  NONE,  info)	
-		end
-
-  (** Modelica+ Patterns vs. RML patterns
-   Pattern = MWILDpat of info ref
-			| MLITpat of Exp * info ref
-			| MCONpat of Path * info ref
-			| MSTRUCTpat of Path option * Pattern list * info ref
-			| MBINDpat of var * Pattern * info ref
-			| MIDENTpat of ident * Pattern ref * info ref
-    pat = WILDpat of info ref
-		| LITpat of lit * info ref
-		| CONpat of longid * info ref
-		| STRUCTpat of longid option * pat list * info ref
-		| BINDpat of var * pat * info ref
-		| IDENTpat of ident * pat ref * info ref	  
-    **)
-    
-    (*
-    datatype lit = CCONlit of char * info ref
-				 | ICONlit of int * info ref
-				 | RCONlit of real * info ref
-				 | SCONlit of string * info ref
-	datatype Exp = INTEGER of int
-	       | REAL of real
-	       | STRING of string
-	       | BOOL of bool
-	...    
-    *)
-    fun makeExpLiteral(Absyn.INTEGER(icon, info)) = Absyn.ICONlit(icon, info) 
-    | makeExpLiteral(Absyn.REAL(rcon, info)) = Absyn.RCONlit(rcon, info) 
-    | makeExpLiteral(Absyn.STRING(scon, info)) = Absyn.SCONlit(scon, info) 
-    | makeExpLiteral(Absyn.CHAR(ccon, info)) = Absyn.CCONlit(ccon, info)     
-    | makeExpLiteral(_) = bug (" unexpected literal ") 	    
-    (*
-    | makeExpLiteral(Absyn.BOOL(true)) = Absyn.ICONlit(1, ref(Absyn.dummyInfo))
-    | makeExpLiteral(Absyn.BOOL(false)) = Absyn.ICONlit(0, ref(Absyn.dummyInfo))
-    *)
-	(*
-  (** - Expressions *)
-  datatype Operator = ADD   | SUB    | MUL     | DIV       | POW
-		    | UPLUS | UMINUS
-		    | AND   | OR
-		    | NOT
-		    | LESS  | LESSEQ | GREATER | GREATEREQ | EQUAL | NEQUAL  
-
-  datatype Exp = CREF of ComponentRef
-	       | BOOL of bool
-	       | BINARY of Exp * Operator * Exp (* Binary operations, e.g. a*b *)
-	       | UNARY of Operator * Exp (* Unary operations, e.g. -(x) *)
-	       | LBINARY of Exp * Operator * Exp (* Logical binary operations: and, or *)
-	       | LUNARY of Operator * Exp (* Logical unary operations: not *)
-	       | RELATION of Exp * Operator * Exp (* Relations, e.g. a >= 0 *)
-	       | IFEXP of Exp * Exp * Exp * (Exp * Exp) list  (* If expressions *)
-	       | CALL of ComponentRef * FunctionArgs (* Function calls *)
-	       | ARRAY of Exp list
-	       | MATRIX of Exp list list
-	       | RANGE of Exp * Exp option * Exp (* Range expressions, e.g. 1:10 or 1:0.5:10 *)
-	       | TUPLE of Exp list (*PR.*) (* Tuples used in function calls returning several values *)
-	       | END (* array access operator for last element, e.g. a[end]:=1; *)
-	       | CODE of Code (* Modelica AST Code constructors *)	
-
-    datatype exp = LITexp of lit * info ref
-				 | CONexp of longid * info ref
-				 | VARexp of longid * info ref
-				 | STRUCTexp of longid option * exp list * info ref
-				 | IDENTexp of longid * exp ref * info ref	       
-	*)	
-	fun translateExpToPatIdent(Absyn.CREF(Absyn.CREF_IDENT(ident, _, infoId), infoCref)) =  
-		(
-		debug("translateExpToPatIdent: ");
-		prIdentAndLoc ident;
-		Absyn.IDENTpat(
-			ident,
-			ref(Absyn.WILDpat(ref(Absyn.dummyInfo))),
-			infoCref)		
-		)
-	|	translateExpToPatIdent(
-		Absyn.CREF(
-			Absyn.CREF_QUAL(ident1, _, 
-				Absyn.CREF_IDENT(ident2, _, infoId), infoCref), _)) =  
-		(
-		debug("translateExpToPatIdent: ");
-		Absyn.CONpat(
-			Absyn.LONGID(SOME(ident1), ident2, infoId), 
-			infoCref)		
-		)
-	|	translateExpToPatIdent(_) = bug("translateExpToPatIdent: unexpected CREF pattern")
-
-	fun getNArgs(Absyn.FUNCTIONARGS(namedarglist, _)) = namedarglist 
-
-	fun translateExpToPat(Absyn.UNARY(Operator, Exp, info)) = 
-		(
-			case Operator of
-			    (* integer operators *)
-				  Absyn.UPLUS(_)       => 
-				  (
-					case Exp of
-						Absyn.INTEGER(x, info) => Absyn.LITpat(makeExpLiteral(Exp), info)
-					  | _ => bug("translateExpToPat: unary INT plus applied to real")
-				  )				  
-				| Absyn.UMINUS(_)      =>
-				  (
-					case Exp of
-						Absyn.INTEGER(x, info) => 
-							Absyn.LITpat(makeExpLiteral(Absyn.INTEGER(~x, info)), info)
-					  | _ => bug("translateExpToPat: unary INT minus applied to real")
-				  )				  
-				(* real operators *)
-				| Absyn.UPLUS_REAL(_)  => 
-				  (
-					case Exp of
-						Absyn.REAL(x, info) => Absyn.LITpat(makeExpLiteral(Exp), info)
-					  | _ => bug("translateExpToPat: unary REAL plus applied to int")
-				  )				  
-				| Absyn.UMINUS_REAL(_) => 
-				  (
-					case Exp of
-						Absyn.REAL(x, info) => 
-							Absyn.LITpat(makeExpLiteral(Absyn.REAL(~x, info)), info)
-					  | _ => bug("translateExpToPat: unary REAL minus applied to int")
-				  )				  				
-				| _ => bug("translateExpToPat: unexpected arithmetic unary operator")  
-		)
-	| translateExpToPat(c as Absyn.CHAR(x, info)) = 
-		Absyn.LITpat(makeExpLiteral(c), info)
-		(* (prBugLoc(info); print "\n"; bug ("translateExpToPat: CHAR unexpected expression!")) *)
-	| translateExpToPat(i as Absyn.INTEGER(x, info)) = 
-		Absyn.LITpat(makeExpLiteral(i), info)
-		(* (prBugLoc(info); print "\n"; bug ("translateExpToPat: INTEGER unexpected expression!")) *)
-	| translateExpToPat(r as Absyn.REAL(x, info)) = 
-		Absyn.LITpat(makeExpLiteral(r), info)
-		(* (prBugLoc(info); print "\n"; bug ("translateExpToPat: REAL unexpected expression!")) *)
-	| translateExpToPat(s as Absyn.STRING(x, info)) = 
-		Absyn.LITpat(makeExpLiteral(s), info)
-		(* (prBugLoc(info); print "\n"; bug ("translateExpToPat: STRING unexpected expression!")) *)
-	| translateExpToPat(b as Absyn.BOOL(x, info)) = 
-	  (
-		if x 
-		then 
-		Absyn.IDENTpat(
-			Absyn.IDENT("true", info), 
-			ref(Absyn.STRUCTpat(NONE, [], ref [], ref(Absyn.dummyInfo))),
-			info)		
-		else 
-		Absyn.IDENTpat(
-			Absyn.IDENT("false", info), 
-			ref(Absyn.STRUCTpat(NONE, [], ref [], ref(Absyn.dummyInfo))),
-			info)		
-	  )				
-	  (* (prBugLoc(info); print "\n"; bug ("translateExpToPat: BOOL unexpected expression!")) *)
-	| translateExpToPat(cref as Absyn.CREF(x, info)) =
-		translateExpToPatIdent(cref)
-		(* (prBugLoc(info); print "\n"; bug ("translateExpToPat: CREF unexpected expression!")) *)
-	| translateExpToPat(Absyn.ARRAY(fargs, info)) = 
-		mkpatlst (map translateExpFuncArgToPat (getNArgs fargs))
-		(* (prBugLoc(info); print "\n"; bug ("translateExpToPat: ARRAY unexpected expression!")) *)
-	| translateExpToPat(Absyn.TUPLE(fargs, info)) = 
-		let val pat_seq = (getNArgs fargs)
-		in
-			(*
-			if (List.length pat_seq = 1)
-			then translateExpFuncArgToPat(hd pat_seq)
-			else 
-			*)
-			Absyn.STRUCTpat(NONE, map translateExpFuncArgToPat pat_seq, ref [], info)
-		end
-		(* (prBugLoc(info); print "\n"; bug ("translateExpToPat: TUPLE unexpected expression!")) *)
-	| translateExpToPat(Absyn.MSTRUCTexp(path, fargs, info)) =
-		(
-		case path of
-			NONE    => Absyn.STRUCTpat(NONE, [], ref [], info)
-		|	SOME(p) => Absyn.STRUCTpat(
-						ctor_cons,
-						map translateExpFuncArgToPat (getNArgs fargs),
-						ref [], 
-						info)
-		)
-		(* (prBugLoc(info); print "\n"; bug ("translateExpToPat: MSTRUCTexp unexpected expression!")) *)
-	| translateExpToPat(Absyn.CALL(cref, Absyn.FUNCTIONARGS([], _), info)) =
-		let val lid = cref2Ident(cref)
-		in
-		  (*
-		  case lid of
-		    Absyn.LONGID(NONE, _, _) => 
-		  *)
-				translateExpToPatIdent(Absyn.CREF(cref, info))
-		  (*| _ => Absyn.CONpat(lid, info)*)
-		end
-		(* (prBugLoc(info); print "\n"; bug (" CALL unexpected expression!")) *)
-	| translateExpToPat(Absyn.CALL(cref, fargs, info)) =
-		let val lid = cref2Ident(cref)
-		in
-		  Absyn.STRUCTpat(SOME(lid), map translateExpFuncArgToPat (getNArgs fargs), ref [], info)
-		end
-		(* (prBugLoc(info); print "\n"; bug (" CALL unexpected expression!")) *)
-	| translateExpToPat(Absyn.MBINDexp(ident, expr, info)) =
-		(
-			Absyn.BINDpat(ident, translateExpToPat(expr), info)
-			(* (prBugLoc(info); print "\n"; bug (" CALL unexpected expression!")) *)
-		)
-	| translateExpToPat(Absyn.MWILDexp(info)) = 
-		Absyn.WILDpat(info)
-		(* (prBugLoc(info); print "\n"; bug ("translateExpToPat: MWILDexp unexpected expression!")) *)
-	(* -- from here on, we cannot make them into patterns *)
-	| translateExpToPat(Absyn.MATRIX(x, info)) =
-		(prBugLoc(info); print "\n"; bug ("translateExpToPat: MATRIX unexpected expression!"))
-	| translateExpToPat(Absyn.RANGE(x, y, z, info)) =
-		(prBugLoc(info); print "\n"; bug ("translateExpToPat: RANGE unexpected expression!"))
-	| translateExpToPat(Absyn.END(info)) =
-		(prBugLoc(info); print "\n"; bug ("translateExpToPat: END unexpected expression!"))
-	| translateExpToPat(Absyn.MATCHexp(MatchType, Exp, ElementItemList, CaseList, info)) =
-		(prBugLoc(info); print "\n"; bug ("translateExpToPat: MATCHexp unexpected expression!"))
-	|	translateExpToPat(Absyn.BINARY(Exp1, Operator, Exp2, info)) =
-		(prBugLoc(info); print "\n"; bug("translateExpToPat: unexpected arithmetic binary operator")) 		
-	| translateExpToPat(Absyn.RELATION(Exp1,Operator,Exp2, info)) =
-		(prBugLoc(info); print "\n"; bug("translateExpToPat: unexpected relational binary operator")) 
-	| translateExpToPat(Absyn.LUNARY(Operator, Exp, info)) =
-		(prBugLoc(info); print "\n"; bug("translateExpToPat: unexpected logical unary operator")) 
-	| translateExpToPat(Absyn.LBINARY(Exp1, Operator,Exp2, info)) = 
-		(prBugLoc(info); print "\n"; bug("translateExpToPat: unexpected logical binary operator")) 
-	| translateExpToPat(Absyn.IFEXP(a, b, c, d, info)) = 	
-		(prBugLoc(info); print "\n"; bug ("translateExpToPat: IFEXP unexpected expression!"))
-
-	and translateExpFuncArgToPat(Absyn.NAMEDARG(ident_option, exp, infoNamedArg)) = 
-		(
-		case ident_option of
-			NONE => translateExpToPat(exp)
-		|	SOME(ident) => 
-			(
-			  (*
-			  (prBugLoc(infoNamedArg); print " "; bug ("named arguments in patterns not yet implemented!"))
-			  *)
-			  Absyn.NAMEDpat(ident, translateExpToPat(exp), infoNamedArg) 
-			)
-		)
-
-	fun translateExpIdent(Absyn.CREF(x, infoCref)) =  
-		let val lid = cref2Ident(x)
-			val Absyn.LONGID(_, ident, _) = lid
-		in
-		debug("translateExpIdent: ");
-		prIdentAndLoc ident;
-		Absyn.IDENTexp(
-			lid, (* Absyn.LONGID(NONE, ident, infoId) *) 
-			ref(Absyn.STRUCTexp(NONE,[], ref(Absyn.dummyInfo))),
-			infoCref)		
-		end
-	(*
-	|	translateExpIdent(Absyn.STRING(str, info)) =
-		(
-		debug("translateExpIdent: STRING: "^str^"\n");
-		Absyn.LITexp(Absyn.SCONlit(str, info), info)		
-		)	
-	|	translateExpIdent(Absyn.REAL(r, info)) =
-		(
-		debug("translateExpIdent: REAL: "^Real.toString(r)^"\n");
-		Absyn.LITexp(Absyn.RCONlit(r, info), info)		
-		)	
-	|	translateExpIdent(Absyn.INTEGER(i, info)) =
-		(
-		debug("translateExpIdent: INTEGER: "^Int.toString(i)^"\n");
-		Absyn.LITexp(Absyn.ICONlit(i, info), info)		
-		)	
-	|	translateExpIdent(Absyn.BOOL(b, info)) =
-		(
-		debug("translateExpIdent: BOOL: "^"\n");
-		if b 
-		then 
-		Absyn.IDENTexp(
-			Absyn.LONGID(NONE, Absyn.IDENT("true", info), info), 
-			ref(Absyn.STRUCTexp(NONE,[], ref(Absyn.dummyInfo))),
-			info)		
-		else 
-		Absyn.IDENTexp(
-			Absyn.LONGID(NONE, Absyn.IDENT("false", info), info), 
-			ref(Absyn.STRUCTexp(NONE,[], ref(Absyn.dummyInfo))),
-			info)		
-		)			
-	|   translateExpIdent(Absyn.CALL(cref, fargs, info)) = 
-		(
-		 debug("translateExpIdent: CALL: "^"\n");		 
-		 prLoc(info);
-		 Absyn.LITexp(Absyn.SCONlit("_DUMMY_STUFF_", info), info)
-		)
-	|   translateExpIdent(x) = 
-		(
-		let val info = ref(Absyn.dummyInfo)
-		in
-		 (* translateExp(x); *)
-		 debug("translateExpIdent: CALL: "^"\n");		 
-		 prLoc(info);
-		 Absyn.LITexp(Absyn.SCONlit("_DUMMY_UNSUPORTED_STUFF_", info), info)
-		 (* bug("translateExpIdent: CREF expected") *)
-		end
-		)
-	*)
-	|	translateExpIdent(_) = bug("translateExpIdent: CREF expected")
-					
-	(* 
-	   look in MOToRML.sml for a version of this function that deals with
-	   things like expressions after the then part: "then v1+v2"
-	 *)
-	 
-	(* 
-	Expressions can appear in things like:
-	- rel(seq_exp) => seq_pat 
-	  seq_pat = rel(seq_exp)
-	  (_, _) = call(exps)
-	- let pat = exp
-	  pat = exp
-	- var = exp
-	  equality(var = exp)
-	- not g
-	  failure (g)
-	*)
-
-	(*
-    datatype goal = CALLgoal of longid * exp list * pat list * pat list ref * info ref
-				  | EQUALgoal of var * exp * info ref
-				  | LETgoal of pat * exp * pat option ref * info ref
-				  | NOTgoal of goal * info ref
-				  | ANDgoal of goal * goal * info ref
-	*)
-		
-	fun getExp(Absyn.RETURN([exp], _), goal, info) = exp
-	fun getExps(Absyn.RETURN([exp], _), goal, info) = (exp, goal, info)
-	fun getGoals   ((exp, goal, info)) = (goal, info)
-
-	fun getSomeGoals([]) = []
-	| getSomeGoals((SOME(goal), info)::parts) = (goal, info)::getSomeGoals(parts)
-	| getSomeGoals((NONE, _)::parts) = getSomeGoals(parts)	
-	
-	fun getResults ((exp, goal, info)) = exp
-	
-	fun constructGoals((goal, info)::[]) = goal
-	|	constructGoals((goal, info)::goals) =
-		Absyn.ANDgoal(goal, constructGoals(goals), info)
-			
-	fun translateExp(Absyn.BINARY(Exp1, Operator, Exp2, info)) =
-		let val idop = 
-			case Operator of
-			(* integer operators *)
-			  Absyn.ADD(_)       => "int_add"
-			| Absyn.SUB(_)       => "int_sub"
-			| Absyn.MUL(_)       => "int_mul"  
-			| Absyn.DIV(_)       => "int_div"    
-			| Absyn.POW(_)       => "int_pow"
-			(* real operator *)			
-			| Absyn.ADD_REAL(_)       => "real_add"
-			| Absyn.SUB_REAL(_)       => "real_sub"
-			| Absyn.MUL_REAL(_)       => "real_mul"  
-			| Absyn.DIV_REAL(_)       => "real_div"    
-			| Absyn.POW_REAL(_)       => "real_pow"
-			| _ => bug("translateExp: unexpected arithmetic binary operator") 
-		   val resstr = getTemp()
-		   val result = Absyn.RETURN(
-							[Absyn.IDENTexp(
-								Absyn.LONGID(NONE, Absyn.makeIdent(resstr, info), info),
-								ref(Absyn.STRUCTexp(NONE,[], ref(Absyn.dummyInfo))),
-								info)], 
-							info)
-		in
-		 debug("translateExp-Binary: "^idop^"() => "^resstr^"\n");
-		 (result, 
-		  SOME(Absyn.CALLgoal(
-				Absyn.LONGID(NONE,
-					Absyn.makeIdent(idop, info), 
-					info),
-				map getExp ([translateExp(Exp1), translateExp(Exp2)]),
-				[Absyn.IDENTpat(Absyn.makeIdent(resstr, info), 
-								ref(Absyn.WILDpat(info)), 
-								info)],
-				ref [],
-				info)),
-		  info)
-		end
-	| translateExp(Absyn.UNARY(Operator, Exp, info)) = 
-		let val idop = 
-			case Operator of
-			    (* integer operators *)
-				  Absyn.UPLUS(_)       => "int_add"
-				| Absyn.UMINUS(_)      => "int_neg"
-				(* real operators *)
-				| Absyn.UPLUS_REAL(_)  => "real_add"				
-				| Absyn.UMINUS_REAL(_) => "real_neg"
-				| _ => bug("translateExp: unexpected arithmetic unary operator") 
-		   val resstr = getTemp()
-		   val result = Absyn.RETURN(
-				[Absyn.IDENTexp( 
-					Absyn.LONGID(NONE, Absyn.makeIdent(resstr, info), info), 
-					ref(Absyn.STRUCTexp(NONE,[], ref(Absyn.dummyInfo))),
-					info)], 
-				info)
-		in
-		 debug("translateExp-Unary\n");		 		
-		 (result, 
-		  SOME(
-		  Absyn.CALLgoal(
-				Absyn.LONGID(NONE,
-					Absyn.makeIdent(idop, info),
-					info),
-					map getExp [translateExp(Exp)],
-				[Absyn.IDENTpat(Absyn.makeIdent(resstr, info), 
-								ref(Absyn.WILDpat(info)), 
-								info)],
-				ref [],
-				info)
-		 ),
-		 info)
-		end
-	| translateExp(Absyn.RELATION(Exp1,Operator,Exp2, info)) =
-		let val idop = 
-			case Operator of
-		      Absyn.LESS(_)      => "int_lt"  
-		    | Absyn.LESSEQ(_)    => "int_le" 
-		    | Absyn.GREATER(_)   => "int_gt" 
-		    | Absyn.GREATEREQ(_) => "int_ge" 
-		    | Absyn.EQUAL(_)     => "int_eq" 
-		    | Absyn.NEQUAL(_)    => "int_ne"  
-		    (* real operators *)
-		    | Absyn.LESS_REAL(_)      => "real_lt"  
-		    | Absyn.LESSEQ_REAL(_)    => "real_le" 
-		    | Absyn.GREATER_REAL(_)   => "real_gt" 
-		    | Absyn.GREATEREQ_REAL(_) => "real_ge" 
-		    | Absyn.EQUAL_REAL(_)     => "real_eq" 
-		    | Absyn.NEQUAL_REAL(_)    => "real_ne"
-		    | _ => bug("translateExp: unexpected relational binary operator") 
-		   val resstr = getTemp()
-		   val result = Absyn.RETURN(
-							[Absyn.IDENTexp(
-								Absyn.LONGID(NONE, Absyn.makeIdent(resstr, info), info),
-								ref(Absyn.STRUCTexp(NONE,[], ref(Absyn.dummyInfo))),
-								info)], 
-							info)
-		in
-		 debug("translateExp-RelationalBinary\n");
-		 (result, 
-		  SOME(
-		  Absyn.CALLgoal(
-				Absyn.LONGID(NONE,
-					Absyn.makeIdent(idop, info), 
-					info),
-					map getExp ([translateExp(Exp1), translateExp(Exp2)]),
-					(* [translateExpIdent(Exp1), translateExpIdent(Exp2)], *)
-				[Absyn.IDENTpat(Absyn.makeIdent(resstr, info), 
-								ref(Absyn.WILDpat(info)), 
-								info)],
-				ref [],
-				info)
-		  ),
-		  info)
-		end	
-	| translateExp(Absyn.LUNARY(Operator, Exp, info)) =
-		let val idop = 
-			case Operator of
-			    (* logical boolean unary operator *)
-				  Absyn.NOT(_)       => "bool_not"
-				| _ => bug("translateExp: unexpected logical unary operator") 
-		   val resstr = getTemp()
-		   val result = Absyn.RETURN(
-				[Absyn.IDENTexp( 
-					Absyn.LONGID(NONE, Absyn.makeIdent(resstr, info), info), 
-					ref(Absyn.STRUCTexp(NONE,[], ref(Absyn.dummyInfo))),
-					info)], 
-				info)
-		in
-		 debug("translateExp-LogicalUnary\n");		 		
-		 (result, 
-		  SOME(
-		  Absyn.CALLgoal(
-				Absyn.LONGID(NONE,
-					Absyn.makeIdent(idop, info),
-					info),
-					map getExp [translateExp(Exp)],
-					(* [translateExpIdent(Exp)], *)
-				[Absyn.IDENTpat(Absyn.makeIdent(resstr, info), 
-								ref(Absyn.WILDpat(info)), 
-								info)],
-				ref [],
-				info)
-		 ),
-		 info)
-		end
-	| translateExp(Absyn.LBINARY(Exp1, Operator,Exp2, info)) = 
-		let val idop = 
-			case Operator of
-		      Absyn.AND(_) => "bool_and"  
-		    | Absyn.OR(_)  => "bool_or" 
-		    | _ => bug("translateExp: unexpected logical binary operator") 
-		   val resstr = getTemp()
-		   val result = Absyn.RETURN(
-							[Absyn.IDENTexp(
-								Absyn.LONGID(NONE, Absyn.makeIdent(resstr, info), info),
-								ref(Absyn.STRUCTexp(NONE,[], ref(Absyn.dummyInfo))),
-								info)], 
-							info)
-		in
-		 debug("translateExp-LogicalBinary\n");
-		 (result, 
-		  SOME(
-		  Absyn.CALLgoal(
-				Absyn.LONGID(NONE,
-					Absyn.makeIdent(idop, info), 
-					info),
-				map getExp ([translateExp(Exp1), translateExp(Exp2)]),
-				(* [translateExpIdent(Exp1), translateExpIdent(Exp2)], *)
-				[Absyn.IDENTpat(Absyn.makeIdent(resstr, info), 
-								ref(Absyn.WILDpat(info)), 
-								info)],
-				ref [],
-				info)
-		  ),
-		  info)
-		end			
-	| translateExp(c as Absyn.CHAR(x, info)) = 
-		( Absyn.RETURN([Absyn.LITexp(makeExpLiteral(c), info)], info), NONE, info)
-		(* (prBugLoc(info); print "\n"; bug ("translateExp: CHAR unexpected expression!")) *)
-	| translateExp(i as Absyn.INTEGER(x, info)) = 
-		( Absyn.RETURN([Absyn.LITexp(makeExpLiteral(i), info)], info), NONE, info)
-		(* (prBugLoc(info); print "\n"; bug ("translateExp: INTEGER unexpected expression!")) *)
-	| translateExp(r as Absyn.REAL(x, info)) = 
-		( Absyn.RETURN([Absyn.LITexp(makeExpLiteral(r), info)], info), NONE, info)
-		(* (prBugLoc(info); print "\n"; bug ("translateExp: REAL unexpected expression!")) *)
-	| translateExp(s as Absyn.STRING(x, info)) = 
-		( Absyn.RETURN([Absyn.LITexp(makeExpLiteral(s), info)], info), NONE, info)
-		(* (prBugLoc(info); print "\n"; bug ("translateExp: STRING unexpected expression!")) *)
-	| translateExp(b as Absyn.BOOL(x, info)) = 
-		( Absyn.RETURN([
-				if x
-				then Absyn.IDENTexp(
-						Absyn.LONGID(NONE, Absyn.IDENT("true", info), info), 
-						ref(Absyn.STRUCTexp(NONE,[], ref(Absyn.dummyInfo))),
-						info)
-				else Absyn.IDENTexp(
-						Absyn.LONGID(NONE, Absyn.IDENT("false", info), info), 
-						ref(Absyn.STRUCTexp(NONE,[], ref(Absyn.dummyInfo))),
-						info)
-				], info), NONE, info)
-		(* (prBugLoc(info); print "\n"; bug ("translateExp: BOOL unexpected expression!")) *)
-	| translateExp(cref as Absyn.CREF(x, info)) =
-		let val result = Absyn.RETURN([translateExpIdent(cref)], info)
-		in 
-			debug("translateExp: CREF\n");
-			(result, NONE, info) 
-		end
-		(* dummyFail("translateExp: CREF\n", info) *)
-		(* (prBugLoc(info); print "\n"; bug ("translateExp: CREF unexpected expression!")) *)
-	| translateExp(Absyn.CALL(cref, FunctionArgs as Absyn.FUNCTIONARGS(Exps as [], infoFArgs), info)) =
-		let val lid = cref2Ident(cref)
-		in
-		  if Absyn.lidentName lid = "fail"
-		  then (Absyn.FAIL(info), NONE, info)
-		  else let val restr = lookupLIdent(lid)  
-				in
-				case restr of 
-					SOME(Absyn.R_FUNCTION(_)) => 
-					let val resstr = getTemp()
-						val result = Absyn.RETURN(
-											[Absyn.IDENTexp(
-												Absyn.LONGID(NONE, Absyn.makeIdent(resstr, info), info),
-												ref(Absyn.STRUCTexp(NONE,[], ref(Absyn.dummyInfo))),
-												info)], 
-											info)				
-						val resexplist = map getExps (map translateExpFuncArg Exps)
-						val reslist = map getResults resexplist
-						val goals = getSomeGoals(map getGoals resexplist)
-						val pat = [Absyn.IDENTpat(Absyn.makeIdent(resstr, info), 
-									ref(Absyn.WILDpat(info)), 
-									info)]
-						val lastGoal = 
-							if (Absyn.lidentName lid = "fill")
-							then Absyn.CALLgoal(
-											Absyn.LONGID(NONE,
-												Absyn.makeIdent(
-													"array_create", 
-													ref(Absyn.lidentCtxInfo(lid))),
-												ref(Absyn.lidentCtxInfo(lid))), 
-											List.rev reslist,
-											pat,
-											ref [],
-											info)								
-							else Absyn.CALLgoal(
-											lid, 
-											reslist,
-											pat,
-											ref [],
-											info)
-					in
-						if ((List.length goals) = 0)
-						then 
-						(
-						result,
-						SOME(lastGoal),
-						info
-						)
-						else
-						let 
-						in
-							(
-							result,
-							SOME(
-							Absyn.ANDgoal(
-								constructGoals(goals), 
-								lastGoal, 
-								info)
-							), 
-							info
-							)
-						end
-					end
-				|	_ =>
-					(
-					Absyn.RETURN([Absyn.IDENTexp(
-									lid, 
-									ref(Absyn.STRUCTexp(NONE,[], ref(Absyn.dummyInfo))),
-									info)],
-								info),		  
-					NONE,
-					info
-					)
-				end
-		end
-		(* (prBugLoc(info); print "\n"; bug (" CALL unexpected expression!")) *)
-	| translateExp(Absyn.CALL(cref, FunctionArgs as Absyn.FUNCTIONARGS(Exps, infoFArgs), info)) =
-		let val lid = cref2Ident(cref)
-		in
-		  if Absyn.lidentName lid = "fail"
-		  then (Absyn.FAIL(info), NONE, info)
-		  else let val restr = lookupLIdent(lid)  
-				in
-				case restr of 
-					SOME(Absyn.R_FUNCTION(_)) => 
-					let val resstr = getTemp()
-						val result = Absyn.RETURN(
-											[Absyn.IDENTexp(
-												Absyn.LONGID(NONE, Absyn.makeIdent(resstr, info), info),
-												ref(Absyn.STRUCTexp(NONE,[], ref(Absyn.dummyInfo))),
-												info)], 
-											info)				
-						val resexplist = map getExps (map translateExpFuncArg Exps)
-						val reslist = map getResults resexplist
-						val goals = getSomeGoals(map getGoals resexplist)
-						val pat = [Absyn.IDENTpat(Absyn.makeIdent(resstr, info), 
-									ref(Absyn.WILDpat(info)), 
-									info)]						
-						val lastGoal = 
-							if (Absyn.lidentName lid = "fill")
-							then Absyn.CALLgoal(
-											Absyn.LONGID(NONE,
-												Absyn.makeIdent(
-													"array_create", 
-													ref(Absyn.lidentCtxInfo(lid))),
-												ref(Absyn.lidentCtxInfo(lid))), 
-											List.rev reslist,
-											pat,
-											ref [],
-											info)								
-							else Absyn.CALLgoal(
-											lid, 
-											reslist,
-											pat,
-											ref [],
-											info)
-					in
-						if ((List.length goals) = 0)
-						then 
-						(
-						result,
-						SOME(lastGoal),
-						info
-						)
-						else
-						let 
-						in
-							(
-							result,
-							SOME(
-							Absyn.ANDgoal(
-								constructGoals(goals), 
-								lastGoal, 
-								info)
-							), 
-							info
-							)
-						end
-					end
-				| _ =>
-					(
-					Absyn.RETURN([
-					Absyn.STRUCTexp(
-						SOME lid, 
-						map getExp (map translateExpFuncArg (getNArgs FunctionArgs)), 
-						info)],
-					info),
-					NONE,
-					info
-					)				
-				end
-		end
-		(* (prBugLoc(info); print "\n"; bug (" CALL unexpected expression!")) *)		
-	| translateExp(Absyn.TUPLE(fargs, info)) = 
-		let val exp_seq = (getNArgs fargs)
-		in
-			(
-			Absyn.RETURN([
-			(*
-			if (List.length exp_seq = 1)
-			then getExp (translateExpFuncArg(hd exp_seq))
-			else 
-			*) 
-				Absyn.STRUCTexp(NONE, 
-				 map getExp (map translateExpFuncArg exp_seq), info)], info),
-			NONE,
-			info
-			)
-		end
-		(* (prBugLoc(info); print "\n"; bug ("translateExpToPat: TUPLE unexpected expression!")) *)
-	| translateExp(Absyn.MSTRUCTexp(path, fargs, info)) =
-		(
-		Absyn.RETURN([(
-		case path of
-			NONE    => Absyn.STRUCTexp(NONE, [], info)
-		|	SOME(p) => Absyn.STRUCTexp(
-						ctor_cons,
-						map getExp (map translateExpFuncArg (getNArgs fargs)), 
-						info)
-		)], info),
-		NONE,
-		info
-		)
-		(* (prBugLoc(info); print "\n"; bug ("translateExpToPat: MSTRUCTexp unexpected expression!")) *)
-	| translateExp(Absyn.ARRAY(fargs, info)) =
-		(
-		Absyn.RETURN([ 
-		mkexplst (map getExp (map translateExpFuncArg (getNArgs fargs)))
-		], info),
-		NONE,
-		info
-		)
-		(* (prBugLoc(info); print "\n"; bug ("translateExp: ARRAY unexpected expression!")) *)
-	(* not supported right now! *)
-	| translateExp(Absyn.IFEXP(a, b, c, d, info)) = 	
-		(prBugLoc(info); print "\n"; bug ("translateExp: IFEXP unexpected expression!"))
-	| translateExp(Absyn.MATRIX(x, info)) =
-		(prBugLoc(info); print "\n"; bug ("translateExp: MATRIX unexpected expression!"))
-	| translateExp(Absyn.RANGE(x, y, z, info)) =
-		(prBugLoc(info); print "\n"; bug ("translateExp: RANGE unexpected expression!"))
-	| translateExp(Absyn.END(info)) =
-		(prBugLoc(info); print "\n"; bug ("translateExp: END unexpected expression!")) 
-	| translateExp(Absyn.MWILDexp(info)) = 
-		(prBugLoc(info); print "\n"; bug ("translateExp: MWILDexp unexpected expression!"))
-	| translateExp(Absyn.MATCHexp(MatchType, Exp, ElementItemList, CaseList, info)) =
-		(prBugLoc(info); print "\n"; bug ("translateExp: MATCHexp unexpected expression!"))
-
-	and translateExpFuncArg(Absyn.NAMEDARG(NONE, exp, infoNamedArg)) = 
-		translateExp(exp)
-	|	translateExpFuncArg(Absyn.NAMEDARG(_, _, info)) = 
-		(prBugLoc(info); print "\n"; bug ("translateExpFuncArg: unexpected var as pat in expression"))
-		
-	        
-    fun transformPattern(pattern) = 
-		case pattern of
-		  Absyn.MWILDpat(info)      => Absyn.WILDpat(info)
-		| Absyn.MLITpat(Exp, info)  => Absyn.LITpat(makeExpLiteral(Exp), info)
-		| Absyn.MCONpat(path, info) => Absyn.CONpat(path2Ident(path), info)
-		| Absyn.MSTRUCTpat(path, patterns, info) => 
-				(case path of 
-					SOME(path') => Absyn.STRUCTpat(SOME(path2Ident(path')), extractPatterns(patterns), ref [], info)
-					| NONE => Absyn.STRUCTpat(NONE, extractPatterns(patterns), ref [], info))
-		| Absyn.MBINDpat(var, pat, info) => Absyn.BINDpat(var, transformPattern(pat), info)
-		| Absyn.MNAMEDARGpat(var, pat, info) => 
-			Absyn.NAMEDpat(var,transformPattern(pat),info)
-			(*
-			(prBugLoc(info); print " "; bug ("named arguments in patterns not yet implemented!"))
-			*) 		
-		| Absyn.MIDENTpat(ident, ref(pat), info) => 
-			Absyn.IDENTpat(ident, ref(transformPattern(pat)), info)
-		
-	and extractPatterns(patterns) = 
-		 map transformPattern patterns
-
-	(*
-    datatype goal = CALLgoal of longid * exp list * pat list * pat list ref * info ref
-				  | EQUALgoal of var * exp * info ref
-				  | LETgoal of pat * exp * pat option ref * info ref
-				  | NOTgoal of goal * info ref
-				  | ANDgoal of goal * goal * info ref
-	*)
-
 	fun getExpTypeAsStr(Absyn.BINARY(Exp1, Operator, Exp2, info)) = 
 		("Absyn.BINARY at "^getStringLoc(info))
 	| getExpTypeAsStr(Absyn.UNARY(Operator, Exp, info)) =
@@ -1516,13 +1005,762 @@ functor MOToRMLFn(
 		("Absyn.MWILDexp at "^getStringLoc(info))	 
 	| getExpTypeAsStr(Absyn.MBINDexp(_,_,info)) = 
 		("Absyn.MBINDexp at "^getStringLoc(info))	 
-	| getExpTypeAsStr(Absyn.MATCHexp(MatchType, Exp, ElementItemList, CaseList, info)) =
+	| getExpTypeAsStr(Absyn.MATCHexp(MatchType, Exp, ElementItemList, CaseList, comment, info)) =
 		("Absyn.MATCHexp at "^getStringLoc(info))	 
+	(****************** RELATIONS ************************)	(****************** RELATIONS ************************)
+	(****************** RELATIONS ************************)	(****************** RELATIONS ************************)
+	(****************** RELATIONS ************************)	(****************** RELATIONS ************************)
+
+
+	fun dummyEq(str, infoEq) = 
+		let val goal = Absyn.CALLgoal(
+			Absyn.LONGID(NONE, Absyn.IDENT("print", infoEq), infoEq),
+			[Absyn.LITexp(Absyn.SCONlit("stuff", infoEq), infoEq)],
+			[], ref [],
+			infoEq)
+		in
+			debug(str);
+			(goal, infoEq)
+		end			
+
+	fun dummyFail(str, info) =	
+		let
+		   val result = Absyn.FAIL(info)
+		in
+		 debug(str);
+		 (result,  NONE,  info)	
+		end
+
+  (** Modelica+ Patterns vs. RML patterns
+   Pattern = MWILDpat of info
+			| MLITpat of Exp * info
+			| MCONpat of Path * info
+			| MSTRUCTpat of Path option * Pattern list * info
+			| MBINDpat of var * Pattern * info
+			| MIDENTpat of ident * Pattern ref * info
+    pat = WILDpat of info
+		| LITpat of lit * info
+		| CONpat of longid * info
+		| STRUCTpat of longid option * pat list * info
+		| BINDpat of var * pat * info
+		| IDENTpat of ident * pat ref * info	  
+    **)
+    
+    fun makeExpLiteral(Absyn.INTEGER(icon, info), infoLit) = Absyn.ICONlit(icon, info) 
+    | makeExpLiteral(Absyn.REAL(rcon, info), infoLit) = Absyn.RCONlit(rcon, info) 
+    | makeExpLiteral(Absyn.STRING(scon, info),infoLit) = Absyn.SCONlit(scon, info)
+    (* Not used in MetaModelica
+    | makeExpLiteral(Absyn.CHAR(ccon, info), infoLit) = Absyn.CCONlit(ccon, info)
+    *)
+    | makeExpLiteral(_, infoLit) = 
+		errorAtFunction(infoLit, "unexpected literal expression!", "makeExpLiteral") 	    
+
+		
+	fun translateExpToPatIdent(info, Absyn.CREF(Absyn.CREF_IDENT(ident, _, infoId), infoCref)) =  
+		(
+		debug("translateExpToPatIdent: ");
+		prIdentAndLoc ident;
+		Absyn.IDENTpat(
+			ident,
+			ref(Absyn.WILDpat(Absyn.dummyInfo)),
+			infoCref)		
+		)
+	|	translateExpToPatIdent(info, 
+		Absyn.CREF(
+			Absyn.CREF_QUAL(ident1, _, 
+				Absyn.CREF_IDENT(ident2, _, infoId), infoCref), _)) =  
+		(
+		debug("translateExpToPatIdent: ");
+		Absyn.CONpat(
+			Absyn.LONGID(SOME(ident1), ident2, infoId), 
+			infoCref)		
+		)
+	|	translateExpToPatIdent(info, _) = 
+			errorAtFunction(info, "unexpected pattern expression", "translateExpToPatIdent")
+
+	fun getNArgs(Absyn.FUNCTIONARGS(namedarglist, _)) = namedarglist 
+
+	fun translateExpToPat(Absyn.UNARY(Operator, Exp, info)) = 
+		(
+			case Operator of
+			    (* integer operators *)
+				  Absyn.UPLUS(_)       => 
+				  (
+					case Exp of
+						Absyn.INTEGER(x, info) => Absyn.LITpat(makeExpLiteral(Exp, info), info)
+					  | _ => errorAtFunction(info, "unary integer plus operator applied to non-integer", "translateExpToPat")
+				  )				  
+				| Absyn.UMINUS(_)      =>
+				  (
+					case Exp of
+						Absyn.INTEGER(x, info) => 
+							Absyn.LITpat(makeExpLiteral(Absyn.INTEGER(~x, info), info), info)
+					  | _ => errorAtFunction(info, "unary integer minus operator applied to non-integer", "translateExpToPat")
+				  )				  
+				(* real operators *)
+				| Absyn.UPLUS_REAL(_)  => 
+				  (
+					case Exp of
+						Absyn.REAL(x, info) => Absyn.LITpat(makeExpLiteral(Exp, info), info)
+					  | _ => errorAtFunction(info, "unary real plus operator applied to non-real", "translateExpToPat")
+				  )				  
+				| Absyn.UMINUS_REAL(_) => 
+				  (
+					case Exp of
+						Absyn.REAL(x, info) => 
+							Absyn.LITpat(makeExpLiteral(Absyn.REAL(~x, info), info), info)
+					  | _ => errorAtFunction(info, "unary real minus operator applied to non-real", "translateExpToPat")
+				  )				  				
+				| _ => errorAtFunction(info, "unexpected unary operator", "translateExpToPat") 
+		)
+	(* Not used in MetaModelica
+	| translateExpToPat(c as Absyn.CHAR(x, info)) = 
+		Absyn.LITpat(makeExpLiteral(c, info), info)
+	*)
+	| translateExpToPat(i as Absyn.INTEGER(x, info)) = 
+		Absyn.LITpat(makeExpLiteral(i, info), info)
+	| translateExpToPat(r as Absyn.REAL(x, info)) = 
+		Absyn.LITpat(makeExpLiteral(r, info), info)
+	| translateExpToPat(s as Absyn.STRING(x, info)) = 
+		Absyn.LITpat(makeExpLiteral(s, info), info)
+	| translateExpToPat(b as Absyn.BOOL(x, info)) = 
+	  (
+		if x 
+		then 
+		Absyn.IDENTpat(
+			Absyn.IDENT("true", info), 
+			ref(Absyn.STRUCTpat(NONE, [], ref [], Absyn.dummyInfo)),
+			info)		
+		else 
+		Absyn.IDENTpat(
+			Absyn.IDENT("false", info), 
+			ref(Absyn.STRUCTpat(NONE, [], ref [], Absyn.dummyInfo)),
+			info)		
+	  )				
+	| translateExpToPat(cref as Absyn.CREF(x, info)) =
+		translateExpToPatIdent(info, cref)
+	| translateExpToPat(Absyn.ARRAY(fargs, info)) = 
+		mkpatlst (map translateExpFuncArgToPat (getNArgs fargs))
+	| translateExpToPat(Absyn.TUPLE(fargs, info)) = 
+		let val pat_seq = (getNArgs fargs)
+		in
+			(*
+			if (List.length pat_seq = 1)
+			then translateExpFuncArgToPat(hd pat_seq)
+			else 
+			*)
+			Absyn.STRUCTpat(NONE, map translateExpFuncArgToPat pat_seq, ref [], info)
+		end
+	| translateExpToPat(Absyn.MSTRUCTexp(path, fargs, info)) =
+		(
+		case path of
+			NONE    => Absyn.STRUCTpat(NONE, [], ref [], info)
+		|	SOME(p) => Absyn.STRUCTpat(
+						ctor_cons,
+						map translateExpFuncArgToPat (getNArgs fargs),
+						ref [], 
+						info)
+		)
+	| translateExpToPat(Absyn.CALL(cref, Absyn.FUNCTIONARGS([], _), info)) =
+		let val lid = cref2Ident(cref)
+		in
+		  (*
+		  case lid of
+		    Absyn.LONGID(NONE, _, _) => 
+		  *)
+		  translateExpToPatIdent(info, Absyn.CREF(cref, info))
+		  (*| _ => Absyn.CONpat(lid, info)*)
+		end
+	| translateExpToPat(Absyn.CALL(cref, fargs, info)) =
+		let val lid = cref2Ident(cref)
+		in
+		  Absyn.STRUCTpat(SOME(lid), map translateExpFuncArgToPat (getNArgs fargs), ref [], info)
+		end
+	| translateExpToPat(Absyn.MBINDexp(ident, expr, info)) =
+		(
+			Absyn.BINDpat(ident, translateExpToPat(expr), info)
+		)
+	| translateExpToPat(Absyn.MWILDexp(info)) = 
+		Absyn.WILDpat(info)
+	(* -- from here on, we cannot make them into patterns *)
+	| translateExpToPat(Absyn.MATRIX(x, info)) =
+		errorAtFunction(info, "matrix expressions are not supported in pattern", "translateExpToPat")
+	| translateExpToPat(Absyn.RANGE(x, y, z, info)) =
+		errorAtFunction(info, "range expressions are not supported in pattern", "translateExpToPat")
+	| translateExpToPat(Absyn.END(info)) =
+		errorAtFunction(info, "end expression not supported in pattern", "translateExpToPat")
+	| translateExpToPat(Absyn.MATCHexp(MatchType, Exp, ElementItemList, CaseList, comment, info)) =
+		errorAtFunction(info, "match/matchcontinue expressions are not supported in pattern", "translateExpToPat")
+	|	translateExpToPat(Absyn.BINARY(Exp1, Operator, Exp2, info)) =
+		errorAtFunction(info, "binary expressions are not supported in pattern", "translateExpToPat")
+	| translateExpToPat(Absyn.RELATION(Exp1,Operator,Exp2, info)) =
+		errorAtFunction(info, "relational expressions are not supported in pattern", "translateExpToPat")
+	| translateExpToPat(Absyn.LUNARY(Operator, Exp, info)) =
+		errorAtFunction(info, "logical unary expressions are not supported in pattern", "translateExpToPat")
+	| translateExpToPat(Absyn.LBINARY(Exp1, Operator,Exp2, info)) = 
+		errorAtFunction(info, "logical binary expressions are not supported in pattern", "translateExpToPat")
+	| translateExpToPat(Absyn.IFEXP(a, b, c, d, info)) = 	
+		errorAtFunction(info, "if expressions are not supported in pattern", "translateExpToPat")
+
+	and translateExpFuncArgToPat(Absyn.NAMEDARG(ident_option, exp, infoNamedArg)) = 
+		(
+		case ident_option of
+			NONE => translateExpToPat(exp)
+		|	SOME(ident) => 
+			(
+			  Absyn.NAMEDpat(ident, translateExpToPat(exp), infoNamedArg) 
+			)
+		)
+
+	fun translateExpIdent(info, Absyn.CREF(x, infoCref)) =  
+		let val lid = cref2Ident(x)
+			val Absyn.LONGID(_, ident, _) = lid
+		in
+		debug("translateExpIdent: ");
+		prIdentAndLoc ident;
+		Absyn.IDENTexp(
+			lid, (* Absyn.LONGID(NONE, ident, infoId) *) 
+			ref(Absyn.STRUCTexp(NONE,[], Absyn.dummyInfo)),
+			infoCref)		
+		end
+	|	translateExpIdent(info, _) = 
+		errorAtFunction(info, "component reference expected", "translateExpIdent")
+					
+	(* 
+	   look in MOToRML.sml for a version of this function that deals with
+	   things like expressions after the then part: "then v1+v2"
+	*)
+	 
+	(* 
+	Expressions can appear in things like:
+	- rel(seq_exp) => seq_pat 
+	  seq_pat = rel(seq_exp)
+	  (_, _) = call(exps)
+	- let pat = exp
+	  pat = exp
+	- var = exp
+	  equality(var = exp)
+	- not g
+	  failure (g)
+	*)
+		
+	fun getExp(Absyn.RETURN([exp], _), goal, info) = exp
+	fun getExps(Absyn.RETURN([exp], _), goal, info) = (exp, goal, info)
+	fun getGoals   ((exp, goal, info)) = (goal, info)
+
+	fun getSomeGoals([]) = []
+	|   getSomeGoals((SOME(goal), info)::parts) = (goal, info)::getSomeGoals(parts)
+	|   getSomeGoals((NONE, _)::parts) = getSomeGoals(parts)	
+	
+	fun getResults ((exp, goal, info)) = exp
+	
+	fun constructGoals((goal, info)::[]) = goal
+	|	constructGoals((goal, info)::goals) =
+			Absyn.ANDgoal(goal, constructGoals(goals), info) 
+			
+	fun printGoal(SOME(goal)) =
+		(
+		Util.outStdErr(" Goal:\n       ");
+		Control.withOut AbsynPrint.printGoal goal
+		)
+	|	printGoal(NONE) =
+		(
+		Util.outStdErr(" Goal:\n       NONE")
+		)
+			
+	fun translateExp(Absyn.BINARY(Exp1, Operator, Exp2, info)) =
+		let val idop = 
+			case Operator of
+			(* integer operators *)
+			  Absyn.ADD(_)        => "int_add"
+			| Absyn.SUB(_)        => "int_sub"
+			| Absyn.MUL(_)        => "int_mul"  
+			| Absyn.DIV(_)        => "int_div"    
+			(* real operators *)			
+			| Absyn.ADD_REAL(_)   => "real_add"
+			| Absyn.SUB_REAL(_)   => "real_sub"
+			| Absyn.MUL_REAL(_)   => "real_mul"  
+			| Absyn.DIV_REAL(_)   => "real_div"    
+			| Absyn.POW_REAL(_)   => "real_pow"
+			(* string operators *)
+			| Absyn.ADD_STRING(_) => "string_append"
+			(* list operators *)
+			| Absyn.ADD_LIST(_)   => "list_append"
+			| _ => errorAtFunction(info, "unexpected arithmetic binary operator", "translateExp") 
+		   val resstr = getTemp()
+		   val result = Absyn.RETURN(
+							[Absyn.IDENTexp(
+								Absyn.LONGID(NONE, Absyn.makeIdent(resstr, info), info),
+								ref(Absyn.STRUCTexp(NONE,[], Absyn.dummyInfo)),
+								info)], 
+							info)
+		in
+		 debug("translateExp-Binary: "^idop^"() => "^resstr^"\n");
+		 (result, 
+		  SOME(Absyn.CALLgoal(
+				Absyn.LONGID(NONE,
+					Absyn.makeIdent(idop, info), 
+					info),
+				map getExp ([translateExp(Exp1), translateExp(Exp2)]),
+				[Absyn.IDENTpat(Absyn.makeIdent(resstr, info), 
+								ref(Absyn.WILDpat(info)), 
+								info)],
+				ref [],
+				info)),
+		  info)
+		end
+	| translateExp(Absyn.UNARY(Operator, Exp, info)) = 
+		let val idop = 
+			case Operator of
+			    (* integer operators *)
+				  Absyn.UPLUS(_)       => "int_add"
+				| Absyn.UMINUS(_)      => "int_neg"
+				(* real operators *)
+				| Absyn.UPLUS_REAL(_)  => "real_add"				
+				| Absyn.UMINUS_REAL(_) => "real_neg"
+				| _ => errorAtFunction(info, "unexpected arithmetic unary operator", "translateExp") 
+		   val resstr = getTemp()
+		   val result = Absyn.RETURN(
+				[Absyn.IDENTexp( 
+					Absyn.LONGID(NONE, Absyn.makeIdent(resstr, info), info), 
+					ref(Absyn.STRUCTexp(NONE,[], Absyn.dummyInfo)),
+					info)], 
+				info)
+		in
+		 debug("translateExp-Unary\n");		 		
+		 (result, 
+		  SOME(
+		  Absyn.CALLgoal(
+				Absyn.LONGID(NONE,
+					Absyn.makeIdent(idop, info),
+					info),
+					map getExp [translateExp(Exp)],
+				[Absyn.IDENTpat(Absyn.makeIdent(resstr, info), 
+								ref(Absyn.WILDpat(info)), 
+								info)],
+				ref [],
+				info)
+		 ),
+		 info)
+		end
+	| translateExp(Absyn.RELATION(Exp1,Operator,Exp2, info)) =
+		let val idop = 
+			case Operator of
+		      Absyn.LESS(_)      => "int_lt"  
+		    | Absyn.LESSEQ(_)    => "int_le" 
+		    | Absyn.GREATER(_)   => "int_gt" 
+		    | Absyn.GREATEREQ(_) => "int_ge" 
+		    | Absyn.EQUAL(_)     => "int_eq" 
+		    | Absyn.NEQUAL(_)    => "int_ne"  
+		    (* real operators *)
+		    | Absyn.LESS_REAL(_)      => "real_lt"  
+		    | Absyn.LESSEQ_REAL(_)    => "real_le" 
+		    | Absyn.GREATER_REAL(_)   => "real_gt" 
+		    | Absyn.GREATEREQ_REAL(_) => "real_ge" 
+		    | Absyn.EQUAL_REAL(_)     => "real_eq" 
+		    | Absyn.NEQUAL_REAL(_)    => "real_ne"
+		    (* string operators *)
+		    | Absyn.EQEQ_STRING(_)    => "string_equal"  
+		    | _ => errorAtFunction(info, "unexpected relational binary operator", "translateExp")
+		   val resstr = getTemp()
+		   val result = Absyn.RETURN(
+							[Absyn.IDENTexp(
+								Absyn.LONGID(NONE, Absyn.makeIdent(resstr, info), info),
+								ref(Absyn.STRUCTexp(NONE,[], Absyn.dummyInfo)),
+								info)], 
+							info)
+		in
+		 debug("translateExp-RelationalBinary\n");
+		 (result, 
+		  SOME(
+		  Absyn.CALLgoal(
+				Absyn.LONGID(NONE,
+					Absyn.makeIdent(idop, info), 
+					info),
+					map getExp ([translateExp(Exp1), translateExp(Exp2)]),
+					(* [translateExpIdent(Exp1,info), translateExpIdent(Exp2,info)], *)
+				[Absyn.IDENTpat(Absyn.makeIdent(resstr, info), 
+								ref(Absyn.WILDpat(info)), 
+								info)],
+				ref [],
+				info)
+		  ),
+		  info)
+		end	
+	| translateExp(Absyn.LUNARY(Operator, Exp, info)) =
+		let val idop = 
+			case Operator of
+			    (* logical boolean unary operator *)
+				  Absyn.NOT(_)       => "bool_not"
+				| _ => errorAtFunction(info, "unexpected logical unary operator", "translateExp")
+		   val resstr = getTemp()
+		   val result = Absyn.RETURN(
+				[Absyn.IDENTexp( 
+					Absyn.LONGID(NONE, Absyn.makeIdent(resstr, info), info), 
+					ref(Absyn.STRUCTexp(NONE,[], Absyn.dummyInfo)),
+					info)], 
+				info)
+		in
+		 debug("translateExp-LogicalUnary\n");		 		
+		 (result, 
+		  SOME(
+		  Absyn.CALLgoal(
+				Absyn.LONGID(NONE,
+					Absyn.makeIdent(idop, info),
+					info),
+					map getExp [translateExp(Exp)],
+					(* [translateExpIdent(Exp, info)], *)
+				[Absyn.IDENTpat(Absyn.makeIdent(resstr, info), 
+								ref(Absyn.WILDpat(info)), 
+								info)],
+				ref [],
+				info)
+		 ),
+		 info)
+		end
+	| translateExp(Absyn.LBINARY(Exp1, Operator,Exp2, info)) = 
+		let val idop = 
+			case Operator of
+		      Absyn.AND(_) => "bool_and"  
+		    | Absyn.OR(_)  => "bool_or" 
+		    | _ => errorAtFunction(info, "unexpected logical binary operator", "translateExp")
+		   val resstr = getTemp()
+		   val result = Absyn.RETURN(
+							[Absyn.IDENTexp(
+								Absyn.LONGID(NONE, Absyn.makeIdent(resstr, info), info),
+								ref(Absyn.STRUCTexp(NONE,[], Absyn.dummyInfo)),
+								info)], 
+							info)
+		in
+		 debug("translateExp-LogicalBinary\n");
+		 (result, 
+		  SOME(
+		  Absyn.CALLgoal(
+				Absyn.LONGID(NONE,
+					Absyn.makeIdent(idop, info), 
+					info),
+				map getExp ([translateExp(Exp1), translateExp(Exp2)]),
+				(* [translateExpIdent(Exp1, info), translateExpIdent(Exp2, info)], *)
+				[Absyn.IDENTpat(Absyn.makeIdent(resstr, info), 
+								ref(Absyn.WILDpat(info)), 
+								info)],
+				ref [],
+				info)
+		  ),
+		  info)
+		end
+	(* Not used in MetaModelica
+	| translateExp(c as Absyn.CHAR(x, info)) = 
+		( Absyn.RETURN([Absyn.LITexp(makeExpLiteral(c, info), info)], info), NONE, info)
+	*)
+	| translateExp(i as Absyn.INTEGER(x, info)) = 
+		( Absyn.RETURN([Absyn.LITexp(makeExpLiteral(i, info), info)], info), NONE, info)
+	| translateExp(r as Absyn.REAL(x, info)) = 
+		( Absyn.RETURN([Absyn.LITexp(makeExpLiteral(r, info), info)], info), NONE, info)
+	| translateExp(s as Absyn.STRING(x, info)) = 
+		( Absyn.RETURN([Absyn.LITexp(makeExpLiteral(s, info), info)], info), NONE, info)
+	| translateExp(b as Absyn.BOOL(x, info)) = 
+		( Absyn.RETURN([
+				if x
+				then Absyn.IDENTexp(
+						Absyn.LONGID(NONE, Absyn.IDENT("true", info), info), 
+						ref(Absyn.STRUCTexp(NONE,[], Absyn.dummyInfo)),
+						info)
+				else Absyn.IDENTexp(
+						Absyn.LONGID(NONE, Absyn.IDENT("false", info), info), 
+						ref(Absyn.STRUCTexp(NONE,[], Absyn.dummyInfo)),
+						info)
+				], info), NONE, info)
+	| translateExp(cref as Absyn.CREF(x, info)) =
+		let val result = Absyn.RETURN([translateExpIdent(info,cref)], info)
+		in 
+			debug("translateExp: CREF\n");
+			(result, NONE, info) 
+		end
+	| translateExp(Absyn.CALL(cref, FunctionArgs as Absyn.FUNCTIONARGS(Exps as [], infoFArgs), info)) =
+		let val lid = cref2Ident(cref)
+		in
+		  if Absyn.lidentName lid = "fail"
+		  then (Absyn.FAIL(info), NONE, info)
+		  else let val restr = lookupLIdent(lid)  
+				in
+				case restr of 
+					SOME(Absyn.R_FUNCTION(_)) => 
+					let val resstr = getTemp()
+						val result = Absyn.RETURN(
+											[Absyn.IDENTexp(
+												Absyn.LONGID(NONE, Absyn.makeIdent(resstr, info), info),
+												ref(Absyn.STRUCTexp(NONE,[], Absyn.dummyInfo)),
+												info)], 
+											info)				
+						val resexplist = map getExps (map translateExpFuncArg Exps)
+						val reslist = map getResults resexplist
+						val goals = getSomeGoals(map getGoals resexplist)
+						val pat = [Absyn.IDENTpat(Absyn.makeIdent(resstr, info), 
+									ref(Absyn.WILDpat(info)), 
+									info)]
+						val lastGoal = 
+							if (Absyn.lidentName lid = "fill")
+							then Absyn.CALLgoal(
+											Absyn.LONGID(NONE,
+												Absyn.makeIdent(
+													"arrayCreate", 
+													Absyn.lidentCtxInfo(lid)),
+												Absyn.lidentCtxInfo(lid)), 
+											List.rev reslist,
+											pat,
+											ref [],
+											info)								
+							else Absyn.CALLgoal(
+											lid, 
+											reslist,
+											pat,
+											ref [],
+											info)
+					in
+						if ((List.length goals) = 0)
+						then 
+						(
+						result,
+						SOME(lastGoal),
+						info
+						)
+						else
+						let 
+						in
+							(
+							result,
+							SOME(
+							Absyn.ANDgoal(
+								constructGoals(goals), 
+								lastGoal, 
+								info)
+							), 
+							info
+							)
+						end
+					end
+				|	_ =>
+					(
+					Absyn.RETURN([Absyn.IDENTexp(
+									lid, 
+									ref(Absyn.STRUCTexp(NONE,[], Absyn.dummyInfo)),
+									info)],
+								info),		  
+					NONE,
+					info
+					)
+				end
+		end
+	| translateExp(Absyn.CALL(cref, FunctionArgs as Absyn.FUNCTIONARGS(Exps, infoFArgs), info)) =
+		let val lid = cref2Ident(cref)
+			(*
+			val _ = print ("translateExp: "^(Absyn.lidentName lid)^"\n")
+			*)
+		in
+		  if Absyn.lidentName lid = "fail"
+		  then (Absyn.FAIL(info), NONE, info)
+		  else let val restr = lookupLIdent(lid)  
+				in
+				case restr of 
+					SOME(Absyn.R_FUNCTION(_)) => 
+					let val resstr = getTemp()
+						val result = Absyn.RETURN(
+											[Absyn.IDENTexp(
+												Absyn.LONGID(NONE, Absyn.makeIdent(resstr, info), info),
+												ref(Absyn.STRUCTexp(NONE,[], Absyn.dummyInfo)),
+												info)], 
+											info)				
+						val resexplist = map getExps (map translateExpFuncArg Exps)
+						val reslist = map getResults resexplist
+						val goals = getSomeGoals(map getGoals resexplist)
+						val pat = [Absyn.IDENTpat(Absyn.makeIdent(resstr, info), 
+									ref(Absyn.WILDpat(info)), 
+									info)]						
+						val lastGoal = 
+							if (Absyn.lidentName lid = "fill")
+							then Absyn.CALLgoal(
+											Absyn.LONGID(NONE,
+												Absyn.makeIdent(
+													"arrayCreate", 
+													Absyn.lidentCtxInfo(lid)),
+												Absyn.lidentCtxInfo(lid)), 
+											List.rev reslist,
+											pat,
+											ref [],
+											info)								
+							else Absyn.CALLgoal(
+											lid, 
+											reslist,
+											pat,
+											ref [],
+											info)
+						(*					
+						val _ = (print " -> Last goal:\n"; printGoal(SOME(lastGoal)); print "\n")
+						*)
+					in
+						if ((List.length goals) = 0)
+						then 
+						(
+						result,
+						SOME(lastGoal),
+						info
+						)
+						else
+						let 
+						in
+							(
+							result,
+							SOME(
+							Absyn.ANDgoal(
+								constructGoals(goals), 
+								lastGoal, 
+								info)
+							), 
+							info
+							)
+						end
+					end
+				| _ =>
+					(
+					Absyn.RETURN([
+					Absyn.STRUCTexp(
+						SOME lid, 
+						map getExp (map translateExpFuncArg (getNArgs FunctionArgs)), 
+						info)],
+					info),
+					NONE,
+					info
+					)				
+				end
+		end
+	| translateExp(Absyn.TUPLE(fargs, info)) = 
+		let val exp_seq = (getNArgs fargs)
+			val results = (map translateExpFuncArg exp_seq)
+			val exps = map getExp results
+			val goals = getSomeGoals(map getGoals results)
+			val g = if List.length goals = 0 then NONE else SOME(constructGoals(goals))
+		in
+			(
+			Absyn.RETURN([
+			if !translatingThen = false (* we are in expressions, this: (x) IS NOT a tuple!! *)
+			then
+				if List.length exps = 1 (* this is no tuple *)
+				then List.hd exps
+				else Absyn.STRUCTexp(NONE, exps, info)
+			else  (* we are in patterns, this: (x) IS a tuple!! *)
+				Absyn.STRUCTexp(NONE, exps, info)
+			], info),
+			g,
+			info
+			)
+		end
+	| translateExp(Absyn.MSTRUCTexp(path, fargs, info)) =
+		(
+		Absyn.RETURN([(
+		case path of
+			NONE    => Absyn.STRUCTexp(NONE, [], info)
+		|	SOME(p) => Absyn.STRUCTexp(
+						ctor_cons,
+						map getExp (map translateExpFuncArg (getNArgs fargs)), 
+						info)
+		)], info),
+		NONE,
+		info
+		)
+	| translateExp(Absyn.ARRAY(fargs, info)) =
+		(
+		Absyn.RETURN([ 
+		mkexplst (map getExp (map translateExpFuncArg (getNArgs fargs)))
+		], info),
+		NONE,
+		info
+		)
+	| translateExp(Absyn.IFEXP(a, b, c, [], info)) =
+	  let val _ = if debugFlag then Util.outStdErr("\nAbsyn.IFEXP("^
+												getExpTypeAsStr(a)^","^
+												getExpTypeAsStr(b)^","^
+												getExpTypeAsStr(c)^")\n")
+								else ()
+		  val resstr = getTemp()
+		  val result = Absyn.RETURN(
+							[Absyn.IDENTexp(
+								Absyn.LONGID(NONE, Absyn.makeIdent(resstr, info), info),
+								ref(Absyn.STRUCTexp(NONE,[], Absyn.dummyInfo)),
+								info)], 
+							info)				
+	      val (result1, goal1, info1) = translateExp(a)
+		  val (result2, goal2, info2) = translateExp(b)
+		  val (result3, goal3, info3) = translateExp(c)
+		  val pat = [Absyn.IDENTpat(Absyn.makeIdent(resstr, info), 
+					ref(Absyn.WILDpat(info)), 
+					info)]						
+		  val exp1 = getExp(result1, goal1, info1)
+		  val exp2 = getExp(result2, goal2, info2)
+		  val exp3 = getExp(result3, goal3, info3)
+		  val lastGoal = SOME(Absyn.CALLgoal(
+							Absyn.LONGID(modidRML,
+								Absyn.makeIdent(
+									"if_exp", 
+									info1),
+								info2), 
+							[exp1,exp2,exp3],
+							pat,
+							ref [],
+							info))
+		  val goals = getSomeGoals([(goal1,info1),(goal2,info2),(goal3,info3),(lastGoal,info)])
+		  val joinedGoals = constructGoals(goals)
+		  val g = SOME(joinedGoals)
+		  val _ = if debugFlag then (Util.outStdErr("\nCumulative:"); printGoal(g);
+									Util.outStdErr("\nSeparate1:");  printGoal(goal1);
+									Util.outStdErr("\nSeparate2:");  printGoal(goal2);
+									Util.outStdErr("\nSeparate3:");  printGoal(goal3))
+							   else ()
+	  in
+			(result, g,	info)
+	   end		
+		(* errorAtFunction(info, "unexpected if expression", "translateExp") *)
+	| translateExp(Absyn.IFEXP(a, b, c, d, info)) =		
+		errorAtFunction(info, "currently MetaModelica supports only if expressions of the form: if exp then exp else exp", "translateExp")
+	| translateExp(Absyn.MATRIX(x, info)) =
+		errorAtFunction(info, "unexpected if expression matrix expression", "translateExp")	
+	| translateExp(Absyn.RANGE(x, y, z, info)) =
+		errorAtFunction(info, "unexpected range expression", "translateExp")		
+	| translateExp(Absyn.END(info)) =
+		errorAtFunction(info, "unexpected end expression", "translateExp")		
+	| translateExp(Absyn.MWILDexp(info)) = 
+		errorAtFunction(info, "unexpected wild expression", "translateExp")		
+	| translateExp(Absyn.MATCHexp(MatchType, Exp, ElementItemList, CaseList, comment, info)) =
+		errorAtFunction(info, "unexpected match expression", "translateExp")		
+
+	and translateExpFuncArg(Absyn.NAMEDARG(NONE, exp, infoNamedArg)) = 
+		translateExp(exp)
+	|	translateExpFuncArg(Absyn.NAMEDARG(_, _, info)) = 
+		errorAtFunction(info, "unexpected named argument in expression", "translateExpFuncArg")
+		
+	        
+    fun transformPattern(pattern) = 
+		case pattern of
+		  Absyn.MWILDpat(info)      => Absyn.WILDpat(info)
+		| Absyn.MLITpat(Exp, info)  => Absyn.LITpat(makeExpLiteral(Exp, info), info)
+		| Absyn.MCONpat(path, info) => Absyn.CONpat(path2Ident(path), info)
+		| Absyn.MSTRUCTpat(path, patterns, info) => 
+				(case path of 
+					SOME(path') => Absyn.STRUCTpat(SOME(path2Ident(path')), extractPatterns(patterns), ref [], info)
+					| NONE => Absyn.STRUCTpat(NONE, extractPatterns(patterns), ref [], info))
+		| Absyn.MBINDpat(var, pat, info) => Absyn.BINDpat(var, transformPattern(pat), info)
+		| Absyn.MNAMEDARGpat(var, pat, info) => 
+			Absyn.NAMEDpat(var,transformPattern(pat),info)
+		| Absyn.MIDENTpat(ident, ref(pat), info) => 
+			Absyn.IDENTpat(ident, ref(transformPattern(pat)), info)
+		
+	and extractPatterns(patterns) = 
+		 map transformPattern patterns
+
 		
 	fun translateEqualsEquation(exp1, exp2, infoEq) =
 	(
 		debug("translateEqualsEquation: ["^getExpTypeAsStr(exp1)^"] = ["^getExpTypeAsStr(exp2)^"\n");
-		(* _ = arithmetic expression; *)
 		case (exp1, exp2) of 
 		   (_,
 		    Absyn.BINARY(exp21, oper, exp22, infoBin)) 
@@ -1550,7 +1788,7 @@ functor MOToRMLFn(
 				let val goal = Absyn.CALLgoal(
 					Absyn.LONGID(NONE, ident2, infoId2),
 					map getExp (map translateExpFuncArg Exps),
-					[translateExpToPatIdent exp1],
+					[translateExpToPatIdent(infoExp1, exp1)],
 					ref [], 
 					infoEq)
 				in
@@ -1572,7 +1810,10 @@ functor MOToRMLFn(
 						SOME(Absyn.CALLgoal(id, exps, pats, ref_pat, info)) =>
 							Absyn.CALLgoal(id, exps, [pat], ref_pat, info)
 					|	_ => 
-					(prBugLoc(infoEq); print "\n"; bug ("translateEqualsEquation: strange equation: (tuple) = ????"))
+					errorAtFunction(
+						infoEq,
+						"expected equation form: output expression list = function call;",
+						"translateEqualsEquation")
 					, infoEq)
 				end		
 		(* x ==. y = true *)				
@@ -1585,7 +1826,10 @@ functor MOToRMLFn(
 						SOME(Absyn.CALLgoal(id, exps, pats, ref_pat, info)) =>
 							Absyn.CALLgoal(id, exps, [pat], ref_pat, info)
 					|	_ => 
-					(prBugLoc(infoEq); print "\n"; bug ("translateEqualsEquation: strange equation: (tuple) = ????"))
+					errorAtFunction(
+						infoEq,
+						"expected equation form: output expression list = function call;",
+						"translateEqualsEquation")
 					, infoEq)
 				end						
 		(* z == (x > y) *)		
@@ -1603,7 +1847,10 @@ functor MOToRMLFn(
 						SOME(Absyn.CALLgoal(id, exps, pats, ref_pat, info)) =>
 							Absyn.CALLgoal(id, exps, [pat], ref_pat, info)
 					|	_ => 
-					(prBugLoc(infoEq); print "\n"; bug ("translateEqualsEquation: strange equation: (tuple) = ????"))
+					errorAtFunction(
+						infoEq,
+						"expected equation form: output expression list = function call;",
+						"translateEqualsEquation")
 					, infoEq)
 				end				
 		(* z == x > y *)		
@@ -1616,7 +1863,10 @@ functor MOToRMLFn(
 						SOME(Absyn.CALLgoal(id, exps, pats, ref_pat, info)) =>
 							Absyn.CALLgoal(id, exps, [pat], ref_pat, info)
 					|	_ => 
-					(prBugLoc(infoEq); print "\n"; bug ("translateEqualsEquation: strange equation: (tuple) = ????"))
+					errorAtFunction(
+						infoEq,
+						"expected equation form: output expression list = function call;",
+						"translateEqualsEquation")
 					, infoEq)
 				end				
 		| (_, Absyn.CALL(cref, FunctionArgs as Absyn.FUNCTIONARGS(Exps, infoFArgs), infoExp2)) 
@@ -1635,9 +1885,9 @@ functor MOToRMLFn(
 								then Absyn.CALLgoal(
 												Absyn.LONGID(NONE,
 													Absyn.makeIdent(
-														"array_create", 
-														ref(Absyn.lidentCtxInfo(lid))),
-													ref(Absyn.lidentCtxInfo(lid))), 
+														"arrayCreate", 
+														Absyn.lidentCtxInfo(lid)),
+													Absyn.lidentCtxInfo(lid)), 
 												List.rev reslist,
 												case pat of
 												Absyn.STRUCTpat(NONE, pat_list, _, _) => pat_list
@@ -1691,9 +1941,9 @@ functor MOToRMLFn(
 								then Absyn.CALLgoal(
 												Absyn.LONGID(NONE,
 													Absyn.makeIdent(
-														"array_create", 
-														ref(Absyn.lidentCtxInfo(lid))),
-													ref(Absyn.lidentCtxInfo(lid))),
+														"arrayCreate", 
+														Absyn.lidentCtxInfo(lid)),
+													Absyn.lidentCtxInfo(lid)),
 												List.rev reslist,
 												case pat of
 												Absyn.STRUCTpat(NONE, pat_list, _, _) => pat_list
@@ -1727,20 +1977,30 @@ functor MOToRMLFn(
 								)
 							end
 						end
-					|   _ => (prBugLoc(infoEq); print " "; bug("translateEqualsEquation: strange equation: _ = [Module.]IDENT(...)"))
+					|   _ => 
+					errorAtFunction(
+						infoEq,
+						"expected equation form: _ = function call;",
+						"translateEqualsEquation")
 				end							
-		| (_, _) => 
-				let 
-					val goal = Absyn.LETgoal(
-					translateExpToPat exp1, 
-					getExp(translateExp exp2),
-					ref (NONE),
-					infoEq)
+		| (_, _) => (* if nothing worked try a LETgoal *)
+				let val (res, g, info) = translateExp(exp2)
+					val goal = 
+							Absyn.LETgoal(
+								translateExpToPat exp1, 
+								getExp((res, g, info)),
+								ref (NONE),
+								infoEq)
 				in
-					(goal, infoEq)
+					(case g of 
+					   NONE => goal 
+					 | SOME(gl) => 
+						Absyn.ANDgoal(
+							gl, 
+							goal, 
+							infoEq),
+					  infoEq)
 				end		
-			(* dummyEq("translateEqualsEquation", infoEq) *)
-			(* (prBugLoc(infoEq); print " "; bug("translateEqualsEquation")) *)
 	)
 	
 	fun buildGoalz(Absyn.EQUATIONITEM(equation, _, info), decls, localdecls) =
@@ -1770,58 +2030,59 @@ functor MOToRMLFn(
 									[],
 									ref [],
 									infoEq)
-					| _ => (prBugLoc(infoEq); print " "; bug("buildGoalz: strange Identifier"))
+					| _ => 					
+					errorAtFunction(
+						infoEq,
+						"unexpected identifier",
+						"buildGoalz")
 				in
 					(goal, infoEq)
 				end									   
-				(* (prBugLoc(info); bug("buildGoalz: unexpected NORETCALL equation")) *)
 		    | Absyn.EQ_FAILURE(eq, info) =>
 				let val (goal, infoEq) = buildGoalz(Absyn.EQUATIONITEM(eq, NONE, info), decls, localdecls)
 				in
-				(
-				Absyn.NOTgoal(goal, info),
-				info
-				)
+				 (Absyn.NOTgoal(goal, info),info)
 				end
-				(* (prBugLoc(info); bug("buildGoalz: unexpected EQUALITY equation")) *)
 		    | Absyn.EQ_EQUALITY(Absyn.EQ_EQUALS(Absyn.CREF(cref, _), exp2, infoEq), info) => 
-				(
 				(
 				Absyn.EQUALgoal(getShortId(cref2Ident cref), getExp(translateExp(exp2)), info),
 				info
 				)
-				)
-				(* (prBugLoc(info); bug("buildGoalz: unexpected EQUALITY equation")) *)
 			| Absyn.EQ_IF(_, _, _, _, info) =>
-				(prBugLoc(info); bug("buildGoalz: unexpected IF equation"))
+				errorAtFunction(info,"unexpected if equation","buildGoalz")
 		    | Absyn.EQ_CONNECT(_, _, info) =>
-				(prBugLoc(info); bug("buildGoalz: unexpected CONNECT equation"))
+				errorAtFunction(info,"unexpected connect equation","buildGoalz")
 		    | Absyn.EQ_FOR(_, _, info) =>
-				(prBugLoc(info); bug("buildGoalz: unexpected FOR equation"))
+				errorAtFunction(info,"unexpected for equation","buildGoalz")
 		    | Absyn.EQ_WHEN_E(_, _, _, info) =>
-				(prBugLoc(info); bug("buildGoalz: unexpected WHEN equation"))
-			| _ => (prBugLoc(info); print " "; bug("buildGoalz: unexpected equation"))
+				errorAtFunction(info,"unexpected when equation","buildGoalz")
+			| _ => 	
+				errorAtFunction(info,"unexpected equation","buildGoalz")
 		)
 	)
-	|   buildGoalz(_, decls, localdecls) = 
-		  bug	(" unexpected Annotation ");
+	|   buildGoalz(Absyn.EQUATIONITEMANN(_, info), decls, localdecls) = 
+			errorAtFunction(info,"unexpected annotation","buildGoalz")
 
-
-	fun buildGoals(x::nil, exp, decls, localdecls) = buildGoalz(x, decls, localdecls)
-	|   buildGoals(x::rest, exp, decls, localdecls) =
+	fun buildNonEmptyGoals(x::nil, exp, decls, localdecls, infoGoal) = buildGoalz(x, decls, localdecls)
+	|   buildNonEmptyGoals(x::rest, exp, decls, localdecls, infoGoal) =
 		let val (goal1, info1) = buildGoalz(x, decls, localdecls)
-			val (goal2, info2) = buildGoals(rest, exp, decls, localdecls)
+			val (goal2, info2) = buildNonEmptyGoals(rest, exp, decls, localdecls, infoGoal)
 		in
 			(
 			Absyn.ANDgoal(goal1, goal2, mkCtxInfo(info1, info2)), 
 			mkCtxInfo(info1, info2)
 			)
 		end	
-	| buildGoals([], exp, decls, localdecls) = bug(" buildGoals - empty equation list");
+	|	buildNonEmptyGoals([], exp, decls, localdecls, infoGoal) = 
+			errorAtFunction(infoGoal, "empty equation list", "buildNonEmptyGoals")
 							
 	(* axiom *)
-	fun buildGoal([], exp, decls, localdecls) =
-		let val (result, goal, info) = translateExp(exp)
+	fun buildGoal([], exp, decls, localdecls, infoGoal) =
+		let val (result, goal, info) = 
+				let val _ = translatingThen := true; (* signaling we ARE translating then part *)
+					val x = translateExp(exp)
+					val _ = translatingThen := false; (* signaling we are NOT translating then part *)
+				in x end
 		in 
 			case goal of 
 				SOME(g) => 
@@ -1838,9 +2099,13 @@ functor MOToRMLFn(
 						| _ => result, info)
 		end 
 	(* normal rule *)
-	| buildGoal(seq_eq, exp, decls, localdecls) = 
-		let val (result, goal2, info2) = translateExp(exp)
-			val (goal1, info1) = buildGoals(seq_eq, exp, decls, localdecls)
+	| buildGoal(seq_eq, exp, decls, localdecls, infoGoal) = 
+		let val (result, goal2, info2) = 
+				let val _ = translatingThen := true; (* signaling we ARE translating then part *)
+					val x = translateExp(exp)
+					val _ = translatingThen := false; (* signaling we are NOT translating then part *)
+				in x end
+			val (goal1, info1) = buildNonEmptyGoals(seq_eq, exp, decls, localdecls, infoGoal)
 		in 
 			case goal2 of 
 				SOME(g2) => 
@@ -1860,35 +2125,71 @@ functor MOToRMLFn(
 						=> Absyn.RETURN(explst, infoz)
 						| _ => result, info1)
 		end
-	(*
-    datatype clause	= CLAUSE1 of goal option * ident * pat list * result * pat list ref * info ref
-					| CLAUSE2 of clause * clause * info ref 	
-	*)					
+
 	
+	fun constructWildPatternList(Absyn.MSTRUCTexp(NONE,   Absyn.FUNCTIONARGS([], i1),i2), info) = []
+	|	constructWildPatternList(Absyn.MSTRUCTexp(NONE,   Absyn.FUNCTIONARGS(expressions, i1),i2), info) =
+		let fun apply_wild x = Absyn.WILDpat(info)
+		in 
+			if List.length expressions = 0
+			then []			
+			else map apply_wild expressions
+		end
+	|   constructWildPatternList(_, info) = [Absyn.WILDpat(info)]
 					
-	fun buildClauses(ident, 
+	fun buildClauses(ident, matchExp, 
 			Absyn.CASE(
 				patterns,
 				localdecls,
 				Absyn.EQUATIONS(equations, infoEquations),
 				exp,
-				_,_,
-				infoCase)::nil, elems) =
-		let val (goal, result, info) = buildGoal(equations, exp, elems, localdecls)
+				_,
+				infoCase)::nil, elems, infoMatch) =
+		let val nrOfPats = List.length (constructWildPatternList(matchExp,infoCase))
+		    val rmlPatterns = extractPatterns(patterns)
+		    val nrOfRmlPats = List.length rmlPatterns
+		    (* TODO! check this! 
+		    val _ = if nrOfPats <> nrOfRmlPats
+					then errorAtFunction(
+							infoCase, 
+							"number of patterns in the case is not equal with the number of variables in the match expression!", 
+							"buildClauses")
+					else ()
+			*)
+			val (goal, result, info) = buildGoal(equations, exp, elems, localdecls, infoCase)
 		in 
 			(
 			Absyn.CLAUSE1(
 				goal, 
 				ident,
-				extractPatterns(patterns),
+				rmlPatterns,
 				result, 
 				ref [], 
 				info), 
 			info)
 		end
-	| buildClauses(ident, x::rest, elems) =
-		let val (c1, infoc1) = buildClauses(ident, [x],  elems)
-			val (c2, infoc2) = buildClauses(ident, rest, elems)
+	|   buildClauses(ident, matchExp, 
+			Absyn.ELSE(
+				localdecls,
+				Absyn.EQUATIONS(equations, infoEquations),
+				exp,
+				_,
+				infoElse)::nil, elems, infoMatch) =
+		let val (goal, result, info) = buildGoal(equations, exp, elems, localdecls, infoElse)
+		in 
+			(
+			Absyn.CLAUSE1(
+				goal, 
+				ident,
+				constructWildPatternList(matchExp, infoElse),
+				result, 
+				ref [], 
+				info), 
+			info)
+		end
+	| buildClauses(ident, matchExp, x::rest, elems, infoMatch) =
+		let val (c1, infoc1) = buildClauses(ident, matchExp, [x],  elems, infoMatch)
+			val (c2, infoc2) = buildClauses(ident, matchExp, rest, elems, infoMatch)
 		in
 		(
 		Absyn.CLAUSE2(
@@ -1898,8 +2199,13 @@ functor MOToRMLFn(
 		mkCtxInfo(infoc1, infoc2)
 		)
 		end
-	| buildClauses(_) = bug("buildClauses: CASE expected!")
-		
+	(*
+	| buildClauses(ident, matchExp, case, elems, infoMatch) = 
+		errorAtFunction(
+			infoMatch, 
+			"case or else expected in the match/matchcontinue construct", 
+			"buildClauses")
+	*)	
 	fun constructClause(ident,
 			Absyn.ALGORITHMITEM(
 				Absyn.ALG_ASSIGN(
@@ -1909,11 +2215,12 @@ functor MOToRMLFn(
 					Exp, 
 					ElementItems, 
 					Cases,
+					comment,
 					infoMatch),
 					_),
 				_,
 				infoAlgItem)) =
-		  let val (clause', _) = buildClauses(ident, Cases, ElementItems)
+		  let val (clause', _) = buildClauses(ident, Exp, Cases, ElementItems, infoMatch)
 		  in 
 			debug("constructClause: ");
 			prIdentAndLoc ident;
@@ -1928,50 +2235,52 @@ functor MOToRMLFn(
 					Exp, 
 					ElementItems, 
 					Cases,
+					comment,
 					infoMatch),
 					_),
 				_,
 				infoAlgItem)) =
-		  let val (clause', _) = buildClauses(ident, Cases, ElementItems)
+		  let val (clause', _) = buildClauses(ident, Exp, Cases, ElementItems, infoMatch)
 		  in 
 			debug("constructClause: ");
 			prIdentAndLoc ident;
 			[CLAUSE(clause', infoAlgItem)]
 		  end		  
-	| constructClause(ident, Absyn.ALGORITHMITEM(Absyn.ALG_IF(_, _, _, _, _), _, _))     = 
-		(warn "constructClause - ALG_IF found. only ALG_ASSIGN/ALG_ASSIGN_TUPLE supported, ignoring..."; [])
-	| constructClause(ident, Absyn.ALGORITHMITEM(Absyn.ALG_FOR(_, _, _), _, _))          = 
-		(warn "constructClause - ALG_FOR found. only ALG_ASSIGN/ALG_ASSIGN_TUPLE supported, ignoring..."; [])
+	| constructClause(ident, Absyn.ALGORITHMITEM(Absyn.ALG_IF(_, _, _, _, info), _, _))     = 
+		(warnAtFunction(info,"ignored if algorithm statement","constructClause"); [])
+	| constructClause(ident, Absyn.ALGORITHMITEM(Absyn.ALG_FOR(_, _, _), _, info))          = 
+		(warnAtFunction(info,"ignored for algorithm statement","constructClause"); [])
 	| constructClause(ident, Absyn.ALGORITHMITEM(Absyn.ALG_WHILE(_, _, _), _, _))        = 
-		(warn "constructClause - ALG_WHILE found. only ALG_ASSIGN/ALG_ASSIGN_TUPLE supported, ignoring..."; [])
+		(warnAtFunction(info,"ignored while algorithm statement","constructClause"); [])
 	| constructClause(ident, Absyn.ALGORITHMITEM(Absyn.ALG_WHEN_A(_, _, _, _), _, _))    = 
-		(warn "constructClause - ALG_WHEN_A found. only ALG_ASSIGN/ALG_ASSIGN_TUPLE supported, ignoring..."; []) 
+		(warnAtFunction(info,"ignored when algorithm statement","constructClause"); [])
 	| constructClause(ident, Absyn.ALGORITHMITEM(Absyn.ALG_NORETCALL(_, _, _), _, _))    = 
-		(warn "constructClause - ALG_NORETCALL found. only ALG_ASSIGN/ALG_ASSIGN_TUPLE supported, ignoring..."; [])
-	| constructClause(ident, _) = 
-		(warn "constructClause - only ALGORITHMITEM handled ignoring junk..."; [])
-		(* bug("constructClause - only MATCH construct is handled in algorithm sections ") *)
+		(warnAtFunction(info,"ignored no return call algorithm statement","constructClause"); [])
+	| constructClause(ident, Absyn.ALGORITHMITEMANN(_, info)) = 
+		(warnAtFunction(info,"ignored annotation","constructClause"); [])
 
-
-	fun	transformAlgorithmToEquation(Absyn.ALG_ASSIGN(Exp1, Exp2, info)) =
-		Absyn.EQ_EQUALS(Exp1, Exp2, info)
-	|	transformAlgorithmToEquation(Absyn.ALG_TUPLE_ASSIGN(Exp1, Exp2, info)) = 
-		Absyn.EQ_EQUALS(Exp1, Exp2, info)
-	|	transformAlgorithmToEquation(Absyn.ALG_NORETCALL(ComponentRef, FunctionArgs, info)) =
-		Absyn.EQ_NORETCALL(ComponentRef, FunctionArgs, info)
-	|	transformAlgorithmToEquation(Absyn.ALG_FAILURE(Algorithm, info)) =
-		Absyn.EQ_FAILURE(transformAlgorithmToEquation(Algorithm), info)
-	|	transformAlgorithmToEquation(Absyn.ALG_EQUALITY(Algorithm, info)) =
-		Absyn.EQ_EQUALITY(transformAlgorithmToEquation(Algorithm), info)
-	|   transformAlgorithmToEquation(_) = 
-			(bug("transformAlgorithmToEquation: Only Assign, NoRetCall, Failure, Equality statements supported"))
+	fun	transformAlgorithmToEquation(infoAlg, Absyn.ALG_ASSIGN(Exp1, Exp2, info)) =
+			Absyn.EQ_EQUALS(Exp1, Exp2, info)
+	|	transformAlgorithmToEquation(infoAlg, Absyn.ALG_TUPLE_ASSIGN(Exp1, Exp2, info)) = 
+			Absyn.EQ_EQUALS(Exp1, Exp2, info)
+	|	transformAlgorithmToEquation(infoAlg, Absyn.ALG_NORETCALL(ComponentRef, FunctionArgs, info)) =
+			Absyn.EQ_NORETCALL(ComponentRef, FunctionArgs, info)
+	|	transformAlgorithmToEquation(infoAlg, Absyn.ALG_FAILURE(Algorithm, info)) =
+			Absyn.EQ_FAILURE(transformAlgorithmToEquation(infoAlg,Algorithm), info)
+	|	transformAlgorithmToEquation(infoAlg, Absyn.ALG_EQUALITY(Algorithm, info)) =
+			Absyn.EQ_EQUALITY(transformAlgorithmToEquation(infoAlg,Algorithm), info)
+	|   transformAlgorithmToEquation(infoAlg, _) = 
+			errorAtFunction(
+				infoAlg,
+				"only assign, no return call, failure, and equality statements are supported!", 
+				"transformAlgorithmToEquation")
 	
 	fun transformAlgorithmsToEquations([]) = []
 	|	transformAlgorithmsToEquations(Absyn.ALGORITHMITEM(x, comment, info)::rest) =
-			Absyn.EQUATIONITEM(transformAlgorithmToEquation(x), comment, info) 
+			Absyn.EQUATIONITEM(transformAlgorithmToEquation(info, x), comment, info) 
 			:: transformAlgorithmsToEquations(rest)
 
-	fun constructAlgorithms(ident, algItems) = 
+	fun constructAlgorithms(ident, algItems, infoAlgItems) = 
 	let val equations = transformAlgorithmsToEquations(algItems)
 	    val (goal, result, info) = 
 				buildGoal(
@@ -1980,33 +2289,47 @@ functor MOToRMLFn(
 						NONE,   
 						Absyn.FUNCTIONARGS(
 							[], 
-							ref(Absyn.identCtxInfo ident)),
-						ref(Absyn.identCtxInfo ident)), 
+							Absyn.identCtxInfo ident),
+						Absyn.identCtxInfo ident), 
 					[], 
-					[])
+					[],
+					infoAlgItems)
 	in
 		[ALGORITHM(Absyn.CLAUSE1(goal, ident, [], result, ref [], info), info)]
 	end
 
-	fun constructClauses(ident, []) = []
-	|	constructClauses(ident, x::rest) =
+	fun constructClauses(ident, [], infoAlgItems) = []
+	|	constructClauses(ident, x::rest, infoAlgItems) =
 		(
 		  case x of 
 		    (* if first one is a match take it*)
 			Absyn.ALGORITHMITEM(Absyn.ALG_ASSIGN(_, Absyn.MATCHexp(_), _),_,_) 
-				=> constructClause(ident, x) @ constructClauses(ident, rest)
+				=> 
+				(if List.length rest > 0
+				 then warnAtFunction(infoAlgItems, "only the first algorithm statement translated, the following are ignored!", "constructClauses") else ();
+				 constructClause(ident, x))
+				(* constructClauses(ident, rest, infoAlgItems) *)
 			(* if first one is a match take it*)
 		  |	Absyn.ALGORITHMITEM(Absyn.ALG_TUPLE_ASSIGN(_, Absyn.MATCHexp(_), _),_,_)
-		  		=> constructClause(ident, x) @ constructClauses(ident, rest)
+				=> 
+				(if List.length rest > 0
+				 then warnAtFunction(infoAlgItems, "only the first algorithm statement translated, the following are ignored!", "constructClauses") else ();
+				 constructClause(ident, x))
+				 (* constructClauses(ident, rest, infoAlgItems) *)		  
 		    (* if is not a match construct then is a simple algorithm section *)
-		  | _ => constructAlgorithms(ident, x::rest)
+		  | Absyn.ALGORITHMITEM(_, _, infoAlgItems) => constructAlgorithms(ident, x::rest, infoAlgItems)
+		  | Absyn.ALGORITHMITEMANN(_, info) =>
+			(
+				warnAtFunction(info, "ingored annotation", "constructClauses"); 
+				constructClauses(ident, rest, infoAlgItems)
+			)					
 		)
 
 	fun getInTy([]) = []
 	|	getInTy(h::rest) = 
 	(
 		case h of 
-			INTy(x, id)  => Absyn.NAMEDty(id,x,ref(Absyn.identCtxInfo(id))) :: getInTy(rest)
+			INTy(x, id)  => Absyn.NAMEDty(id,x,Absyn.identCtxInfo(id)) :: getInTy(rest)
 		|	_ => getInTy(rest)
  	)
 
@@ -2014,7 +2337,7 @@ functor MOToRMLFn(
 	|	getOutTy(h::rest) = 
 	(
 		case h of 
-			OUTTy(x, id)  => Absyn.NAMEDty(id,x,ref(Absyn.identCtxInfo(id))) :: getOutTy(rest)
+			OUTTy(x, id)  => Absyn.NAMEDty(id,x,Absyn.identCtxInfo(id)) :: getOutTy(rest)
 		|	_ => getOutTy(rest)
  	)
 
@@ -2025,8 +2348,8 @@ functor MOToRMLFn(
 			INTy(_, id)  => 		
 				Absyn.IDENTpat(
 					id, 
-					ref(Absyn.WILDpat(ref(Absyn.dummyInfo))), 
-					ref(Absyn.identCtxInfo id)):: getInPat(rest)
+					ref(Absyn.WILDpat(Absyn.dummyInfo)), 
+					Absyn.identCtxInfo id):: getInPat(rest)
 		|	_ => getInPat(rest)
  	)
 
@@ -2039,21 +2362,21 @@ functor MOToRMLFn(
 				Absyn.LONGID(
 					NONE, 
 					id, 
-					ref(Absyn.identCtxInfo id)),  
-				ref(Absyn.STRUCTexp(NONE,[], ref(Absyn.dummyInfo))),
-				ref(Absyn.identCtxInfo id)) 
+					Absyn.identCtxInfo id),  
+				ref(Absyn.STRUCTexp(NONE,[], Absyn.dummyInfo)),
+				Absyn.identCtxInfo id) 
 			:: getOutRes(rest)
 		|	_ => getOutRes(rest)
  	)
 
-	fun constructRelationTy([]) = Absyn.RELty([], [], ref(Absyn.dummyInfo))
+	fun constructRelationTy([]) = Absyn.RELty([], [], Absyn.dummyInfo)
 	|   constructRelationTy(resultlist) =
 		(
 		debug("constructRelationTy\n"); 
-		Absyn.RELty(getInTy resultlist, getOutTy resultlist, ref(Absyn.dummyInfo)) 
+		Absyn.RELty(getInTy resultlist, getOutTy resultlist, Absyn.dummyInfo) 
 		)  	
 					
-	fun constructClausePattern([]) = [Absyn.STRUCTpat(NONE, [], ref [], ref(Absyn.dummyInfo))]
+	fun constructClausePattern([]) = [Absyn.STRUCTpat(NONE, [], ref [], Absyn.dummyInfo)]
 	|   constructClausePattern(resultlist) =
 		let 
 		in
@@ -2063,18 +2386,19 @@ functor MOToRMLFn(
 
 	fun constructClauseResult([]) = 
 		Absyn.RETURN(
-			[Absyn.STRUCTexp(NONE, [], ref(Absyn.dummyInfo))],
-			ref(Absyn.dummyInfo))
+			[Absyn.STRUCTexp(NONE, [], Absyn.dummyInfo)],
+			Absyn.dummyInfo)
 	|   constructClauseResult(resultlist) =
 		let 
 		in
 		 debug("constructClauseResult\n"); 
-		 Absyn.RETURN(getOutRes resultlist,  ref(Absyn.dummyInfo))
+		 Absyn.RETURN(getOutRes resultlist,  Absyn.dummyInfo)
 		end  	
 	
 	(* 
 	this function splits elements into:
-	input, output, type, functype, replaceable types 
+	input, output, type, functype, replaceable types,
+	and variables 
 	*)
 	fun splitElements(f_ident, []) = []
 	|	splitElements(f_ident, elementItem::rest) = 
@@ -2104,16 +2428,22 @@ functor MOToRMLFn(
 			   - function Functype
 			      replaceable type Xtype = list<Type_a>
 			      replaceable type Ytype = list<Type_b>			       
-			      input  XType y;
-			      output YType_b;
+			      input  XType x;
+			      output YType y;
 			     end Functype;
 			*)
 			(
 			case restriction of
 				Absyn.R_TYPEVARIABLE(_) =>
 				(
-					(* collect the type variable *) 
-					TyV(identclass)::splitElements(f_ident, rest) 
+				 (* collect the type variable *) 
+				 let val Absyn.IDENT(idstr, tmpInfo) = identclass
+					 val varty = Absyn.IDENT("'"^idstr, tmpInfo)
+					 val tyvar = Absyn.VARty(varty,tmpInfo)
+					 val tybind = Absyn.TYPBIND([varty],identclass,tyvar,tmpInfo)
+				 in 
+				  TyV(varty)::(TyB(tybind)::splitElements(f_ident, rest))
+				 end
 				)
 			|	Absyn.R_FUNCTION(_) =>
 				(
@@ -2126,9 +2456,23 @@ functor MOToRMLFn(
 						buildRelationSpecAndDec(identclass, classparts))::
 					splitElements(f_ident, rest)
 			)
-			|	Absyn.R_TYPE(_) =>
+			|	Absyn.R_FUNCTION_TYPE(_) =>
 				(
-					(* collect the type variable *) 
+					(* 
+						collect everything in a FUNCTYPE
+					*)
+					FUNCTYPE(
+						SOME(f_ident), 
+						identclass, 
+						buildRelationSpecAndDec(identclass, classparts))::
+					splitElements(f_ident, rest)
+			)
+			|	Absyn.R_TYPE(info) =>
+				(
+					if (List.length classparts > 0)
+					then errorAtFunction(info, "types cannot have parts!", "splitElements") 
+					else
+					(* collect the type *) 
 					TyV(identclass)::splitElements(f_ident, rest) 
 				)
 			
@@ -2152,50 +2496,46 @@ functor MOToRMLFn(
 			(debug("splitElements\n");
 			 case classdef of
 				(* list, Option, tuple, polymorphic *)
- 				Absyn.DERIVED_TYPE(path, path_list,	_, infoDerived) =>  
- 				TyB((getDerivedType(identclass, path, path_list)))
- 				::splitElements(f_ident, rest)
- 			|   Absyn.DERIVED(path, SOME([]), _, _, _, infoDerived)	=> 
- 				TyB(getDerivedType(identclass, path, []))
-				::splitElements(f_ident, rest) 				
- 				(* array / vector *)
- 			|   Absyn.DERIVED(path, _, _, _, _, infoDerived)	=> 
- 				TyB(getDerivedType(identclass, 
- 					Absyn.PATHIDENT(Absyn.IDENT("ARRAY", ref(Absyn.dummyInfo)), ref(Absyn.dummyInfo)), 
- 				 [path]))
+ 			    Absyn.DERIVED(typeSpec, _, _, _, infoDerived)	=> 
+ 				TyB(getDerivedType(identclass, typeSpec))
 				::splitElements(f_ident, rest)
-			| _ => bug("splitElements: expecting DERIVED_TYPE or DERIVED!")
+			| _ => errorAtFunction(info, "derived class definition expected", "splitElements")
  			)
 		|	Absyn.ELEMENTITEM(
 				Absyn.ELEMENT(_,_,_,
 					ident, 
-					ementSpec as Absyn.COMPONENTS(Absyn.ATTR(_, _, direction, _, _), path, components, _),
+					ementSpec as Absyn.COMPONENTS(
+						Absyn.ATTR(
+							variability, 
+							direction, _), path, components, _),
 					info, 
 					NONE),
 					_) => 
 			(*
 			COMPONENTS test for:
 			input  Path component;
-			output Path component;  
+			output Path component;
+			Path component;  
 			*)
 			(
 				case direction of
 					Absyn.INPUT(infoInput)  => 
 					(
 					case components of 
-						[Absyn.COMPONENTITEM(Absyn.COMPONENT(ident, _, _, _), _, _)]
+						[Absyn.COMPONENTITEM(Absyn.COMPONENT(ident, _, _), _, _)]
 						=> INTy(getType(path), ident)::splitElements(f_ident, rest) 
-					| _ => (prBugLoc(infoInput); print " "; bug("splitElements: Only ONE component in the input please"))
+					| _ => errorAtFunction(info, "only one component must appear in input declarations", "splitElements")
 					)
 				|	Absyn.OUTPUT(infoInput) => 
 					(
 					case components of 
-						[Absyn.COMPONENTITEM(Absyn.COMPONENT(ident, _, _, _), _, _)] 
+						[Absyn.COMPONENTITEM(Absyn.COMPONENT(ident, _, _), _, _)] 
 						=> OUTTy(getType(path), ident)::splitElements(f_ident, rest)
-					| _ => (prBugLoc(infoInput); print " "; bug("splitElements: Only ONE component in the output please"))
+					| _ => errorAtFunction(info, "only one component must appear in output declarations", "splitElements")
 					)
 				(* other components we don't care about it now! *)
-				|   _ => splitElements(f_ident, rest)
+				|   Absyn.BIDIR(infoBidir) => (* TODO! COLLECT THESE! *)
+						splitElements(f_ident, rest)
 			)
 		)
 		
@@ -2210,11 +2550,14 @@ functor MOToRMLFn(
 				splitElements(ident, elementItems) @ buildRelationSpecAndDec(ident, rest)
 			| Absyn.PROTECTED(elementItems, _) => 
 				splitElements(ident, elementItems) @ buildRelationSpecAndDec(ident, rest)
-			| Absyn.ALGORITHMS(algorithmItems, _) => 
-				constructClauses(ident, algorithmItems) @ buildRelationSpecAndDec(ident, rest)
+			| Absyn.ALGORITHMS(algorithmItems, infoAlgItems) => 
+				constructClauses(ident, algorithmItems, infoAlgItems) @ buildRelationSpecAndDec(ident, rest)
 			| Absyn.EXTERNAL(externalDecl, _, _, info) =>
 				EXTERNAL("C")::buildRelationSpecAndDec(ident, rest)
-			| _ => bug("buildRelationSpecAndDec - only PUBLIC/PROTECTED/ALGORITHM/EXTERNAL are handled in FUNCTION ")	
+			| Absyn.EQUATIONS(_,  info)
+				=> errorAtFunction(info,
+					"expected public/protected/local elements or an algorithm section",
+					"buildRelationSpecAndDec")	
 		  )
 
 	fun sweepCLAUSE([]) = []
@@ -2264,7 +2607,7 @@ functor MOToRMLFn(
 							([REL(ident, ty, SOME(clause_good), infoClause)], resultlist)
 							end
 						else (* no clause in this relation => external or functype *)
-						 ([REL(ident, ty, NONE, ref(Absyn.identCtxInfo ident))], resultlist)				
+						 ([REL(ident, ty, NONE, Absyn.identCtxInfo ident)], resultlist)				
 			in
 				debug("constructRelationsAndDatatypes\n");
 				(rels, binds)
@@ -2279,7 +2622,7 @@ functor MOToRMLFn(
 			Absyn.RELBIND(ident, SOME(ty), clause, info)::fixDecs(rest)
 
 	fun fixSpecBinds([]) = []
-	| fixSpecBinds(TyB(x)::rest) = Absyn.TYPEspec([x], ref(Absyn.dummyInfo))::fixSpecBinds(rest)
+	| fixSpecBinds(TyB(x)::rest) = Absyn.TYPEspec([x], Absyn.dummyInfo)::fixSpecBinds(rest)
 	| fixSpecBinds(VAL(id, exp_opt, ty_opt, info)::rest) = 
 		(
 		case ty_opt of 
@@ -2288,8 +2631,8 @@ functor MOToRMLFn(
 		)
 	| fixSpecBinds(FUNCTYPE(_, reltypeid, constructs)::rest) = 
 		Absyn.TYPEspec(
-			[Absyn.TYPBIND([], reltypeid, constructRelationTy(constructs), ref(Absyn.identCtxInfo reltypeid))], 
-			ref(Absyn.identCtxInfo reltypeid))::(fixSpecBinds(constructs) @ fixSpecBinds(rest))
+			[Absyn.TYPBIND([], reltypeid, constructRelationTy(constructs), Absyn.identCtxInfo reltypeid)], 
+			Absyn.identCtxInfo reltypeid)::(fixSpecBinds(constructs) @ fixSpecBinds(rest))
 	| fixSpecBinds(_::rest) = fixSpecBinds(rest)
 
 	fun isPresentInSpecs([], _) = false
@@ -2328,9 +2671,11 @@ functor MOToRMLFn(
 		)
 			
 	fun getIdentFromTySpec(Absyn.TYPEspec([Absyn.TYPBIND(_, Absyn.IDENT(id, _), _, _)], _) ) = id
-	|   getIdentFromTySpec(_) = bug("getIdentFromTySpec - unexpected value")
+	|   getIdentFromTySpec(_) = 
+		bug("getIdentFromTySpec - unexpected value")
 	fun getIdentFromTyDec(Absyn.TYPEdec([Absyn.TYPBIND(_, Absyn.IDENT(id, _), _, _)], _) ) = id
-	|   getIdentFromTyDec(_) = bug("getIdentFromTyDec - unexpected value")
+	|   getIdentFromTyDec(_) = 
+		bug("getIdentFromTyDec - unexpected value")
 			
 	fun removeDecsSpecsDuplicates([], _) = []
 	|	removeDecsSpecsDuplicates(dec::decs, specs) =
@@ -2353,7 +2698,7 @@ functor MOToRMLFn(
 	| fixDecBinds(specs, (z as TyB(x))::rest) = 
 		if isPresentInSpecs(specs, z) 
 		then fixDecBinds(specs, rest)
-		else Absyn.TYPEdec([x], ref(Absyn.dummyInfo))::fixDecBinds(specs, rest)
+		else Absyn.TYPEdec([x], Absyn.dummyInfo)::fixDecBinds(specs, rest)
 	| fixDecBinds(specs, VAL(id, exp_opt, ty_opt, info)::rest) = 
 		(
 		case exp_opt of 
@@ -2362,8 +2707,8 @@ functor MOToRMLFn(
 		)
 	| fixDecBinds(specs, FUNCTYPE(_, ftypeid, constructs)::rest) = 
 		Absyn.TYPEdec(
-			[Absyn.TYPBIND([], ftypeid, constructRelationTy(constructs), ref(Absyn.identCtxInfo ftypeid))], 
-			ref(Absyn.identCtxInfo ftypeid))::(fixDecBinds(specs, constructs) @ fixDecBinds(specs, rest))		
+			[Absyn.TYPBIND([], ftypeid, constructRelationTy(constructs), Absyn.identCtxInfo ftypeid)], 
+			Absyn.identCtxInfo ftypeid)::(fixDecBinds(specs, constructs) @ fixDecBinds(specs, rest))		
 	| fixDecBinds(specs, _::rest) = fixDecBinds(specs, rest)
 
 	
@@ -2384,7 +2729,7 @@ functor MOToRMLFn(
 		else []
 		)
 		@
-		[ Absyn.RELdec(fixDecs(rels), ref(Absyn.dummyInfo)) ]
+		[ Absyn.RELdec(fixDecs(rels), Absyn.dummyInfo) ]
 		)
 	)
 	
@@ -2421,6 +2766,17 @@ functor MOToRMLFn(
 		then OUTTy(Absyn.CONSty(tylist, concatLIds(ident, lid), info), cId)
 		else x
 	)
+	(*
+	(* search into ty for function name. if you find it, fix it! *)
+	|	fixInputOutputScope (ident, ftypeident) (x as TyB(Absyn.TYPBIND(tyv, id, ty, cId))) = 
+	(
+		debug("\nrel:"^(Absyn.identName ident)^
+			  " ftype:"^(Absyn.identName ftypeident)^
+			  " type: "^(Absyn.lidentName lid)^"\n"); 
+		TyB(Absyn.TYPBIND(tyv, id, fixFunctionNameScope(ident, ftypeident, ty), cId))
+	)
+	*)
+	(* TODO! search into UNIONTYPE/RECORS for functionames in ty and fix it! *)
 	|	fixInputOutputScope(ident, ftypeident) (x) = x						
 
 		
@@ -2449,7 +2805,10 @@ functor MOToRMLFn(
 	fun buildRelation (ident, classdef, isPublic, specs, decs) = 
 		let val classparts' = case classdef of
 							  Absyn.PARTS(classparts, _, _) => classparts
-							  | _ => bug("buildRelation - other classparts than PARTS are not handled in the FUNCTION ")			
+							| Absyn.DERIVED(_,_,_,_, info) => 
+								errorAtFunction(info, "derived functions not supported", "buildRelation")
+							| Absyn.ENUMERATION(_, _, info) => 
+								errorAtFunction(info, "enumeration is not supported", "buildRelation")
 			val resultlist = buildRelationSpecAndDec(ident, classparts')
 			val resultList = fixScope(ident, [], resultlist)
 			val (rels, datbinds) = constructRelationsAndDatatypes(ident, resultList)
@@ -2459,11 +2818,32 @@ functor MOToRMLFn(
 			(specs', removeDecsSpecsDuplicates(decs', specs'))
 		end
 
-	fun buildClass   (ident, classdef, isPublic, specs, decs) = (specs, decs)
-	fun buildRecord  (ident, classdef, isPublic, specs, decs) = (specs, decs) 
-	fun buildPackage (ident, classdef, isPublic, specs, decs) = (specs, decs)
-	                    
-
+	fun buildRecord  (ident, eX, isPublic, specs, decs) = 
+	let val info = Absyn.identCtxInfo ident
+		val contytyvar_list = buildConstructors([Absyn.PUBLIC([eX],info)])
+		val (tyspecs, tydecs, cons, tyvars) = 
+				(getTypsSpec(contytyvar_list),
+					getTypsDec(contytyvar_list),
+					getCons(contytyvar_list),
+					getTyVars(contytyvar_list)) 
+	in
+		debug("buildRecord: specs\n");
+		(
+		specs @
+		(
+		if (isPublic = true) 
+		then tyspecs @ [ Absyn.DATAspec([Absyn.DATBIND(tyvars, ident, cons, info)], [], info) ]
+		else []
+		),
+		decs @
+		(
+		if (isPublic = false) 
+		then tydecs @ [ Absyn.DATAdec([Absyn.DATBIND(tyvars, ident, cons, info)], [], info)  ]
+		else []
+		)			 
+		)
+	end
+		
 	fun (* type variables *)
 	    sweepTypes(Absyn.CLASS(
 						identclass,
@@ -2472,7 +2852,16 @@ functor MOToRMLFn(
 						encapsulated,
 						Absyn.R_TYPEVARIABLE(_),
 						classdef as Absyn.PARTS([], _, _),
-					_)) = (debug ("sweepTypes\n"); TyV(identclass))        
+					_)) = 
+		(debug ("sweepTypes\n");
+		 let val Absyn.IDENT(idstr, tmpInfo) = identclass
+		 	 val varty = Absyn.IDENT("'"^idstr, tmpInfo)
+		 	 val tyvar = Absyn.VARty(varty,tmpInfo)
+			 val tybind = Absyn.TYPBIND([varty],identclass,tyvar,tmpInfo)
+		 in 
+		   TyV(varty)::[TyB(tybind)]
+		 end
+		 )        
         (* type declarations 
            type = IDENT<TYPE list>, 
            ex: type T1 = record<Typ1,Typ2>; DERIVED_TYPE
@@ -2486,20 +2875,14 @@ functor MOToRMLFn(
 						encapsulated,
 						_,
 						classdef,
-					_)) = 
+					info)) = 
 			(debug ("sweepTypes\n");
 			 case classdef of
 				(* list, option, record, polymorphic *)
- 				Absyn.DERIVED_TYPE(path, path_list,	_, infoDerived) =>  
- 				TyB((getDerivedType(identclass, path, path_list)))
- 			|   Absyn.DERIVED(path, SOME([]), _, _, _, infoDerived)	=> 
- 				TyB(getDerivedType(identclass, path, [])) 				
+ 			    Absyn.DERIVED(typeSpec, _, _, _, infoDerived)	=> 
+ 				[TyB(getDerivedType(identclass, typeSpec))]
  				(* array / vector *)
- 			|   Absyn.DERIVED(path, _, _, _, _, infoDerived)	=> 
- 				TyB(getDerivedType(identclass, 
- 					Absyn.PATHIDENT(Absyn.IDENT("ARRAY", ref(Absyn.dummyInfo)), ref(Absyn.dummyInfo)), 
- 				 [path]))
- 			|   _ => bug("sweepTypes: unexpected AST element")
+ 			|   _ => errorAtFunction(info, "derived type expected", "sweepTypes")
  			)
 
 
@@ -2509,19 +2892,22 @@ functor MOToRMLFn(
 		case result of
 			Absyn.RETURN([x], info) => x
 		|	_ => 
-			(prBugLoc(info); print " "; bug("translateValExp: strange expression for val var = exp"))
+			errorAtFunction(info, "unexpected expression at initialization", "translateValExp")
 	end
 
 	
 	fun makeExpFromMod(Absyn.CLASSMOD(_, NONE, info)) = 
-		(prBugLoc(info); print " "; bug ("makeExpFromMod: we only allow component declaration of the form: [constant] TypeName x [= expression]"))
+		errorAtFunction(
+			info, 
+			"only component declaration of the form: [constant] TypeName x [= expression]; are allowed", 
+			"makeExpFromMod")
 	|	makeExpFromMod(Absyn.CLASSMOD(_, SOME(mexp), info)) =
 		 translateValExp(mexp)
 	
 	fun walkCompList([], ty) = []
 	|	walkCompList(
 		Absyn.COMPONENTITEM(
-			Absyn.COMPONENT(id, arr, modif, info), _, _)::components, ty) =
+			Absyn.COMPONENT(id, modif, info), _, _)::components, ty) =
 		let val exp = 
 				case modif of
 					NONE => NONE
@@ -2539,75 +2925,83 @@ functor MOToRMLFn(
 					s @ (if (isPublic = true) then [Absyn.VALspec(id, ty, info)] else []), 
 					d @ [Absyn.VALdec(id, exp, info)])
 		|	NONE	 => 
-			(prBugLoc(info); print " "; bug("fixSpecsAndDecs: Expression needed here!"))		
+			errorAtFunction(info, "expression expected", "fixSpecsAndDecs")		
 		)
 	|	fixSpecsAndDecs(VAL(_, _, _, info)::rest, isPublic, s, d) =
-		(prBugLoc(info); print " "; bug("fixSpecsAndDecs: EXPRESSION and TYPE needed here!"))
+			errorAtFunction(info, "expression and type expected", "fixSpecsAndDecs")
 
 	fun createValDecls(Absyn.COMPONENTS(ElemAttr, Path, CompList, info), isPublic, specs, decs) =
 		let val typ = getType(Path)
 		in		
 			fixSpecsAndDecs(walkCompList(CompList, typ), isPublic, specs, decs)		
 		end
-	|	createValDecls(_) = bug("createValDecls: Components expected")
+	|	createValDecls(Absyn.CLASSDEF(_, _, info), isPublic, specs, decs) =
+			errorAtFunction(info,"component declaration expected", "createValDecls")
+	|	createValDecls(Absyn.EXTENDS(_, _, info), isPublic, specs, decs) = 
+			errorAtFunction(info,"component declaration expected", "createValDecls")
+	|	createValDecls(Absyn.IMPORT(_, _, info), isPublic, specs, decs) = 
+			errorAtFunction(info,"component declaration expected", "createValDecls")
 	
-	fun buildType    (class, isPublic, specs, decs) =
-	let val tytyvar = sweepTypes(class)
-		val (tyspecs, tydecs, tyvars) = 
-				(getTypsSpec([tytyvar]), 
-				 getTypsDec([tytyvar]),
-				 getTyVars([tytyvar]))
-	in (* we ignore tyvars here, we don't need them *)
-	  (
-	  specs @ (if (isPublic = true)  then tyspecs else []), 
-	  decs  @ (if (isPublic = false) then tydecs  else [])
-	  )
-	end
+	fun buildType (class, isPublic, specs, decs) =
+		let val tytyvar = sweepTypes(class)
+			val (tyspecs, tydecs, tyvars) = 
+					(getTypsSpec(tytyvar), 
+					getTypsDec(tytyvar),
+					getTyVars(tytyvar))
+		in (* we ignore tyvars here, we don't need them *)
+		(
+		specs @ (if (isPublic = true)  then tyspecs else []), 
+		decs  @ (if (isPublic = false) then tydecs  else [])
+		)
+		end
 	
-	fun walkClasses(class::rest, isPublic, (specs, decs)) = 
-		let val _ = debug("walkClasses entry\n")
+	fun walkClass(eX, class, isPublic, (specs, decs)) = 
+		let val _ = debug("walkClass entry\n")
 			val Absyn.CLASS(ident,partial,final,encapsulated,restriction,classdef,info) = class
 			val sd = case restriction of
-						  Absyn.R_CLASS(_)  =>       ( buildClass   (ident, classdef, isPublic, specs, decs) )
-						| Absyn.R_MODEL(_)  =>       ( buildClass   (ident, classdef, isPublic, specs, decs) )
-						| Absyn.R_RECORD(_) =>       ( buildRecord  (ident, classdef, isPublic, specs, decs) )
-						| Absyn.R_TYPE(_)   =>       ( buildType    (class, isPublic, specs, decs) )
-						| Absyn.R_TYPEVARIABLE(_) => ( buildType    (class, isPublic, specs, decs) )						
-						| Absyn.R_PACKAGE(_) =>	     ( buildPackage (ident, classdef, isPublic, specs, decs) )
-						| Absyn.R_FUNCTION(_) =>     ( buildRelation(ident, classdef, isPublic, specs, decs) )
-						| Absyn.R_UNIONTYPE(_) =>    ( buildDatatype(ident, classdef, isPublic, specs, decs) )
-						| _ => bug("walkClasses - RMLModelica+ can only handle now: CLASS|MODEL|RECORD|TYPE|PACKAGE|FUNCTION|UNIONTYPE!")
+						  Absyn.R_RECORD(_) =>        ( buildRecord  (ident, eX, isPublic, specs, decs) )
+						| Absyn.R_TYPE(_)   =>        ( buildType    (class, isPublic, specs, decs) )
+						| Absyn.R_TYPEVARIABLE(_) =>  ( buildType    (class, isPublic, specs, decs) )						
+						| Absyn.R_FUNCTION(_) =>      ( buildRelation(ident, classdef, isPublic, specs, decs) )
+						| Absyn.R_FUNCTION_TYPE(_) => ( buildRelation(ident, classdef, isPublic, specs, decs) )
+						| Absyn.R_UNIONTYPE(_) =>     ( buildDatatype(ident, classdef, isPublic, specs, decs) )
+						| _ => 
+						errorAtFunction(
+							info, 
+							"expected record|type|function|uniontype!", 
+							"walkClass")
 		in
-		  debug("walkClasses ["^L(rest)^"]\n");		
-		  appendSD(sd, walkClasses(rest, isPublic, ([], []))) 
+		  appendSD(sd, ([], [])) 
 		end		
-	   | walkClasses([], isPublic, sd) = (debug("walkClasses [0]\n"); sd)
 		
 	and sweepTopElements([], isPublic, sd) = sd
 		| sweepTopElements(
-			Absyn.ELEMENTITEM(Absyn.ELEMENT(_,_,_,ident, elementSpec, info, NONE),_)::rest, isPublic, (specs, decs)) = 
+			(eX as Absyn.ELEMENTITEM(Absyn.ELEMENT(_,_,_,ident, elementSpec, info, NONE),_))::rest, isPublic, (specs, decs)) = 
 			(
 			debug("sweepTopElements: "^(Absyn.identName ident)^" rest: "^L(rest)^"\n");
 			(case  elementSpec of 
 				Absyn.CLASSDEF(_, class, _) => 
 					( 
 					  debug("sweepTopElements -> CLASSDEF\n");
-					  (*
-					  appendSD(walkClasses([class], isPublic, (specs, decs)), sweepTopElements(rest, isPublic, ([], [])))
-					  *)
-					  sweepTopElements(rest, isPublic, walkClasses([class], isPublic, (specs, decs)))
+					  sweepTopElements(rest, isPublic, walkClass(eX, class, isPublic, (specs, decs)))
 					)
 			  | c as Absyn.COMPONENTS(_) => 
 					( 
 					debug("sweepTopElements -> COMPONENTS\n"); 
 					appendSD(createValDecls(c, isPublic, specs, decs), sweepTopElements(rest, isPublic, ([], [])))
 					)
-			  | Absyn.IMPORT(import, _ ,_) =>
-					(case import of
-					Absyn.QUAL_IMPORT(path, _) => 
-						let val id = getPathLastIdent(path)
+			  | Absyn.IMPORT(import, _ , info) =>
+						let	val path = 
+							case import of
+							  Absyn.QUAL_IMPORT(path, importInfo) => path
+							| _ => 
+								errorAtFunction(
+									info, 
+									"only qualified imports are available in metamodelica", 
+									"sweepTopElements")
+							val id = getPathLastIdent(path)
 							val importFile = ((Absyn.identName id)^".mo")
-							val x = (importFile, ref(Absyn.dummyInterface), ref(Absyn.dummyInfo))
+							val x = (importFile, ref(Absyn.dummyInterface), info)
 						in  
 						 (
 						 debug("sweepTopElements -> IMPORT: "^importFile^"\n");
@@ -2617,40 +3011,53 @@ functor MOToRMLFn(
 						          sweepTopElements(rest, isPublic, ([], [])))
 						 )
 						end
-					| _ => bug("sweepTopElements - only qualified imports are handled!")
-					)
-			  | _ => bug("sweepTopElements - only class definitions, components and imports handled in the top part!"))
+			  | _ => errorAtFunction(
+						info, 
+						"only class definitions, components and imports are possible in the top package in metamodelica", 
+						"sweepTopElements"))
 			)
-		| sweepTopElements(_, _, (specs, decs)) = bug("sweepTopElements - only class definitions, components and imports handled in the top part!")
-
+		| sweepTopElements(Absyn.ANNOTATIONITEM(_, info)::rest, isPublic, (specs, decs)) = 
+			(warnAtFunction(info, "ignoring annotation", "sweepTopElements"); 
+			 appendSD((specs,decs), sweepTopElements(rest, isPublic, ([], []))))
 
 	and walkTop([Absyn.CLASS(ident,partial,final,encapsulated,restriction,classdef,info)], (specs, decs)) =
 		let val _ = 
 				case restriction of
-			   	  Absyn.R_CLASS(_)  =>  ()
-				| Absyn.R_MODEL(_)    =>  ()
-				| Absyn.R_PACKAGE(_)  =>  ()
-				| Absyn.R_FUNCTION(_) =>  ()
-				| _ => bug("walkTop - You MUST have ONE top (package|model|class|function) that encloses all other elements!")
+						  Absyn.R_PACKAGE(_)  =>  ()
+						| _ => 
+							errorAtFunction(
+								info, 
+								"in metamodelica just ONE top enclosing package for all elements is allowed", 
+								"walkTop")
 			val classparts' = 
 					case classdef of
 						Absyn.PARTS(classparts, _, _) => classparts
-					  | _ => bug("walkTop - other classparts than PARTS are not handled in the top part!")
+					  | _ => 
+						errorAtFunction(
+							info, 
+							"the top enclosing package cannot be of enumeration/derived class type", 
+							"walkTop")
+					  
 			fun sweepElems([], (s, d)) = (s, d)
 			  | sweepElems(classpart::rest, (s, d)) = 
-				case classpart of
+				(case classpart of
 				Absyn.PUBLIC(elementItems, _)      =>  
 					(* appendSD(sweepTopElements(elementItems, true, (s, d)), sweepElems(rest, ([],[]))) *)
 					sweepElems(rest, sweepTopElements(elementItems, true, (s, d)))
 				| Absyn.PROTECTED(elementItems, _) =>  
 					(* appendSD(sweepTopElements(elementItems, false, (s, d)), sweepElems(rest, ([],[]))) *)
 					sweepElems(rest, sweepTopElements(elementItems, false, (s, d)))					
-				| _ => bug("walkTop - only PUBLIC/PROTECTED are handled in the top part!")					
+				| _ => 	
+					errorAtFunction(
+						info, 
+						"the top enclosing package can contain only public or protected elements", 
+						"walkTop"))				
 		in
 		   debug("walkTop\n"); 
 		   sweepElems(classparts', (specs, decs))
 		end	
-	  | walkTop(_, (specs, decs)) = bug("walkTop - You MUST have ONE top (package|model|class|function) that encloses all other elements!")
+	  | walkTop(_, (specs, decs)) = 
+		bug("walkTop - You MUST have ONE top (package|model|class|function) that encloses all other elements!")
 
 
 	fun removeSpecsDuplicates([]) = []
@@ -2774,15 +3181,115 @@ functor MOToRMLFn(
 			|   _ => moveTypeAliasesToSpecs(specs, decs)
 		end
 
+	fun sweepTopElementsImports([], isPublic, sd) = sd
+		| sweepTopElementsImports(
+			Absyn.ELEMENTITEM(Absyn.ELEMENT(_,_,_,ident, elementSpec, info, NONE),_)::rest, isPublic, (specs, decs)) = 
+			(
+			debug("sweepTopElementsImports: "^(Absyn.identName ident)^" rest: "^L(rest)^"\n");
+			(case  elementSpec of 
+			   Absyn.IMPORT(import, _, info) =>
+						let	val path = 
+							case import of
+							  Absyn.QUAL_IMPORT(path, importInfo) => path
+							| _ => 
+								errorAtFunction(
+									info, 
+									"only qualified imports are available in metamodelica", 
+									"sweepTopElementsImports")
+							val id = getPathLastIdent(path)
+							val importFile = ((Absyn.identName id)^".mo")
+							val x = (importFile, ref(Absyn.dummyInterface), info)
+						in  
+						 (
+						 debug("sweepTopElementsImports -> IMPORT: "^importFile^"\n");
+						 appendSD((
+						 specs @ (if (isPublic = true) then [Absyn.WITHspec(x)] else []), 
+						 decs @ (if (isPublic = false) then [Absyn.WITHdec(x)] else [])),
+						          sweepTopElementsImports(rest, isPublic, ([], [])))
+						 )
+						end
+			  | _ => appendSD((specs,decs), sweepTopElementsImports(rest, isPublic, ([], [])))
+						 )
+			)
+		| sweepTopElementsImports(Absyn.ANNOTATIONITEM(_, info)::rest, isPublic, (specs, decs)) = 
+			(warnAtFunction(info, "ignoring annotation", "sweepTopElementsImports"); 
+			 appendSD((specs,decs), sweepTopElements(rest, isPublic, ([], []))))
+
+	and walkTopImports([Absyn.CLASS(ident,partial,final,encapsulated,restriction,classdef,info)], (specs, decs)) =
+		let val _ = 
+				case restriction of
+				  Absyn.R_PACKAGE(_)  =>  ()
+				| _ =>
+					errorAtFunction(
+						info, 
+						"in metamodelica just ONE top enclosing package for all elements is allowed", 
+						"walkTop")
+			val classparts' = 
+					case classdef of
+						Absyn.PARTS(classparts, _, _) => classparts
+					  | _ => 
+						errorAtFunction(
+							info, 
+							"the top enclosing package cannot be of enumeration/derived class type", 
+							"walkTop")
+			fun sweepElems([], (s, d)) = (s, d)
+			  | sweepElems(classpart::rest, (s, d)) = 
+				case classpart of
+				Absyn.PUBLIC(elementItems, _)      =>  
+					(* appendSD(sweepTopElementsImports(elementItems, true, (s, d)), sweepElems(rest, ([],[]))) *)
+					sweepElems(rest, sweepTopElementsImports(elementItems, true, (s, d)))
+				| Absyn.PROTECTED(elementItems, _) =>  
+					(* appendSD(sweepTopElementsImports(elementItems, false, (s, d)), sweepElems(rest, ([],[]))) *)
+					sweepElems(rest, sweepTopElementsImports(elementItems, false, (s, d)))					
+				| _ => 
+					errorAtFunction(
+						info, 
+						"the top enclosing package can contain only public or protected elements", 
+						"walkTopImports")
+		in
+		   debug("walkTopImports\n"); 
+		   sweepElems(classparts', (specs, decs))
+		end	
+	  | walkTopImports(_, (specs, decs)) = 
+		bug("walkTopImports - You MUST have ONE top (package|model|class|function) that encloses all other elements!")
+
+
 	fun buildInterfaceAndDecs(Absyn.PROGRAM(classes, within, interface, info)) =
-		let val (specs, decs) = walkTop(classes, ([] (* specs *), [] (* decs *)) )
+	(*
+	if !Control.dumpDepends 
+	then
+		let val _ = if (List.length classes <> 1)
+		            then errorAtFunction(
+							info, 
+							"You MUST have only ONE top (package|model|class|function) that encloses all other elements!",
+							"buildInterfaceAndDecs")
+					else ()
+			val (specs, decs) = walkTopImports(classes, ([] (* specs *), [] (* decs *)) )
+	        val Absyn.INTERFACE({modid,source,...}, infoI) = interface
+		in 
+		  debug ("buildInterfaceAndDecs - specs: "^L(specs)^
+		        ", decs: "^L(decs)^"\n");		  		
+		  (Absyn.INTERFACE({
+			modid=modid, 
+			specs=specs, 
+			source=source}, infoI), decs) 
+		end	
+	else
+	*)
+		let val _ = if (List.length classes <> 1)
+		            then errorAtFunction(
+							info, 
+							"You MUST have only ONE top (package|model|class|function) that encloses all other elements!",
+							"buildInterfaceAndDecs")
+					else ()
+			val (specs, decs) = walkTop(classes, ([] (* specs *), [] (* decs *)) )
 	        val Absyn.INTERFACE({modid,source,...}, infoI) = interface
 	        val uniqueSpecs  = removeSpecsDuplicates(specs)
 	        val uniqueDecs   = removeDecsDuplicates(decs)
-	        val aliasesSpecs = moveTypeAliasesToSpecs(uniqueSpecs, uniqueDecs) 
-	        val aliasesDecs  = removeDecsSpecsDuplicates(uniqueDecs, aliasesSpecs)
+	        (*val aliasesSpecs = moveTypeAliasesToSpecs(uniqueSpecs, uniqueDecs)*) 
+	        val aliasesDecs  = removeDecsSpecsDuplicates(uniqueDecs, uniqueSpecs(*aliasesSpecs*))
 	        val (specs', decs') = 
-				fixTypeVariables(removeSpecsDecsDuplicates(aliasesSpecs, aliasesDecs),
+				fixTypeVariables(removeSpecsDecsDuplicates(uniqueSpecs(*aliasesSpecs*), aliasesDecs),
 								 aliasesDecs) 
 		in 
 		  debug ("buildInterfaceAndDecs - specs: "^L(specs)^
@@ -2795,31 +3302,14 @@ functor MOToRMLFn(
 		
 	fun buildInfo(Absyn.PROGRAM(_, _, _, info)) = info
 	
-	val (interface, decs) = buildInterfaceAndDecs(program) 
+	val (interface, decs) = buildInterfaceAndDecs(modelica) 
 	val Absyn.INTERFACE({modid,source,...}, infoI) = interface
-	in 
-		debug("mo2rmlmodule:"^(Absyn.identName modid)^"\n");		
-		Absyn.MODULE(interface, decs, buildInfo(program))
-		(* Absyn.MODULE(Absyn.dummyInterface, [], ref(Absyn.dummyInfo)) *)
-	end
-		
-    fun mo2rmlinterface(modelica) = 
-	   let val Absyn.MODULE(Absyn.INTERFACE({modid,specs,source}, infoI), decs, infoM) = 
-			   mo2rmlmodule(modelica)
-	       val interface = Absyn.INTERFACE({modid=modid,specs=specs,
-					       source=source}, 
-					       infoI)
-	   in
-		 debug("mo2rmlinterface:"^(Absyn.identName modid)^"\n");	   
-	     Absyn.MODULE(interface, decs, infoM)
-	   end
-    
-    fun parseModule    (file) = Absyn.MODULE(Absyn.dummyInterface, [], ref(Absyn.dummyInfo))
-    fun parseInterface (file) = Absyn.MODULE(Absyn.dummyInterface, [], ref(Absyn.dummyInfo))
-
-    fun mo2imports(modelica) = MOToMO.mo2imports(modelica)
-	
-	fun mo2recordconstructors(modelica)  = MOToMO.mo2recordconstructors(modelica)
-	
+	val fileName = Absyn.Source.getFileName source
+	val (prefix,ext) = Control.pathSplit fileName
+	val module = Absyn.MODULE(interface, decs, buildInfo(modelica))
+	in
+       module 		
+	end	
+	    	
 	         
-  end (* functor InstrumentFn *)
+  end (* functor MOToRMLFn *)

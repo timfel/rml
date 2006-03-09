@@ -37,7 +37,7 @@ RML_BEGIN_LABEL(RML__string_5flist_5fstring_5fchar)
 	void **strStartAddr = consp+(3*nelts); /* where the list ends the strings start */
     unsigned char *s = (unsigned char*)RML_STRINGDATA(rmlA0) + nelts;
     /* XXX: we should build the list in address order */
-    for(; nelts > 0; a0 = RML_TAGPTR(consp), consp += 3, strStartAddr +=3, --nelts) 
+    for(; nelts > 0; a0 = RML_TAGPTR(consp), consp += 3, strStartAddr +=2, --nelts) 
 	{
 		consp[0] = RML_IMMEDIATE(RML_CONSHDR);
 		p = (struct rml_string *)strStartAddr;

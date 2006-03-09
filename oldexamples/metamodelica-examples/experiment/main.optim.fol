@@ -1,0 +1,348 @@
+(MODULE Main)
+
+(define (Exp [RCONST:1 PLUS:2 SUB:2 MUL:2 DIV:2 NEG:1])
+
+(define tree (STRUCT PLUS [(STRUCT RCONST [1.0]) (STRUCT RCONST [2.0])]))
+
+(define (eval $106:1)
+  (CASE [$106:1]
+	([(AS $109:0 (STRUCT PLUS [(AS $110:2 (WILD)) (AS $111:2 (WILD))]))]
+	 (ANDTHEN (CALL RML.debug_push_in01 ["e1" $110:2] [])
+		  (ANDTHEN (CALL RML.debug
+				 ["main.mo"
+				  23
+				  11
+				  23
+				  21
+				  "eval"
+				  "call:eval(e1) => (v1)"]
+				 [])
+			   (ANDTHEN (CALL eval [$110:2] [$113:1])
+				    (CASE [$113:1]
+					  ([(AS $112:3 (WILD))]
+					   (ANDTHEN (CALL RML.debug_push_out01
+							  ["v1" $112:3]
+							  [])
+						    (ANDTHEN (CALL RML.debug_push_in01
+								   ["e2" $111:2]
+								   [])
+							     (ANDTHEN (CALL RML.debug
+									    ["main.mo"
+									     23
+									     26
+									     23
+									     36
+									     "eval"
+									     "call:eval(e2) => (v2)"]
+									    [])
+								      (ANDTHEN (CALL eval
+										     [$111:2]
+										     [$115:1])
+									       (CASE [$115:1]
+										     ([(AS $114:2
+											     (WILD))]
+										      (ANDTHEN (CALL RML.debug_push_in02
+												     ["v1"
+												      $112:3
+												      "v2"
+												      $114:2]
+												     [])
+											       (ANDTHEN (CALL RML.debug
+													      ["main.mo"
+													       24
+													       13
+													       24
+													       21
+													       "eval"
+													       "call:real_add(v1,v2) => (temp101)"]
+													      [])
+													(ANDTHEN (CALL real_add
+														       [$112:3
+															$114:2]
+														       [$117:1])
+														 (CASE [$117:1]
+														       ([(AS $116:1
+															       (WILD))]
+															(RETURN [$116:1]))))))))))))))))))
+	([(AS $127:0 (STRUCT MUL [(AS $128:2 (WILD)) (AS $129:2 (WILD))]))]
+	 (ANDTHEN (CALL RML.debug_push_in01 ["e1" $128:2] [])
+		  (ANDTHEN (CALL RML.debug
+				 ["main.mo"
+				  29
+				  11
+				  29
+				  21
+				  "eval"
+				  "call:eval(e1) => (v1)"]
+				 [])
+			   (ANDTHEN (CALL eval [$128:2] [$131:1])
+				    (CASE [$131:1]
+					  ([(AS $130:3 (WILD))]
+					   (ANDTHEN (CALL RML.debug_push_out01
+							  ["v1" $130:3]
+							  [])
+						    (ANDTHEN (CALL RML.debug_push_in01
+								   ["e2" $129:2]
+								   [])
+							     (ANDTHEN (CALL RML.debug
+									    ["main.mo"
+									     29
+									     26
+									     29
+									     36
+									     "eval"
+									     "call:eval(e2) => (v2)"]
+									    [])
+								      (ANDTHEN (CALL eval
+										     [$129:2]
+										     [$133:1])
+									       (CASE [$133:1]
+										     ([(AS $132:2
+											     (WILD))]
+										      (ANDTHEN (CALL RML.debug_push_in02
+												     ["v1"
+												      $130:3
+												      "v2"
+												      $132:2]
+												     [])
+											       (ANDTHEN (CALL RML.debug
+													      ["main.mo"
+													       30
+													       13
+													       30
+													       21
+													       "eval"
+													       "call:real_mul(v1,v2) => (temp103)"]
+													      [])
+													(ANDTHEN (CALL real_mul
+														       [$130:3
+															$132:2]
+														       [$135:1])
+														 (CASE [$135:1]
+														       ([(AS $134:1
+															       (WILD))]
+															(RETURN [$134:1]))))))))))))))))))
+	([(AS $145:0 (STRUCT NEG [(AS $146:2 (WILD))]))]
+	 (ANDTHEN (CALL RML.debug_push_in01 ["e1" $146:2] [])
+		  (ANDTHEN (CALL RML.debug
+				 ["main.mo"
+				  35
+				  11
+				  35
+				  21
+				  "eval"
+				  "call:eval(e1) => (v1)"]
+				 [])
+			   (ANDTHEN (CALL eval [$146:2] [$148:1])
+				    (CASE [$148:1]
+					  ([(AS $147:3 (WILD))]
+					   (ANDTHEN (CALL RML.debug_push_out01
+							  ["v1" $147:3]
+							  [])
+						    (ANDTHEN (CALL RML.debug_push_in01
+								   ["v1" $147:3]
+								   [])
+							     (ANDTHEN (CALL RML.debug
+									    ["main.mo"
+									     36
+									     13
+									     36
+									     18
+									     "eval"
+									     "call:real_neg(v1) => (temp105)"]
+									    [])
+								      (ANDTHEN (CALL real_neg
+										     [$147:3]
+										     [$150:1])
+									       (CASE [$150:1]
+										     ([(AS $149:1
+											     (WILD))]
+										      (RETURN [$149:1])))))))))))))
+	([(AS $136:0 (STRUCT DIV [(AS $137:2 (WILD)) (AS $138:2 (WILD))]))]
+	 (ANDTHEN (CALL RML.debug_push_in01 ["e1" $137:2] [])
+		  (ANDTHEN (CALL RML.debug
+				 ["main.mo"
+				  32
+				  11
+				  32
+				  21
+				  "eval"
+				  "call:eval(e1) => (v1)"]
+				 [])
+			   (ANDTHEN (CALL eval [$137:2] [$140:1])
+				    (CASE [$140:1]
+					  ([(AS $139:3 (WILD))]
+					   (ANDTHEN (CALL RML.debug_push_out01
+							  ["v1" $139:3]
+							  [])
+						    (ANDTHEN (CALL RML.debug_push_in01
+								   ["e2" $138:2]
+								   [])
+							     (ANDTHEN (CALL RML.debug
+									    ["main.mo"
+									     32
+									     26
+									     32
+									     36
+									     "eval"
+									     "call:eval(e2) => (v2)"]
+									    [])
+								      (ANDTHEN (CALL eval
+										     [$138:2]
+										     [$142:1])
+									       (CASE [$142:1]
+										     ([(AS $141:2
+											     (WILD))]
+										      (ANDTHEN (CALL RML.debug_push_in02
+												     ["v1"
+												      $139:3
+												      "v2"
+												      $141:2]
+												     [])
+											       (ANDTHEN (CALL RML.debug
+													      ["main.mo"
+													       33
+													       13
+													       33
+													       21
+													       "eval"
+													       "call:real_div(v1,v2) => (temp104)"]
+													      [])
+													(ANDTHEN (CALL real_div
+														       [$139:3
+															$141:2]
+														       [$144:1])
+														 (CASE [$144:1]
+														       ([(AS $143:1
+															       (WILD))]
+															(RETURN [$143:1]))))))))))))))))))
+	([(AS $118:0 (STRUCT SUB [(AS $119:2 (WILD)) (AS $120:2 (WILD))]))]
+	 (ANDTHEN (CALL RML.debug_push_in01 ["e1" $119:2] [])
+		  (ANDTHEN (CALL RML.debug
+				 ["main.mo"
+				  26
+				  11
+				  26
+				  21
+				  "eval"
+				  "call:eval(e1) => (v1)"]
+				 [])
+			   (ANDTHEN (CALL eval [$119:2] [$122:1])
+				    (CASE [$122:1]
+					  ([(AS $121:3 (WILD))]
+					   (ANDTHEN (CALL RML.debug_push_out01
+							  ["v1" $121:3]
+							  [])
+						    (ANDTHEN (CALL RML.debug_push_in01
+								   ["e2" $120:2]
+								   [])
+							     (ANDTHEN (CALL RML.debug
+									    ["main.mo"
+									     26
+									     26
+									     26
+									     36
+									     "eval"
+									     "call:eval(e2) => (v2)"]
+									    [])
+								      (ANDTHEN (CALL eval
+										     [$120:2]
+										     [$124:1])
+									       (CASE [$124:1]
+										     ([(AS $123:2
+											     (WILD))]
+										      (ANDTHEN (CALL RML.debug_push_in02
+												     ["v1"
+												      $121:3
+												      "v2"
+												      $123:2]
+												     [])
+											       (ANDTHEN (CALL RML.debug
+													      ["main.mo"
+													       27
+													       13
+													       27
+													       21
+													       "eval"
+													       "call:real_sub(v1,v2) => (temp102)"]
+													      [])
+													(ANDTHEN (CALL real_sub
+														       [$121:3
+															$123:2]
+														       [$126:1])
+														 (CASE [$126:1]
+														       ([(AS $125:1
+															       (WILD))]
+															(RETURN [$125:1]))))))))))))))))))
+	([(AS $107:0 (STRUCT RCONST [(AS $108:3 (WILD))]))]
+	 (ANDTHEN (CALL RML.debug_push_in01 ["v1" $108:3] [])
+		  (ANDTHEN (CALL RML.debug
+				 ["main.mo"
+				  21
+				  26
+				  21
+				  28
+				  "eval"
+				  "axiom:eval(RCONST(v1)) => (v1)"]
+				 [])
+			   (ANDTHEN (CALL RML.debug_push_out01 ["v1" $108:3] [])
+				    (RETURN [$108:3])))))))
+
+(define (main $151:1)
+  (CASE [$151:1]
+	([(AS $152:0 (WILD))]
+	 (ANDTHEN (CALL RML.debug_push_in01 ["tree" tree] [])
+		  (ANDTHEN (CALL RML.debug
+				 ["main.mo"
+				  49
+				  6
+				  49
+				  18
+				  "main"
+				  "call:eval(tree) => (i)"]
+				 [])
+			   (ANDTHEN (CALL eval [tree] [$154:1])
+				    (CASE [$154:1]
+					  ([(AS $153:4 (WILD))]
+					   (ANDTHEN (CALL RML.debug_push_out01
+							  ["i" $153:4]
+							  [])
+						    (ANDTHEN (CALL RML.debug_push_in01
+								   ["i" $153:4]
+								   [])
+							     (ANDTHEN (CALL RML.debug
+									    ["main.mo"
+									     50
+									     8
+									     50
+									     24
+									     "main"
+									     "call:real_string(i) => (str)"]
+									    [])
+								      (ANDTHEN (CALL real_string
+										     [$153:4]
+										     [$156:1])
+									       (CASE [$156:1]
+										     ([(AS $155:3
+											     (WILD))]
+										      (ANDTHEN (CALL RML.debug_push_out01
+												     ["str"
+												      $155:3]
+												     [])
+											       (ANDTHEN (CALL RML.debug_push_in01
+													      ["str"
+													       $155:3]
+													      [])
+													(ANDTHEN (CALL RML.debug
+														       ["main.mo"
+															51
+															4
+															51
+															13
+															"main"
+															"call:print(str) => ()"]
+														       [])
+														 (ANDTHEN (CALL print
+																[$155:3]
+																[])
+															  (RETURN [$153:4])))))))))))))))))))

@@ -1,0 +1,316 @@
+(*
+    Copyright PELAB, Linkoping University
+
+    This file is part of Open Source Modelica (OSM).
+
+    OSM is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    OSM is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with OpenModelica; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+*)
+
+(**
+ ** file:	 derive.rml
+ ** module:      Derive
+ ** description: Differentiation of equations from DAELow
+ **
+ ** RCS: $Id: derive.rml,v 1.9 2005/01/10 08:53:49 petar Exp $
+ ** 
+ ** This module is responsible for symbolic differentiation of equations and 
+ ** expressions. Is is currently (2004-09-28) only used by the solve relation in 
+ ** the exp module for solving equations.
+ ** 
+ ** The symbolic differentiation is used in the Newton-Raphson method and in
+ ** index reduction.
+ ** 
+ ** 
+ **)
+
+module Derive:
+  with "daelow.rml"
+  with "exp.rml"
+  relation differentiate_equation_time: (DAELow.Equation,
+				    DAELow.Variables) (* all time varying variables *)
+	  => DAELow.Equation
+  relation differentiate_exp_time: (Exp.Exp, DAELow.Variables) => Exp.Exp
+  relation differentiate_exp: (Exp.Exp, Exp.ComponentRef) => Exp.Exp
+end
+
+
+with "absyn.rml" 
+with "util.rml"
+with "print.rml" 
+
+relation differentiate_equation_time: (DAELow.Equation,
+				  DAELow.Variables) (* time varying variables *)
+	  => DAELow.Equation =
+
+  rule	differentiate_exp_time(e1,timevars) => e1' &
+	differentiate_exp_time(e2,timevars) => e2' &
+	Exp.simplify(e1') => e1'' &
+	Exp.simplify(e2') => e2'' 
+	(*& Exp.simplify(e1'') => e1'' &
+	Exp.simplify(e2'') => e2'' *)
+	----------------------
+	differentiate_equation_time(DAELow.EQUATION(e1,e2),timevars) 
+	  => DAELow.EQUATION(e1'',e2'')
+end
+
+(** relation: differentiate_exp_time
+ ** This relation differentiates expressions with respect to the 'time' variable.
+ ** All other variables that are varying over time are given as the second variable.
+ ** For instance, given the model:
+ ** model test 
+ **   Real x,y; 
+ **   parameter Real PI=3.14; 
+ ** equation
+ **   x+y=5*PI;	
+ ** end test;
+ ** gives
+ ** differentiate_exp_time('x+y=5*PI', [x,y]) => der(x)+der(y)=0
+ **)
+relation differentiate_exp_time: (Exp.Exp,DAELow.Variables) => Exp.Exp =
+
+  axiom	differentiate_exp_time(Exp.ICONST(_),_) => Exp.RCONST(0.0)
+  axiom	differentiate_exp_time(Exp.RCONST(_),_) => Exp.RCONST(0.0)
+  axiom	differentiate_exp_time(Exp.CREF(Exp.CREF_IDENT("time",[]),tp),_) 
+	  => Exp.RCONST(1.0)
+	  
+  rule	DAELow.get_var(cr,timevars) => (_,_)
+	--------------------------------
+	differentiate_exp_time(e as Exp.CREF(cr,tp),timevars) 
+	  => Exp.CALL(Absyn.IDENT("der"),[e],false,true)
+
+  rule  (* der(sin(x)) = der(x)*cos(x) *)
+	differentiate_exp_time(e,timevars) => e'
+	--------------------------------
+	differentiate_exp_time(Exp.CALL(Absyn.IDENT("sin"),[e],false,true),timevars) 
+	  => Exp.BINARY(e',Exp.MUL(Exp.REAL),Exp.CALL(Absyn.IDENT("cos"),[e],false,true))
+
+  rule	(* list_member(cr,timevars) => false *)
+	--------------------------------
+	differentiate_exp_time(e as Exp.CREF(cr,tp),timevars) 
+	  => Exp.RCONST(0.0)
+	
+  rule	differentiate_exp_time(e1,tv) => e1' &
+	differentiate_exp_time(e2,tv) => e2' 
+	-----------------------------
+	differentiate_exp_time(Exp.BINARY(e1,Exp.ADD(tp),e2),tv) 
+	  => Exp.BINARY(e1',Exp.ADD(tp),e2')
+
+  rule	differentiate_exp_time(e1,tv) => e1' &
+	differentiate_exp_time(e2,tv) => e2' 
+	-----------------------------
+	differentiate_exp_time(Exp.BINARY(e1,Exp.SUB(tp),e2),tv) 
+	  => Exp.BINARY(e1',Exp.SUB(tp),e2')
+
+  rule	differentiate_exp_time(e1,tv) => e1' &
+	differentiate_exp_time(e2,tv) => e2' 
+	-----------------------------
+	differentiate_exp_time(Exp.BINARY(e1,Exp.MUL(tp),e2),tv) 
+	  => (* f'g + fg' *)
+	  Exp.BINARY(Exp.BINARY(e1,Exp.MUL(tp),e2'),
+			Exp.ADD(tp),
+			Exp.BINARY(e1',Exp.MUL(tp),e2))
+
+  rule	differentiate_exp_time(e1,tv) => e1' &
+	differentiate_exp_time(e2,tv) => e2' 
+	-----------------------------
+	differentiate_exp_time(Exp.BINARY(e1,Exp.DIV(tp),e2),tv) 
+	 => (* (f'g - fg' ) / g^2 *)
+	  Exp.BINARY(Exp.BINARY(Exp.BINARY(e1',Exp.MUL(tp),e2)
+				   ,Exp.SUB(tp),
+				   Exp.BINARY(e1,Exp.MUL(tp),e2')),
+			Exp.DIV(tp),
+			Exp.BINARY(e2,Exp.MUL(tp),e2))
+
+
+  rule	differentiate_exp_time(e,tv) => e' 
+	-----------------------------
+	differentiate_exp_time(Exp.UNARY(op,e),tv) => Exp.UNARY(op,e')
+
+  rule	differentiate_exp_time(Exp.BINARY(e1,op,e2),tv) => Exp.BINARY(e1',op,e2')
+	-----------------------------
+	differentiate_exp_time(Exp.LBINARY(e1,op,e2),tv) 
+	  => Exp.LBINARY(e1',op,e2')
+	
+  rule	differentiate_exp_time(e,tv) => e'
+	-----------------------------
+	differentiate_exp_time(Exp.LUNARY(op,e),tv) => Exp.LUNARY(op,e')
+
+  rule	differentiate_exp_time(e1,tv) => e1' &
+	differentiate_exp_time(e2,tv) => e2'
+	-------------------------
+	differentiate_exp_time(Exp.RELATION(e1,rel,e2),tv) => Exp.RELATION(e1',rel,e2')
+	
+  rule	differentiate_exp_time(e1,tv) => e1' &
+	differentiate_exp_time(e2,tv) => e2' &
+	differentiate_exp_time(e3,tv) => e3'
+	-------------------------
+	differentiate_exp_time(Exp.IFEXP(e1,e2,e3),tv) => Exp.IFEXP(e1',e2',e3')
+
+  rule	Util.list_map_1(expl,differentiate_exp_time,tv) => expl' 
+	-------------------------------------------------
+	differentiate_exp_time(Exp.CALL(a as Absyn.IDENT("der"),expl,b,c),tv) 
+	  => Exp.CALL(a,expl',b,c)
+
+  rule	print "Error. differentiating of function not impl. yet.\n" &
+	Util.list_map_1(expl,differentiate_exp_time,tv) => expl' 
+	-------------------------------------------------
+	differentiate_exp_time(Exp.CALL(a,expl,b,c),tv) => Exp.CALL(a,expl',b,c)
+	
+  rule	Util.list_map_1(expl,differentiate_exp_time,tv) => expl' 
+	--------------------------------------------
+	differentiate_exp_time(Exp.ARRAY(tp,b,expl),tv) => Exp.ARRAY(tp,b,expl')
+
+  rule	Print.print_buf "differentiate_exp_time on MATRIX not impl.\n" &
+	print "differentiate_exp_time on MATRIX not impl.\n"
+	---------------------------------------
+	differentiate_exp_time(e as Exp.MATRIX(_,_,_),_) => e
+	
+  rule	Util.list_map_1(expl,differentiate_exp_time,tv) => expl'
+	-----------------------
+	differentiate_exp_time(Exp.TUPLE(expl),tv) => Exp.TUPLE(expl')
+
+  rule	differentiate_exp_time(e,tv) => e'
+	-----------------------
+	differentiate_exp_time(Exp.CAST(tp,e),tv) => Exp.CAST(tp,e')
+
+  rule	differentiate_exp_time(e,tv) => e'
+	----------------------------
+	differentiate_exp_time(Exp.ASUB(e,i),tv) => Exp.ASUB(e,i)
+
+  rule	differentiate_exp_time(e1,tv) => e1' &
+	differentiate_exp_time(e2,tv) => e2' 
+	------------------------------
+	differentiate_exp_time(Exp.REDUCTION(a,e1,b,e2),tv) 
+	  => Exp.REDUCTION(a,e1',b,e2')
+end
+
+(** relation: differenatiate_exp
+ ** This relation differentiates expressions with respect to a given variable, given as second argument.
+ ** For example.
+ ** differentiate_exp('2*x*y+2*x+y',x) => 2*x+2
+ **)
+relation differentiate_exp: (Exp.Exp, Exp.ComponentRef) => Exp.Exp =
+
+  axiom	differentiate_exp(Exp.ICONST(_),_) => Exp.RCONST(0.0)
+  axiom	differentiate_exp(Exp.RCONST(_),_) => Exp.RCONST(0.0)
+
+  rule	(* D(x)/dx => 1 *)
+	Exp.cref_equal (cr, crx) => true &
+	int_real(1) => rval (* Since bug in RML makes 1.0 into 0.0 *)
+	--------------------------------
+	differentiate_exp(Exp.CREF(cr,_), crx) => Exp.RCONST(rval)
+	  
+  rule	(* D(c)/dx => 0 *)
+ 	Exp.cref_equal (cr, crx) => false
+	--------------------------------
+	differentiate_exp(e as Exp.CREF(cr,_), crx) => Exp.RCONST(0.0)
+	
+  rule	differentiate_exp(e1,tv) => e1' &
+	differentiate_exp(e2,tv) => e2' 
+	-----------------------------
+	differentiate_exp(Exp.BINARY(e1,Exp.ADD(tp),e2),tv) 
+	  => Exp.BINARY(e1',Exp.ADD(tp),e2')
+
+  rule	differentiate_exp(e1,tv) => e1' &
+	differentiate_exp(e2,tv) => e2' 
+	-----------------------------
+	differentiate_exp(Exp.BINARY(e1,Exp.SUB(tp),e2),tv) 
+	  => Exp.BINARY(e1',Exp.SUB(tp),e2')
+
+  rule	differentiate_exp(e1,tv) => e1' &
+	differentiate_exp(e2,tv) => e2' 
+	-----------------------------
+	differentiate_exp(Exp.BINARY(e1,Exp.MUL(tp),e2),tv) 
+	  => (* f'g + fg' *)
+	  Exp.BINARY(Exp.BINARY(e1,Exp.MUL(tp),e2'),
+			Exp.ADD(tp),
+			Exp.BINARY(e1',Exp.MUL(tp),e2))
+
+  rule	differentiate_exp(e1,tv) => e1' &
+	differentiate_exp(e2,tv) => e2' 
+	-----------------------------
+	differentiate_exp(Exp.BINARY(e1,Exp.DIV(tp),e2),tv) 
+	 => (* (f'g - fg' ) / g^2 *)
+	  Exp.BINARY(Exp.BINARY(Exp.BINARY(e1',Exp.MUL(tp),e2)
+				   ,Exp.SUB(tp),
+				   Exp.BINARY(e1,Exp.MUL(tp),e2')),
+			Exp.DIV(tp),
+			Exp.BINARY(e2,Exp.MUL(tp),e2))
+
+
+  rule	differentiate_exp(e,tv) => e' 
+	-----------------------------
+	differentiate_exp(Exp.UNARY(op,e),tv) => Exp.UNARY(op,e')
+
+  rule	differentiate_exp(Exp.BINARY(e1,op,e2),tv) => Exp.BINARY(e1',op,e2')
+	-----------------------------
+	differentiate_exp(Exp.LBINARY(e1,op,e2),tv) 
+	  => Exp.LBINARY(e1',op,e2')
+	
+  rule	differentiate_exp(e,tv) => e'
+	-----------------------------
+	differentiate_exp(Exp.LUNARY(op,e),tv) => Exp.LUNARY(op,e')
+
+  rule	differentiate_exp(e1,tv) => e1' &
+	differentiate_exp(e2,tv) => e2'
+	-------------------------
+	differentiate_exp(Exp.RELATION(e1,rel,e2),tv) => Exp.RELATION(e1',rel,e2')
+	
+  rule	differentiate_exp(e1,tv) => e1' &
+	differentiate_exp(e2,tv) => e2' &
+	differentiate_exp(e3,tv) => e3'
+	-------------------------
+	differentiate_exp(Exp.IFEXP(e1,e2,e3),tv) => Exp.IFEXP(e1',e2',e3')
+
+  rule	Util.list_map_1(expl,differentiate_exp,tv) => expl' 
+	-------------------------------------------------
+	differentiate_exp(Exp.CALL(a as Absyn.IDENT("der"),expl,b,c),tv) 
+	  => Exp.CALL(a,expl',b,c)
+
+  rule	print "Error. differentiating of function not impl. yet.\n" &
+	Util.list_map_1(expl,differentiate_exp,tv) => expl' 
+	-------------------------------------------------
+	differentiate_exp(Exp.CALL(a,expl,b,c),tv) => Exp.CALL(a,expl',b,c)
+	
+  rule	Util.list_map_1(expl,differentiate_exp,tv) => expl' 
+	--------------------------------------------
+	differentiate_exp(Exp.ARRAY(tp,b,expl),tv) => Exp.ARRAY(tp,b,expl')
+
+  rule	Print.print_buf "differentiate_exp on MATRIX not impl.\n" &
+	print "differentiate_exp on MATRIX not impl.\n"
+	---------------------------------------
+	differentiate_exp(e as Exp.MATRIX(_,_,_),_) => e
+	
+  rule	Util.list_map_1(expl,differentiate_exp,tv) => expl'
+	-----------------------
+	differentiate_exp(Exp.TUPLE(expl),tv) => Exp.TUPLE(expl')
+
+  rule	differentiate_exp(e,tv) => e'
+	-----------------------
+	differentiate_exp(Exp.CAST(tp,e),tv) => Exp.CAST(tp,e')
+
+  rule	differentiate_exp(e,tv) => e'
+	----------------------------
+	differentiate_exp(Exp.ASUB(e,i),tv) => Exp.ASUB(e,i)
+
+  rule	differentiate_exp(e1,tv) => e1' &
+	differentiate_exp(e2,tv) => e2' 
+	------------------------------
+	differentiate_exp(Exp.REDUCTION(a,e1,b,e2),tv) 
+	  => Exp.REDUCTION(a,e1',b,e2')
+end
+
+

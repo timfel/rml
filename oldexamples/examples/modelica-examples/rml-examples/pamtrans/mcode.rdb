@@ -1,0 +1,31 @@
+/*  ME_Dict: */
+/*  TE': */
+t:<mcode.rml>:4.10.4.15|MBinOp
+t:<mcode.rml>:3.10.3.11|Id
+t:<mcode.rml>:5.10.5.17|MCondJmp
+t:<mcode.rml>:12.10.12.14|MCode
+t:<mcode.rml>:6.10.6.17|MOperand
+/*  VE'': */
+c:<mcode.rml>:13.21.13.22|MJ:(MCondJmp,MOperand) => MCode
+c:<mcode.rml>:12.21.12.22|MB:(MBinOp,MOperand) => MCode
+c:<mcode.rml>:6.57.6.57|L:int => MOperand
+c:<mcode.rml>:6.22.6.22|I:string => MOperand
+c:<mcode.rml>:4.22.4.25|MADD:MBinOp
+c:<mcode.rml>:17.21.17.24|MGET:MOperand => MCode
+c:<mcode.rml>:4.44.4.47|MDIV:MBinOp
+c:<mcode.rml>:20.21.20.25|MHALT:MCode
+c:<mcode.rml>:19.21.19.26|MLABEL:MOperand => MCode
+c:<mcode.rml>:5.41.5.44|MJNZ:MCondJmp
+c:<mcode.rml>:5.35.5.37|MJN:MCondJmp
+c:<mcode.rml>:14.21.14.24|MJMP:MOperand => MCode
+c:<mcode.rml>:5.22.5.25|MJNP:MCondJmp
+c:<mcode.rml>:5.48.5.51|MJPZ:MCondJmp
+c:<mcode.rml>:5.29.5.31|MJP:MCondJmp
+c:<mcode.rml>:5.55.5.57|MJZ:MCondJmp
+c:<mcode.rml>:16.21.16.24|MSTO:MOperand => MCode
+c:<mcode.rml>:4.36.4.40|MMULT:MBinOp
+c:<mcode.rml>:15.21.15.25|MLOAD:MOperand => MCode
+c:<mcode.rml>:18.21.18.24|MPUT:MOperand => MCode
+c:<mcode.rml>:6.34.6.34|N:int => MOperand
+c:<mcode.rml>:4.29.4.32|MSUB:MBinOp
+c:<mcode.rml>:6.46.6.46|T:int => MOperand

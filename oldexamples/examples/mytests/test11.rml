@@ -1,0 +1,12 @@
+module exp1:
+
+ relation eval:  (s,'a list,x => w) => real 
+end
+
+relation eval: (d,w) => real  =
+  
+  rule  print "hhej \n\n\n \b \t" & eval([]) 
+	-----------------------
+	eval ([]) => ival   
+
+end 

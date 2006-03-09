@@ -1,0 +1,32 @@
+/*  ME_Dict: */
+/*  TE': */
+t:<absyn.rml>:3.8.3.12|Ident
+t:<absyn.rml>:16.12.16.14|Dec
+t:<absyn.rml>:4.12.4.14|Exp
+t:<absyn.rml>:15.7.15.12|Lambda
+/*  VE'': */
+c:<absyn.rml>:5.5.5.8|REAL:real => Exp
+c:<absyn.rml>:15.16.15.21|LAMBDA:(string,Exp) => Lambda
+c:<absyn.rml>:12.5.12.6|IF:(Exp,Exp,Exp) => Exp
+c:<absyn.rml>:10.5.10.7|APP:(Exp,Exp) => Exp
+c:<absyn.rml>:4.18.4.20|INT:int => Exp
+c:<absyn.rml>:9.5.9.7|LAM:Lambda => Exp
+c:<absyn.rml>:14.5.14.10|LETREC:(string,Lambda,Exp) => Exp
+c:<absyn.rml>:13.5.13.7|LET:(string,Exp,Exp) => Exp
+c:<absyn.rml>:11.5.11.8|PAIR:(Exp,Exp) => Exp
+l:<absyn.rml>:35.5.35.12|var_imod:Exp
+c:<absyn.rml>:8.5.8.7|VAR:string => Exp
+c:<absyn.rml>:7.5.7.8|UNIT:Exp
+c:<absyn.rml>:6.5.6.10|STRING:string => Exp
+c:<absyn.rml>:16.18.16.20|VAL:(string,Exp) => Dec
+l:<absyn.rml>:33.5.33.10|var_eq:Exp
+l:<absyn.rml>:31.5.31.11|var_add:Exp
+l:<absyn.rml>:32.5.32.12|var_cons:Exp
+l:<absyn.rml>:34.5.34.12|var_idiv:Exp
+l:<absyn.rml>:39.5.39.11|var_nil:Exp
+l:<absyn.rml>:37.5.37.10|var_lt:Exp
+l:<absyn.rml>:36.5.36.10|var_le:Exp
+l:<absyn.rml>:38.5.38.11|var_mul:Exp
+l:<absyn.rml>:41.5.41.11|var_set:Exp
+l:<absyn.rml>:40.5.40.12|var_rdiv:Exp
+l:<absyn.rml>:42.5.42.11|var_sub:Exp

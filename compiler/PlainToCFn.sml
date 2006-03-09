@@ -81,8 +81,13 @@ functor PlainToCFn(structure Util : UTIL
 		else
 			()
       );
-      
+            
+	  (* adrpo 2005-12-29 changed this to the one below! 
       CodeToC.prCode os code;
+      *)
+      output(os, "\n\t{");
+      CodeToC.prCode os code;
+      output(os, "}");      
       output(os, "\n}\nRML_END_LABEL\n"))
 
     fun emitLabDefs(os, labdefs) = List.app (prLabBody os) labdefs
@@ -94,6 +99,9 @@ functor PlainToCFn(structure Util : UTIL
 	output(os, "#include \"rml.h\"\n");
 	output(os, "#include <stdlib.h>\n");
 	output(os, "#include <stdio.h>\n");
+	if !Control.fixJavaNames 
+	then output(os, "#include \"ExternalRMLDefines.h\"\n")	
+	else ();
 	(* adrpo added 2004-10-19: include module name in file *)
 	output(os, "RML_DEFINE_MODULE(\""); output(os, modname); output(os, "\")\n");
 	List.app (CodeToC.prImpLab os) xlabs;

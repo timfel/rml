@@ -1,0 +1,14 @@
+module Main:
+  with "ScanParse.rml"
+  with "Eval.rml"
+ 
+  relation main: () => ()
+end
+ 
+relation main: () => () =
+ 
+  rule  ScanParse.scanparse () => ast & 
+        Eval.evalprog ast
+        -------------------------------
+        main 
+end

@@ -1,0 +1,8 @@
+
+module Parse:
+
+	with "absyn.rml"
+
+	relation parse: () => Absyn.Exp
+
+end

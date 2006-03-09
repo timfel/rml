@@ -1,0 +1,14 @@
+
+program 
+ << hook1 >>
+ << hook2 >>
+ << hook3 >>
+ 
+body
+ i1 := 1;
+ i2 := 3.5;
+ i3 := i1 + i2;
+ write i3; 
+end program
+
+

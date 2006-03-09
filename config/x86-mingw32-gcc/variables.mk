@@ -3,7 +3,8 @@ CC=gcc -mno-cygwin
 CFLAGS=
 COFLAGS=-O2 -fomit-frame-pointer
 CPFLAGS=-fno-omit-frame-pointer -pg
-CGFLAGS=-g -DRML_DEBUG
+# no sockets, no readline... NO DEBUGGING!
+CGFLAGS=
 RANLIB=ranlib
 CPP=gcc -mno-cygwin -x c -E -ansi
 AS=as

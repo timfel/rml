@@ -30,19 +30,21 @@ extern RML_FORWARD_LABEL(RML__string_5fnth);
 extern RML_FORWARD_LABEL(RML__string_5fget);
 extern RML_FORWARD_LABEL(RML__string_5fsetnth);
 extern RML_FORWARD_LABEL(RML__string_5fupdate);
+extern RML_FORWARD_LABEL(RML__string_5fequal);
+extern RML_FORWARD_LABEL(RML__string_5fcompare);
 #define RML__char_5fint	RML__int_5fint
 #define RML__int_5fchar	RML__int_5fint
    /* java named */
-#define RML__intChar      RML__int_5fint
-#define RML__charInt      RML__int_5fint
-#define RML__listString   RML__list_5fstring
-#define RML__stringList   RML__string_5flist
-#define RML__stringNth    RML__string_5fnth
-#define RML__stringGet    RML__string_5fget
-#define RML__stringSetNth RML__string_5fset_5fnth
-#define RML__stringUpdate RML__string_5fupdate
-
-
+#define RML__intChar        RML__int_5fint
+#define RML__charInt        RML__int_5fint
+#define RML__listString     RML__list_5fstring
+#define RML__stringList     RML__string_5flist
+#define RML__stringNth      RML__string_5fnth
+#define RML__stringGet      RML__string_5fget
+#define RML__stringSetNth   RML__string_5fset_5fnth
+#define RML__stringUpdate   RML__string_5fupdate
+#define RML__stringEqual    RML__string_5fequal
+#define RML__stringCompare  RML__string_5fcompare
 
 /* string chars */
 extern RML_FORWARD_LABEL(RML__string_5fchar_5fint);
@@ -105,6 +107,7 @@ extern RML_FORWARD_LABEL(RML__list_5fdelete);
 extern RML_FORWARD_LABEL(RML__list_5flength);
 extern RML_FORWARD_LABEL(RML__list_5fmember);
 extern RML_FORWARD_LABEL(RML__list_5fnth);
+extern RML_FORWARD_LABEL(RML__list_5fget);
 extern RML_FORWARD_LABEL(RML__list_5freverse);
 extern RML_FORWARD_LABEL(RML__list_5fvector);
 extern RML_FORWARD_LABEL(RML__list_5farray);
@@ -114,6 +117,7 @@ extern RML_FORWARD_LABEL(RML__list_5farray);
 #define RML__listLength  RML__list_5flength
 #define RML__listMember  RML__list_5fmember
 #define RML__listNth     RML__list_5fnth
+#define RML__listGet     RML__list_5fget
 #define RML__listReverse RML__list_5freverse
 #define RML__listVector  RML__list_5fvector
 #define RML__listArray   RML__list_5farray
@@ -187,7 +191,7 @@ extern RML_FORWARD_LABEL(RML__string_5flength);
    /* java named */
 #define RML__stringAppend RML__string_5fappend
 #define RML__stringInt    RML__string_5fint
-#define RML__stringLenght RML__string_5flength
+#define RML__stringLength RML__string_5flength
 
 /* declarative vectors */
 extern RML_FORWARD_LABEL(RML__vector_5flength);
@@ -234,6 +238,10 @@ extern RML_FORWARD_LABEL(RML__array_5fcopy);
 #define RML__arrayAdd    RML__array_5fadd
 #define RML__arrayVector RML__array_5fvector
 #define RML__arrayCopy   RML__array_5fcopy
+
+/* if expressions */
+extern RML_FORWARD_LABEL(RML__if_5fexp);
+#define RML__ifExp   RML__if_5fexp
 
 /* misc */
 extern RML_FORWARD_LABEL(RML__clock);

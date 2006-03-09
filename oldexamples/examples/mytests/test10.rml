@@ -1,0 +1,12 @@
+module exp1:
+
+ relation eval:  (s,'a list,x => w) => real 
+end
+
+relation eval: (d,w) => real  =
+  
+  rule
+	-----------------------
+	eval (["d2"]) => ival   
+
+end 

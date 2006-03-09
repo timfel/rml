@@ -1,108 +1,118 @@
 package Eval
-import absyn;
-import env;
 
-protected function binary_lub " Type lattice;  int --> real "
-  input Env.Value in_value1;
-  input Env.Value in_value2;
-  output Env.Value2 out_value2;
+public import OpenModelica.Compiler.Absyn;
+
+public import OpenModelica.Compiler.Env;
+
+protected function binaryLub "Type lattice;  int --> real"
+  input Env.Value inValue1;
+  input Env.Value inValue2;
+  output Env.Value2 outValue2;
 algorithm 
-  out_value2:=
-  matchcontinue (in_value1,in_value2)
+  outValue2:=
+  matchcontinue (inValue1,inValue2)
     local
       Integer v1,v2;
       Real c1,c2;
-    case (Env.INTVAL(v1),Env.INTVAL(v2)) then Env.INTVAL2(v1,v2); 
-    case (Env.REALVAL(v1),Env.REALVAL(v2))
+    case (Env.INTVAL(integer = v1),Env.INTVAL(integer = v2)) then Env.INTVAL2(v1,v2); 
+    case (Env.REALVAL(real = v1),Env.REALVAL(real = v2))
       local Real v1,v2; then Env.REALVAL2(v1,v2);
-    case (Env.INTVAL(v1),Env.REALVAL(v2))
+    case (Env.INTVAL(integer = v1),Env.REALVAL(real = v2))
       local Real v2;
       equation 
-        c1 = int_real(v1); then Env.REALVAL2(c1,v2);
-    case (Env.REALVAL(v1),Env.INTVAL(v2))
+        c1 = intReal(v1); then Env.REALVAL2(c1,v2);
+    case (Env.REALVAL(real = v1),Env.INTVAL(integer = v2))
       local Real v1;
       equation 
-        c2 = int_real(v2); then Env.REALVAL2(v1,c2);
+        c2 = intReal(v2); then Env.REALVAL2(v1,c2);
   end matchcontinue;
-end binary_lub;
+end binaryLub;
 
-protected function promote " Promotion and type check "
-  input Env.Value in_value;
-  input Env.Type in_type;
-  output Env.Value out_value;
+protected function promote "Promotion and type check"
+  input Env.Value inValue;
+  input Env.Type inType;
+  output Env.Value outValue;
 algorithm 
-  out_value:=
-  matchcontinue (in_value,in_type)
+  outValue:=
+  matchcontinue (inValue,inType)
     local
       Integer v;
       Real v2;
-    case (Env.INTVAL(v),Env.INTTYPE()) then Env.INTVAL(v); 
-    case (Env.REALVAL(v),Env.REALTYPE())
+    case (Env.INTVAL(integer = v),Env.INTTYPE()) then Env.INTVAL(v); 
+    case (Env.REALVAL(real = v),Env.REALTYPE())
       local Real v; then Env.REALVAL(v);
-    case (Env.BOOLVAL(v),Env.BOOLTYPE())
+    case (Env.BOOLVAL(boolean = v),Env.BOOLTYPE())
       local Boolean v; then Env.BOOLVAL(v);
-    case (Env.INTVAL(v),Env.REALTYPE())
+    case (Env.INTVAL(integer = v),Env.REALTYPE())
       equation 
-        v2 = int_real(v); then Env.REALVAL(v2);
+        v2 = intReal(v); then Env.REALVAL(v2);
   end matchcontinue;
 end promote;
 
-protected function apply_int_binary " Auxiliary functions for applying the binary operators "
-  input Absyn.BinOp in_binop1;
-  input Integer in_integer2;
-  input Integer in_integer3;
-  output Integer out_integer;
+protected function applyIntBinary "Auxiliary functions for applying the binary operators"
+  input Absyn.BinOp inBinOp1;
+  input Integer inInteger2;
+  input Integer inInteger3;
+  output Integer outInteger;
 algorithm 
-  out_integer:=
-  matchcontinue (in_binop1,in_integer2,in_integer3)
+  outInteger:=
+  matchcontinue (inBinOp1,inInteger2,inInteger3)
     local Integer v1,v2;
     case (Absyn.ADD(),v1,v2) then v1 + v2; 
     case (Absyn.SUB(),v1,v2) then v1 - v2; 
     case (Absyn.MUL(),v1,v2) then v1*v2; 
     case (Absyn.DIV(),v1,v2) then v1/v2; 
   end matchcontinue;
-end apply_int_binary;
+end applyIntBinary;
 
-protected function apply_real_binary
-  input Absyn.BinOp in_binop1;
-  input Real in_real2;
-  input Real in_real3;
-  output Real out_real;
+protected function applyRealBinary
+  input Absyn.BinOp inBinOp1;
+  input Real inReal2;
+  input Real inReal3;
+  output Real outReal;
 algorithm 
-  out_real:=
-  matchcontinue (in_binop1,in_real2,in_real3)
+  outReal:=
+  matchcontinue (inBinOp1,inReal2,inReal3)
     local Real v1,v2;
     case (Absyn.ADD(),v1,v2) then v1 +. v2; 
     case (Absyn.SUB(),v1,v2) then v1 -. v2; 
     case (Absyn.MUL(),v1,v2) then v1*.v2; 
     case (Absyn.DIV(),v1,v2) then v1/.v2; 
   end matchcontinue;
-end apply_real_binary;
+end applyRealBinary;
 
-protected function apply_int_unary " Auxiliary functions for applying the unary operators "
-  input Absyn.UnOp AbsynNEG;
-  input Integer v1;
-  output Integer v2;
+protected function applyIntUnary "Auxiliary functions for applying the unary operators"
+  input Absyn.UnOp inUnOp;
+  input Integer inInteger;
+  output Integer outInteger;
 algorithm 
-  v2 := -v1;
-end apply_int_unary;
+  outInteger:=
+  matchcontinue (inUnOp,inInteger)
+    local Integer v1;
+    case (Absyn.NEG(),v1) then -v1; 
+  end matchcontinue;
+end applyIntUnary;
 
-protected function apply_real_unary
-  input Absyn.UnOp AbsynNEG;
-  input Real v1;
-  output Real v2;
+protected function applyRealUnary
+  input Absyn.UnOp inUnOp;
+  input Real inReal;
+  output Real outReal;
 algorithm 
-  v2 := -.v1;
-end apply_real_unary;
+  outReal:=
+  matchcontinue (inUnOp,inReal)
+    local Real v1;
+    case (Absyn.NEG(),v1) then -.v1; 
+  end matchcontinue;
+end applyRealUnary;
 
-protected function apply_int_relation " Auxiliary functions for applying the function operators "
-  input Absyn.RelOp in_relop1;
-  input Integer in_integer2;
-  input Integer in_integer3;
-  output Boolean out_boolean;
+protected function applyIntRelation "Auxiliary functions for applying the function operators"
+  input Absyn.RelOp inRelOp1;
+  input Integer inInteger2;
+  input Integer inInteger3;
+  output Boolean outBoolean;
 algorithm 
-  out_boolean:=
-  matchcontinue (in_relop1,in_integer2,in_integer3)
+  outBoolean:=
+  matchcontinue (inRelOp1,inInteger2,inInteger3)
     local Integer v1,v2;
     case (Absyn.LT(),v1,v2) then (v1 < v2); 
     case (Absyn.LE(),v1,v2) then (v1 <= v2); 
@@ -111,16 +121,16 @@ algorithm
     case (Absyn.NE(),v1,v2) then (v1 <> v2); 
     case (Absyn.EQ(),v1,v2) then (v1 == v2); 
   end matchcontinue;
-end apply_int_relation;
+end applyIntRelation;
 
-protected function apply_real_relation
-  input Absyn.RelOp in_relop1;
-  input Real in_real2;
-  input Real in_real3;
-  output Boolean out_boolean;
+protected function applyRealRelation
+  input Absyn.RelOp inRelOp1;
+  input Real inReal2;
+  input Real inReal3;
+  output Boolean outBoolean;
 algorithm 
-  out_boolean:=
-  matchcontinue (in_relop1,in_real2,in_real3)
+  outBoolean:=
+  matchcontinue (inRelOp1,inReal2,inReal3)
     local Real v1,v2;
     case (Absyn.LT(),v1,v2) then (v1 <. v2); 
     case (Absyn.LE(),v1,v2) then (v1 <=. v2); 
@@ -129,19 +139,19 @@ algorithm
     case (Absyn.NE(),v1,v2) then (v1 <>. v2); 
     case (Absyn.EQ(),v1,v2) then (v1 ==. v2); 
   end matchcontinue;
-end apply_real_relation;
+end applyRealRelation;
 
-protected function eval_expr " EVALUATE A SINGLE EXPRESSION in an environment. Return
-   the new value. Expressions do not change environments. "
-  input Env.Env in_env;
-  input Absyn.Expr in_expr;
-  output Env.Value out_value;
+protected function evalExpr "EVALUATE A SINGLE EXPRESSION in an environment. Return
+   the new value. Expressions do not change environments."
+  input Env.Env inEnv;
+  input Absyn.Expr inExpr;
+  output Env.Value outValue;
 algorithm 
-  out_value:=
-  matchcontinue (in_env,in_expr)
+  outValue:=
+  matchcontinue (inEnv,inExpr)
     local
-      type EnvBindList = list<Env.Bind>;
-      EnvBindList env;
+      type Env_BindLst = list<Env.Bind>;
+      Env_BindLst env;
       Integer v,c1,c2,v3;
       Env.Value v1,v2;
       Absyn.Expr e1,e2;
@@ -149,248 +159,246 @@ algorithm
       Absyn.UnOp unop;
       Absyn.RelOp relop;
       String id;
-    case (env,Absyn.INTCONST(v)) then Env.INTVAL(v); 
-    case (env,Absyn.REALCONST(v))
+    case (env,Absyn.INTCONST(integer = v)) then Env.INTVAL(v); 
+    case (env,Absyn.REALCONST(real = v))
       local Real v; then Env.REALVAL(v);
-    case (env,Absyn.BINARY(e1,binop,e2)) " Binary operators "
+    case (env,Absyn.BINARY(expr1 = e1,binOp2 = binop,expr3 = e2)) "Binary operators"
       equation 
-        v1 = eval_expr(env, e1);
-        v2 = eval_expr(env, e2);
-        Env.INTVAL2(c1,c2) = binary_lub(v1, v2);
-        v3 = apply_int_binary(binop, c1, c2); then Env.INTVAL(v3);
-    case (env,Absyn.BINARY(e1,binop,e2))
+        v1 = evalExpr(env, e1);
+        v2 = evalExpr(env, e2);
+        Env.INTVAL2(integer1 = c1,integer2 = c2) = binaryLub(v1, v2);
+        v3 = applyIntBinary(binop, c1, c2); then Env.INTVAL(v3);
+    case (env,Absyn.BINARY(expr1 = e1,binOp2 = binop,expr3 = e2))
       local Real c1,c2,v3;
       equation 
-        v1 = eval_expr(env, e1);
-        v2 = eval_expr(env, e2);
-        Env.REALVAL2(c1,c2) = binary_lub(v1, v2);
-        v3 = apply_real_binary(binop, c1, c2); then Env.REALVAL(v3);
-    case (_,Absyn.BINARY(_,_,_))
+        v1 = evalExpr(env, e1);
+        v2 = evalExpr(env, e2);
+        Env.REALVAL2(real1 = c1,real2 = c2) = binaryLub(v1, v2);
+        v3 = applyRealBinary(binop, c1, c2); then Env.REALVAL(v3);
+    case (_,Absyn.BINARY(expr1 = _))
       equation 
         print("Error: binary operator applied to invalid type(s)\n"); then fail();
-    case (env,Absyn.UNARY(unop,e1)) " Unary operators "
+    case (env,Absyn.UNARY(unOp = unop,expr = e1)) "Unary operators"
       local Integer v1,v2;
       equation 
-        Env.INTVAL(v1) = eval_expr(env, e1);
-        v2 = apply_int_unary(unop, v1); then Env.INTVAL(v2);
-    case (env,Absyn.UNARY(unop,e1))
+        Env.INTVAL(integer = v1) = evalExpr(env, e1);
+        v2 = applyIntUnary(unop, v1); then Env.INTVAL(v2);
+    case (env,Absyn.UNARY(unOp = unop,expr = e1))
       local Real v1,v2;
       equation 
-        Env.REALVAL(v1) = eval_expr(env, e1);
-        v2 = apply_real_unary(unop, v1); then Env.REALVAL(v2);
-    case (_,Absyn.UNARY(_,_))
+        Env.REALVAL(real = v1) = evalExpr(env, e1);
+        v2 = applyRealUnary(unop, v1); then Env.REALVAL(v2);
+    case (_,Absyn.UNARY(unOp = _))
       equation 
         print("Error: unary operator applied to invalid type\n"); then fail();
-    case (env,Absyn.RELATION(e1,relop,e2)) " Relation operators "
+    case (env,Absyn.RELATION(expr1 = e1,relOp2 = relop,expr3 = e2)) "Relation operators"
       local Boolean v3;
       equation 
-        v1 = eval_expr(env, e1);
-        v2 = eval_expr(env, e2);
-        Env.INTVAL2(c1,c2) = binary_lub(v1, v2);
-        v3 = apply_int_relation(relop, c1, c2); then Env.BOOLVAL(v3);
-    case (env,Absyn.RELATION(e1,relop,e2))
+        v1 = evalExpr(env, e1);
+        v2 = evalExpr(env, e2);
+        Env.INTVAL2(integer1 = c1,integer2 = c2) = binaryLub(v1, v2);
+        v3 = applyIntRelation(relop, c1, c2); then Env.BOOLVAL(v3);
+    case (env,Absyn.RELATION(expr1 = e1,relOp2 = relop,expr3 = e2))
       local
         Real c1,c2;
         Boolean v3;
       equation 
-        v1 = eval_expr(env, e1);
-        v2 = eval_expr(env, e2);
-        Env.REALVAL2(c1,c2) = binary_lub(v1, v2);
-        v3 = apply_real_relation(relop, c1, c2); then Env.BOOLVAL(v3);
-    case (_,Absyn.RELATION(_,_,_))
+        v1 = evalExpr(env, e1);
+        v2 = evalExpr(env, e2);
+        Env.REALVAL2(real1 = c1,real2 = c2) = binaryLub(v1, v2);
+        v3 = applyRealRelation(relop, c1, c2); then Env.BOOLVAL(v3);
+    case (_,Absyn.RELATION(expr1 = _))
       equation 
         print("Error: relation operator applied to invalid type(s)\n"); then fail();
-    case (env,Absyn.VARIABLE(id)) " Variable lookup "
+    case (env,Absyn.VARIABLE(ident = id)) "Variable lookup"
       local Env.Value v;
       equation 
         v = Env.lookup(env, id); then v;
-    case (env,Absyn.VARIABLE(id))
+    case (env,Absyn.VARIABLE(ident = id))
       equation 
         failure(v = Env.lookup(env, id));
         print("Error: undefined variable (");
         print(id);
         print(")\n"); then fail();
   end matchcontinue;
-end eval_expr;
+end evalExpr;
 
-protected function print_value " EVALUATING STATEMENTS 
-   Print a value - the \"write\" statement "
-  input Env.Value in_value;
-  output Boolean dummy;
+protected function printValue "EVALUATING STATEMENTS
+  Print a value - the \"write\" statement"
+  input Env.Value inValue;
 algorithm 
-  dummy:=
-  matchcontinue (in_value)
+  _:=
+  matchcontinue (inValue)
     local
       String vstr;
       Integer v;
-    case (Env.INTVAL(v))
+    case (Env.INTVAL(integer = v))
       equation 
-        vstr = int_string(v);
+        vstr = intString(v);
         print(vstr);
-        print("\n"); then true;
-    case Env.REALVAL(v)
+        print("\n"); then ();
+    case Env.REALVAL(real = v)
       local Real v;
       equation 
-        vstr = real_string(v);
+        vstr = realString(v);
         print(vstr);
-        print("\n"); then true;
-    case Env.BOOLVAL(true)
+        print("\n"); then ();
+    case Env.BOOLVAL(boolean = true)
       equation 
-        print("true\n"); then true;
-    case Env.BOOLVAL(false)
+        print("true\n"); then ();
+    case Env.BOOLVAL(boolean = false)
       equation 
-        print("false\n"); then true;
+        print("false\n"); then ();
   end matchcontinue;
-end print_value;
+end printValue;
 
-protected function eval_stmt " Evaluate a single statement. Pass environment forward."
-  input Env.Env in_env;
-  input Absyn.Stmt in_stmt;
-  output Env.Env out_env;
+protected function evalStmt "Evaluate a single statement. Pass environment forward."
+  input Env.Env inEnv;
+  input Absyn.Stmt inStmt;
+  output Env.Env outEnv;
 algorithm 
-  out_env:=
-  matchcontinue (in_env,in_stmt)
+  outEnv:=
+  matchcontinue (inEnv,inStmt)
     local
-      type EnvBindList = list<Env.Bind>;
-      type AbsynStmtList = list<Absyn.Stmt>;
+      type Env_BindLst = list<Env.Bind>;
+      type Absyn_StmtLst = list<Absyn.Stmt>;
       Env.Value v,v2;
       Env.Type ty;
-      EnvBindList env1,env,env2;
+      Env_BindLst env1,env,env2;
       String id;
       Absyn.Expr e;
-      AbsynStmtList c,a,ss;
-    case (env,Absyn.ASSIGN(id,e))
+      Absyn_StmtLst c,a,ss;
+    case (env,Absyn.ASSIGN(ident = id,expr = e))
       equation 
-        v = eval_expr(env, e);
+        v = evalExpr(env, e);
         ty = Env.lookuptype(env, id);
         v2 = promote(v, ty);
         env1 = Env.update(env, id, ty, v2); then env1;
-    case (env,Absyn.ASSIGN(id,e))
+    case (env,Absyn.ASSIGN(ident = id,expr = e))
       equation 
-        v = eval_expr(env, e);
+        v = evalExpr(env, e);
         print("Error: assignment mismatch or variable missing\n"); then fail();
-    case (env,Absyn.WRITE(e))
+    case (env,Absyn.WRITE(expr = e))
       equation 
-        v = eval_expr(env, e);
-        print_value(v); then env;
+        v = evalExpr(env, e);
+        printValue(v); then env;
     case (env,Absyn.NOOP()) then env; 
-    case (env,Absyn.IF(e,c,_))
+    case (env,Absyn.IF(expr1 = e,stmtLst2 = c))
       equation 
-        Env.BOOLVAL(true) = eval_expr(env, e);
-        env1 = eval_stmt_list(env, c); then env1;
-    case (env,Absyn.IF(e,_,a))
+        Env.BOOLVAL(boolean = true) = evalExpr(env, e);
+        env1 = evalStmtList(env, c); then env1;
+    case (env,Absyn.IF(expr1 = e,stmtLst3 = a))
       equation 
-        Env.BOOLVAL(false) = eval_expr(env, e);
-        env1 = eval_stmt_list(env, a); then env1;
-    case (env,Absyn.WHILE(e,ss))
+        Env.BOOLVAL(boolean = false) = evalExpr(env, e);
+        env1 = evalStmtList(env, a); then env1;
+    case (env,Absyn.WHILE(expr = e,stmtLst = ss))
       equation 
-        Env.BOOLVAL(true) = eval_expr(env, e);
-        env1 = eval_stmt_list(env, ss);
-        env2 = eval_stmt(env1, Absyn.WHILE(e,ss)); then env2;
-    case (env,Absyn.WHILE(e,ss))
+        Env.BOOLVAL(boolean = true) = evalExpr(env, e);
+        env1 = evalStmtList(env, ss);
+        env2 = evalStmt(env1, Absyn.WHILE(e,ss)); then env2;
+    case (env,Absyn.WHILE(expr = e,stmtLst = ss))
       equation 
-        Env.BOOLVAL(false) = eval_expr(env, e); then env;
-    case (env,Absyn.IF(e,_,a))
+        Env.BOOLVAL(boolean = false) = evalExpr(env, e); then env;
+    case (env,Absyn.IF(expr1 = e,stmtLst3 = a))
       equation 
-        Env.BOOLVAL(false) = eval_expr(env, e);
-        env1 = eval_stmt_list(env, a); then env1;
-    case (env,Absyn.WHILE(e,ss))
+        Env.BOOLVAL(boolean = false) = evalExpr(env, e);
+        env1 = evalStmtList(env, a); then env1;
+    case (env,Absyn.WHILE(expr = e,stmtLst = ss))
       equation 
-        Env.BOOLVAL(true) = eval_expr(env, e);
-        env1 = eval_stmt_list(env, ss);
-        env2 = eval_stmt(env1, Absyn.WHILE(e,ss)); then env2;
-    case (env,Absyn.WHILE(e,ss))
+        Env.BOOLVAL(boolean = true) = evalExpr(env, e);
+        env1 = evalStmtList(env, ss);
+        env2 = evalStmt(env1, Absyn.WHILE(e,ss)); then env2;
+    case (env,Absyn.WHILE(expr = e,stmtLst = ss))
       equation 
-        Env.BOOLVAL(false) = eval_expr(env, e); then env;
+        Env.BOOLVAL(boolean = false) = evalExpr(env, e); then env;
   end matchcontinue;
-end eval_stmt;
+end evalStmt;
 
-protected function eval_stmt_list " Evaluate a list of statements in an environent.
-   Pass environment forward "
-  input Env.Env in_env;
-  input Absyn.StmtList in_stmtlist;
-  output Env.Env out_env;
+protected function evalStmtList "Evaluate a list of statements in an environent.
+   Pass environment forward"
+  input Env.Env inEnv;
+  input Absyn.StmtList inStmtList;
+  output Env.Env outEnv;
 algorithm 
-  out_env:=
-  matchcontinue (in_env,in_stmtlist)
+  outEnv:=
+  matchcontinue (inEnv,inStmtList)
     local
-      type EnvBindList = list<Env.Bind>;
-      type AbsynStmtList = list<Absyn.Stmt>;
-      EnvBindList env,env1,env2;
+      type Env_BindLst = list<Env.Bind>;
+      type Absyn_StmtLst = list<Absyn.Stmt>;
+      Env_BindLst env,env1,env2;
       Absyn.Stmt s;
-      AbsynStmtList ss;
+      Absyn_StmtLst ss;
     case (env,{}) then env; 
-    case (env,s :: ss)
+    case (env,(s :: ss))
       equation 
-        env1 = eval_stmt(env, s);
-        env2 = eval_stmt_list(env1, ss); then env2;
+        env1 = evalStmt(env, s);
+        env2 = evalStmtList(env1, ss); then env2;
   end matchcontinue;
-end eval_stmt_list;
+end evalStmtList;
 
-protected function eval_decl " EVALUATING DECLARATIONS 
-   Evaluate a single statement. Pass environment forward."
-  input Env.Env in_env;
-  input Absyn.Decl in_decl;
-  output Env.Env out_env;
+protected function evalDecl "EVALUATING DECLARATIONS
+  Evaluate a single statement. Pass environment forward."
+  input Env.Env inEnv;
+  input Absyn.Decl inDecl;
+  output Env.Env outEnv;
 algorithm 
-  out_env:=
-  matchcontinue (in_env,in_decl)
+  outEnv:=
+  matchcontinue (inEnv,inDecl)
     local
-      type EnvBindList = list<Env.Bind>;
-      EnvBindList env2,env;
+      type Env_BindLst = list<Env.Bind>;
+      Env_BindLst env2,env;
       String var;
-    case (env,Absyn.NAMEDECL(var,"integer"))
+    case (env,Absyn.NAMEDECL(ident1 = var,ident2 = "integer"))
       equation 
         env2 = Env.update(env, var, Env.INTTYPE(), Env.INTVAL(0)); then env2;
-    case (env,Absyn.NAMEDECL(var,"real"))
+    case (env,Absyn.NAMEDECL(ident1 = var,ident2 = "real"))
       equation 
         env2 = Env.update(env, var, Env.REALTYPE(), Env.REALVAL(0.0)); then env2;
-    case (env,Absyn.NAMEDECL(var,"boolean"))
+    case (env,Absyn.NAMEDECL(ident1 = var,ident2 = "boolean"))
       equation 
         env2 = Env.update(env, var, Env.BOOLTYPE(), Env.BOOLVAL(false)); then env2;
   end matchcontinue;
-end eval_decl;
+end evalDecl;
 
-protected function eval_decl_list " Evaluate a list of declarations, extending the environent. "
-  input Env.Env in_env;
-  input Absyn.DeclList in_decllist;
-  output Env.Env out_env;
+protected function evalDeclList "Evaluate a list of declarations, extending the environent."
+  input Env.Env inEnv;
+  input Absyn.DeclList inDeclList;
+  output Env.Env outEnv;
 algorithm 
-  out_env:=
-  matchcontinue (in_env,in_decllist)
+  outEnv:=
+  matchcontinue (inEnv,inDeclList)
     local
-      type EnvBindList = list<Env.Bind>;
-      type AbsynDeclList = list<Absyn.Decl>;
-      EnvBindList env,env1,env2;
+      type Env_BindLst = list<Env.Bind>;
+      type Absyn_DeclLst = list<Absyn.Decl>;
+      Env_BindLst env,env1,env2;
       Absyn.Decl s;
-      AbsynDeclList ss;
+      Absyn_DeclLst ss;
     case (env,{}) then env; 
-    case (env,s :: ss)
+    case (env,(s :: ss))
       equation 
-        env1 = eval_decl(env, s);
-        env2 = eval_decl_list(env1, ss); then env2;
+        env1 = evalDecl(env, s);
+        env2 = evalDeclList(env1, ss); then env2;
   end matchcontinue;
-end eval_decl_list;
+end evalDeclList;
 
-public function evalprog " EVALUTATING A PROGRAM means to evaluate the list of statements,
-   with an initial environment containing just standard defs. "
-  input Absyn.Prog in_prog;
-  output Boolean dummy;
+public function evalprog "EVALUTATING A PROGRAM means to evaluate the list of statements,
+   with an initial environment containing just standard defs."
+  input Absyn.Prog inProg;
 algorithm 
-  dummy:=
-  matchcontinue (in_prog)
+  _:=
+  matchcontinue (inProg)
     local
-      type EnvBindList = list<Env.Bind>;
-      type AbsynDeclList = list<Absyn.Decl>;
-      type AbsynStmtList = list<Absyn.Stmt>;
-      EnvBindList env1,env2,env3;
-      AbsynDeclList decls;
-      AbsynStmtList stmts;
-    case (Absyn.PROG(decls,stmts))
+      type Env_BindLst = list<Env.Bind>;
+      type Absyn_DeclLst = list<Absyn.Decl>;
+      type Absyn_StmtLst = list<Absyn.Stmt>;
+      Env_BindLst env1,env2,env3;
+      Absyn_DeclLst decls;
+      Absyn_StmtLst stmts;
+    case (Absyn.PROG(declList = decls,stmtList = stmts))
       equation 
         env1 = Env.initial_();
-        env2 = eval_decl_list(env1, decls);
-        env3 = eval_stmt_list(env2, stmts); then true;
+        env2 = evalDeclList(env1, decls);
+        env3 = evalStmtList(env2, stmts); then ();
   end matchcontinue;
 end evalprog;
 end Eval;

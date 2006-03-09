@@ -1,0 +1,10 @@
+(* file exp2.rml *)
+module exp2:
+  datatype Exp     =  INTconst of int
+                   |  BINARY   of  Exp * BinOp * Exp
+                   |  UNARY    of  UnOp * Exp
+
+  datatype BinOp   =  ADDop | SUBop | MULop | DIVop
+
+  datatype UnOp    =  NEGop
+end

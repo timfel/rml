@@ -1,0 +1,100 @@
+module Main:
+type StringList = (string)list
+datatype Exp 
+	= RCONST of real
+	| PLUS of Exp*Exp
+	| SUB of Exp*Exp
+	| MUL of Exp*Exp
+	| DIV of Exp*Exp
+	| NEG of Exp
+relation main: (StringList) => (real)
+relation eval: (Exp) => (real)
+val tree: Exp
+end
+val tree = PLUS(RCONST(1.0),RCONST(2.0))
+relation eval: (Exp) => (real) =
+	rule	RML.debug_push_in01("v1",v1) => () &
+		RML.debug("main.mo",21,26,21,28,"eval","axiom:eval(RCONST(v1)) => (v1)") => () &
+		RML.debug_push_out01("v1",v1) => ()
+		----------------
+		eval(RCONST(v1)) => (v1)
+
+	rule	RML.debug_push_in01("e1",e1) => () &
+		RML.debug("main.mo",23,11,23,21,"eval","call:eval(e1) => (v1)") => () &
+		eval(e1) => (v1) &
+		RML.debug_push_out01("v1",v1) => () &
+		RML.debug_push_in01("e2",e2) => () &
+		RML.debug("main.mo",23,26,23,36,"eval","call:eval(e2) => (v2)") => () &
+		eval(e2) => (v2) &
+		RML.debug_push_in02("v1",v1,"v2",v2) => () &
+		RML.debug("main.mo",24,13,24,21,"eval","call:real_add(v1,v2) => (temp101)") => () &
+		real_add(v1,v2) => (temp101)
+		----------------
+		eval(PLUS(e1,e2)) => (temp101)
+
+	rule	RML.debug_push_in01("e1",e1) => () &
+		RML.debug("main.mo",26,11,26,21,"eval","call:eval(e1) => (v1)") => () &
+		eval(e1) => (v1) &
+		RML.debug_push_out01("v1",v1) => () &
+		RML.debug_push_in01("e2",e2) => () &
+		RML.debug("main.mo",26,26,26,36,"eval","call:eval(e2) => (v2)") => () &
+		eval(e2) => (v2) &
+		RML.debug_push_in02("v1",v1,"v2",v2) => () &
+		RML.debug("main.mo",27,13,27,21,"eval","call:real_sub(v1,v2) => (temp102)") => () &
+		real_sub(v1,v2) => (temp102)
+		----------------
+		eval(SUB(e1,e2)) => (temp102)
+
+	rule	RML.debug_push_in01("e1",e1) => () &
+		RML.debug("main.mo",29,11,29,21,"eval","call:eval(e1) => (v1)") => () &
+		eval(e1) => (v1) &
+		RML.debug_push_out01("v1",v1) => () &
+		RML.debug_push_in01("e2",e2) => () &
+		RML.debug("main.mo",29,26,29,36,"eval","call:eval(e2) => (v2)") => () &
+		eval(e2) => (v2) &
+		RML.debug_push_in02("v1",v1,"v2",v2) => () &
+		RML.debug("main.mo",30,13,30,21,"eval","call:real_mul(v1,v2) => (temp103)") => () &
+		real_mul(v1,v2) => (temp103)
+		----------------
+		eval(MUL(e1,e2)) => (temp103)
+
+	rule	RML.debug_push_in01("e1",e1) => () &
+		RML.debug("main.mo",32,11,32,21,"eval","call:eval(e1) => (v1)") => () &
+		eval(e1) => (v1) &
+		RML.debug_push_out01("v1",v1) => () &
+		RML.debug_push_in01("e2",e2) => () &
+		RML.debug("main.mo",32,26,32,36,"eval","call:eval(e2) => (v2)") => () &
+		eval(e2) => (v2) &
+		RML.debug_push_in02("v1",v1,"v2",v2) => () &
+		RML.debug("main.mo",33,13,33,21,"eval","call:real_div(v1,v2) => (temp104)") => () &
+		real_div(v1,v2) => (temp104)
+		----------------
+		eval(DIV(e1,e2)) => (temp104)
+
+	rule	RML.debug_push_in01("e1",e1) => () &
+		RML.debug("main.mo",35,11,35,21,"eval","call:eval(e1) => (v1)") => () &
+		eval(e1) => (v1) &
+		RML.debug_push_out01("v1",v1) => () &
+		RML.debug_push_in01("v1",v1) => () &
+		RML.debug("main.mo",36,13,36,18,"eval","call:real_neg(v1) => (temp105)") => () &
+		real_neg(v1) => (temp105)
+		----------------
+		eval(NEG(e1)) => (temp105)
+
+end
+relation main: (StringList) => (real) =
+	rule	RML.debug_push_in01("tree",tree) => () &
+		RML.debug("main.mo",49,6,49,18,"main","call:eval(tree) => (i)") => () &
+		eval(tree) => (i) &
+		RML.debug_push_out01("i",i) => () &
+		RML.debug_push_in01("i",i) => () &
+		RML.debug("main.mo",50,8,50,24,"main","call:real_string(i) => (str)") => () &
+		real_string(i) => (str) &
+		RML.debug_push_out01("str",str) => () &
+		RML.debug_push_in01("str",str) => () &
+		RML.debug("main.mo",51,4,51,13,"main","call:print(str) => ()") => () &
+		print(str) => ()
+		----------------
+		main(_) => (i)
+
+end

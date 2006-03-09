@@ -1,33 +1,36 @@
 (* RMLParseFn.sml *)
 
 functor RMLParseFn(structure Absyn : ABSYN
+		structure Cache : CACHE
+		structure LexArg : LEXARG where type poz = Cache.poz
 		structure RMLParser : ARG_PARSER
-				      where type arg = 
-							   (int*int) -> 
-							   {fileName: string, sline:int, scolumn:int, eline:int, ecolumn:int}
-					  and type pos = int
+				      where type arg = LexArg.lexarg
+					  and type pos = Cache.poz
 		structure Tokens : RML_TOKENS
-		structure LexArg : LEXARG
-		structure MOToRML : PARSE
 		structure Control : CONTROL
+		structure Reorder : REORDER				
 		sharing type Tokens.token = RMLParser.Token.token
 		sharing type Tokens.svalue = RMLParser.svalue
-		sharing type RMLParser.result = Absyn.module = MOToRML.Absyn.module
-		sharing type Absyn.modelica = MOToRML.Absyn.modelica
-		sharing type Absyn.Package = MOToRML.Absyn.Package		
+		sharing type RMLParser.result = Absyn.module = Cache.Absyn.module = Reorder.Absyn.module
 		sharing type RMLParser.lexarg = LexArg.lexarg
-		sharing Absyn.Source = LexArg.Source
-		(*sharing MOToRML.Absyn = Absyn*)		
-		  ) : PARSE =
+		sharing Cache.Absyn.Source = LexArg.Source
+		sharing Cache.StrDict = LexArg.StrDict
+		sharing type Cache.restriction = LexArg.restriction
+		sharing type Cache.visibility = LexArg.visibility
+		  ) : RML_PARSE =
   struct
   
-    structure Absyn = Absyn
+    structure Absyn = Cache.Absyn
+    type repository = Cache.repository
+    
+	val debugFlag = false
+	fun debug s = if (debugFlag) then Util.outStdErr("RMLParseFn."^s) else ()	
 
-    fun parse(startToken, file) =
+    fun parse(startToken, file, repository, isInterface) =
       let val is = TextIO.openIn file
       in
 	(let val (lexarg, inputf) = LexArg.new(file, is)
-	     val pos = 2	(*XXX: ML-Lex*)
+	     val pos = (2,0,0)	(*XXX: ML-Lex*)
 	     val lexer = RMLParser.makeLexer inputf lexarg
 	     val lexer = RMLParser.Stream.cons(startToken(pos,pos), lexer)
 	     val (result,_) = 
@@ -35,7 +38,7 @@ functor RMLParseFn(structure Absyn : ABSYN
 				0,
 				lexer,
 				LexArg.error2 lexarg,
-				LexArg.getLoc lexarg)
+				lexarg)
 	 in
 	   if LexArg.seenErr lexarg then raise RMLParser.ParseError else ();
 	   TextIO.closeIn is;
@@ -44,18 +47,54 @@ functor RMLParseFn(structure Absyn : ABSYN
 	       val interface = Absyn.INTERFACE({modid=modid,specs=specs,
 					       source=LexArg.source lexarg}, 
 					       infoI)
+		   val module = Absyn.MODULE(interface, decs, infoM)
+		   val program = Absyn.RML_FILE(file, Reorder.reorderModule(module))
 	   in
-	     Absyn.MODULE(interface, decs, infoM)
+	   Cache.insert(
+			repository, 
+			Cache.rmlCache,
+			file,
+			Cache.makeEntry(
+			let val fileInfo =
+				Cache.makeFileInfo(
+					program,
+					LexArg.getImports(lexarg),
+					LexArg.getExternals(lexarg),
+					LexArg.getRestrictions(lexarg),
+					ref true, (* reordered *)
+					ref false (* elaborated *)
+					)
+			in
+				if (isInterface)
+				then (modid, NONE, SOME(fileInfo))
+				else (modid, SOME(fileInfo), NONE)
+			end
+			));	   
+		program
 	   end
 	 end) handle e => (TextIO.closeIn is; raise e)
       end
 
-    fun parseModule    file = parse(Tokens.START_MODULE,    file)
-    fun parseInterface file = parse(Tokens.START_INTERFACE, file)
-
-    fun mo2rmlmodule           (module) = MOToRML.mo2rmlmodule           (module) 
-    fun mo2rmlinterface        (module) = MOToRML.mo2rmlinterface        (module) 
-    fun mo2imports             (module) = MOToRML.mo2imports             (module)
-	fun mo2recordconstructors  (module) = MOToRML.mo2recordconstructors  (module)	
+    fun parseModule   (file, repository) = 
+    let val start = Time.now()
+		val _ = debug(".parseModule: "^file^" -> ")
+		val result =     parse(Tokens.START_MODULE,    file, repository, false)
+		val stop = Time.now()
+		val interval = Time.- (stop, start)
+		val _ = debug("("^(Time.fmt 5 interval)^")\n")
+	in
+		result
+	end
+	
+    fun parseInterface(file, repository) = 
+    let val start = Time.now()
+		val _ = debug("parseInterface: "^file^" -> ")
+		val result = parse(Tokens.START_INTERFACE, file, repository, true)
+		val stop = Time.now()
+		val interval =  Time.- (stop, start)
+		val _ = debug("("^(Time.fmt 5 interval)^")\n")
+	in
+		result
+	end
     
-  end (* functor ParseFn *)
+  end (* functor RMLParseFn *)

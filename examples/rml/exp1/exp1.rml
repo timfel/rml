@@ -7,15 +7,18 @@ module exp1:
                  |  MULop    of  Exp * Exp
                  |  DIVop    of  Exp * Exp
                  |  NEGop    of  Exp
-  relation eval:  Exp => int
+  type ('a) Type_a = 'a
+  relation eval:  (('a) Type_a * Exp) => int
+  val x : int
 end
 
 (* Abstract syntax of the language Exp1 *)
 
 (* Evaluation semantics  of Exp1 *)
+val x = 1
 
 
-relation eval: Exp => int  =
+relation eval: (('a) Type_a * Exp) => int  =
   
   axiom eval( INTconst(ival) ) => ival   (* eval of an integer node *)
                                          (* is the integer itself *)
@@ -26,8 +29,9 @@ relation eval: Exp => int  =
    *)
 
   rule  eval(e1) => v1  & 
-        eval(e2) => v2  &  v1 + v2 => v3
-        ----------------------------------------------------------
+        eval(e2) => x  &  let v2 = x & v1 + v2 => v3 
+        -----------------------------------------------------------
+
         eval( ADDop(e1,e2) ) => v3
 
   rule  eval(e1) => v1  &  eval(e2) => v2  &  v1 - v2 => v3

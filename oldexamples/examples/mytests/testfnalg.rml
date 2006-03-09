@@ -1,0 +1,13 @@
+module test:
+
+end
+
+
+
+relation x =
+
+ rule x(e) => e
+      -----------
+      x(e) => e
+
+end

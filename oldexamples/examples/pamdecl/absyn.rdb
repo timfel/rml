@@ -1,0 +1,37 @@
+/*  ME: */
+/*  TE': */
+t:<absyn.rml>:5.10.5.14|Absyn.RelOp
+t:<absyn.rml>:24.10.24.13|Absyn.Decl
+t:<absyn.rml>:3.10.3.14|Absyn.BinOp
+t:<absyn.rml>:9.10.9.13|Absyn.Expr
+t:<absyn.rml>:25.6.25.13|Absyn.DeclList
+t:<absyn.rml>:7.6.7.10|Absyn.Ident
+t:<absyn.rml>:27.10.27.13|Absyn.Prog
+t:<absyn.rml>:22.6.22.13|Absyn.StmtList
+t:<absyn.rml>:16.10.16.13|Absyn.Stmt
+t:<absyn.rml>:4.10.4.13|Absyn.UnOp
+/*  VE'': */
+c:<absyn.rml>:9.19.9.26|Absyn.INTCONST:int => Absyn.Expr
+c:<absyn.rml>:3.36.3.38|Absyn.DIV:Absyn.BinOp
+c:<absyn.rml>:16.19.16.24|Absyn.ASSIGN:(string,Absyn.Expr) => Absyn.Stmt
+c:<absyn.rml>:3.18.3.20|Absyn.ADD:Absyn.BinOp
+c:<absyn.rml>:11.19.11.24|Absyn.BINARY:(Absyn.Expr,Absyn.BinOp,Absyn.Expr) => Absyn.Expr
+c:<absyn.rml>:5.28.5.29|Absyn.GT:Absyn.RelOp
+c:<absyn.rml>:5.43.5.44|Absyn.EQ:Absyn.RelOp
+c:<absyn.rml>:5.33.5.34|Absyn.GE:Absyn.RelOp
+c:<absyn.rml>:19.19.19.20|Absyn.IF:(Absyn.Expr,Absyn.Stmt list,Absyn.Stmt list) => Absyn.Stmt
+c:<absyn.rml>:24.19.24.26|Absyn.NAMEDECL:(string,string) => Absyn.Decl
+c:<absyn.rml>:5.18.5.19|Absyn.LT:Absyn.RelOp
+c:<absyn.rml>:5.23.5.24|Absyn.LE:Absyn.RelOp
+c:<absyn.rml>:3.30.3.32|Absyn.MUL:Absyn.BinOp
+c:<absyn.rml>:10.19.10.27|Absyn.REALCONST:real => Absyn.Expr
+c:<absyn.rml>:4.18.4.20|Absyn.NEG:Absyn.UnOp
+c:<absyn.rml>:5.38.5.39|Absyn.NE:Absyn.RelOp
+c:<absyn.rml>:18.19.18.22|Absyn.NOOP:Absyn.Stmt
+c:<absyn.rml>:27.20.27.23|Absyn.PROG:(Absyn.Decl list,Absyn.Stmt list) => Absyn.Prog
+c:<absyn.rml>:3.24.3.26|Absyn.SUB:Absyn.BinOp
+c:<absyn.rml>:13.19.13.26|Absyn.RELATION:(Absyn.Expr,Absyn.RelOp,Absyn.Expr) => Absyn.Expr
+c:<absyn.rml>:14.19.14.26|Absyn.VARIABLE:string => Absyn.Expr
+c:<absyn.rml>:12.19.12.23|Absyn.UNARY:(Absyn.UnOp,Absyn.Expr) => Absyn.Expr
+c:<absyn.rml>:20.19.20.23|Absyn.WHILE:(Absyn.Expr,Absyn.Stmt list) => Absyn.Stmt
+c:<absyn.rml>:17.19.17.23|Absyn.WRITE:Absyn.Expr => Absyn.Stmt

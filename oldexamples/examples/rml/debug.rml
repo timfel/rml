@@ -1,0 +1,219 @@
+(*
+    Copyright PELAB, Linkoping University
+
+    This file is part of Open Source Modelica (OSM).
+
+    OSM is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    OSM is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with OpenModelica; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+*)
+
+(**
+ ** file:	 debug.rml
+ ** module:      Debug
+ ** description: debug printing
+ **
+ ** RCS: $Id: debug.rml,v 1.15 2004/10/07 12:57:03 petar Exp $
+ **
+ ** Printing routines for debug output of strings. Also flag controlled
+ ** printing. When flag controlled printing relations are called, printing is 
+ ** done only if the given flag is among the flags given in the runtime 
+ ** arguments, to +d-flag, i.e. if +d=inst,lookup is given in the command line,
+ ** only calls containing these flags will actually print something, e.g.:
+ ** fprint("inst", "Starting instantiation..."). See runtime/rtopts.c for
+ ** implementation of flag checking.
+ **
+ **)
+
+module Debug:
+ relation print: string => ()
+ relation fprint: (string, string) => ()
+ relation fprintln: (string, string) => ()
+ relation fprintl: (string, string list) => ()
+ relation fprint_list: (string, 'a list, 'a => (), string) => ()
+ relation fcall: (string, 'a => (), 'a) => ()
+ relation fcall0: (string, () => ()) => ()
+ relation fcallret: (string, 'a => 'b, 'a, 'b) => 'b
+ relation bcall: (bool, 'a => (), 'a) => () 
+ relation bcall_2: (bool, ('a,'b) => (), 'a,'b) => () 
+ relation notfcall: (string, 'a => (), 'a) => ()
+end
+
+
+with "rtopts.rml"
+with "dump.rml"
+with "print.rml"
+
+
+(* PR 
+ * This realtion is used for debug printing. 
+ *)
+relation print: string => () =
+   (* Debug output.
+	Takes a lot of time during runtime. Hangs
+
+    LS: Reason: print means Debug.print, so recursive infinit loop.
+        Correct version should call RML.print for the builtin print
+
+   rule Print.print_buf s
+	------------
+	print s => ()
+
+    Correct:
+
+    rule RML.print s
+	 -----------
+	 print s => ()
+
+    *)
+
+   rule (*fprint ("olddebug", s)*)
+	----------------------
+	print s => ()
+
+end 
+
+(* LS: Flag controlled debugging *)
+
+relation fprint: (string, string) => () =
+
+  rule	RTOpts.debug_flag (flag) => true &
+	Print.print_buf str
+	-------------------
+	fprint (flag, str)
+
+  axiom	fprint (_,_)
+
+end
+
+relation fprintln: (string, string) => () =
+
+  rule	RTOpts.debug_flag (flag) => true &
+	Print.print_buf str &
+	Print.print_buf "\n"
+	-------------------
+	fprintln (flag, str)
+
+  axiom	fprintln (_,_)
+
+end
+
+relation fprintl: (string, string list) => () =
+
+  rule	RTOpts.debug_flag (flag) => true &
+	make_string strlist => str &
+	Print.print_buf str
+	-------------------
+	fprintl (flag, strlist)
+
+  axiom	fprintl (_,_)
+
+end
+
+relation make_string : string list => string =
+
+  axiom	make_string [] => ""
+
+  rule	make_string rest => res &
+	string_append (first, res) => res'
+	----------------------------------
+	make_string first::rest => res'
+
+end
+
+
+(* Call the given function (2nd arg) if the flag given in 1st arg is set *)
+
+relation fcall: (string, 'a => (), 'a) => () =
+
+  rule	RTOpts.debug_flag (flag) => true &
+	func(str)
+	------------
+	fcall (flag, func, str)
+
+  axiom	fcall (_,_,_)
+
+end
+
+(* Call the given function (2nd arg) if the flag given in 1st arg is set *)
+
+relation fcall0: (string, () => ()) => () =
+
+  rule	RTOpts.debug_flag (flag) => true &
+	func()
+	------------
+	fcall0 (flag, func)
+
+  axiom	fcall0 (_,_)
+
+end
+
+
+(* Call the given function (2nd arg) if the flag given in 1st arg is set, and *)
+(* return its return value *)
+
+relation fcallret: (string, 'a => 'b, 'a, 'b) => 'b =
+
+  rule	RTOpts.debug_flag (flag) => true &
+	func(arg) => res
+	----------------
+	fcallret (flag, func, arg, def) => res
+
+  axiom	fcallret (_,_,_,def) => def
+
+end
+
+relation bcall: (bool, 'a => (), 'a) => () =
+
+  rule	func(str)
+	------------
+	bcall (true, func, str)
+
+  axiom	bcall (false,_,_)
+
+end
+
+relation bcall_2: (bool, ('a,'b) => (), 'a,'b) => () =
+
+  rule	func(a,b)
+	------------
+	bcall_2 (true, func, a,b)
+
+  axiom	bcall_2 (false,_,_,_)
+
+end
+
+(* Call the given function (2nd arg) if the flag given in 1st arg is NOT set *)
+
+relation notfcall: (string, 'a => (), 'a) => () =
+
+  rule	RTOpts.debug_flag (flag) => false &
+	func(str)
+	------------
+	notfcall (flag, func, str)
+
+  axiom	notfcall (_,_,_)
+
+end
+
+relation fprint_list: (string, 'a list, 'a => (), string) => () =
+
+  rule	RTOpts.debug_flag (flag) => true &
+	Dump.print_list (lst, func, sep)
+	--------------------------------
+	fprint_list (flag, lst, func, sep)
+
+  axiom	fprint_list (_,_,_,_)
+
+end

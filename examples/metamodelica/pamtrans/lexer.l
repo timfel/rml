@@ -2,7 +2,7 @@
 #include "gram.h"
 #include "yacclib.h"
 #include "rml.h"
-#include "absyn.h"
+#include "Absyn.h"
 
 typedef void *rml_t;
 /* extern rml_t yylval; */ 

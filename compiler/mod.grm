@@ -1,81 +1,93 @@
 (* parser/mo.grm -- ML-Yacc grammar for MODELICA+ *)
 
-fun mymax(x:int ,y:int,z:int) =
-    (print (Int.toString x); print ":"; print(Int.toString y); print (":");  print(Int.toString(z)); print("\n");
-     if ((x>y) andalso (x>z)) then x
-     else (if (y>z) then y else z));
-
-fun mklst(xlst, xnil, xcons) =
+fun mklst(xlst, xnil, xcons, info) =
   let fun loop([], rest) = rest
-	| loop(x::xlst, rest) = loop(xlst, xcons(x,rest))
+	| loop(x::xlst, rest) = loop(xlst, xcons(x,rest,info))
   in
-    loop(rev xlst, xnil)
+    loop(rev xlst, xnil(info))
   end
+  
+fun sayErr s = TextIO.output(TextIO.stdErr, s)
 
-fun makeInfo myLoc (left, right) =
-	let val {fileName, sline, scolumn, eline, ecolumn} = myLoc (left, right)
-		val loc_ref = ref(Absyn.LOC(sline, scolumn, eline, ecolumn))
+exception SyntaxErrorParse
+fun bug s =
+    (sayErr "Internal error: "; sayErr s; sayErr "\n"; raise SyntaxErrorParse)
+
+fun error s =
+    (sayErr "Error: "; sayErr s; sayErr "\n"; raise SyntaxErrorParse)
+    
+fun warn s =
+    (sayErr "Warning: "; sayErr s; sayErr "\n")      
+  
+
+fun makeInfo lexArg (left as (x,_,_), right as (y,_,_)) =
+	let val {fileName, sline, scolumn, eline, ecolumn} = LexArg.getLoc lexArg (left, right)
+		val loc = Absyn.LOC(sline, scolumn, eline, ecolumn)
 	in
-	(*
-	print (fileName);print ":";
-	print(Int.toString sline);print ":";
-	print(Int.toString scolumn);print ":";
-	print(Int.toString eline);print ":";
-	print(Int.toString ecolumn);print "\n";
-	*) 
-	ref(Absyn.INFO(fileName, left, right, loc_ref))
+		Absyn.INFO(fileName, x, y, loc)
 	end
 
-fun printInfo myLoc (left, right) =
-	let val {fileName, sline, scolumn, eline, ecolumn} = myLoc (left, right)
-		val loc_ref = ref(Absyn.LOC(sline, scolumn, eline, ecolumn))
+fun printErrInfo lexArg (left as (x,_,_), right as (y,_,_)) =
+	let val {fileName, sline, scolumn, eline, ecolumn} = LexArg.getLoc lexArg (left, right)
+	in
+	  sayErr(
+		 fileName^":"^
+		(Int.toString sline)^"."^
+		(Int.toString scolumn)^"-"^
+		(Int.toString eline)^":"^
+		(Int.toString ecolumn)^" ")
+	end
+
+fun printInfo lexArg (left as (x,_,_), right as (y,_,_)) =
+	let val {fileName, sline, scolumn, eline, ecolumn} = LexArg.getLoc lexArg (left, right)
 	in
 	  print (fileName);print ":";
-	  print(Int.toString sline);print ":";
-	  print(Int.toString scolumn);print ":";
+	  print(Int.toString sline);print ".";
+	  print(Int.toString scolumn);print "-";
 	  print(Int.toString eline);print ":";
 	  print(Int.toString ecolumn);print "\n"
 	end
 
-
-val modidRML = Absyn.rmlIdent "RML"
-val id_cons = Absyn.QUALIFIED(modidRML, 
+fun modidRML(info)= Absyn.IDENT("RML", info)
+fun id_cons(info) = 
+			Absyn.QUALIFIED(modidRML (info), 
 				Absyn.PATHIDENT(
-					Absyn.rmlIdent "cons",
-					ref(Absyn.dummyInfo)),
-				ref(Absyn.dummyInfo))
-val ctor_cons = SOME id_cons
-val id_nil = Absyn.QUALIFIED(modidRML, 
+					Absyn.IDENT("cons",info),
+					info),
+				info)
+fun ctor_cons(info)= SOME(id_cons(info))
+fun id_nil(info) = 
+			Absyn.QUALIFIED(modidRML (info), 
 				Absyn.PATHIDENT(
-					Absyn.rmlIdent "nil",
-					ref(Absyn.dummyInfo)),
-					ref(Absyn.dummyInfo))
+					Absyn.IDENT("nil",info),
+					info),
+					info)
 
-val pat_nil = Absyn.MCONpat(id_nil, ref(Absyn.dummyInfo))
-fun pat_cons(p,ps) = Absyn.MSTRUCTpat(ctor_cons, [p,ps], ref(Absyn.dummyInfo))
-fun mkpatlst lst = mklst(lst, pat_nil, pat_cons)
+fun pat_nil(info) = Absyn.MCONpat(id_nil(info), info)
+fun pat_cons(p,ps,info) = Absyn.MSTRUCTpat(ctor_cons(info), [p,ps], info)
+fun mkpatlst(lst, info) = mklst(lst, pat_nil, pat_cons, info)
 
-fun mktuplety([ty]) = ty
-  | mktuplety(tyseq) = Absyn.TUPLEty(tyseq, ref(Absyn.dummyInfo))
+fun mktuplety([ty], _) = ty
+  | mktuplety(tyseq, info) = Absyn.TUPLEty(tyseq, info)
 
-fun mkCtxInfo(Absyn.INFO(file1,loc1,loc2,ref(Absyn.LOC(sl1,sc1,el1,ec1))),
-              Absyn.INFO(file2,loc3,loc4,ref(Absyn.LOC(sl2,sc2,el2,ec2)))) =
-              ref(Absyn.INFO(file1,loc1,loc4,
-               ref(Absyn.LOC(sl1,sc1,el2,ec2))))
+fun mkCtxInfo(Absyn.INFO(file1,loc1,loc2,Absyn.LOC(sl1,sc1,el1,ec1)),
+              Absyn.INFO(file2,loc3,loc4,Absyn.LOC(sl2,sc2,el2,ec2))) =
+              Absyn.INFO(file1,loc1,loc4,
+              Absyn.LOC(sl1,sc1,el2,ec2))
 
 fun join_default(c1, NONE) = c1
-  | join_default(c1, SOME(c2 as Absyn.CLAUSE1(_,_,_,_,_,ref(infoC2)))) =
-      let fun join(c1 as Absyn.CLAUSE1(_,_,_,_,_,ref(infoC1))) = 
+  | join_default(c1, SOME(c2 as Absyn.CLAUSE1(_,_,_,_,_,infoC2))) =
+      let fun join(c1 as Absyn.CLAUSE1(_,_,_,_,_,infoC1)) = 
 			Absyn.CLAUSE2(c1, c2, mkCtxInfo(infoC1,infoC2))
-	    | join(Absyn.CLAUSE2(c11,c12, ref(infoC1))) = 
+	    | join(Absyn.CLAUSE2(c11,c12, infoC1)) = 
 			Absyn.CLAUSE2(c11, join c12, mkCtxInfo(infoC1, infoC2))
       in
 		join c1
       end
-  | join_default(c1, SOME(c2 as Absyn.CLAUSE2(_,_,ref(infoC2)))) =
-      let fun join(c1 as Absyn.CLAUSE1(_,_,_,_,_,ref(infoC1))) = 
+  | join_default(c1, SOME(c2 as Absyn.CLAUSE2(_,_,infoC2))) =
+      let fun join(c1 as Absyn.CLAUSE1(_,_,_,_,_,infoC1)) = 
 			Absyn.CLAUSE2(c1, c2, mkCtxInfo(infoC1,infoC2))
-	    | join(Absyn.CLAUSE2(c11,c12, ref(infoC1))) = 
+	    | join(Absyn.CLAUSE2(c11,c12, infoC1)) = 
 			Absyn.CLAUSE2(c11, join c12, mkCtxInfo(infoC1, infoC2))
       in
 		join c1
@@ -97,12 +109,12 @@ fun makeELEMENT(isFinal,
 				Absyn.UNSPECIFIED,
 				Absyn.IDENT(
 					"UNSPECIFIED", 
-					ref(Absyn.dummyInfo)),
+					Absyn.dummyInfo),
 				Absyn.CLASSDEF(
 					isReplaceable, 
 					class_def,
-					ref(Absyn.dummyInfo)),
-				ref(Absyn.dummyInfo),
+					Absyn.dummyInfo),
+				Absyn.dummyInfo,
 				NONE)
 		| NONE => case componentclause of
 					SOME(component_clause) => 
@@ -112,50 +124,32 @@ fun makeELEMENT(isFinal,
 							Absyn.UNSPECIFIED,
 							Absyn.IDENT(
 								"UNSPECIFIED", 
-								ref(Absyn.dummyInfo)),
+								Absyn.dummyInfo),
 							component_clause,
-							ref(Absyn.dummyInfo),
+							Absyn.dummyInfo,
 							NONE)
   )
 
-fun  getInsideEQList(Absyn.EQUATIONS(list, _)) = list
-   | getInsideEQList(Absyn.INITIALEQUATIONS(list, _)) = list
-   
-fun  getInsideALGList(Absyn.ALGORITHMS(list, _)) = list
-   | getInsideALGList(Absyn.INITIALALGORITHMS(list, _)) = list
-
-fun  fixClassDefinition(
-		Absyn.CLASS(
-			id,				(* Name *)
-			isPartial,      (* Partial *)
-			isFinal,        (* Final *)
-			isEncapsulated, (* Encapsulated *)
-			restriction,	(* Restricion *)
-			classdef,       (* Body *)
-			info),		 
-		optFINAL) = 
-		Absyn.CLASS(
-			id, 
-			isPartial, 
-			optFINAL, 
-			isEncapsulated, 
-			restriction, 
-			classdef,
-			info)
 
 %%
 
 %name MOD
 %header (functor MODLrValsFn(structure Token : TOKEN
 			     structure Absyn : ABSYN
-			     structure LexArg : LEXARG) : MOD_LRVALS)
+			     structure Cache : CACHE
+			     structure LexArg : LEXARG where type poz = Cache.poz
+			     sharing type Cache.restriction = LexArg.restriction
+			     sharing type Cache.visibility = LexArg.visibility
+			     ) : MOD_LRVALS)
 
 %nodefault
 
 %term	AND				(* and *)
 	|	AS				(* as *)
 	|	BAR				(* | *)
+	(* Not used in MetaModelica
 	|	CCON of char	(* #"A" *)
+	*)
 	|	COLON			(* : *)
 	|	COLONCOLON		(* :: *)
 	|	COMMA			(* , *)
@@ -178,7 +172,6 @@ fun  fixClassDefinition(
 	|	SCON of string	(* "foo" *)
 	|	STAR			(* * *)
 	|	TYPE			(* type *)
-	|	TYVAR of string	(* 'a *)
 	|	WILD			(* _ *)
 	(* adrpo -- start *)
 	(* int operators *)
@@ -209,7 +202,8 @@ fun  fixClassDefinition(
 	|   LT_REAL      (*  <. *)
 	|   NE_REAL      (* !=. *)
 	(* string operators *)
-	|	ADD_STRING	 (* +^ *)	
+	|	ADD_STRING	 (* +& *)
+	|	EQEQ_STRING	 (* ==& *)		
 	(* list operators *)
 	|	ADD_LIST	 (* @ *)	
 	(* adrpo added MODELICA keywords/punctuation *)
@@ -247,14 +241,13 @@ fun  fixClassDefinition(
 	|	IF
 	|	IMPORT
 	|	IN
-	|	INITIAL
 	|	INNER
 	|	INPUT
 	|	LOOP
 	|	MODEL
 	(* already there NOT *)
 	|	OUTER
-	|	OVERLOAD
+	(* |	OVERLOAD *)
 	|	OR
 	|	OUTPUT
 	|	PACKAGE
@@ -325,14 +318,13 @@ fun  fixClassDefinition(
 	IF
 	IMPORT
 	IN
-	INITIAL
 	INNER
 	INPUT
 	LOOP
 	MODEL
 	(* already there NOT *)
 	OUTER
-	OVERLOAD
+	(* OVERLOAD *)
 	OR
 	OUTPUT
 	PACKAGE
@@ -376,7 +368,7 @@ fun  fixClassDefinition(
 	| ident of Absyn.ident
 	| tyvar of Absyn.ident
 	(* Modelica+ constructs *)
-    | stored_definition of Absyn.Program
+    | stored_definition of Absyn.modelica
 	| optENCAPSULATED of bool
 	| optPARTIAL of bool
 	| optFINAL of bool	
@@ -387,17 +379,16 @@ fun  fixClassDefinition(
 	| class_definition of Absyn.Class
 	| class_type of Absyn.Restriction
 	| base_prefix of Absyn.ElementAttributes
-	| class_specifier of Absyn.ClassDef
+	| class_specifier of Absyn.ClassDef option
 	| enumeration of Absyn.ClassDef
 	| enum_list of Absyn.EnumLiteral list
 	| enumeration_literal of Absyn.EnumLiteral 	
 	| overloading of Absyn.ClassDef
-	| name_path_list of Absyn.Path list
-	| flow_prefix of bool
 	| variability_prefix of Absyn.Variability
 	| direction_prefix of Absyn.Direction
 	| component_clause of Absyn.ElementSpec
 	| component_clause1 of Absyn.ElementSpec
+	| class_or_component of (Absyn.Class option * Absyn.ElementSpec option) 
 	| composition of Absyn.ClassPart list	
 	| import_clause of Absyn.ElementSpec
 	| explicit_import_name of Absyn.Import 
@@ -405,9 +396,7 @@ fun  fixClassDefinition(
 	| class_definition_list of Absyn.Class list
 	| composition_sublist of Absyn.ClassPart list
 	| language_specification of string
-	| opt_language_specification of string option
 	| external_clause of Absyn.ClassPart
-	| opt_component_reference of Absyn.ComponentRef option
 	| external_function_call of Absyn.ExternalDecl 
 	| opt_expression_list of Absyn.Exp list
 	| element_list of Absyn.ElementItem list
@@ -418,7 +407,8 @@ fun  fixClassDefinition(
 	| subscript_list of Absyn.Subscript list
 	| array_subscripts of Absyn.ArrayDim
 	| opt_array_subscripts of Absyn.ArrayDim option
-	| type_specifier of Absyn.Path
+	| type_specifier of Absyn.TypeSpec
+	| type_specifier_list of Absyn.TypeSpec list
 	| component_list of Absyn.ComponentItem list	
 	| component_declaration of Absyn.ComponentItem
 	| declaration of Absyn.Component
@@ -428,14 +418,12 @@ fun  fixClassDefinition(
 	| opt_class_modification of Absyn.ElementArg list option
 	| argument_list of Absyn.ElementArg list
 	| argument of Absyn.ElementArg
-	| initial_equation_clause of Absyn.ClassPart
 	| equation_clause of Absyn.ClassPart 
 	| equation_annotation_list of Absyn.EquationItem list
 	| constraining_clause of Absyn.ConstrainClass
 	| opt_constraining_clause of Absyn.ConstrainClass option
 	| extends_clause of Absyn.ElementSpec
 	| algorithm_clause of Absyn.ClassPart
-	| initial_algorithm_clause of Absyn.ClassPart
 	| algorithm_annotation_list of Absyn.AlgorithmItem list
 	| equation of Absyn.EquationItem
 	| algorithm of Absyn.AlgorithmItem
@@ -499,8 +487,9 @@ fun  fixClassDefinition(
 	| logical_expression of Absyn.Exp
 	(* new modelica+ stuff *)
 	| match_expression of Absyn.Exp
-	| Case of Absyn.Case
+	| case_stmt of Absyn.Case
 	| case_list of Absyn.Case list
+	| case_else of Absyn.Case list
 	| match of Absyn.MatchType
 
 %eop EOF_HARD EOF_SOFT   
@@ -519,7 +508,6 @@ fun  fixClassDefinition(
 %left OR AND
 %left EQEQ NE_INT LT_INT GT_INT LE_INT GE_INT MOD_INT
 %right UNARY
-%right INITIAL
 %left LBRACE LPAREN DOT
 (* %left SEMICOLON *)
 %left ELSE
@@ -528,10 +516,12 @@ fun  fixClassDefinition(
 %right ASSIGN EQ 
 (* adrpo -- end *)	     
 
-%pos LexArg.pos
-%arg (myLoc) :  
-	   (LexArg.pos*LexArg.pos) -> 
-	   {fileName: string, sline:LexArg.pos, scolumn:LexArg.pos, eline:LexArg.pos, ecolumn:LexArg.pos}
+%pos Cache.poz
+%arg (lexArg) : LexArg.lexarg
+(*
+	   (LexArg.poz*LexArg.poz) -> 
+	   {fileName: string, sline:LexArg.poz, scolumn:LexArg.poz, eline:LexArg.poz, ecolumn:LexArg.poz}
+*)
 (*%pure*)
 %verbose
 %start modelica
@@ -540,118 +530,156 @@ fun  fixClassDefinition(
 
 modelica
 	: START_MODELICA stored_definition 
-		( Absyn.MODELICA(stored_definition, []) )
+		( stored_definition )
 
 (* PATTERNS *)
 pat	(* patterns possibly starting with LPAREN *)
 	: ident EQ pat
 		( Absyn.MNAMEDARGpat(ident, pat,
-			makeInfo myLoc (identleft, patright)))
+			makeInfo lexArg (identleft, patright)))
 	| ident AS pat
 		( Absyn.MBINDpat(ident, pat,
-			makeInfo myLoc (identleft, patright)))
+			makeInfo lexArg (identleft, patright)))
 	| pat_a
 		( pat_a )
 
 pat_a
 	: pat_b COLONCOLON pat_a
-		( Absyn.MSTRUCTpat(ctor_cons, [pat_b, pat_a], 
-			makeInfo myLoc (pat_bleft, pat_aright)) )
+		( Absyn.MSTRUCTpat(
+			ctor_cons (makeInfo lexArg (COLONCOLONleft, COLONCOLONright)), 
+			[pat_b, pat_a], 
+			makeInfo lexArg (pat_bleft, pat_aright)) )
 	| pat_b
 		( pat_b )
 
 pat_b	(* simple patterns possibly starting with LPAREN *)
 	: LPAREN RPAREN
 		( Absyn.MSTRUCTpat(NONE, [],
-			makeInfo myLoc (LPARENleft, RPARENright)) )
+			makeInfo lexArg (LPARENleft, RPARENright)) )
 	| LPAREN pat RPAREN
 		( pat )
 	| LPAREN pat COMMA pat_comma_plus RPAREN
 		( Absyn.MSTRUCTpat(NONE, pat :: pat_comma_plus,
-			makeInfo myLoc (LPARENleft, RPARENright)) )
+			makeInfo lexArg (LPARENleft, RPARENright)) )
 	| pat_d
 		( pat_d )
 
 pat_c	(* patterns not starting with LPAREN *)
 	: pat_d COLONCOLON pat_c
-		( Absyn.MSTRUCTpat(ctor_cons, [pat_d, pat_c],
-			makeInfo myLoc (pat_dleft, pat_cright)) )
+		( Absyn.MSTRUCTpat(
+			ctor_cons (makeInfo lexArg (COLONCOLONleft, COLONCOLONright)), 
+			[pat_d, pat_c],
+			makeInfo lexArg (pat_dleft, pat_cright)) )
 	| pat_d
 		( pat_d )
 
 pat_d	(* simple patterns not starting with LPAREN *)
 	: name_path pat_star
 		( 
+		case name_path of 
+			Absyn.QUALIFIED(_) => 	
+			LexArg.addExternal(
+				lexArg, 
+				Absyn.getPathAsString name_path, 
+				name_pathleft,name_pathright)
+		|	_ => ();
+
 		if (List.length pat_star > 0)
 		then
 		  Absyn.MSTRUCTpat(SOME name_path, pat_star,
-			makeInfo myLoc (name_pathleft, pat_starright))
+			makeInfo lexArg (name_pathleft, pat_starright))
 		else
 		  Absyn.MCONpat(
 			name_path,
-			makeInfo myLoc (name_pathleft, name_pathright))		   
+			makeInfo lexArg (name_pathleft, name_pathright))		   
 		)
 	| name_path pat_e
-		( Absyn.MSTRUCTpat(SOME name_path, [pat_e],
-			makeInfo myLoc (name_pathleft, pat_eright)) )
+	( 
+		case name_path of 
+			Absyn.QUALIFIED(_) => 	
+			LexArg.addExternal(
+				lexArg, 
+				Absyn.getPathAsString name_path, 
+				name_pathleft,name_pathright)
+		|	_ => ();
+	
+		Absyn.MSTRUCTpat(SOME name_path, [pat_e],
+			makeInfo lexArg (name_pathleft, pat_eright)) 
+	)
 	| pat_e
 		( pat_e )
 
 pat_e	(* atomic patterns not starting with LPAREN *)
 	: WILD
-		( Absyn.MWILDpat(makeInfo myLoc (WILDleft, WILDright)) )
-	| CCON
-		( Absyn.MLITpat(
+		( Absyn.MWILDpat(makeInfo lexArg (WILDleft, WILDright)) )
+	(* Not used in MetaModelica
+	| CCON 
+	( 
+		Absyn.MLITpat(
 			Absyn.CHAR(CCON,
-				makeInfo myLoc (CCONleft, CCONright)),
-			makeInfo myLoc (CCONleft, CCONright))
-		)		
+				makeInfo lexArg (CCONleft, CCONright)),
+			makeInfo lexArg (CCONleft, CCONright))
+	)
+	*)		
 	| ICON
 		( Absyn.MLITpat(
 			Absyn.INTEGER(
 				ICON,
-				makeInfo myLoc (ICONleft, ICONright)), 
-			makeInfo myLoc (ICONleft, ICONright)) )
+				makeInfo lexArg (ICONleft, ICONright)), 
+			makeInfo lexArg (ICONleft, ICONright)) )
 	| RCON 
 		( Absyn.MLITpat(
 			Absyn.REAL(
 				RCON,
-				makeInfo myLoc (RCONleft, RCONright)), 
-			makeInfo myLoc (RCONleft, RCONright)) )
+				makeInfo lexArg (RCONleft, RCONright)), 
+			makeInfo lexArg (RCONleft, RCONright)) )
 	| SCON
 		( Absyn.MLITpat(
 			Absyn.STRING(
 				SCON,
-				makeInfo myLoc (SCONleft, SCONright)), 
-			makeInfo myLoc (SCONleft, SCONright)) )
+				makeInfo lexArg (SCONleft, SCONright)), 
+			makeInfo lexArg (SCONleft, SCONright)) )
 	| name_path
-		( Absyn.MCONpat(
+	( 
+		case name_path of 
+			Absyn.QUALIFIED(_) => 	
+			LexArg.addExternal(
+				lexArg, 
+				Absyn.getPathAsString name_path, 
+				name_pathleft,name_pathright)
+		|	_ => ();
+	
+		Absyn.MCONpat(
 			name_path,
-			makeInfo myLoc (name_pathleft, name_pathright)) )
+			makeInfo lexArg (name_pathleft, name_pathright)) 
+	)
 	| ident
 		( Absyn.MIDENTpat(
-			ident, ref(Absyn.MWILDpat(ref(Absyn.dummyInfo))),
-			makeInfo myLoc (identleft, identright)) )
+			ident, ref(Absyn.MWILDpat(makeInfo lexArg (identleft, identright))),
+			makeInfo lexArg (identleft, identright)) )
 	| FALSE 
 	( 
 		Absyn.MIDENTpat(
 			Absyn.makeIdent("false", 
-				makeInfo myLoc (FALSEleft, FALSEright)),		
-			ref(Absyn.MWILDpat(ref(Absyn.dummyInfo))),
-			makeInfo myLoc (FALSEleft, FALSEright)) 
+				makeInfo lexArg (FALSEleft, FALSEright)),		
+			ref(Absyn.MWILDpat(makeInfo lexArg (FALSEleft, FALSEright))),
+			makeInfo lexArg (FALSEleft, FALSEright)) 
 	)
 	| TRUE 
 	( 
 		Absyn.MIDENTpat(
 			Absyn.makeIdent("true", 
-				makeInfo myLoc (TRUEleft, TRUEright)),		
-			ref(Absyn.MWILDpat(ref(Absyn.dummyInfo))),
-			makeInfo myLoc (TRUEleft, TRUEright)) 
+				makeInfo lexArg (TRUEleft, TRUEright)),		
+			ref(Absyn.MWILDpat(makeInfo lexArg (TRUEleft, TRUEright))),
+			makeInfo lexArg (TRUEleft, TRUEright)) 
 	)			
 	| LBRACK pat_comma_star RBRACK
-		( mkpatlst(pat_comma_star) )
+		( mkpatlst(
+			pat_comma_star,
+			makeInfo lexArg (LBRACKleft, RBRACKright)) )
 	| LBRACE pat_comma_star RBRACE
-		( mkpatlst(pat_comma_star) )
+		( mkpatlst(pat_comma_star,
+			makeInfo lexArg (LBRACEleft, RBRACEright)) )
 
 seq_pat
 	: (*empty*)
@@ -662,10 +690,10 @@ seq_pat
 		( pat_star )
 	| ident AS pat
 		( [Absyn.MBINDpat(ident, pat,
-			makeInfo myLoc (identleft, patright))])
+			makeInfo lexArg (identleft, patright))])
 	| ident EQ pat
 		( [Absyn.MNAMEDARGpat(ident, pat,
-			makeInfo myLoc (identleft, patright))])			
+			makeInfo lexArg (identleft, patright))])			
 
 pat_star
 	: LPAREN pat_comma_star RPAREN
@@ -688,11 +716,7 @@ pat_comma_plus
 ident
 	: IDENT
 		( Absyn.makeIdent(IDENT, 
-			makeInfo myLoc (IDENTleft, IDENTright)) )
-tyvar
-	: TYVAR
-		( Absyn.makeIdent(TYVAR, 
-			makeInfo myLoc (TYVARleft, TYVARright)) )
+			makeInfo lexArg (IDENTleft, IDENTright)) )
 
 (*-----------------------------------------------------------------*)
 (*-----------------------------------------------------------------*)
@@ -709,127 +733,106 @@ stored_definition (* only one class which corresponds with module ident in RML *
 				Absyn.PARTS(
 					composition, 
 					opt_string_comment,
-					makeInfo myLoc (compositionleft, compositionright)),
-				makeInfo myLoc (class_typeleft, SEMICOLONright))], 
+					makeInfo lexArg (compositionleft, compositionright)),
+				makeInfo lexArg (class_typeleft, SEMICOLONright))], 
 		Absyn.TOP,
 		Absyn.INTERFACE({modid=ident,  
 				         specs=[], 
 						 source=Absyn.Source.dummy},
-						 makeInfo myLoc (class_typeleft, SEMICOLONright)),
-		makeInfo myLoc (class_typeleft, SEMICOLONright)
+						 makeInfo lexArg (class_typeleft, SEMICOLONright)),
+		makeInfo lexArg (class_typeleft, SEMICOLONright)
 	  )
     )
-				
+
+(*			
+optPARTIAL:
+		PARTIAL (true)
+	|	(* empty *) (false)
+*)
+	
 (* we don't care about final here! *)
 class_definition:
-	class_type ident class_specifier
+	class_type ident class_specifier 
 	(
-	  Absyn.CLASS(ident,
-				false,
+		case class_type of
+			Absyn.R_RECORD(_)   =>
+				LexArg.addRestriction(
+					lexArg, Absyn.identName ident,
+					Cache.REC,
+					!(LexArg.currVisibility lexArg)					
+					)
+		|	Absyn.R_FUNCTION(_) =>
+				 LexArg.addRestriction(
+					lexArg, Absyn.identName ident,
+					Cache.FUN,
+					!(LexArg.currVisibility lexArg))
+		|	_ => ();
+		
+		case class_specifier of 
+			SOME(class_specifier)
+			=> Absyn.CLASS(ident,
+				case class_type of 
+					Absyn.R_FUNCTION_TYPE(_) => true
+				|	_ => false,
 				false,  
 				false,
 				class_type,
 				class_specifier,
-				makeInfo myLoc (class_typeleft, class_specifierright)))
-	| TYPE tyvar opt_string_comment
-	(
-	  Absyn.CLASS(tyvar,
-				  false,
-				  false,
-				  false,
-				  Absyn.R_TYPEVARIABLE(makeInfo myLoc (TYPEleft, TYPEright)),
-				  Absyn.PARTS([], opt_string_comment, makeInfo myLoc (tyvarleft, tyvarright)),
-				makeInfo myLoc (TYPEleft, tyvarright)))
+				makeInfo lexArg (class_typeleft, class_specifierright))
+		|	NONE
+			=> Absyn.CLASS(ident,
+				false,
+				false,  
+				false,
+				Absyn.R_TYPEVARIABLE(makeInfo lexArg (class_typeleft, class_typeright)),
+				Absyn.PARTS([],NONE, makeInfo lexArg (class_typeleft, identright)),
+				makeInfo lexArg (class_typeleft, identright))
+	)
 
-	
 (* we only support these! *)
 class_type:
-	CLASS     ( Absyn.R_CLASS(makeInfo myLoc (CLASSleft, CLASSright)) )
-|	MODEL     ( Absyn.R_MODEL(makeInfo myLoc (MODELleft, MODELright)) )
-|	RECORD    ( Absyn.R_RECORD(makeInfo myLoc (RECORDleft, RECORDright)) )
-|	TYPE      ( Absyn.R_TYPE(makeInfo myLoc (TYPEleft, TYPEright)) )
-|	PACKAGE   ( Absyn.R_PACKAGE(makeInfo myLoc (PACKAGEleft, PACKAGEright)) )
-|	FUNCTION  ( Absyn.R_FUNCTION(makeInfo myLoc (FUNCTIONleft, FUNCTIONright)) )
-|   UNIONTYPE ( Absyn.R_UNIONTYPE(makeInfo myLoc (UNIONTYPEleft, UNIONTYPEright)) )
+	RECORD    ( Absyn.R_RECORD(makeInfo lexArg (RECORDleft, RECORDright)) )
+|	TYPE      ( Absyn.R_TYPE(makeInfo lexArg (TYPEleft, TYPEright)) )
+|	PACKAGE   ( Absyn.R_PACKAGE(makeInfo lexArg (PACKAGEleft, PACKAGEright)) )
+|	PARTIAL FUNCTION ( Absyn.R_FUNCTION_TYPE(makeInfo lexArg (PARTIALleft, FUNCTIONright)) )
+|	FUNCTION  ( Absyn.R_FUNCTION(makeInfo lexArg (FUNCTIONleft, FUNCTIONright)) )
+|   UNIONTYPE ( Absyn.R_UNIONTYPE(makeInfo lexArg (UNIONTYPEleft, UNIONTYPEright)) )
 	
 
 class_specifier:
-	opt_string_comment composition END IDENT
+	opt_string_comment composition END IDENT 
 	(
+	  SOME(
 	  Absyn.PARTS(
 		composition, 
 		opt_string_comment,
-		makeInfo myLoc (compositionleft, IDENTright))
+		makeInfo lexArg (compositionleft, IDENTright)))
 	)
-	| EQ name_path array_subscripts comment
-		(
-		Absyn.DERIVED(
-			name_path, 
-			SOME(array_subscripts), 
-			Absyn.ATTR(
-			  false, 
-			  Absyn.VAR, 
-			  Absyn.BIDIR(ref(Absyn.dummyInfo)), 
-			  [],
-			  ref(Absyn.dummyInfo)), 
-			[], 
-			comment,
-			makeInfo myLoc (EQleft, array_subscriptsright)) 
-		)
-	| EQ name_path array_subscripts class_modification comment
-		(
-		Absyn.DERIVED(
-			name_path, 
-			SOME(array_subscripts), 
-			Absyn.ATTR(
-			  false, 
-			  Absyn.VAR, 
-			  Absyn.BIDIR(ref(Absyn.dummyInfo)), 
-			  [],
-			  ref(Absyn.dummyInfo)), 
-			class_modification, 
-			comment,
-			makeInfo myLoc (EQleft, class_modificationright)) 
-		)
-	| EQ name_path class_modification comment
-		(
-		Absyn.DERIVED(
-			name_path, 
-			NONE, 
-			Absyn.ATTR(
-			  false, 
-			  Absyn.VAR, 
-			  Absyn.BIDIR(ref(Absyn.dummyInfo)), 
-			  [],
-			  ref(Absyn.dummyInfo)), 
-			class_modification, 
-			comment,
-			makeInfo myLoc (EQleft, class_modificationright)) 
-		)
-	| EQ name_path comment
-		(
-		Absyn.DERIVED_TYPE(
-			name_path,
-			[], 
-			comment,
-			makeInfo myLoc (EQleft, name_pathright)) 
-		)		
-	| EQ name_path LT_INT name_path_list GT_INT comment
+	| opt_string_comment 
 	(
-	  Absyn.DERIVED_TYPE(
-	    name_path,
-	    name_path_list,
-	    comment,
-	    makeInfo myLoc(EQleft, GT_INTright))
-	)
-	| EQ enumeration ( enumeration )
+		NONE	
+	)	
+	| EQ type_specifier comment 
+	(
+		SOME(
+		Absyn.DERIVED(
+			type_specifier, 
+			Absyn.ATTR(
+			  Absyn.VAR, 
+			  Absyn.BIDIR(makeInfo lexArg (EQleft, EQright)), 
+			  makeInfo lexArg (EQleft, EQright)), 
+			[], 
+			comment,
+			makeInfo lexArg (EQleft, type_specifierright))) 
+		)
+	| EQ enumeration ( SOME(enumeration) )
 
 enumeration:
 	ENUMERATION LPAREN enum_list RPAREN comment
 		( Absyn.ENUMERATION(
 			enum_list, 
 			comment, 
-			makeInfo myLoc (ENUMERATIONleft, RPARENright)))	
+			makeInfo lexArg (ENUMERATIONleft, RPARENright)))	
 	
 enum_list:
 	enumeration_literal COMMA enum_list
@@ -842,42 +845,30 @@ enumeration_literal:
 		( Absyn.ENUMLITERAL(
 			ident, 
 			NONE, 
-			makeInfo myLoc (identleft, identright)))
-	
-name_path_list:
-	name_path COMMA name_path_list
-		( name_path::name_path_list )
-	|
-	name_path
-		( [name_path] )
-	
+			makeInfo lexArg (identleft, identright)))
+
+(*	
 base_prefix:
 	variability_prefix direction_prefix
 		( Absyn.ATTR(
-			false, 
 			variability_prefix, 
 			direction_prefix, 
-			[],
-			makeInfo myLoc (variability_prefixleft, direction_prefixright)) )
+			makeInfo lexArg (variability_prefixleft, direction_prefixright)) )
+*)
 
 (* TODO, FIXME, unite all prefixes into ONE *)
  
 variability_prefix:
-	PARAMETER	( Absyn.PARAM(makeInfo myLoc (PARAMETERleft, PARAMETERright)) )
-|	CONSTANT	( Absyn.CONST(makeInfo myLoc (CONSTANTleft, CONSTANTright)) )
-|   DISCRETE    ( Absyn.DISCRETE(makeInfo myLoc (DISCRETEleft, DISCRETEright)) )
+	PARAMETER	( Absyn.PARAM(makeInfo lexArg (PARAMETERleft, PARAMETERright)) )
+|	CONSTANT	( Absyn.CONST(makeInfo lexArg (CONSTANTleft, CONSTANTright)) )
 |	(* empty *)	( Absyn.VAR )
 
 
 direction_prefix:
-	INPUT		( Absyn.INPUT(makeInfo myLoc (INPUTleft, INPUTright)) )
-|	OUTPUT		( Absyn.OUTPUT(makeInfo myLoc (OUTPUTleft, OUTPUTright)) )
-|	(* empty *)	( Absyn.BIDIR(ref(Absyn.dummyInfo)) )
+	INPUT		( Absyn.INPUT(makeInfo lexArg (INPUTleft, INPUTright)) )
+|	OUTPUT		( Absyn.OUTPUT(makeInfo lexArg (OUTPUTleft, OUTPUTright)) )
+|	(* empty *)	( Absyn.BIDIR(Absyn.dummyInfo) )
 
-
-flow_prefix:
-	FLOW        (true)
-  | (* empty *) (false)
 
 component_clause:
     (* 
@@ -885,73 +876,63 @@ component_clause:
     input Functype func; 
     *)
     (*
-	flow_prefix variability_prefix direction_prefix type_specifier array_subscripts component_list
+	variability_prefix direction_prefix type_specifier component_list
 	(
 		Absyn.COMPONENTS(
 		 Absyn.ATTR(
-			flow_prefix, 
 			variability_prefix, 
 			direction_prefix, 
-			array_subscripts,
-			makeInfo myLoc (array_subscriptsleft, array_subscriptsright)),
+			makeInfo lexArg (flowprefixleft, type_specifierright)),
 		 type_specifier, 
 		 component_list,
-		 makeInfo myLoc (flow_prefixleft, component_listright))
+		 makeInfo lexArg (flow_prefixleft, component_listright))
 	)
 	*)
-	direction_prefix type_specifier array_subscripts component_list
+	direction_prefix type_specifier component_list
 	(
 	Absyn.COMPONENTS(
 		Absyn.ATTR(
-				false, 
 				Absyn.VAR, 
 				direction_prefix, 
-				array_subscripts,
-				makeInfo myLoc (direction_prefixright, direction_prefixleft)),
+				makeInfo lexArg (direction_prefixright, direction_prefixleft)),
 		 type_specifier,
 		 component_list,
-		 makeInfo myLoc (direction_prefixleft, component_listright))
+		 makeInfo lexArg (direction_prefixleft, component_listright))
 	)	
-	| CONSTANT direction_prefix type_specifier array_subscripts component_list
+	| CONSTANT direction_prefix type_specifier component_list
 	(
 	Absyn.COMPONENTS(
 		Absyn.ATTR(
-				false, 
-				Absyn.CONST(makeInfo myLoc (CONSTANTleft, CONSTANTright)), 
+				Absyn.CONST(makeInfo lexArg (CONSTANTleft, CONSTANTright)), 
 				direction_prefix, 
-				array_subscripts,
-				makeInfo myLoc (direction_prefixright, direction_prefixleft)),
+				makeInfo lexArg (direction_prefixright, direction_prefixleft)),
 		 type_specifier,
 		 component_list,
-		 makeInfo myLoc (direction_prefixleft, component_listright))
+		 makeInfo lexArg (direction_prefixleft, component_listright))
 	)	
 	(* input function Functype func; *)
 	| direction_prefix FUNCTION type_specifier component_list
 	(
 		Absyn.COMPONENTS(
 		 Absyn.ATTR(
-			false, 
 			Absyn.VAR, 
 			direction_prefix, 
-			[],
-			makeInfo myLoc (direction_prefixleft, direction_prefixright)),
+			makeInfo lexArg (direction_prefixleft, direction_prefixright)),
 		 type_specifier, 
 		 component_list,
-		 makeInfo myLoc (direction_prefixleft, component_listright))
+		 makeInfo lexArg (direction_prefixleft, component_listright))
 	)
 	(* input replaceable function func extends Functype; *)
 	| direction_prefix REPLACEABLE FUNCTION component_list EXTENDS type_specifier
 	(
 		Absyn.COMPONENTS(
 		 Absyn.ATTR(
-			false, 
 			Absyn.VAR, 
 			direction_prefix, 
-			[],
-			makeInfo myLoc (direction_prefixleft, direction_prefixright)),
+			makeInfo lexArg (direction_prefixleft, direction_prefixright)),
 		 type_specifier, 
 		 component_list,
-		 makeInfo myLoc (direction_prefixleft, type_specifierright))
+		 makeInfo lexArg (direction_prefixleft, type_specifierright))
 	)				 	
 
 	
@@ -961,14 +942,12 @@ component_clause1:
 	(
 		Absyn.COMPONENTS(
 			Absyn.ATTR(
-				false,
 				variability_prefix, 
 				direction_prefix, 
-				[],
-				makeInfo myLoc (variability_prefixleft, direction_prefixright)),
+				makeInfo lexArg (variability_prefixleft, direction_prefixright)),
 			type_specifier,
 			[component_declaration],
-			makeInfo myLoc (variability_prefixleft, component_declarationright))
+			makeInfo lexArg (variability_prefixleft, component_declarationright))
 	)
 
 import_clause:
@@ -976,66 +955,97 @@ import_clause:
 		( Absyn.IMPORT(
 			explicit_import_name, 
 			comment, 
-			makeInfo myLoc (IMPORTleft, explicit_import_nameright)) )
+			makeInfo lexArg (IMPORTleft, explicit_import_nameright)) )
 	| IMPORT implicit_import_name comment
 		( Absyn.IMPORT(
 			implicit_import_name, 
 			comment,
-			makeInfo myLoc (IMPORTleft, implicit_import_nameright)) )
+			makeInfo lexArg (IMPORTleft, implicit_import_nameright)) )
 	
 explicit_import_name:
 	ident EQ name_path
-		( Absyn.NAMED_IMPORT(
+	( 
+		case name_path of 
+			Absyn.QUALIFIED(_) => 	
+			LexArg.addExternal(
+				lexArg, 
+				Absyn.getPathAsString name_path, 
+				name_pathleft,name_pathright)
+		|	_ => ();
+		
+		Absyn.NAMED_IMPORT(
 			ident, 
 			name_path,
-			makeInfo myLoc (identleft, name_pathright)))
+			makeInfo lexArg (identleft, name_pathright))
+	)
 	
 
 implicit_import_name:
 	name_path DOTSTAR
-		( Absyn.UNQUAL_IMPORT(
+		( 
+		  LexArg.addImport(
+			lexArg, 
+			(Absyn.getLastPathAsString name_path)^".mo",
+			name_pathleft, DOTSTARright, !(LexArg.currVisibility lexArg));
+		
+		  Absyn.UNQUAL_IMPORT(
 			name_path,
-			makeInfo myLoc (name_pathleft, DOTSTARright)))
+			makeInfo lexArg (name_pathleft, DOTSTARright)))
 	| name_path
-		( Absyn.QUAL_IMPORT(
+		( 		  
+		  LexArg.addImport 
+			(lexArg, 
+			 (Absyn.getLastPathAsString name_path)^".mo", 
+			 name_pathleft, name_pathright, !(LexArg.currVisibility lexArg));
+			
+		  Absyn.QUAL_IMPORT(
 			name_path,
-			makeInfo myLoc (name_pathleft, name_pathright)))
+			makeInfo lexArg (name_pathleft, name_pathright)))
 	
 composition:
 	element_list 
-	(
+	(		
+		LexArg.currVisibility(lexArg) := Cache.PUBLIC;
+			
 		[ Absyn.PUBLIC(
 			element_list,
-			makeInfo myLoc (element_listleft, element_listright)) ]
+			makeInfo lexArg (element_listleft, element_listright)) ]
 	)
 	| element_list composition_sublist
-	(
+	(	
+		LexArg.currVisibility(lexArg) := Cache.PUBLIC;	
 		Absyn.PUBLIC(
 			element_list,
-			makeInfo myLoc (element_listleft, element_listright))::composition_sublist
+			makeInfo lexArg (element_listleft, element_listright))::composition_sublist
 	)
 	
 composition_sublist:
-	PUBLIC element_list composition_sublist 
-		( Absyn.PUBLIC(
+	  PUBLIC element_list composition_sublist 
+	(	
+		LexArg.currVisibility(lexArg) := Cache.PUBLIC;
+			
+		Absyn.PUBLIC(
 			element_list,
-			makeInfo myLoc (PUBLICleft, element_listright))::composition_sublist )
+			makeInfo lexArg (PUBLICleft, element_listright))::composition_sublist )
 	| PROTECTED element_list composition_sublist 
-		( Absyn.PROTECTED(
+	( 		
+		LexArg.currVisibility(lexArg) := Cache.PROTECTED;
+	
+		Absyn.PROTECTED(
 			element_list,
-			makeInfo myLoc (PROTECTEDleft, element_listright))::composition_sublist )
+			makeInfo lexArg (PROTECTEDleft, element_listright))::composition_sublist )
 	| LOCAL PROTECTED element_list composition_sublist 
-		( Absyn.PROTECTED(
+	( 
+		LexArg.currVisibility(lexArg) := Cache.PROTECTED;
+	
+		Absyn.PROTECTED(
 			element_list,
-			makeInfo myLoc (LOCALleft, element_listright))::composition_sublist )			
+			makeInfo lexArg (LOCALleft, element_listright))::composition_sublist 
+	)					
 	| algorithm_clause composition_sublist 
 		( algorithm_clause::composition_sublist  )
-	| initial_algorithm_clause composition_sublist 
-		( initial_algorithm_clause::composition_sublist )		
 	| equation_clause composition_sublist 
 		( equation_clause::composition_sublist )
-	| initial_equation_clause composition_sublist 
-		( initial_equation_clause::composition_sublist )
 	| external_clause SEMICOLON
 		( [external_clause]	)
 	| (* empty *)
@@ -1048,24 +1058,12 @@ external_clause:
 			external_function_call, 
 			NONE, 
 			NONE,
-			makeInfo myLoc (EXTERNALleft, external_function_callright)) 	
+			makeInfo lexArg (EXTERNALleft, external_function_callright)) 	
 	)
 	
 language_specification:
 	SCON
 		( SCON )
-	
-opt_language_specification:
-	language_specification
-		( SOME(language_specification) )
-	|
-		( NONE )	
-
-opt_component_reference:
-	component_reference
-		( SOME(component_reference) )
-	|
-		( NONE )	
 
 external_function_call:
 	language_specification 
@@ -1075,7 +1073,7 @@ external_function_call:
 			SOME(language_specification), 
 			NONE,
 			[],
-			makeInfo myLoc (language_specificationleft, language_specificationright))
+			makeInfo lexArg (language_specificationleft, language_specificationright))
 	)
 	| language_specification component_reference EQ ident LPAREN opt_expression_list RPAREN
 	(  
@@ -1084,7 +1082,7 @@ external_function_call:
 			SOME(language_specification), 
 			SOME(component_reference),
 			opt_expression_list,
-			makeInfo myLoc (language_specificationleft, RPARENright))
+			makeInfo lexArg (language_specificationleft, RPARENright))
 	)
 	
 opt_expression_list:
@@ -1096,7 +1094,7 @@ element_list:
 	element SEMICOLON element_list
 		( Absyn.ELEMENTITEM(
 				element,
-				makeInfo myLoc (elementleft, SEMICOLONright))::element_list ) 		
+				makeInfo lexArg (elementleft, SEMICOLONright))::element_list ) 		
 	| (* empty *)
 		( [] )
 	
@@ -1110,15 +1108,28 @@ element:
 			SOME(component_clause),  
 			NONE, 
 			NONE))
-	| REPLACEABLE component_clause
-		( makeELEMENT(
-			false, 
-			Absyn.UNSPECIFIED,  
-			true,  
-			NONE,  
-			SOME(component_clause),  
-			NONE, 
-			NONE))		
+	| REPLACEABLE class_or_component
+		( 
+		  case class_or_component of
+		       (SOME(class_definition), NONE) => 
+				makeELEMENT(
+					false, 
+					Absyn.UNSPECIFIED,  
+					true, 
+					SOME(class_definition),  
+					NONE,  
+					NONE, 
+					NONE)
+		     | (NONE, SOME(component_clause)) => 
+				makeELEMENT(
+					false, 
+					Absyn.UNSPECIFIED,  
+					true,  
+					NONE,  
+					SOME(component_clause),  
+					NONE, 
+					NONE)
+		)
 	| import_clause
 	(
 	  Absyn.ELEMENT(
@@ -1127,9 +1138,9 @@ element:
 		Absyn.UNSPECIFIED,
 		Absyn.IDENT(
 			"import", 
-			ref(Absyn.dummyInfo)),
+			makeInfo lexArg (import_clauseleft, import_clauseright)),
 		import_clause,
-		makeInfo myLoc (import_clauseleft, import_clauseright),
+		makeInfo lexArg (import_clauseleft, import_clauseright),
 		NONE)
 	)
 	| extends_clause
@@ -1140,9 +1151,9 @@ element:
 		Absyn.UNSPECIFIED,
 		Absyn.IDENT(
 			"extends",
-			ref(Absyn.dummyInfo)),
+			makeInfo lexArg (extends_clauseleft, extends_clauseright)),
 		extends_clause,
-		makeInfo myLoc (extends_clauseleft, extends_clauseright),
+		makeInfo lexArg (extends_clauseleft, extends_clauseright),
 		NONE)
 	)
 	| class_definition
@@ -1151,16 +1162,6 @@ element:
 			false, 
 			Absyn.UNSPECIFIED,  
 			false, 
-			SOME(class_definition),  
-			NONE,  
-			NONE, 
-			NONE)
-	)
-	| REPLACEABLE class_definition
-		( makeELEMENT(
-			false, 
-			Absyn.UNSPECIFIED,  
-			true, 
 			SOME(class_definition),  
 			NONE,  
 			NONE, 
@@ -1181,47 +1182,76 @@ element:
 	)
 	*)
 	
-
+class_or_component:
+		component_clause 
+		( (NONE,  SOME(component_clause)) )
+	| class_definition 
+		( (SOME(class_definition), NONE) )
+	
 
 subscript:
 	expression
 	( 
 		Absyn.SUBSCRIPT(
 			expression,
-			makeInfo myLoc (expressionleft, expressionright)) 
+			makeInfo lexArg (expressionleft, expressionright)) 
 	)
 	| COLON
 	( 
 		Absyn.NOSUB(
-			makeInfo myLoc (COLONleft, COLONright)) 
-	)
-	
-
-subscript_list:
-	subscript COMMA subscript_list
-		( subscript::subscript_list )
-	| subscript
-		( [ subscript ] )
-	
+			makeInfo lexArg (COLONleft, COLONright)) 
+	)	
 
 array_subscripts:
-	LBRACK subscript_list RBRACK
-		( subscript_list )
+	LBRACK subscript RBRACK
+		( [subscript] )
 	| (* empty *)
-		( [] )
+		( [] )	
 
-opt_array_subscripts:
-	array_subscripts
-		( SOME(array_subscripts) )
-	|
-		( NONE )
-	
+type_specifier_list:
+	  type_specifier
+		( [type_specifier] )
+	| type_specifier COMMA type_specifier_list
+		( type_specifier::type_specifier_list )
+
 
 type_specifier:
-	name_path
-		( name_path )
+	 name_path
+	(
+		case name_path of 
+			Absyn.QUALIFIED(_) => 	
+			LexArg.addExternal(
+				lexArg, 
+				Absyn.getPathAsString name_path, 
+				name_pathleft,name_pathright)
+		|	_ => ();
+	 
+		Absyn.TPATH(name_path,  
+	                makeInfo lexArg (name_pathleft, name_pathright))
+	)
+   | name_path LT_INT type_specifier_list GT_INT
+	( 
+		case name_path of 
+			Absyn.QUALIFIED(_) => 	
+			LexArg.addExternal(
+				lexArg, 
+				Absyn.getPathAsString name_path, 
+				name_pathleft,name_pathright)
+		|	_ => ();
 	
+		Absyn.TCOMPLEX(name_path, type_specifier_list,  
+	                makeInfo lexArg (name_pathleft, GT_INTright))
+	)
+   (* MetaModelica arrays *)   
+   | type_specifier LBRACK COLON RBRACK
+	  ( Absyn.TCOMPLEX(
+			Absyn.PATHIDENT(
+				Absyn.IDENT("ARRAY",makeInfo lexArg (type_specifierleft, RBRACKright)),
+				makeInfo lexArg (type_specifierleft, RBRACKright)), 
+			[type_specifier],  
+	        makeInfo lexArg (type_specifierleft, RBRACKright)))  
 
+	
 component_list:
 	  component_declaration
 		( [ component_declaration] )
@@ -1233,16 +1263,15 @@ component_declaration:
 		( Absyn.COMPONENTITEM(
 			declaration, 
 			comment,
-			makeInfo myLoc (declarationleft, commentright)))	
+			makeInfo lexArg (declarationleft, commentright)))	
 
 declaration:
-	ident array_subscripts opt_modification
+	ident opt_modification
 	( 
 	  Absyn.COMPONENT(
 		ident, 
-		array_subscripts, 
 		opt_modification,
-		makeInfo myLoc (identleft, opt_modificationright))
+		makeInfo lexArg (identleft, opt_modificationright))
 	)
 		
 modification:
@@ -1251,23 +1280,23 @@ modification:
 			Absyn.CLASSMOD(
 				class_modification, 
 				SOME(expression),
-				makeInfo myLoc (class_modificationleft, expressionright)) 
+				makeInfo lexArg (class_modificationleft, expressionright)) 
 		)
 	| class_modification
 		( Absyn.CLASSMOD(
 			class_modification, 
 			NONE,
-			makeInfo myLoc (class_modificationleft, class_modificationright)) )
+			makeInfo lexArg (class_modificationleft, class_modificationright)) )
 	| EQ expression
 		( Absyn.CLASSMOD(
 			[], 
 			SOME(expression),
-			makeInfo myLoc (EQleft, expressionright)) )
+			makeInfo lexArg (EQleft, expressionright)) )
 	| ASSIGN expression
 		( Absyn.CLASSMOD(
 			[], 
 			SOME(expression),
-			makeInfo myLoc (ASSIGNleft, expressionright)) )
+			makeInfo lexArg (ASSIGNleft, expressionright)) )
 	
 
 opt_modification:
@@ -1309,7 +1338,7 @@ argument:
 		component_reference, 
 		opt_modification, 
 		opt_string_comment,
-		makeInfo myLoc (optEACHleft, opt_string_commentright))
+		makeInfo lexArg (optEACHleft, opt_string_commentright))
 	)
 	| optEACH optFINAL component_reference opt_modification 
 	(
@@ -1319,7 +1348,7 @@ argument:
 		component_reference, 
 		opt_modification, 
 		NONE,
-		makeInfo myLoc (optEACHleft, opt_modificationright))
+		makeInfo lexArg (optEACHleft, opt_modificationright))
 	)	
 	| REDECLARE optEACH optFINAL REPLACEABLE class_definition opt_constraining_clause
 	(
@@ -1329,9 +1358,9 @@ argument:
 			Absyn.CLASSDEF(
 				true, 
 				class_definition,
-				makeInfo myLoc (class_definitionleft, class_definitionright)), 
+				makeInfo lexArg (class_definitionleft, class_definitionright)), 
 			opt_constraining_clause,
-			makeInfo myLoc (REDECLAREleft, opt_constraining_clauseright))
+			makeInfo lexArg (REDECLAREleft, opt_constraining_clauseright))
 	)
 	| REDECLARE optEACH optFINAL REPLACEABLE component_clause1 opt_constraining_clause
 	(
@@ -1340,7 +1369,7 @@ argument:
 		optEACH, 
 		component_clause1, 
 		opt_constraining_clause,
-		makeInfo myLoc (REDECLAREleft, opt_constraining_clauseright))
+		makeInfo lexArg (REDECLAREleft, opt_constraining_clauseright))
 	)
 	| REDECLARE optEACH optFINAL class_definition
 	(
@@ -1350,9 +1379,9 @@ argument:
 		Absyn.CLASSDEF(
 			false, 
 			class_definition,
-			makeInfo myLoc (class_definitionleft, class_definitionright)), 
+			makeInfo lexArg (class_definitionleft, class_definitionright)), 
 		NONE,
-		makeInfo myLoc (REDECLAREleft, class_definitionright))
+		makeInfo lexArg (REDECLAREleft, class_definitionright))
 	)
 	| REDECLARE optEACH optFINAL component_clause1
 	(
@@ -1361,24 +1390,15 @@ argument:
 		optEACH, 
 		component_clause1, 
 		NONE,
-		makeInfo myLoc (REDECLAREleft, component_clause1right))
+		makeInfo lexArg (REDECLAREleft, component_clause1right))
 	)
-	
-initial_equation_clause:
-	INITIAL EQUATION equation_annotation_list
-	( 
-		Absyn.INITIALEQUATIONS(
-			equation_annotation_list,
-			makeInfo myLoc (INITIALleft, equation_annotation_listright)) 
-	)
-	
-
+		
 equation_clause:
 	EQUATION equation_annotation_list
 	( 
 		Absyn.EQUATIONS(
 			equation_annotation_list,
-			makeInfo myLoc (EQUATIONleft, equation_annotation_listright)) 
+			makeInfo lexArg (EQUATIONleft, equation_annotation_listright)) 
 	)
 	
 
@@ -1390,7 +1410,7 @@ equation_annotation_list:
 	( 
 		Absyn.EQUATIONITEMANN(
 			annotation,
-			makeInfo myLoc (annotationleft, annotationright))::equation_annotation_list )
+			makeInfo lexArg (annotationleft, annotationright))::equation_annotation_list )
 	*)
 	| (* empty *)
 		( [] )
@@ -1409,10 +1429,18 @@ opt_constraining_clause:
 extends_clause:
 	EXTENDS name_path class_modification
 	(
+		case name_path of 
+			Absyn.QUALIFIED(_) => 	
+			LexArg.addExternal(
+				lexArg, 
+				Absyn.getPathAsString name_path, 
+				name_pathleft,name_pathright)
+		|	_ => ();
+	
 	  Absyn.EXTENDS(
 		name_path, 
 		class_modification,
-		makeInfo myLoc (EXTENDSleft, class_modificationright))
+		makeInfo lexArg (EXTENDSleft, class_modificationright))
 	)
 	
 
@@ -1421,18 +1449,8 @@ algorithm_clause:
 	( 
 		Absyn.ALGORITHMS(
 			algorithm_annotation_list,
-			makeInfo myLoc (ALGORITHMleft, algorithm_annotation_listright)) 
-	)
-	
-
-initial_algorithm_clause:
-	INITIAL ALGORITHM algorithm_annotation_list
-	( 
-		Absyn.INITIALALGORITHMS(
-			algorithm_annotation_list,
-			makeInfo myLoc (INITIALleft, algorithm_annotation_listright)) 
-	)
-	
+			makeInfo lexArg (ALGORITHMleft, algorithm_annotation_listright)) 
+	)	
 
 algorithm_annotation_list:
 	algorithm SEMICOLON algorithm_annotation_list 
@@ -1442,7 +1460,7 @@ algorithm_annotation_list:
 	( 
 		Absyn.ALGORITHMITEMANN(
 			annotation,
-			makeInfo myLoc (annotationleft, annotationright))::algorithm_annotation_list ) 
+			makeInfo lexArg (annotationleft, annotationright))::algorithm_annotation_list ) 
 	*)
 	| (* empty *)
 		( [] )
@@ -1462,12 +1480,12 @@ equation:
 						function_call,
 						ctxInfo), 
 					comment,
-					makeInfo myLoc (simple_expressionleft, eq_equalsright))
-			| _ => let exception ParseInternal
+					makeInfo lexArg (simple_expressionleft, eq_equalsright))
+			| _ => let exception SyntaxErrorParse
 					in 
-					 print "\nParser Error: Strange simple expression in equation section.\nLocation: ";
-					 printInfo myLoc(simple_expressionleft, eq_equalsright);
-					 raise ParseInternal 
+					 printErrInfo lexArg(simple_expressionleft, eq_equalsright);
+					 sayErr("Parse Error: Strange simple expression in equation section.\n");					 
+					 raise SyntaxErrorParse 
 				    end 
 		)
 		| (SOME(expression), comment) =>
@@ -1476,9 +1494,9 @@ equation:
 				Absyn.EQ_EQUALS(
 					simple_expression, 
 					expression,
-					makeInfo myLoc (eq_equalsleft, eq_equalsright)), 
+					makeInfo lexArg (eq_equalsleft, eq_equalsright)), 
 				comment,
-				makeInfo myLoc (simple_expressionleft, eq_equalsright))
+				makeInfo lexArg (simple_expressionleft, eq_equalsright))
 		)
 	)
 	| conditional_equation_e comment
@@ -1486,37 +1504,37 @@ equation:
 		Absyn.EQUATIONITEM(
 			conditional_equation_e, 
 			comment,
-			makeInfo myLoc (conditional_equation_eleft, conditional_equation_eright))
+			makeInfo lexArg (conditional_equation_eleft, conditional_equation_eright))
 	)
 	| for_clause_e comment
 	( 
 		Absyn.EQUATIONITEM(
 			for_clause_e, 
 			comment,
-			makeInfo myLoc (for_clause_eleft, for_clause_eright))
+			makeInfo lexArg (for_clause_eleft, for_clause_eright))
 	)
 	| connect_clause comment
 	( 
 		Absyn.EQUATIONITEM(
 			connect_clause, 
 			comment,
-			makeInfo myLoc (connect_clauseleft, connect_clauseright))
+			makeInfo lexArg (connect_clauseleft, connect_clauseright))
 	)
 	| when_clause_e comment 
 	( 
 		Absyn.EQUATIONITEM(
 			when_clause_e, 
 			comment,
-			makeInfo myLoc (when_clause_eleft, when_clause_eright))
+			makeInfo lexArg (when_clause_eleft, when_clause_eright))
 	)
 	| FAILURE LPAREN equation RPAREN comment
 	(
 		case equation of 
 			Absyn.EQUATIONITEM(equation, _, _) =>
 				Absyn.EQUATIONITEM(
-					Absyn.EQ_FAILURE(equation, makeInfo myLoc (FAILUREleft, RPARENright)),
+					Absyn.EQ_FAILURE(equation, makeInfo lexArg (FAILUREleft, RPARENright)),
 					comment, 
-					makeInfo myLoc (FAILUREleft, RPARENright))
+					makeInfo lexArg (FAILUREleft, RPARENright))
 			| _ => equation
 	)
 	| EQUALITY LPAREN equation RPAREN comment
@@ -1524,9 +1542,9 @@ equation:
 		case equation of 
 			Absyn.EQUATIONITEM(equation, _, _) =>
 				Absyn.EQUATIONITEM(
-					Absyn.EQ_EQUALITY(equation, makeInfo myLoc (EQUALITYleft, RPARENright)),
+					Absyn.EQ_EQUALITY(equation, makeInfo lexArg (EQUALITYleft, RPARENright)),
 					comment, 
-					makeInfo myLoc (EQUALITYleft, RPARENright))
+					makeInfo lexArg (EQUALITYleft, RPARENright))
 			| _ => equation
 	)
 	
@@ -1562,44 +1580,44 @@ algorithm:
 					function_call,
 					ctxInfo), 
 				comment,
-				makeInfo myLoc (simple_expressionleft, alg_assignright))
+				makeInfo lexArg (simple_expressionleft, alg_assignright))
 	   | (x as Absyn.CALL(component_reference, function_call, ctxInfo), (SOME(expression), comment)) =>
 			Absyn.ALGORITHMITEM(
 				Absyn.ALG_ASSIGN(
 					x, 
 					expression,
-					makeInfo myLoc (simple_expressionleft, alg_assignright)),
+					makeInfo lexArg (simple_expressionleft, alg_assignright)),
 				comment,
-				makeInfo myLoc (simple_expressionleft, alg_assignright))						
+				makeInfo lexArg (simple_expressionleft, alg_assignright))						
 	   | (x as Absyn.CREF(component_reference), (SOME(expression), comment)) =>
 			Absyn.ALGORITHMITEM(
 				Absyn.ALG_ASSIGN(
 					x, 
 					expression,
-					makeInfo myLoc (simple_expressionleft, alg_assignright)),
+					makeInfo lexArg (simple_expressionleft, alg_assignright)),
 				comment,
-				makeInfo myLoc (simple_expressionleft, alg_assignright)) 
+				makeInfo lexArg (simple_expressionleft, alg_assignright)) 
 		| (tuple as Absyn.TUPLE(_), (SOME(expression), comment)) => 		
 			Absyn.ALGORITHMITEM(
 				Absyn.ALG_TUPLE_ASSIGN(
 					tuple,
 					expression,
-					makeInfo myLoc (simple_expressionleft, alg_assignright)),
+					makeInfo lexArg (simple_expressionleft, alg_assignright)),
 				comment,
-				makeInfo myLoc (simple_expressionleft, alg_assignright))
+				makeInfo lexArg (simple_expressionleft, alg_assignright))
 	   | (x, (SOME(expression), comment)) =>
 			Absyn.ALGORITHMITEM(
 				Absyn.ALG_ASSIGN(
 					x, 
 					expression,
-					makeInfo myLoc (simple_expressionleft, alg_assignright)),
+					makeInfo lexArg (simple_expressionleft, alg_assignright)),
 				comment,
-				makeInfo myLoc (simple_expressionleft, alg_assignright))						
-		| _ => let exception ParseInternal
+				makeInfo lexArg (simple_expressionleft, alg_assignright))						
+		| _ => let exception SyntaxErrorParse
 					in 
-					 print "\nParse Error: Strange simple expression in algorithm section.\nLocation: ";
-					 printInfo myLoc (simple_expressionleft, alg_assignright);					 
-					 raise ParseInternal 
+					 printErrInfo lexArg (simple_expressionleft, alg_assignright);					 
+					 sayErr("Parse Error: Strange simple expression in algorithm section.\n");
+					 raise SyntaxErrorParse 
 				    end 
 	)
 	| conditional_equation_a comment 
@@ -1607,37 +1625,37 @@ algorithm:
 		Absyn.ALGORITHMITEM(
 			conditional_equation_a, 
 			comment,
-			makeInfo myLoc (conditional_equation_aleft, conditional_equation_aright)) 
+			makeInfo lexArg (conditional_equation_aleft, conditional_equation_aright)) 
 	)
 	| for_clause_a comment
 	( 
 		Absyn.ALGORITHMITEM(
 			for_clause_a, 
 			comment,
-			makeInfo myLoc (for_clause_aleft, for_clause_aright)) 
+			makeInfo lexArg (for_clause_aleft, for_clause_aright)) 
 	)
 	| while_clause comment
 	( 
 		Absyn.ALGORITHMITEM(
 			while_clause, 
 			comment,
-			makeInfo myLoc (while_clauseleft, while_clauseright)) 
+			makeInfo lexArg (while_clauseleft, while_clauseright)) 
 	)
 	| when_clause_a comment 
 	( 
 		Absyn.ALGORITHMITEM(
 			when_clause_a, 
 			comment,
-			makeInfo myLoc (when_clause_aleft, when_clause_aright)) 
+			makeInfo lexArg (when_clause_aleft, when_clause_aright)) 
 	)
 	| FAILURE LPAREN algorithm RPAREN comment
 	(
 		case algorithm of 
 			Absyn.ALGORITHMITEM(algorithm, _, _) =>
 				Absyn.ALGORITHMITEM(
-					Absyn.ALG_FAILURE(algorithm, makeInfo myLoc (FAILUREleft, RPARENright)),
+					Absyn.ALG_FAILURE(algorithm, makeInfo lexArg (FAILUREleft, RPARENright)),
 					comment, 
-					makeInfo myLoc (FAILUREleft, RPARENright))
+					makeInfo lexArg (FAILUREleft, RPARENright))
 			| _ => algorithm
 	)
 	| EQUALITY LPAREN algorithm RPAREN comment
@@ -1645,9 +1663,9 @@ algorithm:
 		case algorithm of 
 			Absyn.ALGORITHMITEM(algorithm, _, _) =>
 				Absyn.ALGORITHMITEM(
-					Absyn.ALG_EQUALITY(algorithm, makeInfo myLoc (EQUALITYleft, RPARENright)),
+					Absyn.ALG_EQUALITY(algorithm, makeInfo lexArg (EQUALITYleft, RPARENright)),
 					comment, 
-					makeInfo myLoc (EQUALITYleft, RPARENright))
+					makeInfo lexArg (EQUALITYleft, RPARENright))
 			| _ => algorithm
 	)
 
@@ -1687,7 +1705,7 @@ conditional_equation_e:
 			equation_list,
 			equation_elseif,
 			opt_equation_else,
-			makeInfo myLoc (IF1left, IF2right)) 
+			makeInfo lexArg (IF1left, IF2right)) 
 	)
 	
 
@@ -1699,7 +1717,7 @@ conditional_equation_a:
 			algorithm_list,
 			algorithm_elseif,
 			opt_algorithm_else,
-			makeInfo myLoc (IF1left, IF2right)) 
+			makeInfo lexArg (IF1left, IF2right)) 
 	)
 	
 for_indices:
@@ -1714,14 +1732,14 @@ for_indice:
 		Absyn.FORINDICE(
 			ident, 
 			NONE,
-			makeInfo myLoc (identleft, identright)) 
+			makeInfo lexArg (identleft, identright)) 
 	)
 	| ident IN expression
 	( 
 		Absyn.FORINDICE(
 			ident, 
 			SOME(expression),
-			makeInfo myLoc (identleft, expressionright)) 
+			makeInfo lexArg (identleft, expressionright)) 
 	)
 
 for_clause_e:
@@ -1730,7 +1748,7 @@ for_clause_e:
 		Absyn.EQ_FOR(
 			for_indices, 
 			equation_list,
-			makeInfo myLoc (FOR1left, FOR2right)) 
+			makeInfo lexArg (FOR1left, FOR2right)) 
 	)	
 
 for_clause_a:
@@ -1739,7 +1757,7 @@ for_clause_a:
 		Absyn.ALG_FOR(
 			for_indices, 
 			algorithm_list,
-			makeInfo myLoc (FOR1left, FOR2right))
+			makeInfo lexArg (FOR1left, FOR2right))
 	)
 	
 
@@ -1749,7 +1767,7 @@ while_clause:
 		Absyn.ALG_WHILE(
 			expression, 
 			algorithm_list,
-			makeInfo myLoc (WHILE1left, WHILE2right))
+			makeInfo lexArg (WHILE1left, WHILE2right))
 	)
 	
 
@@ -1760,7 +1778,7 @@ when_clause_e:
 			expression, 
 			equation_list, 
 			else_when_e,
-			makeInfo myLoc (WHEN1left, WHEN2right))
+			makeInfo lexArg (WHEN1left, WHEN2right))
 	)
 	
 
@@ -1778,7 +1796,7 @@ when_clause_a:
 			expression, 
 			algorithm_list, 
 			else_when_a,
-			makeInfo myLoc (WHEN1left, WHEN2right))
+			makeInfo lexArg (WHEN1left, WHEN2right))
 	)
 	
 
@@ -1809,7 +1827,7 @@ connect_clause:
 		Absyn.EQ_CONNECT(
 			component_reference1, 
 			component_reference2,
-			makeInfo myLoc (CONNECTleft, RPARENright)) 
+			makeInfo lexArg (CONNECTleft, RPARENright)) 
 	)
 
 local_element_list:
@@ -1823,93 +1841,63 @@ match:
 	| MATCHCONTINUE (Absyn.MATCHCONTINUE)
 	
 match_expression:
-	match expression local_element_list case_list END match 
-	( Absyn.MATCHexp(
+  match expression opt_string_comment 
+	local_element_list 
+	case_list
+	case_else 
+  END match 
+  ( 
+	Absyn.MATCHexp(
 				match1,
 				expression, 
 				local_element_list,
-				case_list,
-				makeInfo myLoc (match1left, match2right))
-	)
+				case_list @ case_else,
+				opt_string_comment,
+				makeInfo lexArg (match1left, match2right))
+  )
 
 case_list:
-	 Case case_list
-		( Case::case_list )
-	| Case	
-		( [Case] )
+	 case_stmt case_list 
+		( case_stmt::case_list )
+	| case_stmt	
+		( [case_stmt] )
 
-(*		
-opt_eq_clause:		
-	equation_clause	
-		(equation_clause)
-	| (* empty *)
-		(Absyn.EQUATIONS(
-				[],
-				ref(Absyn.dummyInfo))
-*)
-
-Case:
-	CASE seq_pat opt_string_comment local_element_list equation_clause THEN expression SEMICOLON opt_string_comment
+case_stmt:
+	 CASE seq_pat opt_string_comment local_element_list equation_clause THEN expression SEMICOLON 
 	( 
 		Absyn.CASE(
 			seq_pat, 
 			local_element_list, 
 			equation_clause, 
 			expression,
-			opt_string_comment1,
-			opt_string_comment2,
-			makeInfo myLoc (CASEleft, SEMICOLONright)) 
+			opt_string_comment,
+			makeInfo lexArg (CASEleft, SEMICOLONright)) 
 	)
-	| CASE seq_pat opt_string_comment local_element_list THEN expression SEMICOLON opt_string_comment
+	| CASE seq_pat opt_string_comment local_element_list THEN expression SEMICOLON 
 	( 
 		Absyn.CASE(
 			seq_pat, 
 			[], 
 			Absyn.EQUATIONS(
 				[],
-				makeInfo myLoc (CASEleft, SEMICOLONright)), 
+				makeInfo lexArg (CASEleft, SEMICOLONright)), 
 			expression,
-			opt_string_comment1,
-			opt_string_comment2,
-			makeInfo myLoc (CASEleft, SEMICOLONright)) 
+			opt_string_comment,
+			makeInfo lexArg (CASEleft, SEMICOLONright)) 
 	)
-	(*
-	| CASE seq_pat opt_string_comment equation_clause THEN expression SEMICOLON
-	( 
-		Absyn.CASE(
-			seq_pat, 
-			[], 
-			equation_clause, 
-			expression,
-			opt_string_comment1,
-			opt_string_comment2,
-			makeInfo myLoc (CASEleft, SEMICOLONright)) 
-	)
-	*)
-	| ELSE  opt_string_comment local_element_list equation_clause THEN expression SEMICOLON opt_string_comment
-	( 
-		Absyn.CASE(
-			[], 
-			local_element_list, 
-			equation_clause, 
-			expression,
-			opt_string_comment1,
-			opt_string_comment2,
-			makeInfo myLoc (ELSEleft, SEMICOLONright)) 
-	)
-	| ELSE  opt_string_comment expression SEMICOLON opt_string_comment
-	( 
-		Absyn.CASE(
-			[], 
-			[], 
-			Absyn.EQUATIONS(
-				[],
-				makeInfo myLoc (ELSEleft, SEMICOLONright)), 
-			expression,
-			opt_string_comment1,
-			opt_string_comment2,
-			makeInfo myLoc (ELSEleft, SEMICOLONright)) 
-	)
+	
+case_else:
+  (* empty *)
+  ( [] )  
+| ELSE opt_string_comment local_element_list equation_clause THEN expression SEMICOLON
+  ( 
+	[Absyn.ELSE( 
+		local_element_list, 
+		equation_clause, 
+		expression,
+		opt_string_comment,
+		makeInfo lexArg (ELSEleft, SEMICOLONright))] 
+  )
 
 
 expression:
@@ -1918,7 +1906,14 @@ expression:
 		  Absyn.MBINDexp(
 			ident, 
 			expression, 
-			makeInfo myLoc(identleft, expressionright))
+			makeInfo lexArg(identleft, expressionright))
+		)
+	|   LPAREN ident AS expression RPAREN
+		(
+		  Absyn.MBINDexp(
+			ident, 
+			expression, 
+			makeInfo lexArg(identleft, expressionright))
 		)
     | if_expression
 		( if_expression )
@@ -1935,7 +1930,7 @@ if_expression:
 			expression2, 
 			expression3, 
 			elseif_expression_list,
-			makeInfo myLoc (IFleft, expressionright)) 
+			makeInfo lexArg (IFleft, expressionright)) 
 	)
 
 elseif_expression_list:
@@ -1953,18 +1948,18 @@ simple_expression:
 		Absyn.MSTRUCTexp(
 			SOME(
 			Absyn.PATHIDENT(
-				Absyn.IDENT("cons", makeInfo myLoc (COLONCOLONleft, COLONCOLONright)), 
-					makeInfo myLoc (logical_expressionleft, simple_expressionright))
+				Absyn.IDENT("cons", makeInfo lexArg (COLONCOLONleft, COLONCOLONright)), 
+					makeInfo lexArg (logical_expressionleft, simple_expressionright))
 			), 
 			Absyn.FUNCTIONARGS(
 					[
 					Absyn.NAMEDARG(NONE, logical_expression, 
-					makeInfo myLoc (logical_expressionleft, logical_expressionright)), 
+					makeInfo lexArg (logical_expressionleft, logical_expressionright)), 
 					Absyn.NAMEDARG(NONE, simple_expression,
-					makeInfo myLoc (simple_expressionleft, simple_expressionright))
+					makeInfo lexArg (simple_expressionleft, simple_expressionright))
 					],
-					makeInfo myLoc (logical_expressionleft, simple_expressionright)),
-			makeInfo myLoc (logical_expressionleft, simple_expressionright)) 
+					makeInfo lexArg (logical_expressionleft, simple_expressionright)),
+			makeInfo lexArg (logical_expressionleft, simple_expressionright)) 
 	)
 	| logical_expression COLON logical_expression
 	( 
@@ -1972,7 +1967,7 @@ simple_expression:
 			logical_expression1, 
 			NONE, 
 			logical_expression2,
-			makeInfo myLoc (logical_expression1left, logical_expression2right))
+			makeInfo lexArg (logical_expression1left, logical_expression2right))
 	)
 	| logical_expression COLON logical_expression COLON logical_expression
 	( 
@@ -1980,7 +1975,7 @@ simple_expression:
 			logical_expression1, 
 			SOME(logical_expression2), 
 			logical_expression3,
-			makeInfo myLoc (logical_expression1left, logical_expression3right)) 
+			makeInfo lexArg (logical_expression1left, logical_expression3right)) 
 	)
 
 logical_expression:
@@ -1990,9 +1985,9 @@ logical_expression:
 	( 
 		Absyn.LBINARY(
 			logical_term, 
-			Absyn.OR(makeInfo myLoc (ORleft, ORright)), 
+			Absyn.OR(makeInfo lexArg (ORleft, ORright)), 
 			logical_expression,
-			makeInfo myLoc (logical_termleft, logical_expressionright))
+			makeInfo lexArg (logical_termleft, logical_expressionright))
 	)	
 	
 
@@ -2003,9 +1998,9 @@ logical_term:
 	( 
 		Absyn.LBINARY(
 			logical_factor, 
-			Absyn.AND(makeInfo myLoc (ANDleft, ANDright)), 
+			Absyn.AND(makeInfo lexArg (ANDleft, ANDright)), 
 			logical_term,
-			makeInfo myLoc (logical_factorleft, logical_termright))
+			makeInfo lexArg (logical_factorleft, logical_termright))
 	)
 	
 logical_factor:
@@ -2014,9 +2009,9 @@ logical_factor:
 	| NOT relation %prec UNARY
 	( 
 		Absyn.LUNARY(
-			Absyn.NOT(makeInfo myLoc (NOTleft, NOTright)), 
+			Absyn.NOT(makeInfo lexArg (NOTleft, NOTright)), 
 			relation,
-			makeInfo myLoc (NOTleft, relationright))
+			makeInfo lexArg (NOTleft, relationright))
 	)
 	
 
@@ -2029,31 +2024,43 @@ relation:
 			arithmetic_expression1, 
 			rel_op, 
 			arithmetic_expression2,
-			makeInfo myLoc (arithmetic_expression1left, arithmetic_expression2right)) 
+			makeInfo lexArg (arithmetic_expression1left, arithmetic_expression2right)) 
 	)
+	| LPAREN arithmetic_expression rel_op arithmetic_expression RPAREN
+	( 
+		Absyn.RELATION(
+			arithmetic_expression1, 
+			rel_op, 
+			arithmetic_expression2,
+			makeInfo lexArg (arithmetic_expression1left, arithmetic_expression2right)) 
+	)
+	
 	
 rel_op:
 (* integer operators *)
-	LT_INT		( Absyn.LESS      (makeInfo myLoc (LT_INTleft, LT_INTright)) )
-|	LE_INT		( Absyn.LESSEQ    (makeInfo myLoc (LE_INTleft, LE_INTright)) )
-|	GT_INT		( Absyn.GREATER   (makeInfo myLoc (GT_INTleft, GT_INTright)) )
-|	GE_INT  	( Absyn.GREATEREQ (makeInfo myLoc (GE_INTleft, GE_INTright)) )
-|	EQEQ_INT	( Absyn.EQUAL     (makeInfo myLoc (EQEQ_INTleft, EQEQ_INTright)) )
-|	NE_INT		( Absyn.NEQUAL    (makeInfo myLoc (NE_INTleft, NE_INTright)) )
+	LT_INT		( Absyn.LESS      (makeInfo lexArg (LT_INTleft, LT_INTright)) )
+|	LE_INT		( Absyn.LESSEQ    (makeInfo lexArg (LE_INTleft, LE_INTright)) )
+|	GT_INT		( Absyn.GREATER   (makeInfo lexArg (GT_INTleft, GT_INTright)) )
+|	GE_INT  	( Absyn.GREATEREQ (makeInfo lexArg (GE_INTleft, GE_INTright)) )
+|	EQEQ_INT	( Absyn.EQUAL     (makeInfo lexArg (EQEQ_INTleft, EQEQ_INTright)) )
+|	NE_INT		( Absyn.NEQUAL    (makeInfo lexArg (NE_INTleft, NE_INTright)) )
 (* real operators *)
-|	LT_REAL		( Absyn.LESS_REAL      (makeInfo myLoc (LT_REALleft, LT_REALright)) )
-|	LE_REAL		( Absyn.LESSEQ_REAL    (makeInfo myLoc (LE_REALleft, LE_REALright)) )
-|	GT_REAL		( Absyn.GREATER_REAL   (makeInfo myLoc (GT_REALleft, GT_REALright)) )
-|	GE_REAL  	( Absyn.GREATEREQ_REAL (makeInfo myLoc (GE_REALleft, GE_REALright)) )
-|	EQEQ_REAL	( Absyn.EQUAL_REAL     (makeInfo myLoc (EQEQ_REALleft, EQEQ_REALright)) )
-|	NE_REAL		( Absyn.NEQUAL_REAL    (makeInfo myLoc (NE_REALleft, NE_REALright)) )
+|	LT_REAL		( Absyn.LESS_REAL      (makeInfo lexArg (LT_REALleft, LT_REALright)) )
+|	LE_REAL		( Absyn.LESSEQ_REAL    (makeInfo lexArg (LE_REALleft, LE_REALright)) )
+|	GT_REAL		( Absyn.GREATER_REAL   (makeInfo lexArg (GT_REALleft, GT_REALright)) )
+|	GE_REAL  	( Absyn.GREATEREQ_REAL (makeInfo lexArg (GE_REALleft, GE_REALright)) )
+|	EQEQ_REAL	( Absyn.EQUAL_REAL     (makeInfo lexArg (EQEQ_REALleft, EQEQ_REALright)) )
+|	NE_REAL		( Absyn.NEQUAL_REAL    (makeInfo lexArg (NE_REALleft, NE_REALright)) )
+(* string operators *)
+|   EQEQ_STRING ( Absyn.EQEQ_STRING    (makeInfo lexArg (EQEQ_STRINGleft, EQEQ_STRINGright)) )
 
 addsub_op:
-	ADD_INT  ( Absyn.ADD(makeInfo myLoc (ADD_INTleft, ADD_INTright)) )
-|	ADD_REAL ( Absyn.ADD_REAL(makeInfo myLoc (ADD_REALleft, ADD_REALright)) )
-|	SUB_INT  ( Absyn.SUB(makeInfo myLoc (SUB_INTleft, SUB_INTright)) )
-|	SUB_REAL ( Absyn.SUB_REAL(makeInfo myLoc (SUB_REALleft, SUB_REALright)) )
-
+	ADD_INT    ( Absyn.ADD(makeInfo lexArg (ADD_INTleft, ADD_INTright)) )
+|	ADD_REAL   ( Absyn.ADD_REAL(makeInfo lexArg (ADD_REALleft, ADD_REALright)) )
+|	SUB_INT    ( Absyn.SUB(makeInfo lexArg (SUB_INTleft, SUB_INTright)) )
+|	SUB_REAL   ( Absyn.SUB_REAL(makeInfo lexArg (SUB_REALleft, SUB_REALright)) )
+|	ADD_STRING ( Absyn.ADD_STRING(makeInfo lexArg (ADD_STRINGleft, ADD_STRINGright)) )
+|	ADD_LIST   ( Absyn.ADD_LIST(makeInfo lexArg (ADD_LISTleft, ADD_LISTright)) )
 
 arithmetic_expression:
 	unary_arithmetic_expression
@@ -2064,7 +2071,7 @@ arithmetic_expression:
 			unary_arithmetic_expression, 
 			addsub_op, 
 			arithmetic_expression,
-			makeInfo myLoc (unary_arithmetic_expressionleft, arithmetic_expressionright)) 
+			makeInfo lexArg (unary_arithmetic_expressionleft, arithmetic_expressionright)) 
 	)	
 
 unary_arithmetic_expression:
@@ -2072,37 +2079,37 @@ unary_arithmetic_expression:
 	| ADD_INT term %prec UNARY 
 	( 
 		Absyn.UNARY(
-			Absyn.UPLUS(makeInfo myLoc (ADD_INTleft, ADD_INTright)), 
+			Absyn.UPLUS(makeInfo lexArg (ADD_INTleft, ADD_INTright)), 
 			term,
-			makeInfo myLoc (ADD_INTleft, termright))
+			makeInfo lexArg (ADD_INTleft, termright))
 	)
 	| ADD_REAL term %prec UNARY 
 	( 
 		Absyn.UNARY(
-			Absyn.UPLUS_REAL(makeInfo myLoc (ADD_REALleft, ADD_REALright)), 
+			Absyn.UPLUS_REAL(makeInfo lexArg (ADD_REALleft, ADD_REALright)), 
 			term,
-			makeInfo myLoc (ADD_REALleft, termright))
+			makeInfo lexArg (ADD_REALleft, termright))
 	)	
 	| SUB_INT term %prec UNARY
 	( 
 		Absyn.UNARY(
-			Absyn.UMINUS(makeInfo myLoc (SUB_INTleft, SUB_INTright)), 
+			Absyn.UMINUS(makeInfo lexArg (SUB_INTleft, SUB_INTright)), 
 			term,
-			makeInfo myLoc (SUB_INTleft, termright))
+			makeInfo lexArg (SUB_INTleft, termright))
 	)
 	| SUB_REAL term %prec UNARY
 	( 
 		Absyn.UNARY(
-			Absyn.UMINUS_REAL(makeInfo myLoc (SUB_REALleft, SUB_REALright)), 
+			Absyn.UMINUS_REAL(makeInfo lexArg (SUB_REALleft, SUB_REALright)), 
 			term,
-			makeInfo myLoc (SUB_REALleft, termright))
+			makeInfo lexArg (SUB_REALleft, termright))
 	)
 
 muldiv_op:
-	STAR     ( Absyn.MUL      (makeInfo myLoc (STARleft, STARright)) ) 
-|   MUL_REAL ( Absyn.MUL_REAL (makeInfo myLoc (MUL_REALleft, MUL_REALright)) )
-|	DIV_INT  ( Absyn.DIV      (makeInfo myLoc (DIV_INTleft, DIV_INTright)) ) 
-|   DIV_REAL ( Absyn.DIV_REAL (makeInfo myLoc (DIV_REALleft, DIV_REALright)) )
+	STAR     ( Absyn.MUL      (makeInfo lexArg (STARleft, STARright)) ) 
+|   MUL_REAL ( Absyn.MUL_REAL (makeInfo lexArg (MUL_REALleft, MUL_REALright)) )
+|	DIV_INT  ( Absyn.DIV      (makeInfo lexArg (DIV_INTleft, DIV_INTright)) ) 
+|   DIV_REAL ( Absyn.DIV_REAL (makeInfo lexArg (DIV_REALleft, DIV_REALright)) )
 
 	
 term:
@@ -2113,12 +2120,11 @@ term:
 			factor, 
 			muldiv_op, 
 			term,
-			makeInfo myLoc (factorleft, termright)) 
+			makeInfo lexArg (factorleft, termright)) 
 	)	
 
 pow_op:
-	POWER    (Absyn.POW      (makeInfo myLoc (POWERleft, POWERright)))
-|	POW_REAL (Absyn.POW_REAL (makeInfo myLoc (POW_REALleft, POW_REALright)))
+	POW_REAL (Absyn.POW_REAL (makeInfo lexArg (POW_REALleft, POW_REALright)))
 
 factor:
 	primary ( primary )
@@ -2128,7 +2134,7 @@ factor:
 			primary1, 
 			pow_op, 
 			primary2,
-			makeInfo myLoc (primary1left, primary2right)) 
+			makeInfo lexArg (primary1left, primary2right)) 
 	)
 	
 expression_matrix_list:
@@ -2143,56 +2149,59 @@ expression_matrix:
 	( 
 		Absyn.MATRIX(
 			expression_matrix_list,
-			makeInfo myLoc (expression_matrix_listleft, expression_matrix_listright)) 
+			makeInfo lexArg (expression_matrix_listleft, expression_matrix_listright)) 
 	)
 	
 primary:
+	(* 	Not used in MetaModelica
 	CCON 
 	( 
 		Absyn.CHAR(
 			CCON,
-			makeInfo myLoc (CCONleft, CCONright)) 
+			makeInfo lexArg (CCONleft, CCONright)) 
 	)
-	| ICON 
+	| 
+	*)
+	ICON 
 	( 
 		Absyn.INTEGER(
 			ICON,
-			makeInfo myLoc (ICONleft, ICONright)) 
+			makeInfo lexArg (ICONleft, ICONright)) 
 	)
 	| RCON 
 	( 
 		Absyn.REAL(
 			RCON,
-			makeInfo myLoc (RCONleft, RCONright)) 
+			makeInfo lexArg (RCONleft, RCONright)) 
 	)
 	| SCON 
 	( 
 		Absyn.STRING(
 			SCON,
-			makeInfo myLoc (SCONleft, SCONright))
+			makeInfo lexArg (SCONleft, SCONright))
 	)
 	| FALSE 
 	( 
 		Absyn.BOOL(
 			false,
-			makeInfo myLoc (FALSEleft, FALSEright)) 
+			makeInfo lexArg (FALSEleft, FALSEright)) 
 	)
 	| TRUE 
 	( 
 		Absyn.BOOL(
 			true,
-			makeInfo myLoc (TRUEleft, TRUEright))
+			makeInfo lexArg (TRUEleft, TRUEright))
 	)
 	| WILD
 	(
-		( Absyn.MWILDexp(makeInfo myLoc (WILDleft, WILDright)) )
+		( Absyn.MWILDexp(makeInfo lexArg (WILDleft, WILDright)) )
 	)
 	| component_reference LPAREN function_arguments RPAREN	
 	( 
 		Absyn.CALL(
 			component_reference, 
 			function_arguments,
-			makeInfo myLoc (component_referenceleft, RPARENright)) 
+			makeInfo lexArg (component_referenceleft, RPARENright)) 
 	)
 	(*	
 	| LIST LPAREN function_arguments RPAREN	
@@ -2201,11 +2210,11 @@ primary:
 			Absyn.CREF_IDENT(
 				Absyn.IDENT(
 					"list", 
-					makeInfo myLoc (LISTleft, LISTright)), 
+					makeInfo lexArg (LISTleft, LISTright)), 
 				[],
-				makeInfo myLoc (LISTleft, LISTright)), 
+				makeInfo lexArg (LISTleft, LISTright)), 
 				function_arguments,
-			makeInfo myLoc (LISTleft, RPARENright)) 
+			makeInfo lexArg (LISTleft, RPARENright)) 
 	)
 	*)	
 	(* lists *)
@@ -2213,21 +2222,21 @@ primary:
 	( 
 		Absyn.ARRAY(
 			function_arguments,
-			makeInfo myLoc (LISTleft, RPARENright)) 
+			makeInfo lexArg (LISTleft, RPARENright)) 
 	)	
 	| LBRACE function_arguments RBRACE 
 	( 
 		Absyn.ARRAY(
 			function_arguments,
-			makeInfo myLoc (LBRACEleft, RBRACEright)) 
+			makeInfo lexArg (LBRACEleft, RBRACEright)) 
 	)
 	| LBRACE RBRACE 
 	( 
 		Absyn.ARRAY(
 			Absyn.FUNCTIONARGS(
 				[], 
-				makeInfo myLoc (LBRACEleft, RBRACEright)),
-				makeInfo myLoc (LBRACEleft, RBRACEright)) 
+				makeInfo lexArg (LBRACEleft, RBRACEright)),
+				makeInfo lexArg (LBRACEleft, RBRACEright)) 
 	)		
 	| FAIL LPAREN RPAREN	
 	( 
@@ -2235,20 +2244,20 @@ primary:
 			Absyn.CREF_IDENT(
 				Absyn.IDENT(
 					"fail", 
-					makeInfo myLoc (FAILleft, FAILright)), 
+					makeInfo lexArg (FAILleft, FAILright)), 
 				[],
-				makeInfo myLoc (FAILleft, FAILright)), 
+				makeInfo lexArg (FAILleft, FAILright)), 
 			Absyn.FUNCTIONARGS(
 				[], 
-				makeInfo myLoc (LPARENleft, RPARENright)),
-			makeInfo myLoc (FAILleft, RPARENright)) 
+				makeInfo lexArg (LPARENleft, RPARENright)),
+			makeInfo lexArg (FAILleft, RPARENright)) 
 	)	
 	| LPAREN RPAREN	
 	( 
 		Absyn.MSTRUCTexp(
 			NONE,   
-			Absyn.FUNCTIONARGS([], makeInfo myLoc (LPARENleft, RPARENright)), 				
-			makeInfo myLoc (LPARENleft, RPARENright)) 
+			Absyn.FUNCTIONARGS([], makeInfo lexArg (LPARENleft, RPARENright)), 				
+			makeInfo lexArg (LPARENleft, RPARENright)) 
 	)		
 	| component_reference LPAREN RPAREN	
 	( 
@@ -2256,8 +2265,8 @@ primary:
 			component_reference, 
 			Absyn.FUNCTIONARGS(
 				[], 
-				makeInfo myLoc (LPARENleft, RPARENright)),
-			makeInfo myLoc (component_referenceleft, RPARENright)) 
+				makeInfo lexArg (LPARENleft, RPARENright)),
+			makeInfo lexArg (component_referenceleft, RPARENright)) 
 	)		
 	| component_reference 
 	( 
@@ -2267,7 +2276,7 @@ primary:
 		then
 			Absyn.CREF(
 				component_reference,
-				makeInfo myLoc (component_referenceleft, component_referenceright)) 
+				makeInfo lexArg (component_referenceleft, component_referenceright)) 
 		else
 			let val [Absyn.SUBSCRIPT(exp, infoarr)] = arrdim 
 			in
@@ -2275,17 +2284,17 @@ primary:
 				Absyn.CREF_IDENT(
 					Absyn.IDENT(
 						"array_get", 
-						makeInfo myLoc (component_referenceleft, component_referenceright)), 
+						makeInfo lexArg (component_referenceleft, component_referenceright)), 
 					[],
-					makeInfo myLoc (component_referenceleft, component_referenceright)), 
+					makeInfo lexArg (component_referenceleft, component_referenceright)), 
 				Absyn.FUNCTIONARGS(
 					[Absyn.NAMEDARG(
 						NONE, 
 						Absyn.CREF(Absyn.CREF_IDENT(ident, [], info), info), 
 						info),
 						Absyn.NAMEDARG(NONE, exp, infoarr)], 
-					makeInfo myLoc (component_referenceleft, component_referenceright)),
-				makeInfo myLoc (component_referenceleft, component_referenceright)
+					makeInfo lexArg (component_referenceleft, component_referenceright)),
+				makeInfo lexArg (component_referenceleft, component_referenceright)
 			)				 					
 			end
 	|	Absyn.CREF_QUAL(ident1, arrdim1, Absyn.CREF_IDENT(ident2, arrdim2, info2), info1) =>
@@ -2293,7 +2302,7 @@ primary:
 		then
 		Absyn.CREF(
 			component_reference,
-			makeInfo myLoc (component_referenceleft, component_referenceright)) 
+			makeInfo lexArg (component_referenceleft, component_referenceright)) 
 		else
 			let val [Absyn.SUBSCRIPT(exp, infoarr)] = arrdim2
 			in
@@ -2301,9 +2310,9 @@ primary:
 				Absyn.CREF_IDENT(
 					Absyn.IDENT(
 						"array_get", 
-						makeInfo myLoc (component_referenceleft, component_referenceright)), 
+						makeInfo lexArg (component_referenceleft, component_referenceright)), 
 					[],
-					makeInfo myLoc (component_referenceleft, component_referenceright)), 
+					makeInfo lexArg (component_referenceleft, component_referenceright)), 
 				Absyn.FUNCTIONARGS(
 					[Absyn.NAMEDARG(
 						NONE, 
@@ -2316,13 +2325,13 @@ primary:
 							info1), 
 						info1),
 						Absyn.NAMEDARG(NONE, exp, infoarr)], 
-					makeInfo myLoc (component_referenceleft, component_referenceright)),
-				makeInfo myLoc (component_referenceleft, component_referenceright))				 					
+					makeInfo lexArg (component_referenceleft, component_referenceright)),
+				makeInfo lexArg (component_referenceleft, component_referenceright))				 					
 			end
 	| _ => 		
 		Absyn.CREF(
 			component_reference,
-			makeInfo myLoc (component_referenceleft, component_referenceright)) 
+			makeInfo lexArg (component_referenceleft, component_referenceright)) 
 
 	)
 	| LPAREN function_arguments RPAREN 
@@ -2332,7 +2341,7 @@ primary:
 			=> exp
 		|	_ =>	Absyn.TUPLE(
 						function_arguments,
-						makeInfo myLoc (LPARENleft, RPARENright)) 
+						makeInfo lexArg (LPARENleft, RPARENright)) 
 	)
 	| LBRACK expression_matrix RBRACK ( expression_matrix )
 	(*
@@ -2342,11 +2351,11 @@ primary:
 			Absyn.CREF_IDENT(
 				Absyn.IDENT(
 					"array",
-					ref(Absyn.dummyInfo)), 
+					makeInfo lexArg (LBRACEleft, RBRACEright)), 
 				[],
-				ref(Absyn.dummyInfo)), 
+				makeInfo lexArg (LBRACEleft, RBRACEright)), 
 			function_arguments,
-			makeInfo myLoc (LBRACEleft, RBRACEright)) 
+			makeInfo lexArg (LBRACEleft, RBRACEright)) 
 	)
 	*)
 	
@@ -2364,76 +2373,67 @@ name_path:
 			Absyn.QUALIFIED(
 				Absyn.IDENT(
 					IDENT, 
-					makeInfo myLoc (IDENTleft, IDENTright) ), 
+					makeInfo lexArg (IDENTleft, IDENTright) ), 
 				name_path,
-				makeInfo myLoc (IDENTleft, dot_name_pathright))
+				makeInfo lexArg (IDENTleft, dot_name_pathright))
 	   | NONE =>	
 			Absyn.PATHIDENT(		
 				Absyn.IDENT(
 					IDENT, 
-					makeInfo myLoc (IDENTleft, IDENTright)),
-				makeInfo myLoc (IDENTleft, IDENTright)) 
+					makeInfo lexArg (IDENTleft, IDENTright)),
+				makeInfo lexArg (IDENTleft, IDENTright)) 
 	)
-	| TYVAR 
-	( Absyn.TYPEVARIABLE(		
-		Absyn.IDENT(
-			TYVAR, 
-			makeInfo myLoc (TYVARleft, TYVARright)),
-		 makeInfo myLoc (TYVARleft, TYVARright)) )
 	| TUPLE 
 	( Absyn.PATHIDENT(		
 		Absyn.IDENT(
 			"TUPLE", 
-			makeInfo myLoc (TUPLEleft, TUPLEright)),
-		 makeInfo myLoc (TUPLEleft, TUPLEright)) )
+			makeInfo lexArg (TUPLEleft, TUPLEright)),
+		 makeInfo lexArg (TUPLEleft, TUPLEright)) )
 	| LIST 
 	( Absyn.PATHIDENT(		
 		Absyn.IDENT(
 			"LIST", 
-			makeInfo myLoc (LISTleft, LISTright)),
-		 makeInfo myLoc (LISTleft, LISTright)) )
+			makeInfo lexArg (LISTleft, LISTright)),
+		 makeInfo lexArg (LISTleft, LISTright)) )
 
 component_reference:
 	  ident 
-		(
+	(
 			Absyn.CREF_IDENT(
 				ident, 
 				[],
-				makeInfo myLoc (identleft, identright))
-		 )
+				makeInfo lexArg (identleft, identright))
+	)
 	| ident DOT component_reference
-		( Absyn.CREF_QUAL(
+	( 
+		let val cref = 		  
+		Absyn.CREF_QUAL(
 			ident, 
 			[], 
 			component_reference,
-			makeInfo myLoc (identleft, component_referenceright)) )
-    (*
-	| ident LT_INT name_path_list GT_INT
-	( Absyn.CREF_IDENT_TYPES(
-			ident,
-			name_path_list,
-			makeInfo myLoc (identleft, GT_INTright)
-			)
+			makeInfo lexArg (identleft, component_referenceright))
+			val _ = 
+				LexArg.addExternal (
+					lexArg,
+					Absyn.getCrefAsString cref, 
+					identleft, component_referenceright)
+			in 
+				cref 
+			end
 	)
-	*)
-	(*
-	| ident array_subscripts DOT component_reference
-		( Absyn.CREF_QUAL(
-			ident, 
-			array_subscripts, 
-			component_reference,
-			makeInfo myLoc (identleft, component_referenceright)) )
-	*)
 	| ident array_subscripts
-		( Absyn.CREF_IDENT(
+	( 
+		Absyn.CREF_IDENT(
 			ident, 
 			array_subscripts,
-			makeInfo myLoc (identleft, array_subscriptsright)) )
+			makeInfo lexArg (identleft, array_subscriptsright)) 
+	)
 
+(*
 function_call:
 	LPAREN function_arguments RPAREN
 		( function_arguments )
-	
+*)	
 
 function_arguments:
 	(*
@@ -2441,13 +2441,13 @@ function_arguments:
 		( Absyn.FOR_ITER_FARG(
 			expression_list, 
 			for_indices,
-			makeInfo myLoc (expression_listleft, for_indicesright)) )
+			makeInfo lexArg (expression_listleft, for_indicesright)) )
 	|
 	*)
 	named_arguments
 		( Absyn.FUNCTIONARGS(
 			named_arguments,
-			makeInfo myLoc (named_argumentsleft, named_argumentsright)) )		
+			makeInfo lexArg (named_argumentsleft, named_argumentsright)) )		
 
 named_arguments:
 	named_argument COMMA named_arguments
@@ -2461,19 +2461,19 @@ named_argument:
 		( Absyn.NAMEDARG(
 			SOME(ident), 
 			expression,
-			makeInfo myLoc (identleft, expressionright)))
+			makeInfo lexArg (identleft, expressionright)))
 	|
 	*) 
 	  ident EQ expression
 		( Absyn.NAMEDARG(
 			SOME(ident), 
 			expression,
-			makeInfo myLoc (identleft, expressionright)))			
+			makeInfo lexArg (identleft, expressionright)))			
 	| expression
 		( Absyn.NAMEDARG(
 			NONE, 
 			expression,
-			makeInfo myLoc (expressionleft, expressionright)))
+			makeInfo lexArg (expressionleft, expressionright)))
 
 expression_list:
 	expression 
@@ -2487,19 +2487,19 @@ comment:
 			Absyn.COMMENT(
 				SOME(annotation), 
 				SOME(string_comment),
-				makeInfo myLoc (string_commentleft, annotationright))))
+				makeInfo lexArg (string_commentleft, annotationright))))
 	| string_comment 
 		( SOME(
 			Absyn.COMMENT(
 				NONE, 
 				SOME(string_comment),
-				makeInfo myLoc (string_commentleft, string_commentright))))			
+				makeInfo lexArg (string_commentleft, string_commentright))))			
 	| annotation 
 		( SOME(
 			Absyn.COMMENT(
 				SOME(annotation), 
 				NONE,
-				makeInfo myLoc (annotationleft, annotationright))))			
+				makeInfo lexArg (annotationleft, annotationright))))			
 	| (* EMPTY *) 
 		( NONE )			
 
@@ -2523,6 +2523,6 @@ annotation:
 	ANNOTATION class_modification
 		( Absyn.ANNOTATION(
 			class_modification,
-			makeInfo myLoc (ANNOTATIONleft, class_modificationright)) )
+			makeInfo lexArg (ANNOTATIONleft, class_modificationright)) )
 	
 	

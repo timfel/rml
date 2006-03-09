@@ -33,7 +33,7 @@ structure SysDep : SYSDEP = struct
 	| f([x]) = [Int.toString x]
 	| f(x::xs) = Int.toString x :: "." :: f xs
     in
-      val smlVersion = "SML.NET or SMLNJ 110.54" (* String.concat("SML/NJ":: f(#version_id CompilerVersion.version) *)
+      val smlVersion = "SML.NET or SMLNJ 110.57" (* String.concat("SML/NJ":: f(#version_id CompilerVersion.version) *)
     end
 
   end (* structure SysDep *)

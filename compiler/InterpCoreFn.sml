@@ -104,7 +104,7 @@ functor InterpCoreFn(structure MakeString : MAKESTRING
 			| FAILURE of state
 
     exception FAIL of state
-    fun NYI(msg, s) = (print "N.Y.I.: "; print msg; print "\n"; raise(FAIL s))
+    fun NYI(msg, s) = (Util.warn("N.Y.I.: "^msg); raise(FAIL s))
 
     fun argBool(STRUCT("true",[])) = true
       | argBool(STRUCT("false",[])) = false
@@ -141,11 +141,11 @@ functor InterpCoreFn(structure MakeString : MAKESTRING
     fun theSOME x = [STRUCT("SOME",[x])]
     fun theOption(NONE) = theNONE
       | theOption(SOME x) = theSOME x
-    fun theChar c = [LIT(Absyn.CCONlit(c, ref(Absyn.dummyInfo)))]
-    fun theInt i = [LIT(Absyn.ICONlit (i, ref(Absyn.dummyInfo)))]
+    fun theChar c = [LIT(Absyn.CCONlit(c, Absyn.dummyInfo))]
+    fun theInt i = [LIT(Absyn.ICONlit (i, Absyn.dummyInfo))]
     fun theLoc l = [LOC l]
-    fun theReal r = [LIT(Absyn.RCONlit(r, ref(Absyn.dummyInfo)))]
-    fun theString s = [LIT(Absyn.SCONlit(s, ref(Absyn.dummyInfo)))]
+    fun theReal r = [LIT(Absyn.RCONlit(r, Absyn.dummyInfo))]
+    fun theString s = [LIT(Absyn.SCONlit(s, Absyn.dummyInfo))]
     fun theVec xs = [TUPLE xs]
 
     val rml_nil = STRUCT("nil",[])
@@ -265,7 +265,7 @@ functor InterpCoreFn(structure MakeString : MAKESTRING
       SUCCESS(
 		[list2value 
 			(fn c => 
-				LIT(Absyn.CCONlit(c, ref(Absyn.dummyInfo)))) (String.explode str)], s)
+				LIT(Absyn.CCONlit(c, Absyn.dummyInfo))) (String.explode str)], s)
 
     fun rml_string_nth(str, i, s) =
       if i < 0 orelse i >= String.size str then FAILURE s

@@ -179,7 +179,7 @@ end (* apply_real_binop *)
 
 relation apply_int_unop: (UnOp,int) => int =
 
- rule   ~x => y
+ rule   -x => y
         ------------------------                              (* -x *)
         apply_int_unop(NEG,x) => y
 
@@ -188,7 +188,7 @@ end (* apply_int_unop *)
 
 relation apply_real_unop: (UnOp,real) => real =
 
- rule   ~.x => y
+ rule   -. x => y
         ------------------------                              (* -x *)
         apply_real_unop(NEG,x) => y
 

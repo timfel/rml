@@ -1,0 +1,15 @@
+
+rmldb@> - RML debugger
+rmldb@> - 2002, 2003, 2004, LIU/IDA/PELAB, adrpo@ida.liu.se
+rmldb@> - debugging process 2908 
+rmldb@> - on tty:/dev/tty9 
+rmldb@>maxbt 0
+Maximum number of backtrace entries set to: 0 successfully
+rmldb@>run
+
+set:=[S(1)[2](1.000000,{S(0)[0]=NIL})]
+
+set:=[S(1)[2](2.000000,{S(0)[0]=NIL})]
+-------------- STACK ------------
+#0000 sp#0005      main.rml:22.10.22.22 relation[loop].goal[call:int_ge(i,max) => (true)]
+---------------------------------

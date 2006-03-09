@@ -26,7 +26,7 @@ functor CPSFVarsFn(structure MakeString : MAKESTRING
       end
 
     fun stack_enter stack (var as CPS.VAR{tag,...}) =
-      let fun loop([]) = (print "variable "; print(MakeString.icvt tag); print " is unbound!\n")
+      let fun loop([]) = Util.warn("variable "^(MakeString.icvt tag)^"is unbound!")
 	    | loop((FREE frame)::stack) = (frame_enter(frame,var); loop stack)
 	    | loop((BOUND frame)::stack) =
 		if frame_boundP(frame,var) then () else loop stack
