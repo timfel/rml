@@ -6,7 +6,7 @@
 
 RML_BEGIN_LABEL(RML__real_5fstring)
 {
-#if defined(__MINGW32__) || defined(__MSVC)
+#if defined(__MINGW32__) || defined(_MSC_VER)
 	int expo;
 	int count;
 	int i;
