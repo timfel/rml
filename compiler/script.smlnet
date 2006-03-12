@@ -2,9 +2,9 @@
 export RML
 
 source 
- c:\bin\cygwin\home\adrpo\rml-2.3.0\compiler\, 
- c:\bin\cygwin\home\adrpo\rml-2.3.0\compiler\library\common,
- c:\bin\cygwin\home\adrpo\rml-2.3.0\compiler\library\pickle, 
+ c:\bin\cygwin\home\adrpo\rml\compiler\, 
+ c:\bin\cygwin\home\adrpo\rml\compiler\library\common,
+ c:\bin\cygwin\home\adrpo\rml\compiler\library\pickle, 
  c:\bin\sml.net\lib\parsing\
 
 
