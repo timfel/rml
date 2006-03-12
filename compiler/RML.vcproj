@@ -760,12 +760,6 @@
 			Name="Additional Files"
 			Filter="">
 			<File
-				RelativePath=".\files\absyn.doc">
-			</File>
-			<File
-				RelativePath=".\files\absyn.pdf">
-			</File>
-			<File
 				RelativePath=".\files\c.grm">
 			</File>
 			<File
