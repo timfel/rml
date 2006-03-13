@@ -365,7 +365,7 @@ functor FrontEndFn(
 		|	loop(x::rest,r) = (loadRMLInterface(x,r); loop(rest,r))
 	in
 		loop(currentModuleDependencies,repository);
-		
+		(*
 		let val interfaceFile = Control.getFileName(file, Control.INTERFACE_FILE)
 			val serializationFile = Control.getFileName(file, Control.SERIALIZATION_FILE)
 		in 
@@ -374,7 +374,7 @@ functor FrontEndFn(
 			then ()
 			else Control.withOutput AbsynPrint.printInterface module interfaceFile
 		end;
-		
+		*)
 		(module, currentModuleDependencies)
 	end
 
@@ -455,10 +455,12 @@ functor FrontEndFn(
 			val interfaceFile = Control.getFileName(file, Control.INTERFACE_FILE)
 			val serializationFile = Control.getFileName(file, Control.SERIALIZATION_FILE)
 			in 
+				(*
 				(* dump the interface *)
 				if not(!Control.dumpInterface) andalso Control.isInterfaceFileValid(file)   
 				then ()
 				else Control.withOutput AbsynPrint.printInterface translated interfaceFile;
+				*)
 				(* dump the serialization *)
 				case Control.fileType file of
 						Control.MO_FILE (* dump .srz only if is .mo file and the .srz is dirty *)
