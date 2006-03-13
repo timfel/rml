@@ -623,10 +623,10 @@ functor FrontEndFn(
 		(module, currentModuleDependencies)
 	end	
 	
-    (* parse a module *)
-    and parse repository ((prefix, ext)) =
+    (* parse a module and its dependencies *)
+    fun parse repository ((prefix, ext)) =
     let val file = OS.Path.joinBaseExt {base = prefix, ext = ext}
-		val _ = debug ("Main file to parse: "^file^"\n")
+		val _ = debug ("parse: Main file to parse: "^file^"\n")
 		val alreadyTranslated = ref []
 		val (module, currentModuleDependencies) =
 		case (Control.fileType file) of 
@@ -647,43 +647,95 @@ functor FrontEndFn(
  		module
 	end
 
+    (* parse a file only *)
+    fun parseMinimal repository (prefix, ext, onlyImports) =
+    let val file = OS.Path.joinBaseExt {base = prefix, ext = ext}
+		val _ = debug ("parseMinimal: Main file to parse: "^file^"\n")
+		val module =
+		case (Control.fileType file) of 
+			Control.RML_FILE => 
+				SOME(loadRMLSerializedOrParse 
+						AbsynPersist.parseModule 
+						RMLParse.parseModule (file, repository))
+		|	Control.MO_FILE  => 
+			let val module =
+					if onlyImports
+					then let val Absyn.MOD_FILE(_,parsedMODModule) = 
+									MODParse.parseModule(file, repository)
+						 in NONE end
+					else
+					case loadSerializedMODFile(file, repository, false) of
+						SOME(m) => SOME(m)
+					|	NONE => 
+					let val Absyn.MOD_FILE(_,parsedMODModule) = 
+								MODParse.parseModule(file, repository)
+					in
+						SOME(Reorder.reorderModule( 
+								MOToRML.transformMOToRML(
+									parsedMODModule, [], repository) ))
+					end
+			in
+				module
+			end
+		|	_ => Util.error("FrontEndFn.parseMinimal: unknown file type:"^file)
+    in
+ 		module
+	end
+	
+	fun printImports(os,imports) =
+	let fun prStr file = 
+			(
+				TextIO.output(os, Control.getFileName(file, Control.INTERFACE_FILE)); 
+				TextIO.output(os, " ")
+			)
+	in 
+		map prStr imports; ()
+	end
+
+	fun dumpDepends(prefix, ext, repository) = 
+	let	val fileName = OS.Path.joinBaseExt {base = prefix, ext = ext}
+		val fileNameO = OS.Path.joinBaseExt {base = prefix, ext = SOME("o")}
+		val _ = parseMinimal repository (prefix, ext, true) (* parse ONLY the file *)
+		val imports = getMODImports(fileName, repository, false)
+	in	  
+		print fileNameO; print ": "; print fileName; print " ";
+		Control.withOutputStream printImports imports TextIO.stdOut;
+		print "\n";
+		NONE
+	end
+
+	fun dumpInterface(prefix, ext, repository) = 	
+	let	val fileName = OS.Path.joinBaseExt {base = prefix, ext = ext}
+		val SOME(astModule) = parseMinimal repository (prefix, ext, false) (* parse ONLY the file *)
+	in 
+		Control.withOutputStream AbsynPrint.printInterface astModule TextIO.stdOut;
+		NONE
+	end
+	
     (* statically elaborate a module (typecheck) *)
     fun checkModule((prefix, ext), module, repository) = 
 		if !Control.emitRdb
 		then Control.withOutputOption StatElab.checkModule (module,repository) (prefix ^ ".rdb")
 		else StatElab.checkModule(NONE, (module, repository))
-
-
+	
     fun processFile((prefix, ext), repository) =
-      let	val fileName = OS.Path.joinBaseExt {base = prefix, ext = ext}
-			val astModule = parse repository (prefix, ext) (* parse ONLY the file *)
+      let val fileName = OS.Path.joinBaseExt {base = prefix, ext = ext}
 	  in	  
-		if !Control.dumpDepends (* should we dump the dependency ? *)
-		then 
-			let	val fileNameO = OS.Path.joinBaseExt {base = prefix, ext = SOME("o")}
-			in	  
-				print fileNameO; print ": "; print fileName; print " ";
-				Control.withOutputStream AbsynPrint.printDependencies astModule TextIO.stdOut;
-				print "\n";
-				NONE
+		case(!Control.dumpDepends,   (* should we dump the dependency ? *)
+			 !Control.dumpInterface) (* should we dump the interface  ? *)
+		of	(true, _) => dumpDepends(prefix, ext, repository)
+		|	(_, true) => dumpInterface(prefix, ext, repository)
+		|	(_, _)    => (* normal compilation path *)
+			let	(* do debug Instrumentation if specified so! *)
+				val astModule = parse repository (prefix, ext) (* parse everything! *)
+				val astModule = doInstrument( fileName, astModule )
+				(* print the AST if required by -East *)
+				val _ = doAst((prefix, ext), astModule)
+				(* check the module = static elaboration *)
+				val _ = checkModule((prefix, ext), astModule, repository)
+			in
+			  if !Control.onlyTypeCheck then NONE else SOME(astModule)
 			end
-		else
-			if !Control.dumpInterface (* should we dump the interface? *)
-			then (* do so! *)
-			(
-			Control.withOutputStream AbsynPrint.printInterface astModule TextIO.stdOut;
-			NONE
-			)
-			else (* normal compilation path *)
-				let	(* do debug Instrumentation if specified so! *)
-					val astModule = doInstrument( fileName, astModule )
-					(* print the AST if required by -East *)
-					val _ = doAst((prefix, ext), astModule)
-					(* check the module = static elaboration *)
-					val _ = checkModule((prefix, ext), astModule, repository)
-				in
-				  if !Control.onlyTypeCheck then NONE else SOME(astModule)
-				end
       end
     (* statically elaborate an entire program (typecheck) *)
     fun checkProgram(modseq, repository) = 
