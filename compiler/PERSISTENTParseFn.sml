@@ -13,7 +13,7 @@ functor PERSISTENTParseFn(structure Absyn : ABSYN
 		sharing type PERSISTENTParser.lexarg = LexArgSimple.lexarg
 		sharing type Cache.restriction =  LexArgSimple.restriction		
 		sharing type Cache.visibility =  LexArgSimple.visibility
-		sharing Cache.StrDict = LexArgSimple.StrDict
+		sharing type Cache.StrDict.dict = LexArgSimple.StrDict.dict
 		  ) : PERSISTENT_PARSE =
   struct
   

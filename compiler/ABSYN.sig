@@ -221,10 +221,15 @@ signature ABSYN =
   (** the dimension size is undefined when used in a declaration, and *)
   (** when it is used in a component reference it means a slice of the *)
   (** whole dimension. *)
-
+  
+  (** Components in Modelica can be scalar or arrays with one or more *)
+  (** dimensions. This datatype is used to indicate the dimensionality *)
+  (** of a component or a type definition. *)
+  (** - Array dimensions *)
+  
   (** - Component references and paths *)
-  and ComponentRef = CREF_QUAL of ident * ArrayDim * ComponentRef * info
-		    	| CREF_IDENT of ident * ArrayDim * info
+  and ComponentRef = CREF_QUAL of ident * Subscript list * ComponentRef * info
+		    	| CREF_IDENT of ident * Subscript list * info
 
   (** - Modifications *)
   (** Modifications are described by the `Modification' type.  There *)
@@ -244,7 +249,7 @@ signature ABSYN =
 					bool * 
 					Each * 
 					ElementSpec * 
-					ConstrainClass option * 
+					ElementSpec option * 
 					info
 
   (* ExternalDecl *)
@@ -335,7 +340,7 @@ signature ABSYN =
 			      * ident                 (* Element name *)
 			      * ElementSpec           (* Actual element specification*)
 			      * info              (* file/location *)
-			      * ConstrainClass option (* only valid for classdef and component*)
+			      * ElementSpec option (* only valid for classdef and component*)
 
   (** An element is something that occurs in a public or protected
    ** section in a class definition.  There is one constructor in the
@@ -483,13 +488,6 @@ signature ABSYN =
 			| MIDENTpat of ident * Pattern ref * info
 			| MNAMEDARGpat of var * Pattern * info (* name = pat *)
 
-  (** Components in Modelica can be scalar or arrays with one or more *)
-  (** dimensions. This datatype is used to indicate the dimensionality *)
-  (** of a component or a type definition. *)
-  (** - Array dimensions *)
-  withtype ArrayDim = Subscript list
-  (* Constraining type, must be extendes *)
-  and ConstrainClass = ElementSpec
   (* --- end Modelica+ AST --- *)
 
   datatype serializationInfo = SERIALIZE of { 
@@ -508,7 +506,7 @@ signature ABSYN =
                    | SRZ_FILE of string (* file *)
                                * serialized
     
-  structure IdentDict : ORD_DICT where type Key.ord_key = ident
+  structure IdentDict : ORD_DICT (* where type Key.ord_key = ident *)
   val makeIdent	    : string * info -> ident
   val rmlIdent	    : string -> ident
   val identName	    : ident -> string

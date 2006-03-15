@@ -237,7 +237,10 @@ module
 				
 serialization_info
 	: SERIALIZATION_INFO LPAR SCON SEMICOLON SCON SEMICOLON ICON RPAR 
-		( Absyn.SERIALIZE({file=SCON1, date=SCON2, version=ICON}) )
+	( 
+		LexArgSimple.isSerializationOf(lexArg) := SCON1;
+		Absyn.SERIALIZE({file=SCON1, date=SCON2, version=ICON}) 
+	)
 
 module_interface_and_declarations
 	: MODULE LPAR interface SEMICOLON info RPAR declarations
@@ -252,9 +255,9 @@ declarations
 		( dec_star )
 		
 info
-	: LBRACE SCON COLON ICON COMMA ICON COMMA ICON COMMA ICON COMMA ICON COMMA ICON RBRACE
+	: LBRACE ICON COMMA ICON COMMA ICON COMMA ICON COMMA ICON COMMA ICON RBRACE
 	  (
-	    Absyn.INFO(SCON, ICON1, ICON2, Absyn.LOC(ICON3,ICON4,ICON5,ICON6))
+	    Absyn.INFO(!(LexArgSimple.isSerializationOf(lexArg)), ICON1, ICON2, Absyn.LOC(ICON3,ICON4,ICON5,ICON6))
 	  )
 	| LBRACE RBRACE
 	  (

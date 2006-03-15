@@ -772,6 +772,9 @@
 				RelativePath=".\files\calc.lex">
 			</File>
 			<File
+				RelativePath=".\call-main.sml">
+			</File>
+			<File
 				RelativePath=".\files\compile-warnings.txt">
 			</File>
 			<File
@@ -782,6 +785,12 @@
 			</File>
 			<File
 				RelativePath=".\files\InstrumentFn-saved-2004-11-23.sml">
+			</File>
+			<File
+				RelativePath=".\MainMLton.sml">
+			</File>
+			<File
+				RelativePath=".\make-mlton.sml">
 			</File>
 			<File
 				RelativePath=".\files\profile-2006-02-12.txt">
@@ -814,6 +823,9 @@
 				RelativePath=".\files\rml-operators-addition.txt">
 			</File>
 			<File
+				RelativePath=".\RML.mlb">
+			</File>
+			<File
 				RelativePath=".\files\rmlplan.txt">
 			</File>
 			<File
@@ -821,6 +833,9 @@
 			</File>
 			<File
 				RelativePath=".\files\saved.c">
+			</File>
+			<File
+				RelativePath=".\sources.mlb">
 			</File>
 			<File
 				RelativePath=".\files\StatElabFn-2005-11-06-saved-code.sml">

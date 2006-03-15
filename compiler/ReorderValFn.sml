@@ -3,6 +3,7 @@
 functor ReorderValFn(structure Util : UTIL
 		     structure Absyn : ABSYN
 		     structure ReorderSCC : REORDER_SCC
+		     sharing type Absyn.IdentDict.Key.ord_key = Absyn.ident
 		       ) : REORDER_VAL =
   struct
 

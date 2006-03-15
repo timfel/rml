@@ -3,13 +3,16 @@
 functor InterpCoreFn(structure MakeString : MAKESTRING
 		     structure LexUtil : LEXUTIL
 		     structure Util : UTIL
-		     structure Absyn : ABSYN 
+		     structure Absyn : ABSYN (* where type IdentDict.Key.ord_key = Absyn.ident *)
 		     structure IntDict : ORD_DICT where type Key.ord_key = int
-		       ) : INTERP_CORE =
+		     sharing type Absyn.IdentDict.Key.ord_key = Absyn.ident
+		     ) : INTERP_CORE =
   struct
 
-    structure Absyn = Absyn
+    structure Absyn = Absyn 
+    (*
     structure IdentDict = Absyn.IdentDict 
+    *)
 
     fun bug s = Util.bug("InterpCore: "^s)
 
@@ -62,8 +65,8 @@ functor InterpCoreFn(structure MakeString : MAKESTRING
 				      VE: venv,
 				      VE_rec: venv}
 			| PRIM of prim
-    withtype venv	= value IdentDict.dict
-    and menv		= value IdentDict.dict IdentDict.dict
+    withtype venv	= value Absyn.IdentDict.dict
+    and menv		= value Absyn.IdentDict.dict Absyn.IdentDict.dict
 
     datatype state	= STATE of value option IntDict.dict * int
     datatype marker	= MARKER of state
@@ -435,9 +438,9 @@ functor InterpCoreFn(structure MakeString : MAKESTRING
       let fun bind(VE, var, value) =
 	    let val var = Absyn.rmlIdent var
 	    in
-	      IdentDict.insert(VE, var, value)
+	      Absyn.IdentDict.insert(VE, var, value)
 	    end
-	  val VE = IdentDict.empty
+	  val VE = Absyn.IdentDict.empty
 	  val VE = bind(VE, "bool_and", PRIM(P2 C2_BOOL_AND))
 	  val VE = bind(VE, "bool_not", PRIM(P1 C1_BOOL_NOT))
 	  val VE = bind(VE, "bool_or", PRIM(P2 C2_BOOL_OR))
@@ -512,6 +515,6 @@ functor InterpCoreFn(structure MakeString : MAKESTRING
       end
 
     val ME_init =
-      IdentDict.insert(IdentDict.empty, Absyn.rmlIdent "RML", VE_init)
+      Absyn.IdentDict.insert(Absyn.IdentDict.empty, Absyn.rmlIdent "RML", VE_init)
 
   end (* functor InterpCoreFn *)

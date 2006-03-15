@@ -12,8 +12,8 @@ functor MODParseFn(structure Absyn : ABSYN
 		sharing type Tokens.svalue = MODParser.svalue
 		sharing type MODParser.result = Absyn.modelica = Cache.Absyn.modelica		
 		sharing type MODParser.lexarg = LexArg.lexarg
-		sharing Cache.Absyn.Source = LexArg.Source
-		sharing Cache.StrDict = LexArg.StrDict
+		sharing type Cache.Absyn.Source.source = LexArg.Source.source
+		sharing type Cache.StrDict.dict = LexArg.StrDict.dict
 		sharing type Cache.restriction = LexArg.restriction
 		sharing type Cache.visibility = LexArg.visibility
 		  ) : MOD_PARSE =

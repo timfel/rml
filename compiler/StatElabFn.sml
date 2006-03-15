@@ -8,9 +8,15 @@ functor StatElabFn(structure Util : UTIL
 		   structure AbsynPrint : ABSYN_PRINT
 		   structure AbsynPersist : ABSYN_PERSIST
 		   structure Cache : CACHE
+		   (*
 		   sharing StatObj.Absyn = Instrument.Absyn = AbsynPrint.Absyn = 
 		           AbsynPersist.Absyn = Cache.Absyn
-		   sharing StatObj.IdentDict = Cache.Absyn.IdentDict
+		   *)
+		   sharing type StatObj.Absyn.Source.source = Cache.Absyn.Source.source
+		   sharing type Instrument.Absyn.pat = Cache.Absyn.pat
+		   sharing type Instrument.Absyn.info = Cache.Absyn.info
+		   sharing type StatObj.Absyn.IdentDict.Key.ord_key = Cache.Absyn.ident
+		   
 ) : STAT_ELAB =
 
   struct
@@ -18,7 +24,7 @@ functor StatElabFn(structure Util : UTIL
     type repository = Cache.repository
 
 	structure Absyn = Cache.Absyn
-    structure IdentDict = StatObj.IdentDict 
+    structure IdentDict = StatObj.Absyn.IdentDict 
     structure Ty = StatObj.Ty
     structure TyFcn = StatObj.TyFcn
     structure TyScheme = StatObj.TyScheme

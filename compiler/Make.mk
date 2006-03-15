@@ -54,10 +54,15 @@ realclean:
 	rm -f rml.*-*
 	rm -rf */CM
 	rm -rf */.cm
+	rm -rf */*/.cm
 	rm -rf .cm
 	rm -f $(TEMP)
 	rm -rf .smlnetdep
 	rm -rf .smlnetobj
+	rm -rf */.smlnetdep
+	rm -rf */.smlnetdep
+	rm -rf */*/.smlnetdep
+	rm -rf */*/.smlnetdep
 
 clean:
 	rm -f rml.*-*

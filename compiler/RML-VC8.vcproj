@@ -487,10 +487,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\mod-old.grm"
-				>
-			</File>
-			<File
 				RelativePath=".\mod.grm"
 				>
 			</File>
@@ -536,18 +532,6 @@
 			</File>
 			<File
 				RelativePath=".\MODParser.sml"
-				>
-			</File>
-			<File
-				RelativePath=".\MOTOMO.sig"
-				>
-			</File>
-			<File
-				RelativePath=".\MOToMO.sml"
-				>
-			</File>
-			<File
-				RelativePath=".\MOToMOFn.sml"
 				>
 			</File>
 			<File
@@ -983,6 +967,18 @@
 				>
 			</File>
 			<File
+				RelativePath=".\MainMLton.sml"
+				>
+			</File>
+			<File
+				RelativePath=".\make-mlton.sml"
+				>
+			</File>
+			<File
+				RelativePath=".\RML.mlb"
+				>
+			</File>
+			<File
 				RelativePath=".\rml_lex_grm.bat"
 				>
 			</File>
@@ -990,6 +986,90 @@
 				RelativePath=".\sources.cm"
 				>
 			</File>
+			<File
+				RelativePath=".\sources.mlb"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="library"
+			>
+			<File
+				RelativePath=".\library\sources.cm"
+				>
+			</File>
+			<Filter
+				Name="common"
+				>
+				<File
+					RelativePath=".\library\common\ARRAY_SOURCE_MAP.sig"
+					>
+				</File>
+				<File
+					RelativePath=".\library\common\ArraySourceMap.sml"
+					>
+				</File>
+				<File
+					RelativePath=".\library\common\DARRAY.sig"
+					>
+				</File>
+				<File
+					RelativePath=".\library\common\DynIntArray.sml"
+					>
+				</File>
+				<File
+					RelativePath=".\library\common\IntMap.sml"
+					>
+				</File>
+				<File
+					RelativePath=".\library\common\IntSet.sml"
+					>
+				</File>
+				<File
+					RelativePath=".\library\common\sources.cm"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="pickler"
+				>
+				<File
+					RelativePath=".\library\pickle\BasePickleFun.sml"
+					>
+				</File>
+				<File
+					RelativePath=".\library\pickle\BASEPICKLESIG.sig"
+					>
+				</File>
+				<File
+					RelativePath=".\library\pickle\BitPickle.sml"
+					>
+				</File>
+				<File
+					RelativePath=".\library\pickle\BytePickle.sml"
+					>
+				</File>
+				<File
+					RelativePath=".\library\pickle\CODEC.sig"
+					>
+				</File>
+				<File
+					RelativePath=".\library\pickle\Pickle.sml"
+					>
+				</File>
+				<File
+					RelativePath=".\library\pickle\PickleFun.sml"
+					>
+				</File>
+				<File
+					RelativePath=".\library\pickle\PICKLESIG.sig"
+					>
+				</File>
+				<File
+					RelativePath=".\library\pickle\sources.cm"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<File
 			RelativePath=".\README.html"

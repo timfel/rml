@@ -46,15 +46,6 @@ functor MOToRMLFn(
 		
 	fun L(x) = (Int.toString (List.length x))	
 
-
-	fun mklst(xlst, xnil, xcons) =
-	let fun loop([], rest) = rest
-		| loop(x::xlst, rest) = loop(xlst, xcons(x,rest))
-	in
-		loop(rev xlst, xnil)
-	end
-
-
 	fun getShortId(Absyn.LONGID(NONE, ident, _)) = ident
 	|	getShortId(Absyn.LONGID(_,_,info)) = 
 			errorAtFunction(info, "unexpected qualified identifier", "getShortId")
@@ -88,22 +79,26 @@ functor MOToRMLFn(
     
     fun getTemp() = "temp_t_"^Int.toString(Util.tick())
      
-	fun mktuplety([ty])  = ty
-		| mktuplety(tyseq) = Absyn.TUPLEty(tyseq, Absyn.dummyInfo) 
-	
+	fun mklst(xlst, xnil, xcons, info) =
+	let fun loop([], rest) = rest
+		|	loop(x::xlst, rest) = loop(xlst, xcons(x,rest,info))
+	in
+		loop(rev xlst, xnil(info))
+	end
+     
+	fun modidRML(info)= Absyn.IDENT("RML", info)
+	fun modidRML(info) = SOME(Absyn.IDENT("RML", info))
+	fun id_cons(info) = Absyn.LONGID(modidRML (info), Absyn.IDENT("cons",info), info)
+	fun ctor_cons(info) = SOME (id_cons(info))
+	fun id_nil(info) = Absyn.LONGID(modidRML info, Absyn.IDENT("nil",info), info)
 
-	val modidRML = SOME(Absyn.rmlIdent "RML")
-	val id_cons = Absyn.LONGID(modidRML, Absyn.rmlIdent "cons", Absyn.dummyInfo)
-	val ctor_cons = SOME id_cons
-	val id_nil = Absyn.LONGID(modidRML, Absyn.rmlIdent "nil", Absyn.dummyInfo)
-	
-	val pat_nil = Absyn.CONpat(id_nil, Absyn.dummyInfo)
-	fun pat_cons(p,ps) = Absyn.STRUCTpat(ctor_cons, [p,ps], ref [], Absyn.dummyInfo)
-	fun mkpatlst lst = mklst(lst, pat_nil, pat_cons)
+	fun exp_nil(info) = Absyn.CONexp(id_nil(info), info)
+	fun exp_cons(e,es,info) = Absyn.STRUCTexp(ctor_cons(info), [e,es], info)
+	fun mkexplst(lst,info) = mklst(lst, exp_nil, exp_cons, info)
 
-	val exp_nil = Absyn.CONexp(id_nil, Absyn.dummyInfo)
-	fun exp_cons(e,es) = Absyn.STRUCTexp(ctor_cons, [e,es], Absyn.dummyInfo)
-	fun mkexplst lst = mklst(lst, exp_nil, exp_cons)
+	fun pat_nil(info) = Absyn.CONpat(id_nil(info), info)
+	fun pat_cons(p,ps,info) = Absyn.STRUCTpat(ctor_cons(info), [p,ps], ref [], info)
+	fun mkpatlst(lst,info) = mklst(lst, pat_nil, pat_cons, info)
 
     datatype kind	    = CON | FUN | FUNTYPE
     (* datatype valvalue	= VAL of {k: kind, v: int} *)
@@ -1140,7 +1135,7 @@ functor MOToRMLFn(
 	| translateExpToPat(cref as Absyn.CREF(x, info)) =
 		translateExpToPatIdent(info, cref)
 	| translateExpToPat(Absyn.ARRAY(fargs, info)) = 
-		mkpatlst (map translateExpFuncArgToPat (getNArgs fargs))
+		mkpatlst (map translateExpFuncArgToPat (getNArgs fargs),info)
 	| translateExpToPat(Absyn.TUPLE(fargs, info)) = 
 		let val pat_seq = (getNArgs fargs)
 		in
@@ -1156,7 +1151,7 @@ functor MOToRMLFn(
 		case path of
 			NONE    => Absyn.STRUCTpat(NONE, [], ref [], info)
 		|	SOME(p) => Absyn.STRUCTpat(
-						ctor_cons,
+						ctor_cons info,
 						map translateExpFuncArgToPat (getNArgs fargs),
 						ref [], 
 						info)
@@ -1661,7 +1656,7 @@ functor MOToRMLFn(
 		case path of
 			NONE    => Absyn.STRUCTexp(NONE, [], info)
 		|	SOME(p) => Absyn.STRUCTexp(
-						ctor_cons,
+						ctor_cons info,
 						map getExp (map translateExpFuncArg (getNArgs fargs)), 
 						info)
 		)], info),
@@ -1671,7 +1666,7 @@ functor MOToRMLFn(
 	| translateExp(Absyn.ARRAY(fargs, info)) =
 		(
 		Absyn.RETURN([ 
-		mkexplst (map getExp (map translateExpFuncArg (getNArgs fargs)))
+		mkexplst (map getExp (map translateExpFuncArg (getNArgs fargs)), info)
 		], info),
 		NONE,
 		info
@@ -1699,7 +1694,7 @@ functor MOToRMLFn(
 		  val exp2 = getExp(result2, goal2, info2)
 		  val exp3 = getExp(result3, goal3, info3)
 		  val lastGoal = SOME(Absyn.CALLgoal(
-							Absyn.LONGID(modidRML,
+							Absyn.LONGID(modidRML info1,
 								Absyn.makeIdent(
 									"if_exp", 
 									info1),

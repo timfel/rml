@@ -21,6 +21,7 @@ signature LEXARG_SIMPLE =
     val seenErr	    : lexarg -> bool
     val getFile     : lexarg -> string
     val currVisibility: lexarg -> visibility ref
+    val isSerializationOf: lexarg -> string ref
 
     val errorMsg    : lexarg -> string * pos * pos -> unit
 

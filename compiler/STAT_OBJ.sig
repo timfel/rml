@@ -4,8 +4,10 @@ signature STAT_OBJ =
   sig
 
     structure Absyn	: ABSYN
+    (*
     structure IdentDict	: ORD_DICT (* = Absyn.IdentDict *)
     sharing IdentDict = Absyn.IdentDict
+    *)
     structure Ty	: TY
     structure TyFcn	: TY_FCN
     structure TyScheme	: TY_SCHEME
@@ -16,8 +18,8 @@ signature STAT_OBJ =
 				     sigma: TyScheme.tyscheme}
     datatype tystr	= TYSTR of {theta: TyFcn.tyfcn,
 				    abstract: bool}
-    datatype modstr	= MODSTR of {TE: tystr IdentDict.dict,
-				     VE: valstr IdentDict.dict,
+    datatype modstr	= MODSTR of {TE: tystr Absyn.IdentDict.dict,
+				     VE: valstr Absyn.IdentDict.dict,
 				     source: Absyn.Source.source}
 
     val t_list		: Ty.tyname
@@ -27,8 +29,8 @@ signature STAT_OBJ =
     val tau_string	: Ty.ty
 
     val sourceInit	: Absyn.Source.source
-    val VE_init		: valstr IdentDict.dict
-    val TE_init		: tystr IdentDict.dict
-    val ME_init		: modstr IdentDict.dict
+    val VE_init		: valstr Absyn.IdentDict.dict
+    val TE_init		: tystr Absyn.IdentDict.dict
+    val ME_init		: modstr Absyn.IdentDict.dict
 
   end (* signature STAT_OBJ *)

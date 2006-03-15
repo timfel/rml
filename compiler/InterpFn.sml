@@ -1,12 +1,13 @@
 (* interp/interp.sml *)
 
 functor InterpFn(structure Util : UTIL
-		 structure InterpCore : INTERP_CORE
-		   ) : INTERP =
+		 structure InterpCore : INTERP_CORE 
+	     sharing type InterpCore.Absyn.IdentDict.Key.ord_key = InterpCore.Absyn.ident
+		 ) : INTERP =
   struct
 
     structure Absyn = InterpCore.Absyn
-    structure StrDict = InterpCore.IdentDict
+    structure StrDict = InterpCore.Absyn.IdentDict
 
     fun bug s = Util.bug("Interpreter: "^s)
 

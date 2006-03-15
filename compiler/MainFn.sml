@@ -13,7 +13,7 @@ functor MainFn(
 	       structure AbsynToFOL : ABSYNTOFOL
 	       structure FOLPrint : FOL_PRINT
 	       structure FOLOptim : FOL_OPTIM
-	       structure FOLToCPS : FOLTOCPS
+	       structure FOLToCPS : FOLTOCPS 
 	       structure CPSOptim : CPS_OPTIM
 	       structure CPSPrint : CPS_PRINT
 	       structure CPSToSwitch : CPSTOCODE (* where type Code.gvar = Switch.gvar' *)
@@ -26,14 +26,18 @@ functor MainFn(
 	       structure Interp : INTERP
 	       structure CPSToSML : CPSTOSML
 	       structure Control : CONTROL
-           sharing FrontEnd.Absyn = Interp.Absyn = AbsynToFOL.Absyn
-	       sharing AbsynToFOL.FOL = FOLPrint.FOL = FOLOptim.FOL = FOLToCPS.FOL
-	       sharing FOLToCPS.CPS = CPSOptim.CPS = CPSPrint.CPS
-	       sharing CPSPrint.CPS = CPSToSwitch.CPS
-	       sharing CPSToSwitch.Code = SwitchOptim.Code = MaskToC.Code = DiffToC.Code
-	       sharing CPSPrint.CPS = CPSToPlain.CPS
-	       sharing CPSToPlain.Code = PlainOptim.Code = PlainToC.Code
-	       sharing CPSToSML.CPS = FOLToCPS.CPS
+           sharing type FrontEnd.Absyn.module = Interp.Absyn.module = AbsynToFOL.Absyn.module
+	       sharing type AbsynToFOL.FOL.module = FOLPrint.FOL.module = 
+	                    FOLOptim.FOL.module = FOLToCPS.FOL.module
+	       
+	       sharing type FOLToCPS.CPS.module = CPSOptim.CPS.module = CPSPrint.CPS.module =
+		                CPSPrint.CPS.module = CPSToSwitch.CPS.module
+	       sharing type CPSToSwitch.Code.module = SwitchOptim.Code.module = 
+	                    MaskToC.Code.module = DiffToC.Code.module
+	       sharing type CPSToPlain.Code.module = PlainOptim.Code.module = PlainToC.Code.module
+	       
+	       sharing type CPSPrint.CPS.module = CPSToPlain.CPS.module
+	       sharing type CPSToSML.CPS.module = FOLToCPS.CPS.module
 		 ) : MAIN =
   struct
 		

@@ -7,10 +7,10 @@ struct
 		val argz = CommandLine.arguments()
 		
 	in  
-		Main.main argz 
-			handle 
-				exn => print ("\nException raised during compilation :" ^ exnMessage exn; OS.Process.exit 0)(*; 
-        print "\nOver!\n"*)
+		Main.main argz handle 
+			exn => 
+				print ("\nException raised during compilation :" ^ 
+				exnMessage exn; OS.Process.exit OS.Process.success)
     end
 end
 

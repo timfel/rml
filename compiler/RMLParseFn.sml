@@ -13,8 +13,8 @@ functor RMLParseFn(structure Absyn : ABSYN
 		sharing type Tokens.svalue = RMLParser.svalue
 		sharing type RMLParser.result = Absyn.module = Cache.Absyn.module = Reorder.Absyn.module
 		sharing type RMLParser.lexarg = LexArg.lexarg
-		sharing Cache.Absyn.Source = LexArg.Source
-		sharing Cache.StrDict = LexArg.StrDict
+		sharing type Cache.Absyn.Source.source = LexArg.Source.source
+		sharing type Cache.StrDict.dict = LexArg.StrDict.dict
 		sharing type Cache.restriction = LexArg.restriction
 		sharing type Cache.visibility = LexArg.visibility
 		  ) : RML_PARSE =

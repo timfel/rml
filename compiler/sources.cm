@@ -21,6 +21,7 @@ $smlnj/viscomp/debugprof.cm
 $/smlnj-lib.cm
 $/ml-yacc-lib.cm
 #else
+$/basis.cm
 smlnj-lib.cm
 ml-yacc-lib.cm
 #endif

@@ -23,7 +23,7 @@ structure Control: CONTROL =
 					  | SERIALIZATION_FILE 
 
     (* version of the serialized files. if we change their format we can discard them easy *)
-	val serializationFileVersion = 1
+	val serializationFileVersion = 2
 	fun getSerializationInfo(file) = PERSISTENTParse.parseSerializationInfo(file)
 
     (* flag to write the symboltable or not*)

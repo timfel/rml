@@ -31,8 +31,10 @@ functor AbsynPersistFn(structure MakeString : MAKESTRING
 		else
 		(
 		prStr(os, "{");
+		(* do not print the file, we know it from the header
 		print_scon(os, file);
 		prStr(os, ":");
+		*)
 		prStr(os, Int.toString(sp)^","^Int.toString(ep)^","^
 		          Int.toString(sl)^","^Int.toString(sc)^","^
 		          Int.toString(el)^","^Int.toString(ec));

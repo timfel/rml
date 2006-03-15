@@ -69,29 +69,6 @@ fun mkpatlst(lst, info) = mklst(lst, pat_nil, pat_cons, info)
 
 fun mktuplety([ty], _) = ty
   | mktuplety(tyseq, info) = Absyn.TUPLEty(tyseq, info)
-
-fun mkCtxInfo(Absyn.INFO(file1,loc1,loc2,Absyn.LOC(sl1,sc1,el1,ec1)),
-              Absyn.INFO(file2,loc3,loc4,Absyn.LOC(sl2,sc2,el2,ec2))) =
-              Absyn.INFO(file1,loc1,loc4,
-              Absyn.LOC(sl1,sc1,el2,ec2))
-
-fun join_default(c1, NONE) = c1
-  | join_default(c1, SOME(c2 as Absyn.CLAUSE1(_,_,_,_,_,infoC2))) =
-      let fun join(c1 as Absyn.CLAUSE1(_,_,_,_,_,infoC1)) = 
-			Absyn.CLAUSE2(c1, c2, mkCtxInfo(infoC1,infoC2))
-	    | join(Absyn.CLAUSE2(c11,c12, infoC1)) = 
-			Absyn.CLAUSE2(c11, join c12, mkCtxInfo(infoC1, infoC2))
-      in
-		join c1
-      end
-  | join_default(c1, SOME(c2 as Absyn.CLAUSE2(_,_,infoC2))) =
-      let fun join(c1 as Absyn.CLAUSE1(_,_,_,_,_,infoC1)) = 
-			Absyn.CLAUSE2(c1, c2, mkCtxInfo(infoC1,infoC2))
-	    | join(Absyn.CLAUSE2(c11,c12, infoC1)) = 
-			Absyn.CLAUSE2(c11, join c12, mkCtxInfo(infoC1, infoC2))
-      in
-		join c1
-      end      
  
 fun makeELEMENT(isFinal, 
                 innerouter, 
@@ -405,8 +382,7 @@ fun makeELEMENT(isFinal,
 	| inner_outer of Absyn.InnerOuter
 	| subscript of Absyn.Subscript	
 	| subscript_list of Absyn.Subscript list
-	| array_subscripts of Absyn.ArrayDim
-	| opt_array_subscripts of Absyn.ArrayDim option
+	| array_subscripts of Absyn.Subscript list
 	| type_specifier of Absyn.TypeSpec
 	| type_specifier_list of Absyn.TypeSpec list
 	| component_list of Absyn.ComponentItem list	
@@ -420,8 +396,8 @@ fun makeELEMENT(isFinal,
 	| argument of Absyn.ElementArg
 	| equation_clause of Absyn.ClassPart 
 	| equation_annotation_list of Absyn.EquationItem list
-	| constraining_clause of Absyn.ConstrainClass
-	| opt_constraining_clause of Absyn.ConstrainClass option
+	| constraining_clause of Absyn.ElementSpec
+	| opt_constraining_clause of Absyn.ElementSpec option
 	| extends_clause of Absyn.ElementSpec
 	| algorithm_clause of Absyn.ClassPart
 	| algorithm_annotation_list of Absyn.AlgorithmItem list
@@ -867,27 +843,10 @@ variability_prefix:
 direction_prefix:
 	INPUT		( Absyn.INPUT(makeInfo lexArg (INPUTleft, INPUTright)) )
 |	OUTPUT		( Absyn.OUTPUT(makeInfo lexArg (OUTPUTleft, OUTPUTright)) )
-|	(* empty *)	( Absyn.BIDIR(Absyn.dummyInfo) )
+|	(* empty *)	( Absyn.BIDIR(makeInfo lexArg (defaultPos,defaultPos)) )
 
 
 component_clause:
-    (* 
-    the normal case for function pointer types enters here:
-    input Functype func; 
-    *)
-    (*
-	variability_prefix direction_prefix type_specifier component_list
-	(
-		Absyn.COMPONENTS(
-		 Absyn.ATTR(
-			variability_prefix, 
-			direction_prefix, 
-			makeInfo lexArg (flowprefixleft, type_specifierright)),
-		 type_specifier, 
-		 component_list,
-		 makeInfo lexArg (flow_prefixleft, component_listright))
-	)
-	*)
 	direction_prefix type_specifier component_list
 	(
 	Absyn.COMPONENTS(

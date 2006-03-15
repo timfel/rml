@@ -1,10 +1,12 @@
 (* static/statobj.sml *)
 
-functor StatObjFn(structure Absyn : ABSYN
-		  structure TyFcn : TY_FCN
-		  structure TyScheme : TY_SCHEME
-		  structure Control  : CONTROL
-		  sharing TyFcn.Ty = TyScheme.Ty
+functor StatObjFn(
+	structure Absyn : ABSYN
+	structure TyFcn : TY_FCN
+	structure TyScheme : TY_SCHEME
+	structure Control  : CONTROL
+	sharing TyFcn.Ty = TyScheme.Ty
+	sharing type Absyn.IdentDict.Key.ord_key = Absyn.ident	
 		    ) : STAT_OBJ =
   struct
 

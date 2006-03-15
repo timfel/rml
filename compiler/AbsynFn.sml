@@ -223,8 +223,8 @@ functor AbsynFn(structure MakeString : MAKESTRING
   (** whole dimension. *)
 
   (** - Component references and paths *)
-  and ComponentRef = CREF_QUAL of ident * ArrayDim * ComponentRef * info
-		    	| CREF_IDENT of ident * ArrayDim * info
+  and ComponentRef = CREF_QUAL of ident * Subscript list * ComponentRef * info
+		    	| CREF_IDENT of ident * Subscript list * info
 		    	
   (** - Modifications *)
   (** Modifications are described by the `Modification' type.  There *)
@@ -244,7 +244,7 @@ functor AbsynFn(structure MakeString : MAKESTRING
 					bool * 
 					Each * 
 					ElementSpec * 
-					ConstrainClass option * 
+					ElementSpec option * 
 					info
 
   (* ExternalDecl *)
@@ -333,7 +333,7 @@ functor AbsynFn(structure MakeString : MAKESTRING
 			      * ident                 (* Element name *)
 			      * ElementSpec           (* Actual element specification*)
 			      * info              (* file/location *)
-			      * ConstrainClass option (* only valid for classdef and component*)
+			      * ElementSpec option (* only valid for classdef and component*)
 
   (** An element is something that occurs in a public or protected
    ** section in a class definition.  There is one constructor in the
@@ -481,13 +481,6 @@ functor AbsynFn(structure MakeString : MAKESTRING
 			| MIDENTpat of ident * Pattern ref * info
 			| MNAMEDARGpat of var * Pattern * info (* name = pat *)
 
-  (** Components in Modelica can be scalar or arrays with one or more *)
-  (** dimensions. This datatype is used to indicate the dimensionality *)
-  (** of a component or a type definition. *)
-  (** - Array dimensions *)
-  withtype ArrayDim = Subscript list
-  (* Constraining type, must be extendes *)
-  and ConstrainClass = ElementSpec
   (* --- end Modelica+ AST --- *)
 
   datatype serializationInfo = SERIALIZE of { 

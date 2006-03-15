@@ -3,7 +3,7 @@
 functor FOLOptimFn(structure Util : UTIL
 		   structure FOLPrint : FOL_PRINT
 		   structure FOLUnify : FOL_UNIFY
-		   sharing FOLPrint.FOL = FOLUnify.FOL
+		   sharing type FOLPrint.FOL.module = FOLUnify.FOL.module
 		     ) : FOL_OPTIM =
   struct
 

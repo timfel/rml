@@ -17,6 +17,7 @@ functor LexArgSimpleFn(
     datatype lexarg
       = A of {	
         fileName    : string,
+        srzOfFile   : string ref,
 		thisLine	: int ref,
 		leftPos		: int ref,
 		strList		: string list ref,
@@ -41,6 +42,7 @@ functor LexArgSimpleFn(
 				end
 	  val lexarg =
 	    A{fileName = fileName,
+		  srzOfFile = ref "",
 	      thisLine = ref 2,
 	      leftPos =  ref 0,
 	      strList = ref [],
@@ -81,6 +83,7 @@ functor LexArgSimpleFn(
     fun seenErr(A{errFlag,...}) = !errFlag
     fun getFile(A{fileName,...}) = fileName    
     fun currVisibility(A{currVisibility,...}) = currVisibility    
+    fun isSerializationOf(A{srzOfFile,...}) = srzOfFile 
     
 	exception ParseError
 	

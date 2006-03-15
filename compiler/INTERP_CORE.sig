@@ -4,8 +4,10 @@ signature INTERP_CORE =
   sig
 
     structure Absyn	: ABSYN
+    (* 
     structure IdentDict : ORD_DICT (* = Absyn.IdentDict *)
-    sharing IdentDict = Absyn.IdentDict
+    sharing type IdentDict.dict = Absyn.IdentDict.dict
+    *)
 
     type loc
     type prim
@@ -14,9 +16,9 @@ signature INTERP_CORE =
 			| STRUCT of string * value list
 			| LOC of loc
 			| CLOSURE of {clause : Absyn.clause,
-				      ME : value IdentDict.dict IdentDict.dict,
-				      VE : value IdentDict.dict,
-				      VE_rec : value IdentDict.dict}
+				      ME : value Absyn.IdentDict.dict Absyn.IdentDict.dict,
+				      VE : value Absyn.IdentDict.dict,
+				      VE_rec : value Absyn.IdentDict.dict}
 			| PRIM of prim
     type state
     type marker
@@ -32,7 +34,7 @@ signature INTERP_CORE =
     val APPLY		: prim * value list * state -> result
 
     val s_init		: state
-    val VE_init		: value IdentDict.dict
-    val ME_init		: value IdentDict.dict IdentDict.dict
+    val VE_init		: value Absyn.IdentDict.dict
+    val ME_init		: value Absyn.IdentDict.dict Absyn.IdentDict.dict
 
   end (* signature INTERP_CORE *)
