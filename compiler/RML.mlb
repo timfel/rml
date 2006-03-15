@@ -1,0 +1,18 @@
+local
+(*
+  local 
+   local 
+		sources.mlb
+		$(SML_LIB)/basis/mlton.mlb
+   in
+     MainMLton.sml
+   end
+  in
+    structure MainMLton
+  end
+*)
+  sources.mlb
+  $(SML_LIB)/basis/sml-nj.mlb
+in
+  make-mlton.sml
+end
