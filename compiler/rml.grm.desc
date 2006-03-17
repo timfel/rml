@@ -1,0 +1,6948 @@
+
+state 0:
+
+	module : . START_MODULE interface dec_star EOF_SOFT 
+	module : . START_INTERFACE interface 
+
+	START_MODULE	shift 2
+	START_INTERFACE	shift 1
+
+	module	goto 365
+
+	.	error
+
+
+state 1:
+
+	module : START_INTERFACE . interface 
+
+	MODULE	shift 4
+
+	interface	goto 3
+
+	.	error
+
+
+state 2:
+
+	module : START_MODULE . interface dec_star EOF_SOFT 
+
+	MODULE	shift 4
+
+	interface	goto 5
+
+	.	error
+
+
+state 3:
+
+	module : START_INTERFACE interface .  (reduce by rule 1)
+
+	DATATYPE	reduce by rule 1
+	EOF_HARD	reduce by rule 1
+	EOF_SOFT	reduce by rule 1
+	EQTYPE	reduce by rule 1
+	RELATION	reduce by rule 1
+	TYPE	reduce by rule 1
+	VAL	reduce by rule 1
+	WITH	reduce by rule 1
+
+
+	.	error
+
+
+state 4:
+
+	interface : MODULE . ident COLON spec_star END 
+
+	IDENT	shift 7
+
+	ident	goto 6
+
+	.	error
+
+
+state 5:
+
+	module : START_MODULE interface . dec_star EOF_SOFT 
+
+	DATATYPE	shift 14
+	EOF_SOFT	reduce by rule 12
+	RELATION	shift 13
+	TYPE	shift 12
+	VAL	shift 11
+	WITH	shift 10
+
+	dec_star	goto 9
+	dec	goto 8
+
+	.	error
+
+
+state 6:
+
+	interface : MODULE ident . COLON spec_star END 
+
+	COLON	shift 15
+
+
+	.	error
+
+
+state 7:
+
+	ident : IDENT .  (reduce by rule 168)
+
+	AMPERSAND	reduce by rule 168
+	AND	reduce by rule 168
+	AS	reduce by rule 168
+	AXIOM	reduce by rule 168
+	BAR	reduce by rule 168
+	CCON	reduce by rule 168
+	COLON	reduce by rule 168
+	COLONCOLON	reduce by rule 168
+	COMMA	reduce by rule 168
+	DASHES	reduce by rule 168
+	DATATYPE	reduce by rule 168
+	DEFAULT	reduce by rule 168
+	DOT	reduce by rule 168
+	END	reduce by rule 168
+	EOF_SOFT	reduce by rule 168
+	EQ	reduce by rule 168
+	EQTYPE	reduce by rule 168
+	FATARROW	reduce by rule 168
+	ICON	reduce by rule 168
+	IDENT	reduce by rule 168
+	LBRACK	reduce by rule 168
+	LPAREN	reduce by rule 168
+	OF	reduce by rule 168
+	RCON	reduce by rule 168
+	RELATION	reduce by rule 168
+	RBRACK	reduce by rule 168
+	RPAREN	reduce by rule 168
+	RULE	reduce by rule 168
+	SCON	reduce by rule 168
+	STAR	reduce by rule 168
+	TYPE	reduce by rule 168
+	VAL	reduce by rule 168
+	WILD	reduce by rule 168
+	WITH	reduce by rule 168
+	WITHTYPE	reduce by rule 168
+	ADD_INT	reduce by rule 168
+	SUB_INT	reduce by rule 168
+	DIV_INT	reduce by rule 168
+	MOD_INT	reduce by rule 168
+	EQEQ_INT	reduce by rule 168
+	GE_INT	reduce by rule 168
+	GT_INT	reduce by rule 168
+	LE_INT	reduce by rule 168
+	LT_INT	reduce by rule 168
+	NE_INT	reduce by rule 168
+	ADD_REAL	reduce by rule 168
+	SUB_REAL	reduce by rule 168
+	MUL_REAL	reduce by rule 168
+	DIV_REAL	reduce by rule 168
+	MOD_REAL	reduce by rule 168
+	POW_REAL	reduce by rule 168
+	EQ_REAL	reduce by rule 168
+	GE_REAL	reduce by rule 168
+	GT_REAL	reduce by rule 168
+	LE_REAL	reduce by rule 168
+	LT_REAL	reduce by rule 168
+	NE_REAL	reduce by rule 168
+	ADD_STRING	reduce by rule 168
+	EQEQ_STRING	reduce by rule 168
+	ADD_LIST	reduce by rule 168
+
+
+	.	error
+
+
+state 8:
+
+	dec_star : dec . dec_star 
+
+	DATATYPE	shift 14
+	EOF_SOFT	reduce by rule 12
+	RELATION	shift 13
+	TYPE	shift 12
+	VAL	shift 11
+	WITH	shift 10
+
+	dec_star	goto 16
+	dec	goto 8
+
+	.	error
+
+
+state 9:
+
+	module : START_MODULE interface dec_star . EOF_SOFT 
+
+	EOF_SOFT	shift 17
+
+
+	.	error
+
+
+state 10:
+
+	dec : WITH . SCON 
+
+	SCON	shift 18
+
+
+	.	error
+
+
+state 11:
+
+	dec : VAL . ident EQ exp 
+
+	IDENT	shift 7
+
+	ident	goto 19
+
+	.	error
+
+
+state 12:
+
+	dec : TYPE . typbind_plus 
+
+	IDENT	reduce by rule 160
+	LPAREN	shift 25
+	TYVAR	shift 24
+
+	typbind_plus	goto 23
+	typbind	goto 22
+	tyvarseq	goto 21
+	tyvar	goto 20
+
+	.	error
+
+
+state 13:
+
+	dec : RELATION . relbind_plus 
+
+	IDENT	shift 7
+
+	relbind	goto 28
+	relbind_plus	goto 27
+	ident	goto 26
+
+	.	error
+
+
+state 14:
+
+	dec : DATATYPE . datbind_plus withbind 
+
+	IDENT	reduce by rule 160
+	LPAREN	shift 25
+	TYVAR	shift 24
+
+	datbind_plus	goto 31
+	datbind	goto 30
+	tyvarseq	goto 29
+	tyvar	goto 20
+
+	.	error
+
+
+state 15:
+
+	interface : MODULE ident COLON . spec_star END 
+
+	DATATYPE	shift 39
+	END	reduce by rule 3
+	EQTYPE	shift 38
+	RELATION	shift 37
+	TYPE	shift 36
+	VAL	shift 35
+	WITH	shift 34
+
+	spec_star	goto 33
+	spec	goto 32
+
+	.	error
+
+
+state 16:
+
+	dec_star : dec dec_star .  (reduce by rule 13)
+
+	EOF_SOFT	reduce by rule 13
+
+
+	.	error
+
+
+state 17:
+
+	module : START_MODULE interface dec_star EOF_SOFT .  (reduce by rule 0)
+
+	DATATYPE	reduce by rule 0
+	EOF_HARD	reduce by rule 0
+	EOF_SOFT	reduce by rule 0
+	EQTYPE	reduce by rule 0
+	RELATION	reduce by rule 0
+	TYPE	reduce by rule 0
+	VAL	reduce by rule 0
+	WITH	reduce by rule 0
+
+
+	.	error
+
+
+state 18:
+
+	dec : WITH SCON .  (reduce by rule 14)
+
+	DATATYPE	reduce by rule 14
+	EOF_SOFT	reduce by rule 14
+	RELATION	reduce by rule 14
+	TYPE	reduce by rule 14
+	VAL	reduce by rule 14
+	WITH	reduce by rule 14
+
+
+	.	error
+
+
+state 19:
+
+	dec : VAL ident . EQ exp 
+
+	EQ	shift 40
+
+
+	.	error
+
+
+state 20:
+
+	tyvarseq : tyvar .  (reduce by rule 161)
+
+	IDENT	reduce by rule 161
+
+
+	.	error
+
+
+state 21:
+
+	typbind : tyvarseq . ident EQ ty 
+
+	IDENT	shift 7
+
+	ident	goto 41
+
+	.	error
+
+
+state 22:
+
+	typbind_plus : typbind . AND typbind_plus 
+	typbind_plus : typbind .  (reduce by rule 27)
+
+	AND	shift 42
+	DATATYPE	reduce by rule 27
+	END	reduce by rule 27
+	EOF_SOFT	reduce by rule 27
+	EQTYPE	reduce by rule 27
+	RELATION	reduce by rule 27
+	TYPE	reduce by rule 27
+	VAL	reduce by rule 27
+	WITH	reduce by rule 27
+
+
+	.	error
+
+
+state 23:
+
+	dec : TYPE typbind_plus .  (reduce by rule 15)
+
+	DATATYPE	reduce by rule 15
+	EOF_SOFT	reduce by rule 15
+	RELATION	reduce by rule 15
+	TYPE	reduce by rule 15
+	VAL	reduce by rule 15
+	WITH	reduce by rule 15
+
+
+	.	error
+
+
+state 24:
+
+	tyvar : TYVAR .  (reduce by rule 169)
+
+	AND	reduce by rule 169
+	BAR	reduce by rule 169
+	COMMA	reduce by rule 169
+	DATATYPE	reduce by rule 169
+	END	reduce by rule 169
+	EOF_SOFT	reduce by rule 169
+	EQ	reduce by rule 169
+	EQTYPE	reduce by rule 169
+	FATARROW	reduce by rule 169
+	IDENT	reduce by rule 169
+	RELATION	reduce by rule 169
+	RPAREN	reduce by rule 169
+	STAR	reduce by rule 169
+	TYPE	reduce by rule 169
+	VAL	reduce by rule 169
+	WITH	reduce by rule 169
+	WITHTYPE	reduce by rule 169
+
+
+	.	error
+
+
+state 25:
+
+	tyvarseq : LPAREN . tyvar_comma_plus RPAREN 
+
+	TYVAR	shift 24
+
+	tyvar_comma_plus	goto 44
+	tyvar	goto 43
+
+	.	error
+
+
+state 26:
+
+	relbind : ident . relbind_ty_opt EQ clause_plus default_opt END 
+
+	COLON	shift 46
+	EQ	reduce by rule 23
+
+	relbind_ty_opt	goto 45
+
+	.	error
+
+
+state 27:
+
+	dec : RELATION relbind_plus .  (reduce by rule 18)
+
+	DATATYPE	reduce by rule 18
+	EOF_SOFT	reduce by rule 18
+	RELATION	reduce by rule 18
+	TYPE	reduce by rule 18
+	VAL	reduce by rule 18
+	WITH	reduce by rule 18
+
+
+	.	error
+
+
+state 28:
+
+	relbind_plus : relbind . AND relbind_plus 
+	relbind_plus : relbind .  (reduce by rule 20)
+
+	AND	shift 47
+	DATATYPE	reduce by rule 20
+	EOF_SOFT	reduce by rule 20
+	RELATION	reduce by rule 20
+	TYPE	reduce by rule 20
+	VAL	reduce by rule 20
+	WITH	reduce by rule 20
+
+
+	.	error
+
+
+state 29:
+
+	datbind : tyvarseq . ident EQ conbind_plus 
+
+	IDENT	shift 7
+
+	ident	goto 48
+
+	.	error
+
+
+state 30:
+
+	datbind_plus : datbind . AND datbind_plus 
+	datbind_plus : datbind .  (reduce by rule 30)
+
+	AND	shift 49
+	DATATYPE	reduce by rule 30
+	END	reduce by rule 30
+	EOF_SOFT	reduce by rule 30
+	EQTYPE	reduce by rule 30
+	RELATION	reduce by rule 30
+	TYPE	reduce by rule 30
+	VAL	reduce by rule 30
+	WITH	reduce by rule 30
+	WITHTYPE	reduce by rule 30
+
+
+	.	error
+
+
+state 31:
+
+	dec : DATATYPE datbind_plus . withbind 
+
+	DATATYPE	reduce by rule 24
+	EOF_SOFT	reduce by rule 24
+	RELATION	reduce by rule 24
+	TYPE	reduce by rule 24
+	VAL	reduce by rule 24
+	WITH	reduce by rule 24
+	WITHTYPE	shift 51
+
+	withbind	goto 50
+
+	.	error
+
+
+state 32:
+
+	spec_star : spec . spec_star 
+
+	DATATYPE	shift 39
+	END	reduce by rule 3
+	EQTYPE	shift 38
+	RELATION	shift 37
+	TYPE	shift 36
+	VAL	shift 35
+	WITH	shift 34
+
+	spec_star	goto 52
+	spec	goto 32
+
+	.	error
+
+
+state 33:
+
+	interface : MODULE ident COLON spec_star . END 
+
+	END	shift 53
+
+
+	.	error
+
+
+state 34:
+
+	spec : WITH . SCON 
+
+	SCON	shift 54
+
+
+	.	error
+
+
+state 35:
+
+	spec : VAL . ident COLON ty 
+
+	IDENT	shift 7
+
+	ident	goto 55
+
+	.	error
+
+
+state 36:
+
+	spec : TYPE . tyvarseq ident 
+	spec : TYPE . typbind_plus 
+
+	IDENT	reduce by rule 160
+	LPAREN	shift 25
+	TYVAR	shift 24
+
+	typbind_plus	goto 57
+	typbind	goto 22
+	tyvarseq	goto 56
+	tyvar	goto 20
+
+	.	error
+
+
+state 37:
+
+	spec : RELATION . ident COLON ty 
+
+	IDENT	shift 7
+
+	ident	goto 58
+
+	.	error
+
+
+state 38:
+
+	spec : EQTYPE . tyvarseq ident 
+
+	IDENT	reduce by rule 160
+	LPAREN	shift 25
+	TYVAR	shift 24
+
+	tyvarseq	goto 59
+	tyvar	goto 20
+
+	.	error
+
+
+state 39:
+
+	spec : DATATYPE . datbind_plus withbind 
+
+	IDENT	reduce by rule 160
+	LPAREN	shift 25
+	TYVAR	shift 24
+
+	datbind_plus	goto 60
+	datbind	goto 30
+	tyvarseq	goto 29
+	tyvar	goto 20
+
+	.	error
+
+
+state 40:
+
+	dec : VAL ident EQ . exp 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	LPAREN	shift 71
+	RCON	shift 70
+	SCON	shift 69
+
+	exp	goto 68
+	exp_a	goto 67
+	exp_c	goto 66
+	exp_d	goto 65
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 62
+	ident	goto 61
+
+	.	error
+
+
+state 41:
+
+	typbind : tyvarseq ident . EQ ty 
+
+	EQ	shift 75
+
+
+	.	error
+
+
+state 42:
+
+	typbind_plus : typbind AND . typbind_plus 
+
+	IDENT	reduce by rule 160
+	LPAREN	shift 25
+	TYVAR	shift 24
+
+	typbind_plus	goto 76
+	typbind	goto 22
+	tyvarseq	goto 21
+	tyvar	goto 20
+
+	.	error
+
+
+state 43:
+
+	tyvar_comma_plus : tyvar . COMMA tyvar_comma_plus 
+	tyvar_comma_plus : tyvar .  (reduce by rule 164)
+
+	COMMA	shift 77
+	RPAREN	reduce by rule 164
+
+
+	.	error
+
+
+state 44:
+
+	tyvarseq : LPAREN tyvar_comma_plus . RPAREN 
+
+	RPAREN	shift 78
+
+
+	.	error
+
+
+state 45:
+
+	relbind : ident relbind_ty_opt . EQ clause_plus default_opt END 
+
+	EQ	shift 79
+
+
+	.	error
+
+
+state 46:
+
+	relbind_ty_opt : COLON . ty 
+
+	IDENT	shift 7
+	LPAREN	shift 87
+	TYVAR	shift 24
+
+	ty	goto 86
+	tuple_ty	goto 85
+	ty_sans_star	goto 84
+	seq_ty	goto 83
+	longid	goto 63
+	longorshortid	goto 82
+	ident	goto 81
+	tyvar	goto 80
+
+	.	error
+
+
+state 47:
+
+	relbind_plus : relbind AND . relbind_plus 
+
+	IDENT	shift 7
+
+	relbind	goto 28
+	relbind_plus	goto 88
+	ident	goto 26
+
+	.	error
+
+
+state 48:
+
+	datbind : tyvarseq ident . EQ conbind_plus 
+
+	EQ	shift 89
+
+
+	.	error
+
+
+state 49:
+
+	datbind_plus : datbind AND . datbind_plus 
+
+	IDENT	reduce by rule 160
+	LPAREN	shift 25
+	TYVAR	shift 24
+
+	datbind_plus	goto 90
+	datbind	goto 30
+	tyvarseq	goto 29
+	tyvar	goto 20
+
+	.	error
+
+
+state 50:
+
+	dec : DATATYPE datbind_plus withbind .  (reduce by rule 16)
+
+	DATATYPE	reduce by rule 16
+	EOF_SOFT	reduce by rule 16
+	RELATION	reduce by rule 16
+	TYPE	reduce by rule 16
+	VAL	reduce by rule 16
+	WITH	reduce by rule 16
+
+
+	.	error
+
+
+state 51:
+
+	withbind : WITHTYPE . typbind_plus 
+
+	IDENT	reduce by rule 160
+	LPAREN	shift 25
+	TYVAR	shift 24
+
+	typbind_plus	goto 91
+	typbind	goto 22
+	tyvarseq	goto 21
+	tyvar	goto 20
+
+	.	error
+
+
+state 52:
+
+	spec_star : spec spec_star .  (reduce by rule 4)
+
+	END	reduce by rule 4
+
+
+	.	error
+
+
+state 53:
+
+	interface : MODULE ident COLON spec_star END .  (reduce by rule 2)
+
+	DATATYPE	reduce by rule 2
+	EOF_HARD	reduce by rule 2
+	EOF_SOFT	reduce by rule 2
+	EQTYPE	reduce by rule 2
+	RELATION	reduce by rule 2
+	TYPE	reduce by rule 2
+	VAL	reduce by rule 2
+	WITH	reduce by rule 2
+
+
+	.	error
+
+
+state 54:
+
+	spec : WITH SCON .  (reduce by rule 5)
+
+	DATATYPE	reduce by rule 5
+	END	reduce by rule 5
+	EQTYPE	reduce by rule 5
+	RELATION	reduce by rule 5
+	TYPE	reduce by rule 5
+	VAL	reduce by rule 5
+	WITH	reduce by rule 5
+
+
+	.	error
+
+
+state 55:
+
+	spec : VAL ident . COLON ty 
+
+	COLON	shift 92
+
+
+	.	error
+
+
+state 56:
+
+	spec : TYPE tyvarseq . ident 
+	typbind : tyvarseq . ident EQ ty 
+
+	IDENT	shift 7
+
+	ident	goto 93
+
+	.	error
+
+
+state 57:
+
+	spec : TYPE typbind_plus .  (reduce by rule 8)
+
+	DATATYPE	reduce by rule 8
+	END	reduce by rule 8
+	EQTYPE	reduce by rule 8
+	RELATION	reduce by rule 8
+	TYPE	reduce by rule 8
+	VAL	reduce by rule 8
+	WITH	reduce by rule 8
+
+
+	.	error
+
+
+state 58:
+
+	spec : RELATION ident . COLON ty 
+
+	COLON	shift 94
+
+
+	.	error
+
+
+state 59:
+
+	spec : EQTYPE tyvarseq . ident 
+
+	IDENT	shift 7
+
+	ident	goto 95
+
+	.	error
+
+
+state 60:
+
+	spec : DATATYPE datbind_plus . withbind 
+
+	DATATYPE	reduce by rule 24
+	END	reduce by rule 24
+	EQTYPE	reduce by rule 24
+	RELATION	reduce by rule 24
+	TYPE	reduce by rule 24
+	VAL	reduce by rule 24
+	WITH	reduce by rule 24
+	WITHTYPE	shift 51
+
+	withbind	goto 96
+
+	.	error
+
+
+state 61:
+
+	longid : ident . DOT ident 
+	longorshortid : ident .  (reduce by rule 167)
+
+	AMPERSAND	reduce by rule 167
+	AND	reduce by rule 167
+	AXIOM	reduce by rule 167
+	BAR	reduce by rule 167
+	CCON	reduce by rule 167
+	COLONCOLON	reduce by rule 167
+	COMMA	reduce by rule 167
+	DASHES	reduce by rule 167
+	DATATYPE	reduce by rule 167
+	DEFAULT	reduce by rule 167
+	DOT	shift 97
+	END	reduce by rule 167
+	EOF_SOFT	reduce by rule 167
+	EQ	reduce by rule 167
+	EQTYPE	reduce by rule 167
+	FATARROW	reduce by rule 167
+	ICON	reduce by rule 167
+	IDENT	reduce by rule 167
+	LBRACK	reduce by rule 167
+	LPAREN	reduce by rule 167
+	RCON	reduce by rule 167
+	RELATION	reduce by rule 167
+	RBRACK	reduce by rule 167
+	RPAREN	reduce by rule 167
+	RULE	reduce by rule 167
+	SCON	reduce by rule 167
+	STAR	reduce by rule 167
+	TYPE	reduce by rule 167
+	VAL	reduce by rule 167
+	WITH	reduce by rule 167
+	WITHTYPE	reduce by rule 167
+
+
+	.	error
+
+
+state 62:
+
+	exp_c : longorshortid . exp_star 
+	exp_c : longorshortid . exp_d 
+	exp_d : longorshortid .  (reduce by rule 97)
+
+	AMPERSAND	reduce by rule 97
+	AXIOM	reduce by rule 97
+	CCON	shift 74
+	COLONCOLON	reduce by rule 97
+	COMMA	reduce by rule 97
+	DASHES	reduce by rule 97
+	DATATYPE	reduce by rule 97
+	DEFAULT	reduce by rule 97
+	END	reduce by rule 97
+	EOF_SOFT	reduce by rule 97
+	FATARROW	reduce by rule 97
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	LPAREN	shift 101
+	RCON	shift 70
+	RELATION	reduce by rule 97
+	RBRACK	reduce by rule 97
+	RPAREN	reduce by rule 97
+	RULE	reduce by rule 97
+	SCON	shift 69
+	TYPE	reduce by rule 97
+	VAL	reduce by rule 97
+	WITH	reduce by rule 97
+
+	exp_d	goto 100
+	exp_star	goto 99
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 98
+	ident	goto 61
+
+	.	error
+
+
+state 63:
+
+	longorshortid : longid .  (reduce by rule 166)
+
+	AMPERSAND	reduce by rule 166
+	AND	reduce by rule 166
+	AXIOM	reduce by rule 166
+	BAR	reduce by rule 166
+	CCON	reduce by rule 166
+	COLONCOLON	reduce by rule 166
+	COMMA	reduce by rule 166
+	DASHES	reduce by rule 166
+	DATATYPE	reduce by rule 166
+	DEFAULT	reduce by rule 166
+	END	reduce by rule 166
+	EOF_SOFT	reduce by rule 166
+	EQ	reduce by rule 166
+	EQTYPE	reduce by rule 166
+	FATARROW	reduce by rule 166
+	ICON	reduce by rule 166
+	IDENT	reduce by rule 166
+	LBRACK	reduce by rule 166
+	LPAREN	reduce by rule 166
+	RCON	reduce by rule 166
+	RELATION	reduce by rule 166
+	RBRACK	reduce by rule 166
+	RPAREN	reduce by rule 166
+	RULE	reduce by rule 166
+	SCON	reduce by rule 166
+	STAR	reduce by rule 166
+	TYPE	reduce by rule 166
+	VAL	reduce by rule 166
+	WITH	reduce by rule 166
+	WITHTYPE	reduce by rule 166
+	ADD_INT	reduce by rule 166
+	SUB_INT	reduce by rule 166
+	DIV_INT	reduce by rule 166
+	MOD_INT	reduce by rule 166
+	EQEQ_INT	reduce by rule 166
+	GE_INT	reduce by rule 166
+	GT_INT	reduce by rule 166
+	LE_INT	reduce by rule 166
+	LT_INT	reduce by rule 166
+	NE_INT	reduce by rule 166
+	ADD_REAL	reduce by rule 166
+	SUB_REAL	reduce by rule 166
+	MUL_REAL	reduce by rule 166
+	DIV_REAL	reduce by rule 166
+	MOD_REAL	reduce by rule 166
+	POW_REAL	reduce by rule 166
+	EQ_REAL	reduce by rule 166
+	GE_REAL	reduce by rule 166
+	GT_REAL	reduce by rule 166
+	LE_REAL	reduce by rule 166
+	LT_REAL	reduce by rule 166
+	NE_REAL	reduce by rule 166
+	ADD_STRING	reduce by rule 166
+	EQEQ_STRING	reduce by rule 166
+	ADD_LIST	reduce by rule 166
+
+
+	.	error
+
+
+state 64:
+
+	exp_d : literal .  (reduce by rule 96)
+
+	AMPERSAND	reduce by rule 96
+	AXIOM	reduce by rule 96
+	COLONCOLON	reduce by rule 96
+	COMMA	reduce by rule 96
+	DASHES	reduce by rule 96
+	DATATYPE	reduce by rule 96
+	DEFAULT	reduce by rule 96
+	END	reduce by rule 96
+	EOF_SOFT	reduce by rule 96
+	FATARROW	reduce by rule 96
+	RELATION	reduce by rule 96
+	RBRACK	reduce by rule 96
+	RPAREN	reduce by rule 96
+	RULE	reduce by rule 96
+	STAR	reduce by rule 96
+	TYPE	reduce by rule 96
+	VAL	reduce by rule 96
+	WITH	reduce by rule 96
+	ADD_INT	reduce by rule 96
+	SUB_INT	reduce by rule 96
+	DIV_INT	reduce by rule 96
+	MOD_INT	reduce by rule 96
+	EQEQ_INT	reduce by rule 96
+	GE_INT	reduce by rule 96
+	GT_INT	reduce by rule 96
+	LE_INT	reduce by rule 96
+	LT_INT	reduce by rule 96
+	NE_INT	reduce by rule 96
+	ADD_REAL	reduce by rule 96
+	SUB_REAL	reduce by rule 96
+	MUL_REAL	reduce by rule 96
+	DIV_REAL	reduce by rule 96
+	MOD_REAL	reduce by rule 96
+	POW_REAL	reduce by rule 96
+	EQ_REAL	reduce by rule 96
+	GE_REAL	reduce by rule 96
+	GT_REAL	reduce by rule 96
+	LE_REAL	reduce by rule 96
+	LT_REAL	reduce by rule 96
+	NE_REAL	reduce by rule 96
+	ADD_STRING	reduce by rule 96
+	EQEQ_STRING	reduce by rule 96
+	ADD_LIST	reduce by rule 96
+
+
+	.	error
+
+
+state 65:
+
+	exp_c : exp_d .  (reduce by rule 95)
+
+	AMPERSAND	reduce by rule 95
+	AXIOM	reduce by rule 95
+	COLONCOLON	reduce by rule 95
+	COMMA	reduce by rule 95
+	DASHES	reduce by rule 95
+	DATATYPE	reduce by rule 95
+	DEFAULT	reduce by rule 95
+	END	reduce by rule 95
+	EOF_SOFT	reduce by rule 95
+	FATARROW	reduce by rule 95
+	RELATION	reduce by rule 95
+	RBRACK	reduce by rule 95
+	RPAREN	reduce by rule 95
+	RULE	reduce by rule 95
+	TYPE	reduce by rule 95
+	VAL	reduce by rule 95
+	WITH	reduce by rule 95
+
+
+	.	error
+
+
+state 66:
+
+	exp_a : exp_c .  (reduce by rule 90)
+
+	AMPERSAND	reduce by rule 90
+	COLONCOLON	reduce by rule 90
+	COMMA	reduce by rule 90
+	DASHES	reduce by rule 90
+	DATATYPE	reduce by rule 90
+	EOF_SOFT	reduce by rule 90
+	RELATION	reduce by rule 90
+	RBRACK	reduce by rule 90
+	RPAREN	reduce by rule 90
+	TYPE	reduce by rule 90
+	VAL	reduce by rule 90
+	WITH	reduce by rule 90
+
+
+	.	error
+
+
+state 67:
+
+	exp : exp_a . COLONCOLON exp 
+	exp : exp_a .  (reduce by rule 86)
+
+	AMPERSAND	reduce by rule 86
+	COLONCOLON	shift 102
+	COMMA	reduce by rule 86
+	DASHES	reduce by rule 86
+	DATATYPE	reduce by rule 86
+	EOF_SOFT	reduce by rule 86
+	RELATION	reduce by rule 86
+	RBRACK	reduce by rule 86
+	RPAREN	reduce by rule 86
+	TYPE	reduce by rule 86
+	VAL	reduce by rule 86
+	WITH	reduce by rule 86
+
+
+	.	error
+
+
+state 68:
+
+	dec : VAL ident EQ exp .  (reduce by rule 17)
+
+	DATATYPE	reduce by rule 17
+	EOF_SOFT	reduce by rule 17
+	RELATION	reduce by rule 17
+	TYPE	reduce by rule 17
+	VAL	reduce by rule 17
+	WITH	reduce by rule 17
+
+
+	.	error
+
+
+state 69:
+
+	literal : SCON .  (reduce by rule 143)
+
+	AMPERSAND	reduce by rule 143
+	AXIOM	reduce by rule 143
+	COLONCOLON	reduce by rule 143
+	COMMA	reduce by rule 143
+	DASHES	reduce by rule 143
+	DATATYPE	reduce by rule 143
+	DEFAULT	reduce by rule 143
+	END	reduce by rule 143
+	EOF_SOFT	reduce by rule 143
+	EQ	reduce by rule 143
+	FATARROW	reduce by rule 143
+	RELATION	reduce by rule 143
+	RBRACK	reduce by rule 143
+	RPAREN	reduce by rule 143
+	RULE	reduce by rule 143
+	STAR	reduce by rule 143
+	TYPE	reduce by rule 143
+	VAL	reduce by rule 143
+	WITH	reduce by rule 143
+	ADD_INT	reduce by rule 143
+	SUB_INT	reduce by rule 143
+	DIV_INT	reduce by rule 143
+	MOD_INT	reduce by rule 143
+	EQEQ_INT	reduce by rule 143
+	GE_INT	reduce by rule 143
+	GT_INT	reduce by rule 143
+	LE_INT	reduce by rule 143
+	LT_INT	reduce by rule 143
+	NE_INT	reduce by rule 143
+	ADD_REAL	reduce by rule 143
+	SUB_REAL	reduce by rule 143
+	MUL_REAL	reduce by rule 143
+	DIV_REAL	reduce by rule 143
+	MOD_REAL	reduce by rule 143
+	POW_REAL	reduce by rule 143
+	EQ_REAL	reduce by rule 143
+	GE_REAL	reduce by rule 143
+	GT_REAL	reduce by rule 143
+	LE_REAL	reduce by rule 143
+	LT_REAL	reduce by rule 143
+	NE_REAL	reduce by rule 143
+	ADD_STRING	reduce by rule 143
+	EQEQ_STRING	reduce by rule 143
+	ADD_LIST	reduce by rule 143
+
+
+	.	error
+
+
+state 70:
+
+	literal : RCON .  (reduce by rule 142)
+
+	AMPERSAND	reduce by rule 142
+	AXIOM	reduce by rule 142
+	COLONCOLON	reduce by rule 142
+	COMMA	reduce by rule 142
+	DASHES	reduce by rule 142
+	DATATYPE	reduce by rule 142
+	DEFAULT	reduce by rule 142
+	END	reduce by rule 142
+	EOF_SOFT	reduce by rule 142
+	EQ	reduce by rule 142
+	FATARROW	reduce by rule 142
+	RELATION	reduce by rule 142
+	RBRACK	reduce by rule 142
+	RPAREN	reduce by rule 142
+	RULE	reduce by rule 142
+	STAR	reduce by rule 142
+	TYPE	reduce by rule 142
+	VAL	reduce by rule 142
+	WITH	reduce by rule 142
+	ADD_INT	reduce by rule 142
+	SUB_INT	reduce by rule 142
+	DIV_INT	reduce by rule 142
+	MOD_INT	reduce by rule 142
+	EQEQ_INT	reduce by rule 142
+	GE_INT	reduce by rule 142
+	GT_INT	reduce by rule 142
+	LE_INT	reduce by rule 142
+	LT_INT	reduce by rule 142
+	NE_INT	reduce by rule 142
+	ADD_REAL	reduce by rule 142
+	SUB_REAL	reduce by rule 142
+	MUL_REAL	reduce by rule 142
+	DIV_REAL	reduce by rule 142
+	MOD_REAL	reduce by rule 142
+	POW_REAL	reduce by rule 142
+	EQ_REAL	reduce by rule 142
+	GE_REAL	reduce by rule 142
+	GT_REAL	reduce by rule 142
+	LE_REAL	reduce by rule 142
+	LT_REAL	reduce by rule 142
+	NE_REAL	reduce by rule 142
+	ADD_STRING	reduce by rule 142
+	EQEQ_STRING	reduce by rule 142
+	ADD_LIST	reduce by rule 142
+
+
+	.	error
+
+
+state 71:
+
+	exp_a : LPAREN . RPAREN 
+	exp_a : LPAREN . exp RPAREN 
+	exp_a : LPAREN . exp COMMA exp_comma_plus RPAREN 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	LPAREN	shift 71
+	RCON	shift 70
+	RPAREN	shift 104
+	SCON	shift 69
+
+	exp	goto 103
+	exp_a	goto 67
+	exp_c	goto 66
+	exp_d	goto 65
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 62
+	ident	goto 61
+
+	.	error
+
+
+state 72:
+
+	exp_d : LBRACK . exp_comma_star RBRACK 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	LPAREN	shift 71
+	RCON	shift 70
+	RBRACK	reduce by rule 103
+	SCON	shift 69
+
+	exp	goto 107
+	exp_a	goto 67
+	exp_c	goto 66
+	exp_d	goto 65
+	exp_comma_star	goto 106
+	exp_comma_plus	goto 105
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 62
+	ident	goto 61
+
+	.	error
+
+
+state 73:
+
+	literal : ICON .  (reduce by rule 141)
+
+	AMPERSAND	reduce by rule 141
+	AXIOM	reduce by rule 141
+	COLONCOLON	reduce by rule 141
+	COMMA	reduce by rule 141
+	DASHES	reduce by rule 141
+	DATATYPE	reduce by rule 141
+	DEFAULT	reduce by rule 141
+	END	reduce by rule 141
+	EOF_SOFT	reduce by rule 141
+	EQ	reduce by rule 141
+	FATARROW	reduce by rule 141
+	RELATION	reduce by rule 141
+	RBRACK	reduce by rule 141
+	RPAREN	reduce by rule 141
+	RULE	reduce by rule 141
+	STAR	reduce by rule 141
+	TYPE	reduce by rule 141
+	VAL	reduce by rule 141
+	WITH	reduce by rule 141
+	ADD_INT	reduce by rule 141
+	SUB_INT	reduce by rule 141
+	DIV_INT	reduce by rule 141
+	MOD_INT	reduce by rule 141
+	EQEQ_INT	reduce by rule 141
+	GE_INT	reduce by rule 141
+	GT_INT	reduce by rule 141
+	LE_INT	reduce by rule 141
+	LT_INT	reduce by rule 141
+	NE_INT	reduce by rule 141
+	ADD_REAL	reduce by rule 141
+	SUB_REAL	reduce by rule 141
+	MUL_REAL	reduce by rule 141
+	DIV_REAL	reduce by rule 141
+	MOD_REAL	reduce by rule 141
+	POW_REAL	reduce by rule 141
+	EQ_REAL	reduce by rule 141
+	GE_REAL	reduce by rule 141
+	GT_REAL	reduce by rule 141
+	LE_REAL	reduce by rule 141
+	LT_REAL	reduce by rule 141
+	NE_REAL	reduce by rule 141
+	ADD_STRING	reduce by rule 141
+	EQEQ_STRING	reduce by rule 141
+	ADD_LIST	reduce by rule 141
+
+
+	.	error
+
+
+state 74:
+
+	literal : CCON .  (reduce by rule 140)
+
+	AMPERSAND	reduce by rule 140
+	AXIOM	reduce by rule 140
+	COLONCOLON	reduce by rule 140
+	COMMA	reduce by rule 140
+	DASHES	reduce by rule 140
+	DATATYPE	reduce by rule 140
+	DEFAULT	reduce by rule 140
+	END	reduce by rule 140
+	EOF_SOFT	reduce by rule 140
+	EQ	reduce by rule 140
+	FATARROW	reduce by rule 140
+	RELATION	reduce by rule 140
+	RBRACK	reduce by rule 140
+	RPAREN	reduce by rule 140
+	RULE	reduce by rule 140
+	STAR	reduce by rule 140
+	TYPE	reduce by rule 140
+	VAL	reduce by rule 140
+	WITH	reduce by rule 140
+	ADD_INT	reduce by rule 140
+	SUB_INT	reduce by rule 140
+	DIV_INT	reduce by rule 140
+	MOD_INT	reduce by rule 140
+	EQEQ_INT	reduce by rule 140
+	GE_INT	reduce by rule 140
+	GT_INT	reduce by rule 140
+	LE_INT	reduce by rule 140
+	LT_INT	reduce by rule 140
+	NE_INT	reduce by rule 140
+	ADD_REAL	reduce by rule 140
+	SUB_REAL	reduce by rule 140
+	MUL_REAL	reduce by rule 140
+	DIV_REAL	reduce by rule 140
+	MOD_REAL	reduce by rule 140
+	POW_REAL	reduce by rule 140
+	EQ_REAL	reduce by rule 140
+	GE_REAL	reduce by rule 140
+	GT_REAL	reduce by rule 140
+	LE_REAL	reduce by rule 140
+	LT_REAL	reduce by rule 140
+	NE_REAL	reduce by rule 140
+	ADD_STRING	reduce by rule 140
+	EQEQ_STRING	reduce by rule 140
+	ADD_LIST	reduce by rule 140
+
+
+	.	error
+
+
+state 75:
+
+	typbind : tyvarseq ident EQ . ty 
+
+	IDENT	shift 7
+	LPAREN	shift 87
+	TYVAR	shift 24
+
+	ty	goto 108
+	tuple_ty	goto 85
+	ty_sans_star	goto 84
+	seq_ty	goto 83
+	longid	goto 63
+	longorshortid	goto 82
+	ident	goto 81
+	tyvar	goto 80
+
+	.	error
+
+
+state 76:
+
+	typbind_plus : typbind AND typbind_plus .  (reduce by rule 26)
+
+	DATATYPE	reduce by rule 26
+	END	reduce by rule 26
+	EOF_SOFT	reduce by rule 26
+	EQTYPE	reduce by rule 26
+	RELATION	reduce by rule 26
+	TYPE	reduce by rule 26
+	VAL	reduce by rule 26
+	WITH	reduce by rule 26
+
+
+	.	error
+
+
+state 77:
+
+	tyvar_comma_plus : tyvar COMMA . tyvar_comma_plus 
+
+	TYVAR	shift 24
+
+	tyvar_comma_plus	goto 109
+	tyvar	goto 43
+
+	.	error
+
+
+state 78:
+
+	tyvarseq : LPAREN tyvar_comma_plus RPAREN .  (reduce by rule 162)
+
+	IDENT	reduce by rule 162
+
+
+	.	error
+
+
+state 79:
+
+	relbind : ident relbind_ty_opt EQ . clause_plus default_opt END 
+
+	AXIOM	shift 113
+	RULE	shift 112
+
+	clause_plus	goto 111
+	clause	goto 110
+
+	.	error
+
+
+state 80:
+
+	ty_sans_star : tyvar .  (reduce by rule 153)
+
+	AND	reduce by rule 153
+	BAR	reduce by rule 153
+	COMMA	reduce by rule 153
+	DATATYPE	reduce by rule 153
+	END	reduce by rule 153
+	EOF_SOFT	reduce by rule 153
+	EQ	reduce by rule 153
+	EQTYPE	reduce by rule 153
+	FATARROW	reduce by rule 153
+	IDENT	reduce by rule 153
+	RELATION	reduce by rule 153
+	RPAREN	reduce by rule 153
+	STAR	reduce by rule 153
+	TYPE	reduce by rule 153
+	VAL	reduce by rule 153
+	WITH	reduce by rule 153
+	WITHTYPE	reduce by rule 153
+
+
+	.	error
+
+
+state 81:
+
+	tuple_ty : ident . COLON ty_sans_star 
+	tuple_ty : ident . COLON ty_sans_star STAR tuple_ty 
+	longid : ident . DOT ident 
+	longorshortid : ident .  (reduce by rule 167)
+
+	AND	reduce by rule 167
+	BAR	reduce by rule 167
+	COLON	shift 114
+	COMMA	reduce by rule 167
+	DATATYPE	reduce by rule 167
+	DOT	shift 97
+	END	reduce by rule 167
+	EOF_SOFT	reduce by rule 167
+	EQ	reduce by rule 167
+	EQTYPE	reduce by rule 167
+	FATARROW	reduce by rule 167
+	IDENT	reduce by rule 167
+	RELATION	reduce by rule 167
+	RPAREN	reduce by rule 167
+	STAR	reduce by rule 167
+	TYPE	reduce by rule 167
+	VAL	reduce by rule 167
+	WITH	reduce by rule 167
+	WITHTYPE	reduce by rule 167
+
+
+	.	error
+
+
+state 82:
+
+	ty_sans_star : longorshortid .  (reduce by rule 154)
+
+	AND	reduce by rule 154
+	BAR	reduce by rule 154
+	COMMA	reduce by rule 154
+	DATATYPE	reduce by rule 154
+	END	reduce by rule 154
+	EOF_SOFT	reduce by rule 154
+	EQ	reduce by rule 154
+	EQTYPE	reduce by rule 154
+	FATARROW	reduce by rule 154
+	IDENT	reduce by rule 154
+	RELATION	reduce by rule 154
+	RPAREN	reduce by rule 154
+	STAR	reduce by rule 154
+	TYPE	reduce by rule 154
+	VAL	reduce by rule 154
+	WITH	reduce by rule 154
+	WITHTYPE	reduce by rule 154
+
+
+	.	error
+
+
+state 83:
+
+	ty : seq_ty . FATARROW seq_ty 
+
+	FATARROW	shift 115
+
+
+	.	error
+
+
+state 84:
+
+	tuple_ty : ty_sans_star . STAR tuple_ty 
+	tuple_ty : ty_sans_star .  (reduce by rule 147)
+	ty_sans_star : ty_sans_star . longorshortid 
+
+	AND	reduce by rule 147
+	BAR	reduce by rule 147
+	COMMA	reduce by rule 147
+	DATATYPE	reduce by rule 147
+	END	reduce by rule 147
+	EOF_SOFT	reduce by rule 147
+	EQ	reduce by rule 147
+	EQTYPE	reduce by rule 147
+	FATARROW	reduce by rule 147
+	IDENT	shift 7
+	RELATION	reduce by rule 147
+	RPAREN	reduce by rule 147
+	STAR	shift 117
+	TYPE	reduce by rule 147
+	VAL	reduce by rule 147
+	WITH	reduce by rule 147
+	WITHTYPE	reduce by rule 147
+
+	longid	goto 63
+	longorshortid	goto 116
+	ident	goto 61
+
+	.	error
+
+
+state 85:
+
+	ty : tuple_ty .  (reduce by rule 145)
+	seq_ty : tuple_ty .  (reduce by rule 159)
+
+	AND	reduce by rule 145
+	COMMA	reduce by rule 145
+	DATATYPE	reduce by rule 145
+	END	reduce by rule 145
+	EOF_SOFT	reduce by rule 145
+	EQ	reduce by rule 145
+	EQTYPE	reduce by rule 145
+	FATARROW	reduce by rule 159
+	RELATION	reduce by rule 145
+	RPAREN	reduce by rule 145
+	TYPE	reduce by rule 145
+	VAL	reduce by rule 145
+	WITH	reduce by rule 145
+
+
+	.	error
+
+
+state 86:
+
+	relbind_ty_opt : COLON ty .  (reduce by rule 22)
+
+	EQ	reduce by rule 22
+
+
+	.	error
+
+
+state 87:
+
+	ty_sans_star : LPAREN . ty_comma_seq2 RPAREN longorshortid 
+	ty_sans_star : LPAREN . ty RPAREN 
+	seq_ty : LPAREN . RPAREN 
+	seq_ty : LPAREN . ty_comma_seq2 RPAREN 
+
+	IDENT	shift 7
+	LPAREN	shift 87
+	RPAREN	shift 120
+	TYVAR	shift 24
+
+	ty	goto 119
+	tuple_ty	goto 85
+	ty_sans_star	goto 84
+	ty_comma_seq2	goto 118
+	seq_ty	goto 83
+	longid	goto 63
+	longorshortid	goto 82
+	ident	goto 81
+	tyvar	goto 80
+
+	.	error
+
+
+state 88:
+
+	relbind_plus : relbind AND relbind_plus .  (reduce by rule 19)
+
+	DATATYPE	reduce by rule 19
+	EOF_SOFT	reduce by rule 19
+	RELATION	reduce by rule 19
+	TYPE	reduce by rule 19
+	VAL	reduce by rule 19
+	WITH	reduce by rule 19
+
+
+	.	error
+
+
+state 89:
+
+	datbind : tyvarseq ident EQ . conbind_plus 
+
+	IDENT	shift 7
+
+	conbind_plus	goto 123
+	conbind	goto 122
+	ident	goto 121
+
+	.	error
+
+
+state 90:
+
+	datbind_plus : datbind AND datbind_plus .  (reduce by rule 29)
+
+	DATATYPE	reduce by rule 29
+	END	reduce by rule 29
+	EOF_SOFT	reduce by rule 29
+	EQTYPE	reduce by rule 29
+	RELATION	reduce by rule 29
+	TYPE	reduce by rule 29
+	VAL	reduce by rule 29
+	WITH	reduce by rule 29
+	WITHTYPE	reduce by rule 29
+
+
+	.	error
+
+
+state 91:
+
+	withbind : WITHTYPE typbind_plus .  (reduce by rule 25)
+
+	DATATYPE	reduce by rule 25
+	END	reduce by rule 25
+	EOF_SOFT	reduce by rule 25
+	EQTYPE	reduce by rule 25
+	RELATION	reduce by rule 25
+	TYPE	reduce by rule 25
+	VAL	reduce by rule 25
+	WITH	reduce by rule 25
+
+
+	.	error
+
+
+state 92:
+
+	spec : VAL ident COLON . ty 
+
+	IDENT	shift 7
+	LPAREN	shift 87
+	TYVAR	shift 24
+
+	ty	goto 124
+	tuple_ty	goto 85
+	ty_sans_star	goto 84
+	seq_ty	goto 83
+	longid	goto 63
+	longorshortid	goto 82
+	ident	goto 81
+	tyvar	goto 80
+
+	.	error
+
+
+state 93:
+
+	spec : TYPE tyvarseq ident .  (reduce by rule 6)
+	typbind : tyvarseq ident . EQ ty 
+
+	DATATYPE	reduce by rule 6
+	END	reduce by rule 6
+	EQ	shift 75
+	EQTYPE	reduce by rule 6
+	RELATION	reduce by rule 6
+	TYPE	reduce by rule 6
+	VAL	reduce by rule 6
+	WITH	reduce by rule 6
+
+
+	.	error
+
+
+state 94:
+
+	spec : RELATION ident COLON . ty 
+
+	IDENT	shift 7
+	LPAREN	shift 87
+	TYVAR	shift 24
+
+	ty	goto 125
+	tuple_ty	goto 85
+	ty_sans_star	goto 84
+	seq_ty	goto 83
+	longid	goto 63
+	longorshortid	goto 82
+	ident	goto 81
+	tyvar	goto 80
+
+	.	error
+
+
+state 95:
+
+	spec : EQTYPE tyvarseq ident .  (reduce by rule 7)
+
+	DATATYPE	reduce by rule 7
+	END	reduce by rule 7
+	EQTYPE	reduce by rule 7
+	RELATION	reduce by rule 7
+	TYPE	reduce by rule 7
+	VAL	reduce by rule 7
+	WITH	reduce by rule 7
+
+
+	.	error
+
+
+state 96:
+
+	spec : DATATYPE datbind_plus withbind .  (reduce by rule 9)
+
+	DATATYPE	reduce by rule 9
+	END	reduce by rule 9
+	EQTYPE	reduce by rule 9
+	RELATION	reduce by rule 9
+	TYPE	reduce by rule 9
+	VAL	reduce by rule 9
+	WITH	reduce by rule 9
+
+
+	.	error
+
+
+state 97:
+
+	longid : ident DOT . ident 
+
+	IDENT	shift 7
+
+	ident	goto 126
+
+	.	error
+
+
+state 98:
+
+	exp_d : longorshortid .  (reduce by rule 97)
+
+	AMPERSAND	reduce by rule 97
+	AXIOM	reduce by rule 97
+	COLONCOLON	reduce by rule 97
+	COMMA	reduce by rule 97
+	DASHES	reduce by rule 97
+	DATATYPE	reduce by rule 97
+	DEFAULT	reduce by rule 97
+	END	reduce by rule 97
+	EOF_SOFT	reduce by rule 97
+	FATARROW	reduce by rule 97
+	RELATION	reduce by rule 97
+	RBRACK	reduce by rule 97
+	RPAREN	reduce by rule 97
+	RULE	reduce by rule 97
+	TYPE	reduce by rule 97
+	VAL	reduce by rule 97
+	WITH	reduce by rule 97
+
+
+	.	error
+
+
+state 99:
+
+	exp_c : longorshortid exp_star .  (reduce by rule 93)
+
+	AMPERSAND	reduce by rule 93
+	AXIOM	reduce by rule 93
+	COLONCOLON	reduce by rule 93
+	COMMA	reduce by rule 93
+	DASHES	reduce by rule 93
+	DATATYPE	reduce by rule 93
+	DEFAULT	reduce by rule 93
+	END	reduce by rule 93
+	EOF_SOFT	reduce by rule 93
+	FATARROW	reduce by rule 93
+	RELATION	reduce by rule 93
+	RBRACK	reduce by rule 93
+	RPAREN	reduce by rule 93
+	RULE	reduce by rule 93
+	TYPE	reduce by rule 93
+	VAL	reduce by rule 93
+	WITH	reduce by rule 93
+
+
+	.	error
+
+
+state 100:
+
+	exp_c : longorshortid exp_d .  (reduce by rule 94)
+
+	AMPERSAND	reduce by rule 94
+	AXIOM	reduce by rule 94
+	COLONCOLON	reduce by rule 94
+	COMMA	reduce by rule 94
+	DASHES	reduce by rule 94
+	DATATYPE	reduce by rule 94
+	DEFAULT	reduce by rule 94
+	END	reduce by rule 94
+	EOF_SOFT	reduce by rule 94
+	FATARROW	reduce by rule 94
+	RELATION	reduce by rule 94
+	RBRACK	reduce by rule 94
+	RPAREN	reduce by rule 94
+	RULE	reduce by rule 94
+	TYPE	reduce by rule 94
+	VAL	reduce by rule 94
+	WITH	reduce by rule 94
+
+
+	.	error
+
+
+state 101:
+
+	exp_star : LPAREN . exp_comma_star RPAREN 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	LPAREN	shift 71
+	RCON	shift 70
+	RPAREN	reduce by rule 103
+	SCON	shift 69
+
+	exp	goto 107
+	exp_a	goto 67
+	exp_c	goto 66
+	exp_d	goto 65
+	exp_comma_star	goto 127
+	exp_comma_plus	goto 105
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 62
+	ident	goto 61
+
+	.	error
+
+
+state 102:
+
+	exp : exp_a COLONCOLON . exp 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	LPAREN	shift 71
+	RCON	shift 70
+	SCON	shift 69
+
+	exp	goto 128
+	exp_a	goto 67
+	exp_c	goto 66
+	exp_d	goto 65
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 62
+	ident	goto 61
+
+	.	error
+
+
+state 103:
+
+	exp_a : LPAREN exp . RPAREN 
+	exp_a : LPAREN exp . COMMA exp_comma_plus RPAREN 
+
+	COMMA	shift 130
+	RPAREN	shift 129
+
+
+	.	error
+
+
+state 104:
+
+	exp_a : LPAREN RPAREN .  (reduce by rule 87)
+
+	AMPERSAND	reduce by rule 87
+	COLONCOLON	reduce by rule 87
+	COMMA	reduce by rule 87
+	DASHES	reduce by rule 87
+	DATATYPE	reduce by rule 87
+	EOF_SOFT	reduce by rule 87
+	RELATION	reduce by rule 87
+	RBRACK	reduce by rule 87
+	RPAREN	reduce by rule 87
+	TYPE	reduce by rule 87
+	VAL	reduce by rule 87
+	WITH	reduce by rule 87
+
+
+	.	error
+
+
+state 105:
+
+	exp_comma_star : exp_comma_plus .  (reduce by rule 104)
+
+	RBRACK	reduce by rule 104
+	RPAREN	reduce by rule 104
+
+
+	.	error
+
+
+state 106:
+
+	exp_d : LBRACK exp_comma_star . RBRACK 
+
+	RBRACK	shift 131
+
+
+	.	error
+
+
+state 107:
+
+	exp_comma_plus : exp .  (reduce by rule 105)
+	exp_comma_plus : exp . COMMA exp_comma_plus 
+
+	COMMA	shift 132
+	RBRACK	reduce by rule 105
+	RPAREN	reduce by rule 105
+
+
+	.	error
+
+
+state 108:
+
+	typbind : tyvarseq ident EQ ty .  (reduce by rule 28)
+
+	AND	reduce by rule 28
+	DATATYPE	reduce by rule 28
+	END	reduce by rule 28
+	EOF_SOFT	reduce by rule 28
+	EQTYPE	reduce by rule 28
+	RELATION	reduce by rule 28
+	TYPE	reduce by rule 28
+	VAL	reduce by rule 28
+	WITH	reduce by rule 28
+
+
+	.	error
+
+
+state 109:
+
+	tyvar_comma_plus : tyvar COMMA tyvar_comma_plus .  (reduce by rule 163)
+
+	RPAREN	reduce by rule 163
+
+
+	.	error
+
+
+state 110:
+
+	clause_plus : clause .  (reduce by rule 38)
+	clause_plus : clause . clause_plus 
+
+	AXIOM	shift 113
+	DEFAULT	reduce by rule 38
+	END	reduce by rule 38
+	RULE	shift 112
+
+	clause_plus	goto 133
+	clause	goto 110
+
+	.	error
+
+
+state 111:
+
+	relbind : ident relbind_ty_opt EQ clause_plus . default_opt END 
+
+	DEFAULT	shift 135
+	END	reduce by rule 36
+
+	default_opt	goto 134
+
+	.	error
+
+
+state 112:
+
+	clause : RULE . conjunctive_goal_opt DASHES ident seq_pat result 
+	clause : RULE . conjunctive_goal_opt DASHES ident seq_pat 
+
+	CCON	shift 74
+	DASHES	reduce by rule 46
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	LET	shift 146
+	LPAREN	shift 145
+	NOT	shift 144
+	RCON	shift 70
+	SCON	shift 69
+	SUB_INT	shift 143
+	SUB_REAL	shift 142
+
+	conjunctive_goal_opt	goto 141
+	conjunctive_goal	goto 140
+	atomic_goal	goto 139
+	exp_d	goto 138
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 137
+	ident	goto 136
+
+	.	error
+
+
+state 113:
+
+	clause : AXIOM . ident seq_pat result 
+	clause : AXIOM . ident seq_pat 
+
+	IDENT	shift 7
+
+	ident	goto 147
+
+	.	error
+
+
+state 114:
+
+	tuple_ty : ident COLON . ty_sans_star 
+	tuple_ty : ident COLON . ty_sans_star STAR tuple_ty 
+
+	IDENT	shift 7
+	LPAREN	shift 149
+	TYVAR	shift 24
+
+	ty_sans_star	goto 148
+	longid	goto 63
+	longorshortid	goto 82
+	ident	goto 61
+	tyvar	goto 80
+
+	.	error
+
+
+state 115:
+
+	ty : seq_ty FATARROW . seq_ty 
+
+	IDENT	shift 7
+	LPAREN	shift 87
+	TYVAR	shift 24
+
+	tuple_ty	goto 151
+	ty_sans_star	goto 84
+	seq_ty	goto 150
+	longid	goto 63
+	longorshortid	goto 82
+	ident	goto 81
+	tyvar	goto 80
+
+	.	error
+
+
+state 116:
+
+	ty_sans_star : ty_sans_star longorshortid .  (reduce by rule 150)
+
+	AND	reduce by rule 150
+	BAR	reduce by rule 150
+	COMMA	reduce by rule 150
+	DATATYPE	reduce by rule 150
+	END	reduce by rule 150
+	EOF_SOFT	reduce by rule 150
+	EQ	reduce by rule 150
+	EQTYPE	reduce by rule 150
+	FATARROW	reduce by rule 150
+	IDENT	reduce by rule 150
+	RELATION	reduce by rule 150
+	RPAREN	reduce by rule 150
+	STAR	reduce by rule 150
+	TYPE	reduce by rule 150
+	VAL	reduce by rule 150
+	WITH	reduce by rule 150
+	WITHTYPE	reduce by rule 150
+
+
+	.	error
+
+
+state 117:
+
+	tuple_ty : ty_sans_star STAR . tuple_ty 
+
+	IDENT	shift 7
+	LPAREN	shift 149
+	TYVAR	shift 24
+
+	tuple_ty	goto 152
+	ty_sans_star	goto 84
+	longid	goto 63
+	longorshortid	goto 82
+	ident	goto 81
+	tyvar	goto 80
+
+	.	error
+
+
+state 118:
+
+	ty_sans_star : LPAREN ty_comma_seq2 . RPAREN longorshortid 
+	seq_ty : LPAREN ty_comma_seq2 . RPAREN 
+
+	RPAREN	shift 153
+
+
+	.	error
+
+
+state 119:
+
+	ty_sans_star : LPAREN ty . RPAREN 
+	ty_comma_seq2 : ty . COMMA ty_comma_seq2 
+	ty_comma_seq2 : ty . COMMA ty 
+
+	COMMA	shift 155
+	RPAREN	shift 154
+
+
+	.	error
+
+
+state 120:
+
+	seq_ty : LPAREN RPAREN .  (reduce by rule 157)
+
+	AND	reduce by rule 157
+	COMMA	reduce by rule 157
+	DATATYPE	reduce by rule 157
+	END	reduce by rule 157
+	EOF_SOFT	reduce by rule 157
+	EQ	reduce by rule 157
+	EQTYPE	reduce by rule 157
+	FATARROW	reduce by rule 157
+	RELATION	reduce by rule 157
+	RPAREN	reduce by rule 157
+	TYPE	reduce by rule 157
+	VAL	reduce by rule 157
+	WITH	reduce by rule 157
+
+
+	.	error
+
+
+state 121:
+
+	conbind : ident .  (reduce by rule 34)
+	conbind : ident . OF tuple_ty 
+
+	AND	reduce by rule 34
+	BAR	reduce by rule 34
+	DATATYPE	reduce by rule 34
+	END	reduce by rule 34
+	EOF_SOFT	reduce by rule 34
+	EQTYPE	reduce by rule 34
+	OF	shift 156
+	RELATION	reduce by rule 34
+	TYPE	reduce by rule 34
+	VAL	reduce by rule 34
+	WITH	reduce by rule 34
+	WITHTYPE	reduce by rule 34
+
+
+	.	error
+
+
+state 122:
+
+	conbind_plus : conbind . BAR conbind_plus 
+	conbind_plus : conbind .  (reduce by rule 33)
+
+	AND	reduce by rule 33
+	BAR	shift 157
+	DATATYPE	reduce by rule 33
+	END	reduce by rule 33
+	EOF_SOFT	reduce by rule 33
+	EQTYPE	reduce by rule 33
+	RELATION	reduce by rule 33
+	TYPE	reduce by rule 33
+	VAL	reduce by rule 33
+	WITH	reduce by rule 33
+	WITHTYPE	reduce by rule 33
+
+
+	.	error
+
+
+state 123:
+
+	datbind : tyvarseq ident EQ conbind_plus .  (reduce by rule 31)
+
+	AND	reduce by rule 31
+	DATATYPE	reduce by rule 31
+	END	reduce by rule 31
+	EOF_SOFT	reduce by rule 31
+	EQTYPE	reduce by rule 31
+	RELATION	reduce by rule 31
+	TYPE	reduce by rule 31
+	VAL	reduce by rule 31
+	WITH	reduce by rule 31
+	WITHTYPE	reduce by rule 31
+
+
+	.	error
+
+
+state 124:
+
+	spec : VAL ident COLON ty .  (reduce by rule 10)
+
+	DATATYPE	reduce by rule 10
+	END	reduce by rule 10
+	EQTYPE	reduce by rule 10
+	RELATION	reduce by rule 10
+	TYPE	reduce by rule 10
+	VAL	reduce by rule 10
+	WITH	reduce by rule 10
+
+
+	.	error
+
+
+state 125:
+
+	spec : RELATION ident COLON ty .  (reduce by rule 11)
+
+	DATATYPE	reduce by rule 11
+	END	reduce by rule 11
+	EQTYPE	reduce by rule 11
+	RELATION	reduce by rule 11
+	TYPE	reduce by rule 11
+	VAL	reduce by rule 11
+	WITH	reduce by rule 11
+
+
+	.	error
+
+
+state 126:
+
+	longid : ident DOT ident .  (reduce by rule 165)
+
+	AMPERSAND	reduce by rule 165
+	AND	reduce by rule 165
+	AXIOM	reduce by rule 165
+	BAR	reduce by rule 165
+	CCON	reduce by rule 165
+	COLONCOLON	reduce by rule 165
+	COMMA	reduce by rule 165
+	DASHES	reduce by rule 165
+	DATATYPE	reduce by rule 165
+	DEFAULT	reduce by rule 165
+	END	reduce by rule 165
+	EOF_SOFT	reduce by rule 165
+	EQ	reduce by rule 165
+	EQTYPE	reduce by rule 165
+	FATARROW	reduce by rule 165
+	ICON	reduce by rule 165
+	IDENT	reduce by rule 165
+	LBRACK	reduce by rule 165
+	LPAREN	reduce by rule 165
+	RCON	reduce by rule 165
+	RELATION	reduce by rule 165
+	RBRACK	reduce by rule 165
+	RPAREN	reduce by rule 165
+	RULE	reduce by rule 165
+	SCON	reduce by rule 165
+	STAR	reduce by rule 165
+	TYPE	reduce by rule 165
+	VAL	reduce by rule 165
+	WILD	reduce by rule 165
+	WITH	reduce by rule 165
+	WITHTYPE	reduce by rule 165
+	ADD_INT	reduce by rule 165
+	SUB_INT	reduce by rule 165
+	DIV_INT	reduce by rule 165
+	MOD_INT	reduce by rule 165
+	EQEQ_INT	reduce by rule 165
+	GE_INT	reduce by rule 165
+	GT_INT	reduce by rule 165
+	LE_INT	reduce by rule 165
+	LT_INT	reduce by rule 165
+	NE_INT	reduce by rule 165
+	ADD_REAL	reduce by rule 165
+	SUB_REAL	reduce by rule 165
+	MUL_REAL	reduce by rule 165
+	DIV_REAL	reduce by rule 165
+	MOD_REAL	reduce by rule 165
+	POW_REAL	reduce by rule 165
+	EQ_REAL	reduce by rule 165
+	GE_REAL	reduce by rule 165
+	GT_REAL	reduce by rule 165
+	LE_REAL	reduce by rule 165
+	LT_REAL	reduce by rule 165
+	NE_REAL	reduce by rule 165
+	ADD_STRING	reduce by rule 165
+	EQEQ_STRING	reduce by rule 165
+	ADD_LIST	reduce by rule 165
+
+
+	.	error
+
+
+state 127:
+
+	exp_star : LPAREN exp_comma_star . RPAREN 
+
+	RPAREN	shift 158
+
+
+	.	error
+
+
+state 128:
+
+	exp : exp_a COLONCOLON exp .  (reduce by rule 85)
+
+	AMPERSAND	reduce by rule 85
+	COMMA	reduce by rule 85
+	DASHES	reduce by rule 85
+	DATATYPE	reduce by rule 85
+	EOF_SOFT	reduce by rule 85
+	RELATION	reduce by rule 85
+	RBRACK	reduce by rule 85
+	RPAREN	reduce by rule 85
+	TYPE	reduce by rule 85
+	VAL	reduce by rule 85
+	WITH	reduce by rule 85
+
+
+	.	error
+
+
+state 129:
+
+	exp_a : LPAREN exp RPAREN .  (reduce by rule 88)
+
+	AMPERSAND	reduce by rule 88
+	COLONCOLON	reduce by rule 88
+	COMMA	reduce by rule 88
+	DASHES	reduce by rule 88
+	DATATYPE	reduce by rule 88
+	EOF_SOFT	reduce by rule 88
+	RELATION	reduce by rule 88
+	RBRACK	reduce by rule 88
+	RPAREN	reduce by rule 88
+	TYPE	reduce by rule 88
+	VAL	reduce by rule 88
+	WITH	reduce by rule 88
+
+
+	.	error
+
+
+state 130:
+
+	exp_a : LPAREN exp COMMA . exp_comma_plus RPAREN 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	LPAREN	shift 71
+	RCON	shift 70
+	SCON	shift 69
+
+	exp	goto 107
+	exp_a	goto 67
+	exp_c	goto 66
+	exp_d	goto 65
+	exp_comma_plus	goto 159
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 62
+	ident	goto 61
+
+	.	error
+
+
+state 131:
+
+	exp_d : LBRACK exp_comma_star RBRACK .  (reduce by rule 98)
+
+	AMPERSAND	reduce by rule 98
+	AXIOM	reduce by rule 98
+	COLONCOLON	reduce by rule 98
+	COMMA	reduce by rule 98
+	DASHES	reduce by rule 98
+	DATATYPE	reduce by rule 98
+	DEFAULT	reduce by rule 98
+	END	reduce by rule 98
+	EOF_SOFT	reduce by rule 98
+	FATARROW	reduce by rule 98
+	RELATION	reduce by rule 98
+	RBRACK	reduce by rule 98
+	RPAREN	reduce by rule 98
+	RULE	reduce by rule 98
+	STAR	reduce by rule 98
+	TYPE	reduce by rule 98
+	VAL	reduce by rule 98
+	WITH	reduce by rule 98
+	ADD_INT	reduce by rule 98
+	SUB_INT	reduce by rule 98
+	DIV_INT	reduce by rule 98
+	MOD_INT	reduce by rule 98
+	EQEQ_INT	reduce by rule 98
+	GE_INT	reduce by rule 98
+	GT_INT	reduce by rule 98
+	LE_INT	reduce by rule 98
+	LT_INT	reduce by rule 98
+	NE_INT	reduce by rule 98
+	ADD_REAL	reduce by rule 98
+	SUB_REAL	reduce by rule 98
+	MUL_REAL	reduce by rule 98
+	DIV_REAL	reduce by rule 98
+	MOD_REAL	reduce by rule 98
+	POW_REAL	reduce by rule 98
+	EQ_REAL	reduce by rule 98
+	GE_REAL	reduce by rule 98
+	GT_REAL	reduce by rule 98
+	LE_REAL	reduce by rule 98
+	LT_REAL	reduce by rule 98
+	NE_REAL	reduce by rule 98
+	ADD_STRING	reduce by rule 98
+	EQEQ_STRING	reduce by rule 98
+	ADD_LIST	reduce by rule 98
+
+
+	.	error
+
+
+state 132:
+
+	exp_comma_plus : exp COMMA . exp_comma_plus 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	LPAREN	shift 71
+	RCON	shift 70
+	SCON	shift 69
+
+	exp	goto 107
+	exp_a	goto 67
+	exp_c	goto 66
+	exp_d	goto 65
+	exp_comma_plus	goto 160
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 62
+	ident	goto 61
+
+	.	error
+
+
+state 133:
+
+	clause_plus : clause clause_plus .  (reduce by rule 39)
+
+	DEFAULT	reduce by rule 39
+	END	reduce by rule 39
+
+
+	.	error
+
+
+state 134:
+
+	relbind : ident relbind_ty_opt EQ clause_plus default_opt . END 
+
+	END	shift 161
+
+
+	.	error
+
+
+state 135:
+
+	default_opt : DEFAULT . clause_plus 
+
+	AXIOM	shift 113
+	RULE	shift 112
+
+	clause_plus	goto 162
+	clause	goto 110
+
+	.	error
+
+
+state 136:
+
+	atomic_goal : ident . EQ exp 
+	longid : ident . DOT ident 
+	longorshortid : ident .  (reduce by rule 167)
+
+	AMPERSAND	reduce by rule 167
+	CCON	reduce by rule 167
+	DASHES	reduce by rule 167
+	DOT	shift 97
+	EQ	shift 163
+	FATARROW	reduce by rule 167
+	ICON	reduce by rule 167
+	IDENT	reduce by rule 167
+	LBRACK	reduce by rule 167
+	LPAREN	reduce by rule 167
+	RCON	reduce by rule 167
+	RPAREN	reduce by rule 167
+	SCON	reduce by rule 167
+	STAR	reduce by rule 167
+	ADD_INT	reduce by rule 167
+	SUB_INT	reduce by rule 167
+	DIV_INT	reduce by rule 167
+	MOD_INT	reduce by rule 167
+	EQEQ_INT	reduce by rule 167
+	GE_INT	reduce by rule 167
+	GT_INT	reduce by rule 167
+	LE_INT	reduce by rule 167
+	LT_INT	reduce by rule 167
+	NE_INT	reduce by rule 167
+	ADD_REAL	reduce by rule 167
+	SUB_REAL	reduce by rule 167
+	MUL_REAL	reduce by rule 167
+	DIV_REAL	reduce by rule 167
+	MOD_REAL	reduce by rule 167
+	POW_REAL	reduce by rule 167
+	EQ_REAL	reduce by rule 167
+	GE_REAL	reduce by rule 167
+	GT_REAL	reduce by rule 167
+	LE_REAL	reduce by rule 167
+	LT_REAL	reduce by rule 167
+	NE_REAL	reduce by rule 167
+	ADD_STRING	reduce by rule 167
+	EQEQ_STRING	reduce by rule 167
+	ADD_LIST	reduce by rule 167
+
+
+	.	error
+
+
+state 137:
+
+	atomic_goal : longorshortid . seq_exp FATARROW seq_pat 
+	atomic_goal : longorshortid . seq_exp 
+	exp_d : longorshortid .  (reduce by rule 97)
+
+	AMPERSAND	reduce by rule 99
+	CCON	shift 74
+	DASHES	reduce by rule 99
+	FATARROW	reduce by rule 99
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	LPAREN	shift 101
+	RCON	shift 70
+	RPAREN	reduce by rule 99
+	SCON	shift 69
+	STAR	reduce by rule 97
+	ADD_INT	reduce by rule 97
+	SUB_INT	reduce by rule 97
+	DIV_INT	reduce by rule 97
+	MOD_INT	reduce by rule 97
+	EQEQ_INT	reduce by rule 97
+	GE_INT	reduce by rule 97
+	GT_INT	reduce by rule 97
+	LE_INT	reduce by rule 97
+	LT_INT	reduce by rule 97
+	NE_INT	reduce by rule 97
+	ADD_REAL	reduce by rule 97
+	SUB_REAL	reduce by rule 97
+	MUL_REAL	reduce by rule 97
+	DIV_REAL	reduce by rule 97
+	MOD_REAL	reduce by rule 97
+	POW_REAL	reduce by rule 97
+	EQ_REAL	reduce by rule 97
+	GE_REAL	reduce by rule 97
+	GT_REAL	reduce by rule 97
+	LE_REAL	reduce by rule 97
+	LT_REAL	reduce by rule 97
+	NE_REAL	reduce by rule 97
+	ADD_STRING	reduce by rule 97
+	EQEQ_STRING	reduce by rule 97
+	ADD_LIST	reduce by rule 97
+
+	exp_b	goto 167
+	exp_c	goto 166
+	exp_d	goto 65
+	seq_exp	goto 165
+	exp_star	goto 164
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 62
+	ident	goto 61
+
+	.	error
+
+
+state 138:
+
+	atomic_goal : exp_d . ADD_INT exp_d FATARROW seq_pat 
+	atomic_goal : exp_d . SUB_INT exp_d FATARROW seq_pat 
+	atomic_goal : exp_d . STAR exp_d FATARROW seq_pat 
+	atomic_goal : exp_d . DIV_INT exp_d FATARROW seq_pat 
+	atomic_goal : exp_d . MOD_INT exp_d FATARROW seq_pat 
+	atomic_goal : exp_d . EQEQ_INT exp_d FATARROW seq_pat 
+	atomic_goal : exp_d . GE_INT exp_d FATARROW seq_pat 
+	atomic_goal : exp_d . GT_INT exp_d FATARROW seq_pat 
+	atomic_goal : exp_d . LE_INT exp_d FATARROW seq_pat 
+	atomic_goal : exp_d . LT_INT exp_d FATARROW seq_pat 
+	atomic_goal : exp_d . NE_INT exp_d FATARROW seq_pat 
+	atomic_goal : exp_d . ADD_REAL exp_d FATARROW seq_pat 
+	atomic_goal : exp_d . SUB_REAL exp_d FATARROW seq_pat 
+	atomic_goal : exp_d . MUL_REAL exp_d FATARROW seq_pat 
+	atomic_goal : exp_d . DIV_REAL exp_d FATARROW seq_pat 
+	atomic_goal : exp_d . MOD_REAL exp_d FATARROW seq_pat 
+	atomic_goal : exp_d . POW_REAL exp_d FATARROW seq_pat 
+	atomic_goal : exp_d . EQ_REAL exp_d FATARROW seq_pat 
+	atomic_goal : exp_d . GE_REAL exp_d FATARROW seq_pat 
+	atomic_goal : exp_d . GT_REAL exp_d FATARROW seq_pat 
+	atomic_goal : exp_d . LE_REAL exp_d FATARROW seq_pat 
+	atomic_goal : exp_d . LT_REAL exp_d FATARROW seq_pat 
+	atomic_goal : exp_d . NE_REAL exp_d FATARROW seq_pat 
+	atomic_goal : exp_d . ADD_STRING exp_d FATARROW seq_pat 
+	atomic_goal : exp_d . EQEQ_STRING exp_d FATARROW seq_pat 
+	atomic_goal : exp_d . ADD_LIST exp_d FATARROW seq_pat 
+
+	STAR	shift 193
+	ADD_INT	shift 192
+	SUB_INT	shift 191
+	DIV_INT	shift 190
+	MOD_INT	shift 189
+	EQEQ_INT	shift 188
+	GE_INT	shift 187
+	GT_INT	shift 186
+	LE_INT	shift 185
+	LT_INT	shift 184
+	NE_INT	shift 183
+	ADD_REAL	shift 182
+	SUB_REAL	shift 181
+	MUL_REAL	shift 180
+	DIV_REAL	shift 179
+	MOD_REAL	shift 178
+	POW_REAL	shift 177
+	EQ_REAL	shift 176
+	GE_REAL	shift 175
+	GT_REAL	shift 174
+	LE_REAL	shift 173
+	LT_REAL	shift 172
+	NE_REAL	shift 171
+	ADD_STRING	shift 170
+	EQEQ_STRING	shift 169
+	ADD_LIST	shift 168
+
+
+	.	error
+
+
+state 139:
+
+	conjunctive_goal : atomic_goal .  (reduce by rule 48)
+	conjunctive_goal : atomic_goal . AMPERSAND conjunctive_goal 
+	conjunctive_goal : atomic_goal . AMPERSAND 
+
+	AMPERSAND	shift 194
+	DASHES	reduce by rule 48
+	RPAREN	reduce by rule 48
+
+
+	.	error
+
+
+state 140:
+
+	conjunctive_goal_opt : conjunctive_goal .  (reduce by rule 47)
+
+	DASHES	reduce by rule 47
+
+
+	.	error
+
+
+state 141:
+
+	clause : RULE conjunctive_goal_opt . DASHES ident seq_pat result 
+	clause : RULE conjunctive_goal_opt . DASHES ident seq_pat 
+
+	DASHES	shift 195
+
+
+	.	error
+
+
+state 142:
+
+	atomic_goal : SUB_REAL . exp_d FATARROW seq_pat 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	RCON	shift 70
+	SCON	shift 69
+
+	exp_d	goto 196
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 98
+	ident	goto 61
+
+	.	error
+
+
+state 143:
+
+	atomic_goal : SUB_INT . exp_d FATARROW seq_pat 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	RCON	shift 70
+	SCON	shift 69
+
+	exp_d	goto 197
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 98
+	ident	goto 61
+
+	.	error
+
+
+state 144:
+
+	atomic_goal : NOT . atomic_goal 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	LET	shift 146
+	LPAREN	shift 145
+	NOT	shift 144
+	RCON	shift 70
+	SCON	shift 69
+	SUB_INT	shift 143
+	SUB_REAL	shift 142
+
+	atomic_goal	goto 198
+	exp_d	goto 138
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 137
+	ident	goto 136
+
+	.	error
+
+
+state 145:
+
+	atomic_goal : LPAREN . conjunctive_goal RPAREN 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	LET	shift 146
+	LPAREN	shift 145
+	NOT	shift 144
+	RCON	shift 70
+	SCON	shift 69
+	SUB_INT	shift 143
+	SUB_REAL	shift 142
+
+	conjunctive_goal	goto 199
+	atomic_goal	goto 139
+	exp_d	goto 138
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 137
+	ident	goto 136
+
+	.	error
+
+
+state 146:
+
+	atomic_goal : LET . pat EQ exp 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 210
+	RCON	shift 70
+	SCON	shift 69
+	WILD	shift 209
+
+	pat	goto 208
+	pat_a	goto 207
+	pat_b	goto 206
+	pat_d	goto 205
+	pat_e	goto 204
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 200
+
+	.	error
+
+
+state 147:
+
+	clause : AXIOM ident . seq_pat result 
+	clause : AXIOM ident . seq_pat 
+
+	AXIOM	reduce by rule 126
+	CCON	shift 74
+	DEFAULT	reduce by rule 126
+	END	reduce by rule 126
+	FATARROW	reduce by rule 126
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 217
+	RCON	shift 70
+	RULE	reduce by rule 126
+	SCON	shift 69
+	WILD	shift 209
+
+	pat_c	goto 216
+	pat_d	goto 215
+	pat_e	goto 204
+	seq_pat	goto 214
+	pat_star	goto 213
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 212
+
+	.	error
+
+
+state 148:
+
+	tuple_ty : ident COLON ty_sans_star .  (reduce by rule 148)
+	tuple_ty : ident COLON ty_sans_star . STAR tuple_ty 
+	ty_sans_star : ty_sans_star . longorshortid 
+
+	AND	reduce by rule 148
+	BAR	reduce by rule 148
+	COMMA	reduce by rule 148
+	DATATYPE	reduce by rule 148
+	END	reduce by rule 148
+	EOF_SOFT	reduce by rule 148
+	EQ	reduce by rule 148
+	EQTYPE	reduce by rule 148
+	FATARROW	reduce by rule 148
+	IDENT	shift 7
+	RELATION	reduce by rule 148
+	RPAREN	reduce by rule 148
+	STAR	shift 218
+	TYPE	reduce by rule 148
+	VAL	reduce by rule 148
+	WITH	reduce by rule 148
+	WITHTYPE	reduce by rule 148
+
+	longid	goto 63
+	longorshortid	goto 116
+	ident	goto 61
+
+	.	error
+
+
+state 149:
+
+	ty_sans_star : LPAREN . ty_comma_seq2 RPAREN longorshortid 
+	ty_sans_star : LPAREN . ty RPAREN 
+
+	IDENT	shift 7
+	LPAREN	shift 87
+	TYVAR	shift 24
+
+	ty	goto 119
+	tuple_ty	goto 85
+	ty_sans_star	goto 84
+	ty_comma_seq2	goto 219
+	seq_ty	goto 83
+	longid	goto 63
+	longorshortid	goto 82
+	ident	goto 81
+	tyvar	goto 80
+
+	.	error
+
+
+state 150:
+
+	ty : seq_ty FATARROW seq_ty .  (reduce by rule 144)
+
+	AND	reduce by rule 144
+	COMMA	reduce by rule 144
+	DATATYPE	reduce by rule 144
+	END	reduce by rule 144
+	EOF_SOFT	reduce by rule 144
+	EQ	reduce by rule 144
+	EQTYPE	reduce by rule 144
+	RELATION	reduce by rule 144
+	RPAREN	reduce by rule 144
+	TYPE	reduce by rule 144
+	VAL	reduce by rule 144
+	WITH	reduce by rule 144
+
+
+	.	error
+
+
+state 151:
+
+	seq_ty : tuple_ty .  (reduce by rule 159)
+
+	AND	reduce by rule 159
+	COMMA	reduce by rule 159
+	DATATYPE	reduce by rule 159
+	END	reduce by rule 159
+	EOF_SOFT	reduce by rule 159
+	EQ	reduce by rule 159
+	EQTYPE	reduce by rule 159
+	RELATION	reduce by rule 159
+	RPAREN	reduce by rule 159
+	TYPE	reduce by rule 159
+	VAL	reduce by rule 159
+	WITH	reduce by rule 159
+
+
+	.	error
+
+
+state 152:
+
+	tuple_ty : ty_sans_star STAR tuple_ty .  (reduce by rule 146)
+
+	AND	reduce by rule 146
+	BAR	reduce by rule 146
+	COMMA	reduce by rule 146
+	DATATYPE	reduce by rule 146
+	END	reduce by rule 146
+	EOF_SOFT	reduce by rule 146
+	EQ	reduce by rule 146
+	EQTYPE	reduce by rule 146
+	FATARROW	reduce by rule 146
+	RELATION	reduce by rule 146
+	RPAREN	reduce by rule 146
+	TYPE	reduce by rule 146
+	VAL	reduce by rule 146
+	WITH	reduce by rule 146
+	WITHTYPE	reduce by rule 146
+
+
+	.	error
+
+
+state 153:
+
+	ty_sans_star : LPAREN ty_comma_seq2 RPAREN . longorshortid 
+	seq_ty : LPAREN ty_comma_seq2 RPAREN .  (reduce by rule 158)
+
+	AND	reduce by rule 158
+	COMMA	reduce by rule 158
+	DATATYPE	reduce by rule 158
+	END	reduce by rule 158
+	EOF_SOFT	reduce by rule 158
+	EQ	reduce by rule 158
+	EQTYPE	reduce by rule 158
+	FATARROW	reduce by rule 158
+	IDENT	shift 7
+	RELATION	reduce by rule 158
+	RPAREN	reduce by rule 158
+	TYPE	reduce by rule 158
+	VAL	reduce by rule 158
+	WITH	reduce by rule 158
+
+	longid	goto 63
+	longorshortid	goto 220
+	ident	goto 61
+
+	.	error
+
+
+state 154:
+
+	ty_sans_star : LPAREN ty RPAREN .  (reduce by rule 152)
+
+	AND	reduce by rule 152
+	BAR	reduce by rule 152
+	COMMA	reduce by rule 152
+	DATATYPE	reduce by rule 152
+	END	reduce by rule 152
+	EOF_SOFT	reduce by rule 152
+	EQ	reduce by rule 152
+	EQTYPE	reduce by rule 152
+	FATARROW	reduce by rule 152
+	IDENT	reduce by rule 152
+	RELATION	reduce by rule 152
+	RPAREN	reduce by rule 152
+	STAR	reduce by rule 152
+	TYPE	reduce by rule 152
+	VAL	reduce by rule 152
+	WITH	reduce by rule 152
+	WITHTYPE	reduce by rule 152
+
+
+	.	error
+
+
+state 155:
+
+	ty_comma_seq2 : ty COMMA . ty_comma_seq2 
+	ty_comma_seq2 : ty COMMA . ty 
+
+	IDENT	shift 7
+	LPAREN	shift 87
+	TYVAR	shift 24
+
+	ty	goto 222
+	tuple_ty	goto 85
+	ty_sans_star	goto 84
+	ty_comma_seq2	goto 221
+	seq_ty	goto 83
+	longid	goto 63
+	longorshortid	goto 82
+	ident	goto 81
+	tyvar	goto 80
+
+	.	error
+
+
+state 156:
+
+	conbind : ident OF . tuple_ty 
+
+	IDENT	shift 7
+	LPAREN	shift 149
+	TYVAR	shift 24
+
+	tuple_ty	goto 223
+	ty_sans_star	goto 84
+	longid	goto 63
+	longorshortid	goto 82
+	ident	goto 81
+	tyvar	goto 80
+
+	.	error
+
+
+state 157:
+
+	conbind_plus : conbind BAR . conbind_plus 
+
+	IDENT	shift 7
+
+	conbind_plus	goto 224
+	conbind	goto 122
+	ident	goto 121
+
+	.	error
+
+
+state 158:
+
+	exp_star : LPAREN exp_comma_star RPAREN .  (reduce by rule 102)
+
+	AMPERSAND	reduce by rule 102
+	AXIOM	reduce by rule 102
+	COLONCOLON	reduce by rule 102
+	COMMA	reduce by rule 102
+	DASHES	reduce by rule 102
+	DATATYPE	reduce by rule 102
+	DEFAULT	reduce by rule 102
+	END	reduce by rule 102
+	EOF_SOFT	reduce by rule 102
+	FATARROW	reduce by rule 102
+	RELATION	reduce by rule 102
+	RBRACK	reduce by rule 102
+	RPAREN	reduce by rule 102
+	RULE	reduce by rule 102
+	TYPE	reduce by rule 102
+	VAL	reduce by rule 102
+	WITH	reduce by rule 102
+
+
+	.	error
+
+
+state 159:
+
+	exp_a : LPAREN exp COMMA exp_comma_plus . RPAREN 
+
+	RPAREN	shift 225
+
+
+	.	error
+
+
+state 160:
+
+	exp_comma_plus : exp COMMA exp_comma_plus .  (reduce by rule 106)
+
+	RBRACK	reduce by rule 106
+	RPAREN	reduce by rule 106
+
+
+	.	error
+
+
+state 161:
+
+	relbind : ident relbind_ty_opt EQ clause_plus default_opt END .  (reduce by rule 21)
+
+	AND	reduce by rule 21
+	DATATYPE	reduce by rule 21
+	EOF_SOFT	reduce by rule 21
+	RELATION	reduce by rule 21
+	TYPE	reduce by rule 21
+	VAL	reduce by rule 21
+	WITH	reduce by rule 21
+
+
+	.	error
+
+
+state 162:
+
+	default_opt : DEFAULT clause_plus .  (reduce by rule 37)
+
+	END	reduce by rule 37
+
+
+	.	error
+
+
+state 163:
+
+	atomic_goal : ident EQ . exp 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	LPAREN	shift 71
+	RCON	shift 70
+	SCON	shift 69
+
+	exp	goto 226
+	exp_a	goto 67
+	exp_c	goto 66
+	exp_d	goto 65
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 62
+	ident	goto 61
+
+	.	error
+
+
+state 164:
+
+	seq_exp : exp_star .  (reduce by rule 101)
+
+	AMPERSAND	reduce by rule 101
+	AXIOM	reduce by rule 101
+	DASHES	reduce by rule 101
+	DEFAULT	reduce by rule 101
+	END	reduce by rule 101
+	FATARROW	reduce by rule 101
+	RPAREN	reduce by rule 101
+	RULE	reduce by rule 101
+
+
+	.	error
+
+
+state 165:
+
+	atomic_goal : longorshortid seq_exp . FATARROW seq_pat 
+	atomic_goal : longorshortid seq_exp .  (reduce by rule 80)
+
+	AMPERSAND	reduce by rule 80
+	DASHES	reduce by rule 80
+	FATARROW	shift 227
+	RPAREN	reduce by rule 80
+
+
+	.	error
+
+
+state 166:
+
+	exp_b : exp_c . COLONCOLON exp_b 
+	exp_b : exp_c .  (reduce by rule 92)
+
+	AMPERSAND	reduce by rule 92
+	AXIOM	reduce by rule 92
+	COLONCOLON	shift 228
+	DASHES	reduce by rule 92
+	DEFAULT	reduce by rule 92
+	END	reduce by rule 92
+	FATARROW	reduce by rule 92
+	RPAREN	reduce by rule 92
+	RULE	reduce by rule 92
+
+
+	.	error
+
+
+state 167:
+
+	seq_exp : exp_b .  (reduce by rule 100)
+
+	AMPERSAND	reduce by rule 100
+	AXIOM	reduce by rule 100
+	DASHES	reduce by rule 100
+	DEFAULT	reduce by rule 100
+	END	reduce by rule 100
+	FATARROW	reduce by rule 100
+	RPAREN	reduce by rule 100
+	RULE	reduce by rule 100
+
+
+	.	error
+
+
+state 168:
+
+	atomic_goal : exp_d ADD_LIST . exp_d FATARROW seq_pat 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	RCON	shift 70
+	SCON	shift 69
+
+	exp_d	goto 229
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 98
+	ident	goto 61
+
+	.	error
+
+
+state 169:
+
+	atomic_goal : exp_d EQEQ_STRING . exp_d FATARROW seq_pat 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	RCON	shift 70
+	SCON	shift 69
+
+	exp_d	goto 230
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 98
+	ident	goto 61
+
+	.	error
+
+
+state 170:
+
+	atomic_goal : exp_d ADD_STRING . exp_d FATARROW seq_pat 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	RCON	shift 70
+	SCON	shift 69
+
+	exp_d	goto 231
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 98
+	ident	goto 61
+
+	.	error
+
+
+state 171:
+
+	atomic_goal : exp_d NE_REAL . exp_d FATARROW seq_pat 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	RCON	shift 70
+	SCON	shift 69
+
+	exp_d	goto 232
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 98
+	ident	goto 61
+
+	.	error
+
+
+state 172:
+
+	atomic_goal : exp_d LT_REAL . exp_d FATARROW seq_pat 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	RCON	shift 70
+	SCON	shift 69
+
+	exp_d	goto 233
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 98
+	ident	goto 61
+
+	.	error
+
+
+state 173:
+
+	atomic_goal : exp_d LE_REAL . exp_d FATARROW seq_pat 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	RCON	shift 70
+	SCON	shift 69
+
+	exp_d	goto 234
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 98
+	ident	goto 61
+
+	.	error
+
+
+state 174:
+
+	atomic_goal : exp_d GT_REAL . exp_d FATARROW seq_pat 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	RCON	shift 70
+	SCON	shift 69
+
+	exp_d	goto 235
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 98
+	ident	goto 61
+
+	.	error
+
+
+state 175:
+
+	atomic_goal : exp_d GE_REAL . exp_d FATARROW seq_pat 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	RCON	shift 70
+	SCON	shift 69
+
+	exp_d	goto 236
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 98
+	ident	goto 61
+
+	.	error
+
+
+state 176:
+
+	atomic_goal : exp_d EQ_REAL . exp_d FATARROW seq_pat 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	RCON	shift 70
+	SCON	shift 69
+
+	exp_d	goto 237
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 98
+	ident	goto 61
+
+	.	error
+
+
+state 177:
+
+	atomic_goal : exp_d POW_REAL . exp_d FATARROW seq_pat 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	RCON	shift 70
+	SCON	shift 69
+
+	exp_d	goto 238
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 98
+	ident	goto 61
+
+	.	error
+
+
+state 178:
+
+	atomic_goal : exp_d MOD_REAL . exp_d FATARROW seq_pat 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	RCON	shift 70
+	SCON	shift 69
+
+	exp_d	goto 239
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 98
+	ident	goto 61
+
+	.	error
+
+
+state 179:
+
+	atomic_goal : exp_d DIV_REAL . exp_d FATARROW seq_pat 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	RCON	shift 70
+	SCON	shift 69
+
+	exp_d	goto 240
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 98
+	ident	goto 61
+
+	.	error
+
+
+state 180:
+
+	atomic_goal : exp_d MUL_REAL . exp_d FATARROW seq_pat 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	RCON	shift 70
+	SCON	shift 69
+
+	exp_d	goto 241
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 98
+	ident	goto 61
+
+	.	error
+
+
+state 181:
+
+	atomic_goal : exp_d SUB_REAL . exp_d FATARROW seq_pat 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	RCON	shift 70
+	SCON	shift 69
+
+	exp_d	goto 242
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 98
+	ident	goto 61
+
+	.	error
+
+
+state 182:
+
+	atomic_goal : exp_d ADD_REAL . exp_d FATARROW seq_pat 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	RCON	shift 70
+	SCON	shift 69
+
+	exp_d	goto 243
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 98
+	ident	goto 61
+
+	.	error
+
+
+state 183:
+
+	atomic_goal : exp_d NE_INT . exp_d FATARROW seq_pat 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	RCON	shift 70
+	SCON	shift 69
+
+	exp_d	goto 244
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 98
+	ident	goto 61
+
+	.	error
+
+
+state 184:
+
+	atomic_goal : exp_d LT_INT . exp_d FATARROW seq_pat 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	RCON	shift 70
+	SCON	shift 69
+
+	exp_d	goto 245
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 98
+	ident	goto 61
+
+	.	error
+
+
+state 185:
+
+	atomic_goal : exp_d LE_INT . exp_d FATARROW seq_pat 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	RCON	shift 70
+	SCON	shift 69
+
+	exp_d	goto 246
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 98
+	ident	goto 61
+
+	.	error
+
+
+state 186:
+
+	atomic_goal : exp_d GT_INT . exp_d FATARROW seq_pat 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	RCON	shift 70
+	SCON	shift 69
+
+	exp_d	goto 247
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 98
+	ident	goto 61
+
+	.	error
+
+
+state 187:
+
+	atomic_goal : exp_d GE_INT . exp_d FATARROW seq_pat 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	RCON	shift 70
+	SCON	shift 69
+
+	exp_d	goto 248
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 98
+	ident	goto 61
+
+	.	error
+
+
+state 188:
+
+	atomic_goal : exp_d EQEQ_INT . exp_d FATARROW seq_pat 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	RCON	shift 70
+	SCON	shift 69
+
+	exp_d	goto 249
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 98
+	ident	goto 61
+
+	.	error
+
+
+state 189:
+
+	atomic_goal : exp_d MOD_INT . exp_d FATARROW seq_pat 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	RCON	shift 70
+	SCON	shift 69
+
+	exp_d	goto 250
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 98
+	ident	goto 61
+
+	.	error
+
+
+state 190:
+
+	atomic_goal : exp_d DIV_INT . exp_d FATARROW seq_pat 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	RCON	shift 70
+	SCON	shift 69
+
+	exp_d	goto 251
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 98
+	ident	goto 61
+
+	.	error
+
+
+state 191:
+
+	atomic_goal : exp_d SUB_INT . exp_d FATARROW seq_pat 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	RCON	shift 70
+	SCON	shift 69
+
+	exp_d	goto 252
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 98
+	ident	goto 61
+
+	.	error
+
+
+state 192:
+
+	atomic_goal : exp_d ADD_INT . exp_d FATARROW seq_pat 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	RCON	shift 70
+	SCON	shift 69
+
+	exp_d	goto 253
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 98
+	ident	goto 61
+
+	.	error
+
+
+state 193:
+
+	atomic_goal : exp_d STAR . exp_d FATARROW seq_pat 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	RCON	shift 70
+	SCON	shift 69
+
+	exp_d	goto 254
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 98
+	ident	goto 61
+
+	.	error
+
+
+state 194:
+
+	conjunctive_goal : atomic_goal AMPERSAND . conjunctive_goal 
+	conjunctive_goal : atomic_goal AMPERSAND .  (reduce by rule 50)
+
+	CCON	shift 74
+	DASHES	reduce by rule 50
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	LET	shift 146
+	LPAREN	shift 145
+	NOT	shift 144
+	RCON	shift 70
+	RPAREN	reduce by rule 50
+	SCON	shift 69
+	SUB_INT	shift 143
+	SUB_REAL	shift 142
+
+	conjunctive_goal	goto 255
+	atomic_goal	goto 139
+	exp_d	goto 138
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 137
+	ident	goto 136
+
+	.	error
+
+
+state 195:
+
+	clause : RULE conjunctive_goal_opt DASHES . ident seq_pat result 
+	clause : RULE conjunctive_goal_opt DASHES . ident seq_pat 
+
+	IDENT	shift 7
+
+	ident	goto 256
+
+	.	error
+
+
+state 196:
+
+	atomic_goal : SUB_REAL exp_d . FATARROW seq_pat 
+
+	FATARROW	shift 257
+
+
+	.	error
+
+
+state 197:
+
+	atomic_goal : SUB_INT exp_d . FATARROW seq_pat 
+
+	FATARROW	shift 258
+
+
+	.	error
+
+
+state 198:
+
+	atomic_goal : NOT atomic_goal .  (reduce by rule 83)
+
+	AMPERSAND	reduce by rule 83
+	DASHES	reduce by rule 83
+	RPAREN	reduce by rule 83
+
+
+	.	error
+
+
+state 199:
+
+	atomic_goal : LPAREN conjunctive_goal . RPAREN 
+
+	RPAREN	shift 259
+
+
+	.	error
+
+
+state 200:
+
+	pat : ident . AS pat 
+	pat_e : ident .  (reduce by rule 124)
+	longid : ident . DOT ident 
+	longorshortid : ident .  (reduce by rule 167)
+
+	AS	shift 260
+	CCON	reduce by rule 167
+	COLONCOLON	reduce by rule 124
+	COMMA	reduce by rule 124
+	DOT	shift 97
+	EQ	reduce by rule 124
+	ICON	reduce by rule 167
+	IDENT	reduce by rule 167
+	LBRACK	reduce by rule 167
+	LPAREN	reduce by rule 167
+	RCON	reduce by rule 167
+	RBRACK	reduce by rule 124
+	RPAREN	reduce by rule 124
+	SCON	reduce by rule 167
+	WILD	reduce by rule 167
+
+
+	.	error
+
+
+state 201:
+
+	pat_d : longorshortid . pat_star 
+	pat_d : longorshortid . pat_e 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 217
+	RCON	shift 70
+	SCON	shift 69
+	WILD	shift 209
+
+	pat_e	goto 264
+	pat_star	goto 263
+	literal	goto 203
+	longid	goto 262
+	ident	goto 261
+
+	.	error
+
+
+state 202:
+
+	pat_e : longid .  (reduce by rule 123)
+	longorshortid : longid .  (reduce by rule 166)
+
+	AMPERSAND	reduce by rule 123
+	AXIOM	reduce by rule 123
+	CCON	reduce by rule 166
+	COLONCOLON	reduce by rule 123
+	COMMA	reduce by rule 123
+	DASHES	reduce by rule 123
+	DEFAULT	reduce by rule 123
+	END	reduce by rule 123
+	EQ	reduce by rule 123
+	FATARROW	reduce by rule 123
+	ICON	reduce by rule 166
+	IDENT	reduce by rule 166
+	LBRACK	reduce by rule 166
+	LPAREN	reduce by rule 166
+	RCON	reduce by rule 166
+	RBRACK	reduce by rule 123
+	RPAREN	reduce by rule 123
+	RULE	reduce by rule 123
+	SCON	reduce by rule 166
+	WILD	reduce by rule 166
+
+
+	.	error
+
+
+state 203:
+
+	pat_e : literal .  (reduce by rule 122)
+
+	AMPERSAND	reduce by rule 122
+	AXIOM	reduce by rule 122
+	COLONCOLON	reduce by rule 122
+	COMMA	reduce by rule 122
+	DASHES	reduce by rule 122
+	DEFAULT	reduce by rule 122
+	END	reduce by rule 122
+	EQ	reduce by rule 122
+	FATARROW	reduce by rule 122
+	RBRACK	reduce by rule 122
+	RPAREN	reduce by rule 122
+	RULE	reduce by rule 122
+
+
+	.	error
+
+
+state 204:
+
+	pat_d : pat_e .  (reduce by rule 120)
+
+	AMPERSAND	reduce by rule 120
+	AXIOM	reduce by rule 120
+	COLONCOLON	reduce by rule 120
+	COMMA	reduce by rule 120
+	DASHES	reduce by rule 120
+	DEFAULT	reduce by rule 120
+	END	reduce by rule 120
+	EQ	reduce by rule 120
+	FATARROW	reduce by rule 120
+	RBRACK	reduce by rule 120
+	RPAREN	reduce by rule 120
+	RULE	reduce by rule 120
+
+
+	.	error
+
+
+state 205:
+
+	pat_b : pat_d .  (reduce by rule 114)
+
+	COLONCOLON	reduce by rule 114
+	COMMA	reduce by rule 114
+	EQ	reduce by rule 114
+	RBRACK	reduce by rule 114
+	RPAREN	reduce by rule 114
+
+
+	.	error
+
+
+state 206:
+
+	pat_a : pat_b . COLONCOLON pat_a 
+	pat_a : pat_b .  (reduce by rule 110)
+
+	COLONCOLON	shift 265
+	COMMA	reduce by rule 110
+	EQ	reduce by rule 110
+	RBRACK	reduce by rule 110
+	RPAREN	reduce by rule 110
+
+
+	.	error
+
+
+state 207:
+
+	pat : pat_a .  (reduce by rule 108)
+
+	COMMA	reduce by rule 108
+	EQ	reduce by rule 108
+	RBRACK	reduce by rule 108
+	RPAREN	reduce by rule 108
+
+
+	.	error
+
+
+state 208:
+
+	atomic_goal : LET pat . EQ exp 
+
+	EQ	shift 266
+
+
+	.	error
+
+
+state 209:
+
+	pat_e : WILD .  (reduce by rule 121)
+
+	AMPERSAND	reduce by rule 121
+	AXIOM	reduce by rule 121
+	COLONCOLON	reduce by rule 121
+	COMMA	reduce by rule 121
+	DASHES	reduce by rule 121
+	DEFAULT	reduce by rule 121
+	END	reduce by rule 121
+	EQ	reduce by rule 121
+	FATARROW	reduce by rule 121
+	RBRACK	reduce by rule 121
+	RPAREN	reduce by rule 121
+	RULE	reduce by rule 121
+
+
+	.	error
+
+
+state 210:
+
+	pat_b : LPAREN . RPAREN 
+	pat_b : LPAREN . pat RPAREN 
+	pat_b : LPAREN . pat COMMA pat_comma_plus RPAREN 
+	pat_b : LPAREN . ident EQ pat COMMA pat_comma_plus RPAREN 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 210
+	RCON	shift 70
+	RPAREN	shift 269
+	SCON	shift 69
+	WILD	shift 209
+
+	pat	goto 268
+	pat_a	goto 207
+	pat_b	goto 206
+	pat_d	goto 205
+	pat_e	goto 204
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 267
+
+	.	error
+
+
+state 211:
+
+	pat_e : LBRACK . pat_comma_star_list RBRACK 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 210
+	RCON	shift 70
+	RBRACK	reduce by rule 130
+	SCON	shift 69
+	WILD	shift 209
+
+	pat	goto 272
+	pat_a	goto 207
+	pat_b	goto 206
+	pat_d	goto 205
+	pat_e	goto 204
+	pat_comma_star_list	goto 271
+	pat_comma_plus_list	goto 270
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 200
+
+	.	error
+
+
+state 212:
+
+	pat_e : ident .  (reduce by rule 124)
+	longid : ident . DOT ident 
+	longorshortid : ident .  (reduce by rule 167)
+
+	AMPERSAND	reduce by rule 124
+	AXIOM	reduce by rule 124
+	CCON	reduce by rule 167
+	COLONCOLON	reduce by rule 124
+	COMMA	reduce by rule 124
+	DASHES	reduce by rule 124
+	DEFAULT	reduce by rule 124
+	DOT	shift 97
+	END	reduce by rule 124
+	EQ	reduce by rule 124
+	FATARROW	reduce by rule 124
+	ICON	reduce by rule 167
+	IDENT	reduce by rule 167
+	LBRACK	reduce by rule 167
+	LPAREN	reduce by rule 167
+	RCON	reduce by rule 167
+	RBRACK	reduce by rule 124
+	RPAREN	reduce by rule 124
+	RULE	reduce by rule 124
+	SCON	reduce by rule 167
+	WILD	reduce by rule 167
+
+
+	.	error
+
+
+state 213:
+
+	seq_pat : pat_star .  (reduce by rule 128)
+
+	AMPERSAND	reduce by rule 128
+	AXIOM	reduce by rule 128
+	DASHES	reduce by rule 128
+	DEFAULT	reduce by rule 128
+	END	reduce by rule 128
+	FATARROW	reduce by rule 128
+	RPAREN	reduce by rule 128
+	RULE	reduce by rule 128
+
+
+	.	error
+
+
+state 214:
+
+	clause : AXIOM ident seq_pat . result 
+	clause : AXIOM ident seq_pat .  (reduce by rule 43)
+
+	AXIOM	reduce by rule 43
+	DEFAULT	reduce by rule 43
+	END	reduce by rule 43
+	FATARROW	shift 274
+	RULE	reduce by rule 43
+
+	result	goto 273
+
+	.	error
+
+
+state 215:
+
+	pat_c : pat_d . COLONCOLON pat_c 
+	pat_c : pat_d .  (reduce by rule 117)
+
+	AMPERSAND	reduce by rule 117
+	AXIOM	reduce by rule 117
+	COLONCOLON	shift 275
+	DASHES	reduce by rule 117
+	DEFAULT	reduce by rule 117
+	END	reduce by rule 117
+	FATARROW	reduce by rule 117
+	RPAREN	reduce by rule 117
+	RULE	reduce by rule 117
+
+
+	.	error
+
+
+state 216:
+
+	seq_pat : pat_c .  (reduce by rule 127)
+
+	AMPERSAND	reduce by rule 127
+	AXIOM	reduce by rule 127
+	DASHES	reduce by rule 127
+	DEFAULT	reduce by rule 127
+	END	reduce by rule 127
+	FATARROW	reduce by rule 127
+	RPAREN	reduce by rule 127
+	RULE	reduce by rule 127
+
+
+	.	error
+
+
+state 217:
+
+	pat_star : LPAREN . pat_comma_star RPAREN 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 210
+	RCON	shift 70
+	RPAREN	reduce by rule 134
+	SCON	shift 69
+	WILD	shift 209
+
+	pat	goto 279
+	pat_a	goto 207
+	pat_b	goto 206
+	pat_d	goto 205
+	pat_e	goto 204
+	pat_comma_star	goto 278
+	pat_comma_plus	goto 277
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 276
+
+	.	error
+
+
+state 218:
+
+	tuple_ty : ident COLON ty_sans_star STAR . tuple_ty 
+
+	IDENT	shift 7
+	LPAREN	shift 149
+	TYVAR	shift 24
+
+	tuple_ty	goto 280
+	ty_sans_star	goto 84
+	longid	goto 63
+	longorshortid	goto 82
+	ident	goto 81
+	tyvar	goto 80
+
+	.	error
+
+
+state 219:
+
+	ty_sans_star : LPAREN ty_comma_seq2 . RPAREN longorshortid 
+
+	RPAREN	shift 281
+
+
+	.	error
+
+
+state 220:
+
+	ty_sans_star : LPAREN ty_comma_seq2 RPAREN longorshortid .  (reduce by rule 151)
+
+	AND	reduce by rule 151
+	BAR	reduce by rule 151
+	COMMA	reduce by rule 151
+	DATATYPE	reduce by rule 151
+	END	reduce by rule 151
+	EOF_SOFT	reduce by rule 151
+	EQ	reduce by rule 151
+	EQTYPE	reduce by rule 151
+	FATARROW	reduce by rule 151
+	IDENT	reduce by rule 151
+	RELATION	reduce by rule 151
+	RPAREN	reduce by rule 151
+	STAR	reduce by rule 151
+	TYPE	reduce by rule 151
+	VAL	reduce by rule 151
+	WITH	reduce by rule 151
+	WITHTYPE	reduce by rule 151
+
+
+	.	error
+
+
+state 221:
+
+	ty_comma_seq2 : ty COMMA ty_comma_seq2 .  (reduce by rule 155)
+
+	RPAREN	reduce by rule 155
+
+
+	.	error
+
+
+state 222:
+
+	ty_comma_seq2 : ty . COMMA ty_comma_seq2 
+	ty_comma_seq2 : ty . COMMA ty 
+	ty_comma_seq2 : ty COMMA ty .  (reduce by rule 156)
+
+	COMMA	shift 155
+	RPAREN	reduce by rule 156
+
+
+	.	error
+
+
+state 223:
+
+	conbind : ident OF tuple_ty .  (reduce by rule 35)
+
+	AND	reduce by rule 35
+	BAR	reduce by rule 35
+	DATATYPE	reduce by rule 35
+	END	reduce by rule 35
+	EOF_SOFT	reduce by rule 35
+	EQTYPE	reduce by rule 35
+	RELATION	reduce by rule 35
+	TYPE	reduce by rule 35
+	VAL	reduce by rule 35
+	WITH	reduce by rule 35
+	WITHTYPE	reduce by rule 35
+
+
+	.	error
+
+
+state 224:
+
+	conbind_plus : conbind BAR conbind_plus .  (reduce by rule 32)
+
+	AND	reduce by rule 32
+	DATATYPE	reduce by rule 32
+	END	reduce by rule 32
+	EOF_SOFT	reduce by rule 32
+	EQTYPE	reduce by rule 32
+	RELATION	reduce by rule 32
+	TYPE	reduce by rule 32
+	VAL	reduce by rule 32
+	WITH	reduce by rule 32
+	WITHTYPE	reduce by rule 32
+
+
+	.	error
+
+
+state 225:
+
+	exp_a : LPAREN exp COMMA exp_comma_plus RPAREN .  (reduce by rule 89)
+
+	AMPERSAND	reduce by rule 89
+	COLONCOLON	reduce by rule 89
+	COMMA	reduce by rule 89
+	DASHES	reduce by rule 89
+	DATATYPE	reduce by rule 89
+	EOF_SOFT	reduce by rule 89
+	RELATION	reduce by rule 89
+	RBRACK	reduce by rule 89
+	RPAREN	reduce by rule 89
+	TYPE	reduce by rule 89
+	VAL	reduce by rule 89
+	WITH	reduce by rule 89
+
+
+	.	error
+
+
+state 226:
+
+	atomic_goal : ident EQ exp .  (reduce by rule 81)
+
+	AMPERSAND	reduce by rule 81
+	DASHES	reduce by rule 81
+	RPAREN	reduce by rule 81
+
+
+	.	error
+
+
+state 227:
+
+	atomic_goal : longorshortid seq_exp FATARROW . seq_pat 
+
+	AMPERSAND	reduce by rule 126
+	CCON	shift 74
+	DASHES	reduce by rule 126
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 217
+	RCON	shift 70
+	RPAREN	reduce by rule 126
+	SCON	shift 69
+	WILD	shift 209
+
+	pat_c	goto 216
+	pat_d	goto 215
+	pat_e	goto 204
+	seq_pat	goto 282
+	pat_star	goto 213
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 212
+
+	.	error
+
+
+state 228:
+
+	exp_b : exp_c COLONCOLON . exp_b 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	RCON	shift 70
+	SCON	shift 69
+
+	exp_b	goto 283
+	exp_c	goto 166
+	exp_d	goto 65
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 62
+	ident	goto 61
+
+	.	error
+
+
+state 229:
+
+	atomic_goal : exp_d ADD_LIST exp_d . FATARROW seq_pat 
+
+	FATARROW	shift 284
+
+
+	.	error
+
+
+state 230:
+
+	atomic_goal : exp_d EQEQ_STRING exp_d . FATARROW seq_pat 
+
+	FATARROW	shift 285
+
+
+	.	error
+
+
+state 231:
+
+	atomic_goal : exp_d ADD_STRING exp_d . FATARROW seq_pat 
+
+	FATARROW	shift 286
+
+
+	.	error
+
+
+state 232:
+
+	atomic_goal : exp_d NE_REAL exp_d . FATARROW seq_pat 
+
+	FATARROW	shift 287
+
+
+	.	error
+
+
+state 233:
+
+	atomic_goal : exp_d LT_REAL exp_d . FATARROW seq_pat 
+
+	FATARROW	shift 288
+
+
+	.	error
+
+
+state 234:
+
+	atomic_goal : exp_d LE_REAL exp_d . FATARROW seq_pat 
+
+	FATARROW	shift 289
+
+
+	.	error
+
+
+state 235:
+
+	atomic_goal : exp_d GT_REAL exp_d . FATARROW seq_pat 
+
+	FATARROW	shift 290
+
+
+	.	error
+
+
+state 236:
+
+	atomic_goal : exp_d GE_REAL exp_d . FATARROW seq_pat 
+
+	FATARROW	shift 291
+
+
+	.	error
+
+
+state 237:
+
+	atomic_goal : exp_d EQ_REAL exp_d . FATARROW seq_pat 
+
+	FATARROW	shift 292
+
+
+	.	error
+
+
+state 238:
+
+	atomic_goal : exp_d POW_REAL exp_d . FATARROW seq_pat 
+
+	FATARROW	shift 293
+
+
+	.	error
+
+
+state 239:
+
+	atomic_goal : exp_d MOD_REAL exp_d . FATARROW seq_pat 
+
+	FATARROW	shift 294
+
+
+	.	error
+
+
+state 240:
+
+	atomic_goal : exp_d DIV_REAL exp_d . FATARROW seq_pat 
+
+	FATARROW	shift 295
+
+
+	.	error
+
+
+state 241:
+
+	atomic_goal : exp_d MUL_REAL exp_d . FATARROW seq_pat 
+
+	FATARROW	shift 296
+
+
+	.	error
+
+
+state 242:
+
+	atomic_goal : exp_d SUB_REAL exp_d . FATARROW seq_pat 
+
+	FATARROW	shift 297
+
+
+	.	error
+
+
+state 243:
+
+	atomic_goal : exp_d ADD_REAL exp_d . FATARROW seq_pat 
+
+	FATARROW	shift 298
+
+
+	.	error
+
+
+state 244:
+
+	atomic_goal : exp_d NE_INT exp_d . FATARROW seq_pat 
+
+	FATARROW	shift 299
+
+
+	.	error
+
+
+state 245:
+
+	atomic_goal : exp_d LT_INT exp_d . FATARROW seq_pat 
+
+	FATARROW	shift 300
+
+
+	.	error
+
+
+state 246:
+
+	atomic_goal : exp_d LE_INT exp_d . FATARROW seq_pat 
+
+	FATARROW	shift 301
+
+
+	.	error
+
+
+state 247:
+
+	atomic_goal : exp_d GT_INT exp_d . FATARROW seq_pat 
+
+	FATARROW	shift 302
+
+
+	.	error
+
+
+state 248:
+
+	atomic_goal : exp_d GE_INT exp_d . FATARROW seq_pat 
+
+	FATARROW	shift 303
+
+
+	.	error
+
+
+state 249:
+
+	atomic_goal : exp_d EQEQ_INT exp_d . FATARROW seq_pat 
+
+	FATARROW	shift 304
+
+
+	.	error
+
+
+state 250:
+
+	atomic_goal : exp_d MOD_INT exp_d . FATARROW seq_pat 
+
+	FATARROW	shift 305
+
+
+	.	error
+
+
+state 251:
+
+	atomic_goal : exp_d DIV_INT exp_d . FATARROW seq_pat 
+
+	FATARROW	shift 306
+
+
+	.	error
+
+
+state 252:
+
+	atomic_goal : exp_d SUB_INT exp_d . FATARROW seq_pat 
+
+	FATARROW	shift 307
+
+
+	.	error
+
+
+state 253:
+
+	atomic_goal : exp_d ADD_INT exp_d . FATARROW seq_pat 
+
+	FATARROW	shift 308
+
+
+	.	error
+
+
+state 254:
+
+	atomic_goal : exp_d STAR exp_d . FATARROW seq_pat 
+
+	FATARROW	shift 309
+
+
+	.	error
+
+
+state 255:
+
+	conjunctive_goal : atomic_goal AMPERSAND conjunctive_goal .  (reduce by rule 49)
+
+	DASHES	reduce by rule 49
+	RPAREN	reduce by rule 49
+
+
+	.	error
+
+
+state 256:
+
+	clause : RULE conjunctive_goal_opt DASHES ident . seq_pat result 
+	clause : RULE conjunctive_goal_opt DASHES ident . seq_pat 
+
+	AXIOM	reduce by rule 126
+	CCON	shift 74
+	DEFAULT	reduce by rule 126
+	END	reduce by rule 126
+	FATARROW	reduce by rule 126
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 217
+	RCON	shift 70
+	RULE	reduce by rule 126
+	SCON	shift 69
+	WILD	shift 209
+
+	pat_c	goto 216
+	pat_d	goto 215
+	pat_e	goto 204
+	seq_pat	goto 310
+	pat_star	goto 213
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 212
+
+	.	error
+
+
+state 257:
+
+	atomic_goal : SUB_REAL exp_d FATARROW . seq_pat 
+
+	AMPERSAND	reduce by rule 126
+	CCON	shift 74
+	DASHES	reduce by rule 126
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 217
+	RCON	shift 70
+	RPAREN	reduce by rule 126
+	SCON	shift 69
+	WILD	shift 209
+
+	pat_c	goto 216
+	pat_d	goto 215
+	pat_e	goto 204
+	seq_pat	goto 311
+	pat_star	goto 213
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 212
+
+	.	error
+
+
+state 258:
+
+	atomic_goal : SUB_INT exp_d FATARROW . seq_pat 
+
+	AMPERSAND	reduce by rule 126
+	CCON	shift 74
+	DASHES	reduce by rule 126
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 217
+	RCON	shift 70
+	RPAREN	reduce by rule 126
+	SCON	shift 69
+	WILD	shift 209
+
+	pat_c	goto 216
+	pat_d	goto 215
+	pat_e	goto 204
+	seq_pat	goto 312
+	pat_star	goto 213
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 212
+
+	.	error
+
+
+state 259:
+
+	atomic_goal : LPAREN conjunctive_goal RPAREN .  (reduce by rule 84)
+
+	AMPERSAND	reduce by rule 84
+	DASHES	reduce by rule 84
+	RPAREN	reduce by rule 84
+
+
+	.	error
+
+
+state 260:
+
+	pat : ident AS . pat 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 210
+	RCON	shift 70
+	SCON	shift 69
+	WILD	shift 209
+
+	pat	goto 313
+	pat_a	goto 207
+	pat_b	goto 206
+	pat_d	goto 205
+	pat_e	goto 204
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 200
+
+	.	error
+
+
+state 261:
+
+	pat_e : ident .  (reduce by rule 124)
+	longid : ident . DOT ident 
+
+	AMPERSAND	reduce by rule 124
+	AXIOM	reduce by rule 124
+	COLONCOLON	reduce by rule 124
+	COMMA	reduce by rule 124
+	DASHES	reduce by rule 124
+	DEFAULT	reduce by rule 124
+	DOT	shift 97
+	END	reduce by rule 124
+	EQ	reduce by rule 124
+	FATARROW	reduce by rule 124
+	RBRACK	reduce by rule 124
+	RPAREN	reduce by rule 124
+	RULE	reduce by rule 124
+
+
+	.	error
+
+
+state 262:
+
+	pat_e : longid .  (reduce by rule 123)
+
+	AMPERSAND	reduce by rule 123
+	AXIOM	reduce by rule 123
+	COLONCOLON	reduce by rule 123
+	COMMA	reduce by rule 123
+	DASHES	reduce by rule 123
+	DEFAULT	reduce by rule 123
+	END	reduce by rule 123
+	EQ	reduce by rule 123
+	FATARROW	reduce by rule 123
+	RBRACK	reduce by rule 123
+	RPAREN	reduce by rule 123
+	RULE	reduce by rule 123
+
+
+	.	error
+
+
+state 263:
+
+	pat_d : longorshortid pat_star .  (reduce by rule 118)
+
+	AMPERSAND	reduce by rule 118
+	AXIOM	reduce by rule 118
+	COLONCOLON	reduce by rule 118
+	COMMA	reduce by rule 118
+	DASHES	reduce by rule 118
+	DEFAULT	reduce by rule 118
+	END	reduce by rule 118
+	EQ	reduce by rule 118
+	FATARROW	reduce by rule 118
+	RBRACK	reduce by rule 118
+	RPAREN	reduce by rule 118
+	RULE	reduce by rule 118
+
+
+	.	error
+
+
+state 264:
+
+	pat_d : longorshortid pat_e .  (reduce by rule 119)
+
+	AMPERSAND	reduce by rule 119
+	AXIOM	reduce by rule 119
+	COLONCOLON	reduce by rule 119
+	COMMA	reduce by rule 119
+	DASHES	reduce by rule 119
+	DEFAULT	reduce by rule 119
+	END	reduce by rule 119
+	EQ	reduce by rule 119
+	FATARROW	reduce by rule 119
+	RBRACK	reduce by rule 119
+	RPAREN	reduce by rule 119
+	RULE	reduce by rule 119
+
+
+	.	error
+
+
+state 265:
+
+	pat_a : pat_b COLONCOLON . pat_a 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 210
+	RCON	shift 70
+	SCON	shift 69
+	WILD	shift 209
+
+	pat_a	goto 314
+	pat_b	goto 206
+	pat_d	goto 205
+	pat_e	goto 204
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 212
+
+	.	error
+
+
+state 266:
+
+	atomic_goal : LET pat EQ . exp 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	LPAREN	shift 71
+	RCON	shift 70
+	SCON	shift 69
+
+	exp	goto 315
+	exp_a	goto 67
+	exp_c	goto 66
+	exp_d	goto 65
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 62
+	ident	goto 61
+
+	.	error
+
+
+state 267:
+
+	pat : ident . AS pat 
+	pat_b : LPAREN ident . EQ pat COMMA pat_comma_plus RPAREN 
+	pat_e : ident .  (reduce by rule 124)
+	longid : ident . DOT ident 
+	longorshortid : ident .  (reduce by rule 167)
+
+	AS	shift 260
+	CCON	reduce by rule 167
+	COLONCOLON	reduce by rule 124
+	COMMA	reduce by rule 124
+	DOT	shift 97
+	EQ	shift 316
+	ICON	reduce by rule 167
+	IDENT	reduce by rule 167
+	LBRACK	reduce by rule 167
+	LPAREN	reduce by rule 167
+	RCON	reduce by rule 167
+	RPAREN	reduce by rule 124
+	SCON	reduce by rule 167
+	WILD	reduce by rule 167
+
+
+	.	error
+
+
+state 268:
+
+	pat_b : LPAREN pat . RPAREN 
+	pat_b : LPAREN pat . COMMA pat_comma_plus RPAREN 
+
+	COMMA	shift 318
+	RPAREN	shift 317
+
+
+	.	error
+
+
+state 269:
+
+	pat_b : LPAREN RPAREN .  (reduce by rule 111)
+
+	COLONCOLON	reduce by rule 111
+	COMMA	reduce by rule 111
+	EQ	reduce by rule 111
+	RBRACK	reduce by rule 111
+	RPAREN	reduce by rule 111
+
+
+	.	error
+
+
+state 270:
+
+	pat_comma_star_list : pat_comma_plus_list .  (reduce by rule 131)
+
+	RBRACK	reduce by rule 131
+
+
+	.	error
+
+
+state 271:
+
+	pat_e : LBRACK pat_comma_star_list . RBRACK 
+
+	RBRACK	shift 319
+
+
+	.	error
+
+
+state 272:
+
+	pat_comma_plus_list : pat .  (reduce by rule 132)
+	pat_comma_plus_list : pat . COMMA pat_comma_plus 
+
+	COMMA	shift 320
+	RBRACK	reduce by rule 132
+
+
+	.	error
+
+
+state 273:
+
+	clause : AXIOM ident seq_pat result .  (reduce by rule 41)
+
+	AXIOM	reduce by rule 41
+	DEFAULT	reduce by rule 41
+	END	reduce by rule 41
+	RULE	reduce by rule 41
+
+
+	.	error
+
+
+state 274:
+
+	result : FATARROW . seq_exp 
+	result : FATARROW . FAIL 
+
+	AXIOM	reduce by rule 99
+	CCON	shift 74
+	DEFAULT	reduce by rule 99
+	END	reduce by rule 99
+	FAIL	shift 322
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 72
+	LPAREN	shift 101
+	RCON	shift 70
+	RULE	reduce by rule 99
+	SCON	shift 69
+
+	exp_b	goto 167
+	exp_c	goto 166
+	exp_d	goto 65
+	seq_exp	goto 321
+	exp_star	goto 164
+	literal	goto 64
+	longid	goto 63
+	longorshortid	goto 62
+	ident	goto 61
+
+	.	error
+
+
+state 275:
+
+	pat_c : pat_d COLONCOLON . pat_c 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	RCON	shift 70
+	SCON	shift 69
+	WILD	shift 209
+
+	pat_c	goto 323
+	pat_d	goto 215
+	pat_e	goto 204
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 212
+
+	.	error
+
+
+state 276:
+
+	pat : ident . AS pat 
+	pat_e : ident .  (reduce by rule 124)
+	pat_comma_plus : ident . EQ pat 
+	pat_comma_plus : ident . EQ pat COMMA pat_comma_plus 
+	longid : ident . DOT ident 
+	longorshortid : ident .  (reduce by rule 167)
+
+	AS	shift 260
+	CCON	reduce by rule 167
+	COLONCOLON	reduce by rule 124
+	COMMA	reduce by rule 124
+	DOT	shift 97
+	EQ	shift 324
+	ICON	reduce by rule 167
+	IDENT	reduce by rule 167
+	LBRACK	reduce by rule 167
+	LPAREN	reduce by rule 167
+	RCON	reduce by rule 167
+	RBRACK	reduce by rule 124
+	RPAREN	reduce by rule 124
+	SCON	reduce by rule 167
+	WILD	reduce by rule 167
+
+
+	.	error
+
+
+state 277:
+
+	pat_comma_star : pat_comma_plus .  (reduce by rule 135)
+
+	RPAREN	reduce by rule 135
+
+
+	.	error
+
+
+state 278:
+
+	pat_star : LPAREN pat_comma_star . RPAREN 
+
+	RPAREN	shift 325
+
+
+	.	error
+
+
+state 279:
+
+	pat_comma_plus : pat .  (reduce by rule 136)
+	pat_comma_plus : pat . COMMA pat_comma_plus 
+
+	COMMA	shift 326
+	RBRACK	reduce by rule 136
+	RPAREN	reduce by rule 136
+
+
+	.	error
+
+
+state 280:
+
+	tuple_ty : ident COLON ty_sans_star STAR tuple_ty .  (reduce by rule 149)
+
+	AND	reduce by rule 149
+	BAR	reduce by rule 149
+	COMMA	reduce by rule 149
+	DATATYPE	reduce by rule 149
+	END	reduce by rule 149
+	EOF_SOFT	reduce by rule 149
+	EQ	reduce by rule 149
+	EQTYPE	reduce by rule 149
+	FATARROW	reduce by rule 149
+	RELATION	reduce by rule 149
+	RPAREN	reduce by rule 149
+	TYPE	reduce by rule 149
+	VAL	reduce by rule 149
+	WITH	reduce by rule 149
+	WITHTYPE	reduce by rule 149
+
+
+	.	error
+
+
+state 281:
+
+	ty_sans_star : LPAREN ty_comma_seq2 RPAREN . longorshortid 
+
+	IDENT	shift 7
+
+	longid	goto 63
+	longorshortid	goto 220
+	ident	goto 61
+
+	.	error
+
+
+state 282:
+
+	atomic_goal : longorshortid seq_exp FATARROW seq_pat .  (reduce by rule 79)
+
+	AMPERSAND	reduce by rule 79
+	DASHES	reduce by rule 79
+	RPAREN	reduce by rule 79
+
+
+	.	error
+
+
+state 283:
+
+	exp_b : exp_c COLONCOLON exp_b .  (reduce by rule 91)
+
+	AMPERSAND	reduce by rule 91
+	AXIOM	reduce by rule 91
+	DASHES	reduce by rule 91
+	DEFAULT	reduce by rule 91
+	END	reduce by rule 91
+	FATARROW	reduce by rule 91
+	RPAREN	reduce by rule 91
+	RULE	reduce by rule 91
+
+
+	.	error
+
+
+state 284:
+
+	atomic_goal : exp_d ADD_LIST exp_d FATARROW . seq_pat 
+
+	AMPERSAND	reduce by rule 126
+	CCON	shift 74
+	DASHES	reduce by rule 126
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 217
+	RCON	shift 70
+	RPAREN	reduce by rule 126
+	SCON	shift 69
+	WILD	shift 209
+
+	pat_c	goto 216
+	pat_d	goto 215
+	pat_e	goto 204
+	seq_pat	goto 327
+	pat_star	goto 213
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 212
+
+	.	error
+
+
+state 285:
+
+	atomic_goal : exp_d EQEQ_STRING exp_d FATARROW . seq_pat 
+
+	AMPERSAND	reduce by rule 126
+	CCON	shift 74
+	DASHES	reduce by rule 126
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 217
+	RCON	shift 70
+	RPAREN	reduce by rule 126
+	SCON	shift 69
+	WILD	shift 209
+
+	pat_c	goto 216
+	pat_d	goto 215
+	pat_e	goto 204
+	seq_pat	goto 328
+	pat_star	goto 213
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 212
+
+	.	error
+
+
+state 286:
+
+	atomic_goal : exp_d ADD_STRING exp_d FATARROW . seq_pat 
+
+	AMPERSAND	reduce by rule 126
+	CCON	shift 74
+	DASHES	reduce by rule 126
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 217
+	RCON	shift 70
+	RPAREN	reduce by rule 126
+	SCON	shift 69
+	WILD	shift 209
+
+	pat_c	goto 216
+	pat_d	goto 215
+	pat_e	goto 204
+	seq_pat	goto 329
+	pat_star	goto 213
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 212
+
+	.	error
+
+
+state 287:
+
+	atomic_goal : exp_d NE_REAL exp_d FATARROW . seq_pat 
+
+	AMPERSAND	reduce by rule 126
+	CCON	shift 74
+	DASHES	reduce by rule 126
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 217
+	RCON	shift 70
+	RPAREN	reduce by rule 126
+	SCON	shift 69
+	WILD	shift 209
+
+	pat_c	goto 216
+	pat_d	goto 215
+	pat_e	goto 204
+	seq_pat	goto 330
+	pat_star	goto 213
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 212
+
+	.	error
+
+
+state 288:
+
+	atomic_goal : exp_d LT_REAL exp_d FATARROW . seq_pat 
+
+	AMPERSAND	reduce by rule 126
+	CCON	shift 74
+	DASHES	reduce by rule 126
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 217
+	RCON	shift 70
+	RPAREN	reduce by rule 126
+	SCON	shift 69
+	WILD	shift 209
+
+	pat_c	goto 216
+	pat_d	goto 215
+	pat_e	goto 204
+	seq_pat	goto 331
+	pat_star	goto 213
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 212
+
+	.	error
+
+
+state 289:
+
+	atomic_goal : exp_d LE_REAL exp_d FATARROW . seq_pat 
+
+	AMPERSAND	reduce by rule 126
+	CCON	shift 74
+	DASHES	reduce by rule 126
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 217
+	RCON	shift 70
+	RPAREN	reduce by rule 126
+	SCON	shift 69
+	WILD	shift 209
+
+	pat_c	goto 216
+	pat_d	goto 215
+	pat_e	goto 204
+	seq_pat	goto 332
+	pat_star	goto 213
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 212
+
+	.	error
+
+
+state 290:
+
+	atomic_goal : exp_d GT_REAL exp_d FATARROW . seq_pat 
+
+	AMPERSAND	reduce by rule 126
+	CCON	shift 74
+	DASHES	reduce by rule 126
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 217
+	RCON	shift 70
+	RPAREN	reduce by rule 126
+	SCON	shift 69
+	WILD	shift 209
+
+	pat_c	goto 216
+	pat_d	goto 215
+	pat_e	goto 204
+	seq_pat	goto 333
+	pat_star	goto 213
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 212
+
+	.	error
+
+
+state 291:
+
+	atomic_goal : exp_d GE_REAL exp_d FATARROW . seq_pat 
+
+	AMPERSAND	reduce by rule 126
+	CCON	shift 74
+	DASHES	reduce by rule 126
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 217
+	RCON	shift 70
+	RPAREN	reduce by rule 126
+	SCON	shift 69
+	WILD	shift 209
+
+	pat_c	goto 216
+	pat_d	goto 215
+	pat_e	goto 204
+	seq_pat	goto 334
+	pat_star	goto 213
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 212
+
+	.	error
+
+
+state 292:
+
+	atomic_goal : exp_d EQ_REAL exp_d FATARROW . seq_pat 
+
+	AMPERSAND	reduce by rule 126
+	CCON	shift 74
+	DASHES	reduce by rule 126
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 217
+	RCON	shift 70
+	RPAREN	reduce by rule 126
+	SCON	shift 69
+	WILD	shift 209
+
+	pat_c	goto 216
+	pat_d	goto 215
+	pat_e	goto 204
+	seq_pat	goto 335
+	pat_star	goto 213
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 212
+
+	.	error
+
+
+state 293:
+
+	atomic_goal : exp_d POW_REAL exp_d FATARROW . seq_pat 
+
+	AMPERSAND	reduce by rule 126
+	CCON	shift 74
+	DASHES	reduce by rule 126
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 217
+	RCON	shift 70
+	RPAREN	reduce by rule 126
+	SCON	shift 69
+	WILD	shift 209
+
+	pat_c	goto 216
+	pat_d	goto 215
+	pat_e	goto 204
+	seq_pat	goto 336
+	pat_star	goto 213
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 212
+
+	.	error
+
+
+state 294:
+
+	atomic_goal : exp_d MOD_REAL exp_d FATARROW . seq_pat 
+
+	AMPERSAND	reduce by rule 126
+	CCON	shift 74
+	DASHES	reduce by rule 126
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 217
+	RCON	shift 70
+	RPAREN	reduce by rule 126
+	SCON	shift 69
+	WILD	shift 209
+
+	pat_c	goto 216
+	pat_d	goto 215
+	pat_e	goto 204
+	seq_pat	goto 337
+	pat_star	goto 213
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 212
+
+	.	error
+
+
+state 295:
+
+	atomic_goal : exp_d DIV_REAL exp_d FATARROW . seq_pat 
+
+	AMPERSAND	reduce by rule 126
+	CCON	shift 74
+	DASHES	reduce by rule 126
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 217
+	RCON	shift 70
+	RPAREN	reduce by rule 126
+	SCON	shift 69
+	WILD	shift 209
+
+	pat_c	goto 216
+	pat_d	goto 215
+	pat_e	goto 204
+	seq_pat	goto 338
+	pat_star	goto 213
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 212
+
+	.	error
+
+
+state 296:
+
+	atomic_goal : exp_d MUL_REAL exp_d FATARROW . seq_pat 
+
+	AMPERSAND	reduce by rule 126
+	CCON	shift 74
+	DASHES	reduce by rule 126
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 217
+	RCON	shift 70
+	RPAREN	reduce by rule 126
+	SCON	shift 69
+	WILD	shift 209
+
+	pat_c	goto 216
+	pat_d	goto 215
+	pat_e	goto 204
+	seq_pat	goto 339
+	pat_star	goto 213
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 212
+
+	.	error
+
+
+state 297:
+
+	atomic_goal : exp_d SUB_REAL exp_d FATARROW . seq_pat 
+
+	AMPERSAND	reduce by rule 126
+	CCON	shift 74
+	DASHES	reduce by rule 126
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 217
+	RCON	shift 70
+	RPAREN	reduce by rule 126
+	SCON	shift 69
+	WILD	shift 209
+
+	pat_c	goto 216
+	pat_d	goto 215
+	pat_e	goto 204
+	seq_pat	goto 340
+	pat_star	goto 213
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 212
+
+	.	error
+
+
+state 298:
+
+	atomic_goal : exp_d ADD_REAL exp_d FATARROW . seq_pat 
+
+	AMPERSAND	reduce by rule 126
+	CCON	shift 74
+	DASHES	reduce by rule 126
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 217
+	RCON	shift 70
+	RPAREN	reduce by rule 126
+	SCON	shift 69
+	WILD	shift 209
+
+	pat_c	goto 216
+	pat_d	goto 215
+	pat_e	goto 204
+	seq_pat	goto 341
+	pat_star	goto 213
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 212
+
+	.	error
+
+
+state 299:
+
+	atomic_goal : exp_d NE_INT exp_d FATARROW . seq_pat 
+
+	AMPERSAND	reduce by rule 126
+	CCON	shift 74
+	DASHES	reduce by rule 126
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 217
+	RCON	shift 70
+	RPAREN	reduce by rule 126
+	SCON	shift 69
+	WILD	shift 209
+
+	pat_c	goto 216
+	pat_d	goto 215
+	pat_e	goto 204
+	seq_pat	goto 342
+	pat_star	goto 213
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 212
+
+	.	error
+
+
+state 300:
+
+	atomic_goal : exp_d LT_INT exp_d FATARROW . seq_pat 
+
+	AMPERSAND	reduce by rule 126
+	CCON	shift 74
+	DASHES	reduce by rule 126
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 217
+	RCON	shift 70
+	RPAREN	reduce by rule 126
+	SCON	shift 69
+	WILD	shift 209
+
+	pat_c	goto 216
+	pat_d	goto 215
+	pat_e	goto 204
+	seq_pat	goto 343
+	pat_star	goto 213
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 212
+
+	.	error
+
+
+state 301:
+
+	atomic_goal : exp_d LE_INT exp_d FATARROW . seq_pat 
+
+	AMPERSAND	reduce by rule 126
+	CCON	shift 74
+	DASHES	reduce by rule 126
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 217
+	RCON	shift 70
+	RPAREN	reduce by rule 126
+	SCON	shift 69
+	WILD	shift 209
+
+	pat_c	goto 216
+	pat_d	goto 215
+	pat_e	goto 204
+	seq_pat	goto 344
+	pat_star	goto 213
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 212
+
+	.	error
+
+
+state 302:
+
+	atomic_goal : exp_d GT_INT exp_d FATARROW . seq_pat 
+
+	AMPERSAND	reduce by rule 126
+	CCON	shift 74
+	DASHES	reduce by rule 126
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 217
+	RCON	shift 70
+	RPAREN	reduce by rule 126
+	SCON	shift 69
+	WILD	shift 209
+
+	pat_c	goto 216
+	pat_d	goto 215
+	pat_e	goto 204
+	seq_pat	goto 345
+	pat_star	goto 213
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 212
+
+	.	error
+
+
+state 303:
+
+	atomic_goal : exp_d GE_INT exp_d FATARROW . seq_pat 
+
+	AMPERSAND	reduce by rule 126
+	CCON	shift 74
+	DASHES	reduce by rule 126
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 217
+	RCON	shift 70
+	RPAREN	reduce by rule 126
+	SCON	shift 69
+	WILD	shift 209
+
+	pat_c	goto 216
+	pat_d	goto 215
+	pat_e	goto 204
+	seq_pat	goto 346
+	pat_star	goto 213
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 212
+
+	.	error
+
+
+state 304:
+
+	atomic_goal : exp_d EQEQ_INT exp_d FATARROW . seq_pat 
+
+	AMPERSAND	reduce by rule 126
+	CCON	shift 74
+	DASHES	reduce by rule 126
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 217
+	RCON	shift 70
+	RPAREN	reduce by rule 126
+	SCON	shift 69
+	WILD	shift 209
+
+	pat_c	goto 216
+	pat_d	goto 215
+	pat_e	goto 204
+	seq_pat	goto 347
+	pat_star	goto 213
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 212
+
+	.	error
+
+
+state 305:
+
+	atomic_goal : exp_d MOD_INT exp_d FATARROW . seq_pat 
+
+	AMPERSAND	reduce by rule 126
+	CCON	shift 74
+	DASHES	reduce by rule 126
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 217
+	RCON	shift 70
+	RPAREN	reduce by rule 126
+	SCON	shift 69
+	WILD	shift 209
+
+	pat_c	goto 216
+	pat_d	goto 215
+	pat_e	goto 204
+	seq_pat	goto 348
+	pat_star	goto 213
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 212
+
+	.	error
+
+
+state 306:
+
+	atomic_goal : exp_d DIV_INT exp_d FATARROW . seq_pat 
+
+	AMPERSAND	reduce by rule 126
+	CCON	shift 74
+	DASHES	reduce by rule 126
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 217
+	RCON	shift 70
+	RPAREN	reduce by rule 126
+	SCON	shift 69
+	WILD	shift 209
+
+	pat_c	goto 216
+	pat_d	goto 215
+	pat_e	goto 204
+	seq_pat	goto 349
+	pat_star	goto 213
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 212
+
+	.	error
+
+
+state 307:
+
+	atomic_goal : exp_d SUB_INT exp_d FATARROW . seq_pat 
+
+	AMPERSAND	reduce by rule 126
+	CCON	shift 74
+	DASHES	reduce by rule 126
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 217
+	RCON	shift 70
+	RPAREN	reduce by rule 126
+	SCON	shift 69
+	WILD	shift 209
+
+	pat_c	goto 216
+	pat_d	goto 215
+	pat_e	goto 204
+	seq_pat	goto 350
+	pat_star	goto 213
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 212
+
+	.	error
+
+
+state 308:
+
+	atomic_goal : exp_d ADD_INT exp_d FATARROW . seq_pat 
+
+	AMPERSAND	reduce by rule 126
+	CCON	shift 74
+	DASHES	reduce by rule 126
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 217
+	RCON	shift 70
+	RPAREN	reduce by rule 126
+	SCON	shift 69
+	WILD	shift 209
+
+	pat_c	goto 216
+	pat_d	goto 215
+	pat_e	goto 204
+	seq_pat	goto 351
+	pat_star	goto 213
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 212
+
+	.	error
+
+
+state 309:
+
+	atomic_goal : exp_d STAR exp_d FATARROW . seq_pat 
+
+	AMPERSAND	reduce by rule 126
+	CCON	shift 74
+	DASHES	reduce by rule 126
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 217
+	RCON	shift 70
+	RPAREN	reduce by rule 126
+	SCON	shift 69
+	WILD	shift 209
+
+	pat_c	goto 216
+	pat_d	goto 215
+	pat_e	goto 204
+	seq_pat	goto 352
+	pat_star	goto 213
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 212
+
+	.	error
+
+
+state 310:
+
+	clause : RULE conjunctive_goal_opt DASHES ident seq_pat . result 
+	clause : RULE conjunctive_goal_opt DASHES ident seq_pat .  (reduce by rule 42)
+
+	AXIOM	reduce by rule 42
+	DEFAULT	reduce by rule 42
+	END	reduce by rule 42
+	FATARROW	shift 274
+	RULE	reduce by rule 42
+
+	result	goto 353
+
+	.	error
+
+
+state 311:
+
+	atomic_goal : SUB_REAL exp_d FATARROW seq_pat .  (reduce by rule 65)
+
+	AMPERSAND	reduce by rule 65
+	DASHES	reduce by rule 65
+	RPAREN	reduce by rule 65
+
+
+	.	error
+
+
+state 312:
+
+	atomic_goal : SUB_INT exp_d FATARROW seq_pat .  (reduce by rule 53)
+
+	AMPERSAND	reduce by rule 53
+	DASHES	reduce by rule 53
+	RPAREN	reduce by rule 53
+
+
+	.	error
+
+
+state 313:
+
+	pat : ident AS pat .  (reduce by rule 107)
+
+	COMMA	reduce by rule 107
+	EQ	reduce by rule 107
+	RBRACK	reduce by rule 107
+	RPAREN	reduce by rule 107
+
+
+	.	error
+
+
+state 314:
+
+	pat_a : pat_b COLONCOLON pat_a .  (reduce by rule 109)
+
+	COMMA	reduce by rule 109
+	EQ	reduce by rule 109
+	RBRACK	reduce by rule 109
+	RPAREN	reduce by rule 109
+
+
+	.	error
+
+
+state 315:
+
+	atomic_goal : LET pat EQ exp .  (reduce by rule 82)
+
+	AMPERSAND	reduce by rule 82
+	DASHES	reduce by rule 82
+	RPAREN	reduce by rule 82
+
+
+	.	error
+
+
+state 316:
+
+	pat_b : LPAREN ident EQ . pat COMMA pat_comma_plus RPAREN 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 210
+	RCON	shift 70
+	SCON	shift 69
+	WILD	shift 209
+
+	pat	goto 354
+	pat_a	goto 207
+	pat_b	goto 206
+	pat_d	goto 205
+	pat_e	goto 204
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 200
+
+	.	error
+
+
+state 317:
+
+	pat_b : LPAREN pat RPAREN .  (reduce by rule 112)
+
+	COLONCOLON	reduce by rule 112
+	COMMA	reduce by rule 112
+	EQ	reduce by rule 112
+	RBRACK	reduce by rule 112
+	RPAREN	reduce by rule 112
+
+
+	.	error
+
+
+state 318:
+
+	pat_b : LPAREN pat COMMA . pat_comma_plus RPAREN 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 210
+	RCON	shift 70
+	SCON	shift 69
+	WILD	shift 209
+
+	pat	goto 279
+	pat_a	goto 207
+	pat_b	goto 206
+	pat_d	goto 205
+	pat_e	goto 204
+	pat_comma_plus	goto 355
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 276
+
+	.	error
+
+
+state 319:
+
+	pat_e : LBRACK pat_comma_star_list RBRACK .  (reduce by rule 125)
+
+	AMPERSAND	reduce by rule 125
+	AXIOM	reduce by rule 125
+	COLONCOLON	reduce by rule 125
+	COMMA	reduce by rule 125
+	DASHES	reduce by rule 125
+	DEFAULT	reduce by rule 125
+	END	reduce by rule 125
+	EQ	reduce by rule 125
+	FATARROW	reduce by rule 125
+	RBRACK	reduce by rule 125
+	RPAREN	reduce by rule 125
+	RULE	reduce by rule 125
+
+
+	.	error
+
+
+state 320:
+
+	pat_comma_plus_list : pat COMMA . pat_comma_plus 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 210
+	RCON	shift 70
+	SCON	shift 69
+	WILD	shift 209
+
+	pat	goto 279
+	pat_a	goto 207
+	pat_b	goto 206
+	pat_d	goto 205
+	pat_e	goto 204
+	pat_comma_plus	goto 356
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 276
+
+	.	error
+
+
+state 321:
+
+	result : FATARROW seq_exp .  (reduce by rule 44)
+
+	AXIOM	reduce by rule 44
+	DEFAULT	reduce by rule 44
+	END	reduce by rule 44
+	RULE	reduce by rule 44
+
+
+	.	error
+
+
+state 322:
+
+	result : FATARROW FAIL .  (reduce by rule 45)
+
+	AXIOM	reduce by rule 45
+	DEFAULT	reduce by rule 45
+	END	reduce by rule 45
+	RULE	reduce by rule 45
+
+
+	.	error
+
+
+state 323:
+
+	pat_c : pat_d COLONCOLON pat_c .  (reduce by rule 116)
+
+	AMPERSAND	reduce by rule 116
+	AXIOM	reduce by rule 116
+	DASHES	reduce by rule 116
+	DEFAULT	reduce by rule 116
+	END	reduce by rule 116
+	FATARROW	reduce by rule 116
+	RPAREN	reduce by rule 116
+	RULE	reduce by rule 116
+
+
+	.	error
+
+
+state 324:
+
+	pat_comma_plus : ident EQ . pat 
+	pat_comma_plus : ident EQ . pat COMMA pat_comma_plus 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 210
+	RCON	shift 70
+	SCON	shift 69
+	WILD	shift 209
+
+	pat	goto 357
+	pat_a	goto 207
+	pat_b	goto 206
+	pat_d	goto 205
+	pat_e	goto 204
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 200
+
+	.	error
+
+
+state 325:
+
+	pat_star : LPAREN pat_comma_star RPAREN .  (reduce by rule 129)
+
+	AMPERSAND	reduce by rule 129
+	AXIOM	reduce by rule 129
+	COLONCOLON	reduce by rule 129
+	COMMA	reduce by rule 129
+	DASHES	reduce by rule 129
+	DEFAULT	reduce by rule 129
+	END	reduce by rule 129
+	EQ	reduce by rule 129
+	FATARROW	reduce by rule 129
+	RBRACK	reduce by rule 129
+	RPAREN	reduce by rule 129
+	RULE	reduce by rule 129
+
+
+	.	error
+
+
+state 326:
+
+	pat_comma_plus : pat COMMA . pat_comma_plus 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 210
+	RCON	shift 70
+	SCON	shift 69
+	WILD	shift 209
+
+	pat	goto 279
+	pat_a	goto 207
+	pat_b	goto 206
+	pat_d	goto 205
+	pat_e	goto 204
+	pat_comma_plus	goto 358
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 276
+
+	.	error
+
+
+state 327:
+
+	atomic_goal : exp_d ADD_LIST exp_d FATARROW seq_pat .  (reduce by rule 78)
+
+	AMPERSAND	reduce by rule 78
+	DASHES	reduce by rule 78
+	RPAREN	reduce by rule 78
+
+
+	.	error
+
+
+state 328:
+
+	atomic_goal : exp_d EQEQ_STRING exp_d FATARROW seq_pat .  (reduce by rule 77)
+
+	AMPERSAND	reduce by rule 77
+	DASHES	reduce by rule 77
+	RPAREN	reduce by rule 77
+
+
+	.	error
+
+
+state 329:
+
+	atomic_goal : exp_d ADD_STRING exp_d FATARROW seq_pat .  (reduce by rule 76)
+
+	AMPERSAND	reduce by rule 76
+	DASHES	reduce by rule 76
+	RPAREN	reduce by rule 76
+
+
+	.	error
+
+
+state 330:
+
+	atomic_goal : exp_d NE_REAL exp_d FATARROW seq_pat .  (reduce by rule 75)
+
+	AMPERSAND	reduce by rule 75
+	DASHES	reduce by rule 75
+	RPAREN	reduce by rule 75
+
+
+	.	error
+
+
+state 331:
+
+	atomic_goal : exp_d LT_REAL exp_d FATARROW seq_pat .  (reduce by rule 74)
+
+	AMPERSAND	reduce by rule 74
+	DASHES	reduce by rule 74
+	RPAREN	reduce by rule 74
+
+
+	.	error
+
+
+state 332:
+
+	atomic_goal : exp_d LE_REAL exp_d FATARROW seq_pat .  (reduce by rule 73)
+
+	AMPERSAND	reduce by rule 73
+	DASHES	reduce by rule 73
+	RPAREN	reduce by rule 73
+
+
+	.	error
+
+
+state 333:
+
+	atomic_goal : exp_d GT_REAL exp_d FATARROW seq_pat .  (reduce by rule 72)
+
+	AMPERSAND	reduce by rule 72
+	DASHES	reduce by rule 72
+	RPAREN	reduce by rule 72
+
+
+	.	error
+
+
+state 334:
+
+	atomic_goal : exp_d GE_REAL exp_d FATARROW seq_pat .  (reduce by rule 71)
+
+	AMPERSAND	reduce by rule 71
+	DASHES	reduce by rule 71
+	RPAREN	reduce by rule 71
+
+
+	.	error
+
+
+state 335:
+
+	atomic_goal : exp_d EQ_REAL exp_d FATARROW seq_pat .  (reduce by rule 70)
+
+	AMPERSAND	reduce by rule 70
+	DASHES	reduce by rule 70
+	RPAREN	reduce by rule 70
+
+
+	.	error
+
+
+state 336:
+
+	atomic_goal : exp_d POW_REAL exp_d FATARROW seq_pat .  (reduce by rule 69)
+
+	AMPERSAND	reduce by rule 69
+	DASHES	reduce by rule 69
+	RPAREN	reduce by rule 69
+
+
+	.	error
+
+
+state 337:
+
+	atomic_goal : exp_d MOD_REAL exp_d FATARROW seq_pat .  (reduce by rule 68)
+
+	AMPERSAND	reduce by rule 68
+	DASHES	reduce by rule 68
+	RPAREN	reduce by rule 68
+
+
+	.	error
+
+
+state 338:
+
+	atomic_goal : exp_d DIV_REAL exp_d FATARROW seq_pat .  (reduce by rule 67)
+
+	AMPERSAND	reduce by rule 67
+	DASHES	reduce by rule 67
+	RPAREN	reduce by rule 67
+
+
+	.	error
+
+
+state 339:
+
+	atomic_goal : exp_d MUL_REAL exp_d FATARROW seq_pat .  (reduce by rule 66)
+
+	AMPERSAND	reduce by rule 66
+	DASHES	reduce by rule 66
+	RPAREN	reduce by rule 66
+
+
+	.	error
+
+
+state 340:
+
+	atomic_goal : exp_d SUB_REAL exp_d FATARROW seq_pat .  (reduce by rule 64)
+
+	AMPERSAND	reduce by rule 64
+	DASHES	reduce by rule 64
+	RPAREN	reduce by rule 64
+
+
+	.	error
+
+
+state 341:
+
+	atomic_goal : exp_d ADD_REAL exp_d FATARROW seq_pat .  (reduce by rule 63)
+
+	AMPERSAND	reduce by rule 63
+	DASHES	reduce by rule 63
+	RPAREN	reduce by rule 63
+
+
+	.	error
+
+
+state 342:
+
+	atomic_goal : exp_d NE_INT exp_d FATARROW seq_pat .  (reduce by rule 62)
+
+	AMPERSAND	reduce by rule 62
+	DASHES	reduce by rule 62
+	RPAREN	reduce by rule 62
+
+
+	.	error
+
+
+state 343:
+
+	atomic_goal : exp_d LT_INT exp_d FATARROW seq_pat .  (reduce by rule 61)
+
+	AMPERSAND	reduce by rule 61
+	DASHES	reduce by rule 61
+	RPAREN	reduce by rule 61
+
+
+	.	error
+
+
+state 344:
+
+	atomic_goal : exp_d LE_INT exp_d FATARROW seq_pat .  (reduce by rule 60)
+
+	AMPERSAND	reduce by rule 60
+	DASHES	reduce by rule 60
+	RPAREN	reduce by rule 60
+
+
+	.	error
+
+
+state 345:
+
+	atomic_goal : exp_d GT_INT exp_d FATARROW seq_pat .  (reduce by rule 59)
+
+	AMPERSAND	reduce by rule 59
+	DASHES	reduce by rule 59
+	RPAREN	reduce by rule 59
+
+
+	.	error
+
+
+state 346:
+
+	atomic_goal : exp_d GE_INT exp_d FATARROW seq_pat .  (reduce by rule 58)
+
+	AMPERSAND	reduce by rule 58
+	DASHES	reduce by rule 58
+	RPAREN	reduce by rule 58
+
+
+	.	error
+
+
+state 347:
+
+	atomic_goal : exp_d EQEQ_INT exp_d FATARROW seq_pat .  (reduce by rule 57)
+
+	AMPERSAND	reduce by rule 57
+	DASHES	reduce by rule 57
+	RPAREN	reduce by rule 57
+
+
+	.	error
+
+
+state 348:
+
+	atomic_goal : exp_d MOD_INT exp_d FATARROW seq_pat .  (reduce by rule 56)
+
+	AMPERSAND	reduce by rule 56
+	DASHES	reduce by rule 56
+	RPAREN	reduce by rule 56
+
+
+	.	error
+
+
+state 349:
+
+	atomic_goal : exp_d DIV_INT exp_d FATARROW seq_pat .  (reduce by rule 55)
+
+	AMPERSAND	reduce by rule 55
+	DASHES	reduce by rule 55
+	RPAREN	reduce by rule 55
+
+
+	.	error
+
+
+state 350:
+
+	atomic_goal : exp_d SUB_INT exp_d FATARROW seq_pat .  (reduce by rule 52)
+
+	AMPERSAND	reduce by rule 52
+	DASHES	reduce by rule 52
+	RPAREN	reduce by rule 52
+
+
+	.	error
+
+
+state 351:
+
+	atomic_goal : exp_d ADD_INT exp_d FATARROW seq_pat .  (reduce by rule 51)
+
+	AMPERSAND	reduce by rule 51
+	DASHES	reduce by rule 51
+	RPAREN	reduce by rule 51
+
+
+	.	error
+
+
+state 352:
+
+	atomic_goal : exp_d STAR exp_d FATARROW seq_pat .  (reduce by rule 54)
+
+	AMPERSAND	reduce by rule 54
+	DASHES	reduce by rule 54
+	RPAREN	reduce by rule 54
+
+
+	.	error
+
+
+state 353:
+
+	clause : RULE conjunctive_goal_opt DASHES ident seq_pat result .  (reduce by rule 40)
+
+	AXIOM	reduce by rule 40
+	DEFAULT	reduce by rule 40
+	END	reduce by rule 40
+	RULE	reduce by rule 40
+
+
+	.	error
+
+
+state 354:
+
+	pat_b : LPAREN ident EQ pat . COMMA pat_comma_plus RPAREN 
+
+	COMMA	shift 359
+
+
+	.	error
+
+
+state 355:
+
+	pat_b : LPAREN pat COMMA pat_comma_plus . RPAREN 
+
+	RPAREN	shift 360
+
+
+	.	error
+
+
+state 356:
+
+	pat_comma_plus_list : pat COMMA pat_comma_plus .  (reduce by rule 133)
+
+	RBRACK	reduce by rule 133
+
+
+	.	error
+
+
+state 357:
+
+	pat_comma_plus : ident EQ pat .  (reduce by rule 138)
+	pat_comma_plus : ident EQ pat . COMMA pat_comma_plus 
+
+	COMMA	shift 361
+	RBRACK	reduce by rule 138
+	RPAREN	reduce by rule 138
+
+
+	.	error
+
+
+state 358:
+
+	pat_comma_plus : pat COMMA pat_comma_plus .  (reduce by rule 137)
+
+	RBRACK	reduce by rule 137
+	RPAREN	reduce by rule 137
+
+
+	.	error
+
+
+state 359:
+
+	pat_b : LPAREN ident EQ pat COMMA . pat_comma_plus RPAREN 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 210
+	RCON	shift 70
+	SCON	shift 69
+	WILD	shift 209
+
+	pat	goto 279
+	pat_a	goto 207
+	pat_b	goto 206
+	pat_d	goto 205
+	pat_e	goto 204
+	pat_comma_plus	goto 362
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 276
+
+	.	error
+
+
+state 360:
+
+	pat_b : LPAREN pat COMMA pat_comma_plus RPAREN .  (reduce by rule 113)
+
+	COLONCOLON	reduce by rule 113
+	COMMA	reduce by rule 113
+	EQ	reduce by rule 113
+	RBRACK	reduce by rule 113
+	RPAREN	reduce by rule 113
+
+
+	.	error
+
+
+state 361:
+
+	pat_comma_plus : ident EQ pat COMMA . pat_comma_plus 
+
+	CCON	shift 74
+	ICON	shift 73
+	IDENT	shift 7
+	LBRACK	shift 211
+	LPAREN	shift 210
+	RCON	shift 70
+	SCON	shift 69
+	WILD	shift 209
+
+	pat	goto 279
+	pat_a	goto 207
+	pat_b	goto 206
+	pat_d	goto 205
+	pat_e	goto 204
+	pat_comma_plus	goto 363
+	literal	goto 203
+	longid	goto 202
+	longorshortid	goto 201
+	ident	goto 276
+
+	.	error
+
+
+state 362:
+
+	pat_b : LPAREN ident EQ pat COMMA pat_comma_plus . RPAREN 
+
+	RPAREN	shift 364
+
+
+	.	error
+
+
+state 363:
+
+	pat_comma_plus : ident EQ pat COMMA pat_comma_plus .  (reduce by rule 139)
+
+	RBRACK	reduce by rule 139
+	RPAREN	reduce by rule 139
+
+
+	.	error
+
+
+state 364:
+
+	pat_b : LPAREN ident EQ pat COMMA pat_comma_plus RPAREN .  (reduce by rule 115)
+
+	COLONCOLON	reduce by rule 115
+	COMMA	reduce by rule 115
+	EQ	reduce by rule 115
+	RBRACK	reduce by rule 115
+	RPAREN	reduce by rule 115
+
+
+	.	error
+
+
+state 365:
+
+
+	DATATYPE	accept
+	EOF_HARD	accept
+	EOF_SOFT	accept
+	EQTYPE	accept
+	RELATION	accept
+	TYPE	accept
+	VAL	accept
+	WITH	accept
+
+
+	.	error
+
+1983 of 3036 action table entries left after compaction
+874 goto table entries
