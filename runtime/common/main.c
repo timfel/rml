@@ -102,6 +102,16 @@ int main(int argc, char **argv)
 	    rmldb_execution_startup_type = RMLDB_FAST;
         #endif /* RML_DEBUG */
 	    continue;
+	} else if( strcmp(arg, "debugcalls") == 0 ) {
+        #ifdef RML_DEBUG
+	    rmldb_execution_startup_type = RMLDB_TRACE_CALLS;
+        #endif /* RML_DEBUG */
+	    continue;
+	} else if( strcmp(arg, "debugall") == 0 ) {
+        #ifdef RML_DEBUG
+	    rmldb_execution_startup_type = RMLDB_TRACE_ALL;
+        #endif /* RML_DEBUG */
+	    continue;
 	} else if( strcmp(arg, "-") == 0 ) {
 	    break;
 	} else {

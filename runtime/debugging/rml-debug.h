@@ -21,6 +21,8 @@
 #define RMLDB_STEP   1
 #define RMLDB_NEXT   2
 #define RMLDB_FAST   3 /* no livevars, no backtrace, just very fast debugging (breakpoints) */
+#define RMLDB_TRACE_CALLS  4
+#define RMLDB_TRACE_ALL    5
 
 #define RMLDB_REPEAT_PARSE   0  /* repeat the command parse */
 #define RMLDB_BREAK_PARSE    1  /* exit the parse cycle and continue with the execution */
@@ -75,6 +77,7 @@ extern void rmldb_clear_breakpoints(void);
 extern void rmldb_debug_add_var(int direction, void* var_name, void* var);
 extern void rmldb_clear_debug_vars(void);
 extern void rmldb_print_variable(char* var_name);
+extern void rmldb_trace_vars(void);
 extern unsigned long rmldb_var_sizeof(void *p);
 extern void rmldb_print_sizeof_variable(char* var_name);
 extern void rmldb_print_debug_vars(void);

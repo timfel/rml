@@ -14,7 +14,7 @@ functor AbsynToFOLFn(structure StrDict : STR_DICT
       let fun loop(i, vars) =
 	    if i < 1 then vars else loop(i-1, FOL.newvar() :: vars)
       in
-	loop(i, [])
+		loop(i, [])
       end
 
     fun cnvId id = Absyn.identName id

@@ -290,6 +290,7 @@ void rmldb_show_help(void)
 	printf("FAST debugging, no backtrace,callchain,livevars: fa|fast\n");
 	printf("Exiting the debugger/program:                    qu|quit|ex|exit|by|bye\n");
 	printf("Debugging/Undebugging the debugger parser:       dbgp|debugparse on|off {aadebug=1/0}\n");
+	printf("Debugging/Undebugging the rdb parser:            rdbdbgp|rdbdebugparse on|off {aarmldbdebug=1/0}\n");
 	printf("-------------------------------------------------------------------------------------\n");
 }
 
@@ -653,6 +654,31 @@ void rmldb_set_print_vars(int flag)
 		printf("Print livevars each step set to: OFF\n"); 
 	else
 		printf("Print livevars each step set to: ON\n"); 
+}
+
+void rmldb_trace_vars(void)
+{
+	struct rmldb_var_node *tmp;
+	rmldb_depth_of_variable_print = 0;
+	printf("Results:\n");
+	if (!rmldb_var_out_start) printf("[none available]\n");
+	for(tmp = rmldb_var_out_start; tmp; tmp = tmp->next)
+	{
+		printf("[%s]", RML_STRINGDATA(tmp->var_name));
+		printf("+++++++++++++++++++++++++++++++++\n");
+		rmldb_print_variable(RML_STRINGDATA(tmp->var_name));
+		printf("*********************************\n");
+	}
+	printf("Parameters:\n");
+	if (!rmldb_var_in_start) printf("[none available]\n");
+	for(tmp = rmldb_var_in_start; tmp; tmp = tmp->next)
+	{
+		printf("[%s]", RML_STRINGDATA(tmp->var_name));
+		printf("+++++++++++++++++++++++++++++++++\n");
+		rmldb_print_variable(RML_STRINGDATA(tmp->var_name));
+		printf("*********************************\n");
+	}
+	printf("\n");
 }
 
 void rmldb_print_variable(char* var_name)

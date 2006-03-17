@@ -276,6 +276,10 @@ fa|fast {
 dbgp|debugparser {
    return T_DEBUGPARSER;
 }
+
+rdbdbgp|rdbdebugparser {
+   return T_RDBDEBUGPARSER;
+}
 	  
 [ \t]+				{ /* Skip whitespace */ }
 

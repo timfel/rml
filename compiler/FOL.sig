@@ -3,7 +3,16 @@
 signature FOL =
   sig
 
-    type ident		= string
+	(*
+    (* start line, start column, end line, endcolumn *)
+	datatype loc = LOC of int * int * int * int
+
+    (* filename, pos start, pos end *)
+	datatype info = INFO of string * int * int * loc
+
+    datatype ident	= IDENT of string * info
+    *)
+    type ident = string
     datatype longid	= LONGID of ident option * ident
 
     datatype lit	= ICON of int

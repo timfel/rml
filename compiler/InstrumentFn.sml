@@ -9,6 +9,8 @@ functor InstrumentFn(structure Absyn : ABSYN
     structure Absyn = Absyn
     
     fun bug s = Util.bug("Instrument."^s)
+    
+    (* XXX TODO: fix so that it takes the expressions out of the lists!!! *)
 
 
     fun prStr(s) = (s)
@@ -310,14 +312,14 @@ functor InstrumentFn(structure Absyn : ABSYN
 						relIdent, result) =
 	    Absyn.ANDgoal(
 		 Absyn.ANDgoal(
-			Absyn.CALLgoal(debug, 
-				makeExp(relIdent, locEQUAL, 
-					"equal:"^print_ident(var1)^"="^getExpAsString(exp2)), 
-				[],	ref [], Absyn.dummyInfo),
 			printVars([
 				Absyn.IDENTexp(Absyn.LONGID(NONE,var1, Absyn.dummyInfo), 
 				ref(Absyn.STRUCTexp(NONE,[], Absyn.dummyInfo)), 
-				Absyn.dummyInfo), exp2], "in"),
+			Absyn.dummyInfo), exp2], "in"),
+				Absyn.CALLgoal(debug, 
+				makeExp(relIdent, locEQUAL, 
+					"equal:"^print_ident(var1)^"="^getExpAsString(exp2)), 
+				[],	ref [], Absyn.dummyInfo),
 			Absyn.dummyInfo),				
 		 Absyn.EQUALgoal(var1, exp2, infoEQUAL),
 		 Absyn.dummyInfo)
@@ -407,14 +409,14 @@ functor InstrumentFn(structure Absyn : ABSYN
 						relIdent, result) =
 	    Absyn.ANDgoal(
 		 Absyn.ANDgoal(
-			Absyn.CALLgoal(debug, 
-				makeExp(relIdent, locEQUAL, 
-					"equal:"^print_ident(var1)^"="^getExpAsString(exp2)), 
-				[],	ref[], Absyn.dummyInfo),
 			printVars([
 				Absyn.IDENTexp(Absyn.LONGID(NONE, var1, Absyn.dummyInfo), 
 				ref(Absyn.STRUCTexp(NONE,[], Absyn.dummyInfo)), 
 				Absyn.dummyInfo), exp2], "in"),
+			Absyn.CALLgoal(debug, 
+				makeExp(relIdent, locEQUAL, 
+					"equal:"^print_ident(var1)^"="^getExpAsString(exp2)), 
+				[],	ref[], Absyn.dummyInfo),
 			Absyn.dummyInfo),				
 		 Absyn.EQUALgoal(var1, exp2, infoEQUAL),
 		 Absyn.dummyInfo)
