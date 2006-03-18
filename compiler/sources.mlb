@@ -4,10 +4,6 @@ local
       (* $/basis.cm ====> *) $(SML_LIB)/basis/basis.mlb
       $(SML_LIB)/basis/unsafe.mlb
     end
-  basis l363 = 
-    bas
-      (* $/smlnj-lib.cm ====> *) $(SML_LIB)/smlnj-lib/Util/smlnj-lib.mlb
-    end
   basis l161 = 
     bas
       (* $/ml-yacc-lib.cm ====> *) $(SML_LIB)/mlyacc-lib/mlyacc-lib.mlb
@@ -19,11 +15,8 @@ local
       open l4
    in
       structure gs_0 = String
-   end
-   local
-      open l4
-   in
       structure gs_1 = Char
+      structure gs_1000 = CommandLine
    end
    local
       MANGLE.sig
@@ -795,28 +788,6 @@ local
       Interp.sml
    in
       structure gs_108 = Interp
-   end
-   local
-      open l363
-   in
-      structure gs_109 = IntRedBlackSet
-   end
-   local
-      structure IntRedBlackSet = gs_109
-      library/common/IntSet.sml
-   in
-      structure gs_110 = IntSet
-   end
-   local
-      open l363
-   in
-      structure gs_111 = IntRedBlackMap
-   end
-   local
-      structure IntRedBlackMap = gs_111
-      library/common/IntMap.sml
-   in
-      structure gs_112 = IntMap
    end
    local
       signature STR_DICT = gs_38
@@ -2258,8 +2229,6 @@ in
    functor InstrumentFn = gs_226
    structure IntDict = gs_106
    structure IntKey = gs_105
-   structure IntMap = gs_112
-   structure IntSet = gs_110
    structure Interp = gs_108
    structure InterpCore = gs_107
    functor InterpCoreFn = gs_104
@@ -2387,5 +2356,6 @@ in
    signature VERSION = gs_40
    structure Version = gs_241
    functor VersionFn = gs_240
+   structure CommandLine = gs_1000
 end
 end

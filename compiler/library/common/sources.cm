@@ -5,5 +5,3 @@ Group is
   DynIntArray.sml
   ARRAY_SOURCE_MAP.sig
   ArraySourceMap.sml
-  IntMap.sml
-  IntSet.sml

@@ -10,7 +10,7 @@ TEMP=$(GENERATED) rml.grm.desc mod.grm.desc persistent.grm.desc
 
 default:	rml.$(HEAP_SUFFIX)
 
-rml.$(HEAP_SUFFIX):	$(GENERATED) *.sml *.sig
+rml.$(HEAP_SUFFIX):	$(GENERATED) *.sml *.sig *.cm 
 	cat make.sml | $(SMLCM)
 	ls -l rml.$(HEAP_SUFFIX)
 

@@ -2,6 +2,8 @@ Group is
   $/smlnj-lib.cm
   $/basis.cm
   ../common/sources.cm
+  IntMap.sml
+  IntSet.sml
   PICKLESIG.sig
   BASEPICKLESIG.sig
   CODEC.sig
