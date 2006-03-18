@@ -8,9 +8,9 @@ GENERATED=rml.lex.sml rml.grm.sml rml.grm.sig make.sml \
 
 TEMP=$(GENERATED) rml.grm.desc mod.grm.desc persistent.grm.desc
 
-default:	rml
+default:	rml.$(HEAP_SUFFIX)
 
-rml rml.$(HEAP_SUFFIX):	$(GENERATED)
+rml.$(HEAP_SUFFIX):	$(GENERATED) *.sml *.sig
 	cat make.sml | $(SMLCM)
 	ls -l rml.$(HEAP_SUFFIX)
 

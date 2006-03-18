@@ -11,8 +11,12 @@ local
     structure MainMLton
   end
 *)
-  sources.mlb
-  $(SML_LIB)/basis/sml-nj.mlb
+  local
+	sources.mlb
+	$(SML_LIB)/basis/default.mlb
+  in
+   MainMLton.sml
+  end
 in
-  make-mlton.sml
+  call-main.sml
 end

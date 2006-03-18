@@ -10,7 +10,7 @@ functor InstrumentFn(structure Absyn : ABSYN
     
     fun bug s = Util.bug("Instrument."^s)
     
-    (* XXX TODO: fix so that it takes the expressions out of the lists!!! *)
+    (* XXX TODO: fix so that it takes the atomic expressions out of expresions!!! *)
 
 
     fun prStr(s) = (s)
@@ -57,14 +57,14 @@ functor InstrumentFn(structure Absyn : ABSYN
 	fun print_list_sequence_pat(b4, between, after, foo_star, print_foo) =
 	let fun loop([]) = ("")
 		| loop(Absyn.CONpat(Absyn.LONGID(SOME(Absyn.IDENT("RML",_)),Absyn.IDENT("nil",_),_),_)::nil)
-			= ("nil")
+			= (Control.selectCompilerMessage("nil","{}"))
 		| loop(Absyn.STRUCTpat(
-				SOME(Absyn.LONGID(SOME(Absyn.IDENT("RML", _)), 
-				                  Absyn.IDENT("cons", _), _)), foo::foo_star, _, _)::nil)
+				SOME(Absyn.LONGID(SOME(Absyn.IDENT("RML", _)),
+				     Absyn.IDENT("cons", _), _)), foo::foo_star, _, _)::nil)
 			= (case foo_star of
 			    (Absyn.STRUCTpat(
-				SOME(Absyn.LONGID(SOME(Absyn.IDENT("RML", _)), 
-				                  Absyn.IDENT("cons", _), _)),_,_,_)::nil) => (between^print_foo(foo)^(loop foo_star))
+				 SOME(Absyn.LONGID(SOME(Absyn.IDENT("RML", _)),Absyn.IDENT("cons", _), _)),_,_,_)::nil) 
+				 => (between^print_foo(foo)^(loop foo_star))
 				 | (_) => (print_foo(foo)^"::"^(loop foo_star)))									
 		| loop(foo::foo_star) = (between^print_foo(foo)^(loop foo_star))
 	in
@@ -86,7 +86,10 @@ functor InstrumentFn(structure Absyn : ABSYN
 
     fun print_longid(Absyn.LONGID(modname, ident, _)) =
       (case modname
-	  of SOME ident'=> (print_ident(ident') ^ "." ^ print_ident(ident))
+	  of SOME ident'=>
+		 if Absyn.identName ident' = "RML"
+		 then print_ident(ident)
+		 else (print_ident(ident') ^ "." ^ print_ident(ident))
 	   | NONE		=> (print_ident(ident)))
 
     fun print_longid_info(Absyn.LONGID(modname, ident, _)) = 
@@ -141,7 +144,11 @@ functor InstrumentFn(structure Absyn : ABSYN
       | getInfoFromPat(Absyn.BINDpat(var, pat, info)) = info
       | getInfoFromPat(Absyn.IDENTpat(id, _, info)) = info
       | getInfoFromPat(Absyn.NAMEDpat(id, pat, info)) = info
-
+           
+    fun getInfoFromExp(Absyn.LITexp(lit, info)) = info
+      | getInfoFromExp(Absyn.CONexp(longcon, info)) = info
+      | getInfoFromExp(Absyn.STRUCTexp(ctor, Exp_star, info)) = info
+      | getInfoFromExp(Absyn.IDENTexp(id, _, info)) = info
 
     (* ------------------------------------------------------ *)
     (* ------------------------------------------------------ *)
@@ -166,7 +173,8 @@ functor InstrumentFn(structure Absyn : ABSYN
 	fun addDummyParams(foo, nelts) =
 		if (nelts = 0) 
 		then foo 
-		else addDummyParams(foo @ [makeTuple(dummyDebugVar, [dummyDebugVar])], nelts-1) (* add one more to the list *)
+		else (* add one more to the list *)
+		addDummyParams(foo @ [makeTuple(dummyDebugVar, [dummyDebugVar])], nelts-1) 
 
 	(* check if we have more than 32 parameters to show *)
     fun checkParams(foo) = 
@@ -229,8 +237,15 @@ functor InstrumentFn(structure Absyn : ABSYN
 					Absyn.dummyInfo)
 	end
 
+    fun getExpsFromExp(Absyn.LITexp(lit, infoLIT)) = []
+      | getExpsFromExp(Absyn.CONexp(longcon, infoCON)) = [Absyn.CONexp(longcon, infoCON)]
+      | getExpsFromExp(Absyn.STRUCTexp(ctor, exp_star, _)) = getExpsFromExpStar exp_star
+      | getExpsFromExp(id as Absyn.IDENTexp(_, _, _)) = [id]
+	and getExpsFromExpStar(foo::foo_star) = getExpsFromExp(foo) @ (getExpsFromExpStar foo_star)
+	  | getExpsFromExpStar(nil) = []
+
     fun getExpsFromPat(Absyn.WILDpat _) = []
-      | getExpsFromPat(Absyn.LITpat(lit, infoLIT)) = [Absyn.LITexp(lit, infoLIT)]
+      | getExpsFromPat(Absyn.LITpat(lit, infoLIT)) = []
       | getExpsFromPat(Absyn.CONpat(longcon, infoCON)) = [Absyn.CONexp(longcon, infoCON)]
       | getExpsFromPat(Absyn.STRUCTpat(ctor, pat_star, _, _)) = getExpsFromPatStar pat_star
       | getExpsFromPat(Absyn.BINDpat(var, pat, infoBIND)) = 
@@ -247,7 +262,7 @@ functor InstrumentFn(structure Absyn : ABSYN
 					
     fun printPats(foo, direction) = printVars(getExpsFromPatStar foo, direction)
     	
-    fun getResultExps(Absyn.RETURN(exps, _)) = (exps)
+    fun getResultExps(Absyn.RETURN(exps, _)) = ( getExpsFromExpStar exps )
       | getResultExps(Absyn.FAIL (_)) = 
 			[Absyn.LITexp(
 				Absyn.SCONlit("fail", Absyn.dummyInfo),
@@ -269,7 +284,7 @@ functor InstrumentFn(structure Absyn : ABSYN
 		 Absyn.LITexp(Absyn.SCONlit(strGoal, Absyn.dummyInfo), Absyn.dummyInfo)] 
 		 
 	(* adrpo added 2004-11-20 *)
-	(* only instrument in front, needed for last goal in a rulse
+	(* only instrument in front, needed for last goal in a rule
 	   instrumentation which should not be instrumented after the goal (tail recursiveness) *)
     fun instrumentGoalOnlyInFront(
    		Absyn.CALLgoal(longid, exp_star, pat_star, pat_star_ref, infoCALL as Absyn.INFO(filename, startpos, endpos, locCALL)), 
@@ -278,15 +293,19 @@ functor InstrumentFn(structure Absyn : ABSYN
 			if List.length exp_star > 0
 			then
 			Absyn.ANDgoal(
-				printVars(exp_star, "in"), (* push in variables of next goal *)
+				printVars(getExpsFromExpStar exp_star, "in"), (* push in variables of next goal *)
 				Absyn.CALLgoal(
 					debug, 
 					makeExp(
 						relIdent, 
 						locCALL,
+						Control.selectCompilerMessage(
 						"call:"^print_longid(longid)^
-						print_parens_comma(exp_star, getExpAsString)^" => "
-						^print_parens_comma(pat_star, getPatAsString)), 
+						print_parens_comma(exp_star, getExpAsString)^" => "^
+						print_parens_comma(pat_star, getPatAsString),
+						"call:"^print_parens_comma(pat_star, getPatAsString)^" = "^
+						print_longid(longid)^print_parens_comma(exp_star, getExpAsString))
+						), 
 						[], 
 						ref [], 
 						Absyn.dummyInfo), 
@@ -297,9 +316,16 @@ functor InstrumentFn(structure Absyn : ABSYN
 					makeExp(
 						relIdent, 
 						locCALL,
-						"call:"^print_longid(longid)^
-						print_parens_comma(exp_star, getExpAsString)^" => "
-						^print_parens_comma(pat_star, getPatAsString)), 
+						Control.selectCompilerMessage(
+						"call:"^
+						print_longid(longid)^
+						print_parens_comma(exp_star, getExpAsString)^" => "^
+						print_parens_comma(pat_star, getPatAsString),
+						"call:"^
+						print_parens_comma(pat_star, getPatAsString)^" = "^
+						print_longid(longid)^
+						print_parens_comma(exp_star, getExpAsString)
+						)), 
 						[],
 						ref [], 
 						Absyn.dummyInfo),
@@ -313,12 +339,13 @@ functor InstrumentFn(structure Absyn : ABSYN
 	    Absyn.ANDgoal(
 		 Absyn.ANDgoal(
 			printVars([
-				Absyn.IDENTexp(Absyn.LONGID(NONE,var1, Absyn.dummyInfo), 
+				Absyn.IDENTexp(Absyn.LONGID(NONE, var1, Absyn.dummyInfo), 
 				ref(Absyn.STRUCTexp(NONE,[], Absyn.dummyInfo)), 
 			Absyn.dummyInfo), exp2], "in"),
 				Absyn.CALLgoal(debug, 
 				makeExp(relIdent, locEQUAL, 
-					"equal:"^print_ident(var1)^"="^getExpAsString(exp2)), 
+					Control.selectCompilerMessage("equal:","equality:")
+					^print_ident(var1)^" = "^getExpAsString(exp2)), 
 				[],	ref [], Absyn.dummyInfo),
 			Absyn.dummyInfo),				
 		 Absyn.EQUALgoal(var1, exp2, infoEQUAL),
@@ -333,7 +360,9 @@ functor InstrumentFn(structure Absyn : ABSYN
 	    Absyn.ANDgoal(
 			Absyn.CALLgoal(
 				debug, 
-				makeExp(relIdent, locLET, "let:"^getPatAsString(pat)^"="^getExpAsString(exp)), 
+				makeExp(relIdent, locLET, 
+				Control.selectCompilerMessage("let:","assignment:")
+				^getPatAsString(pat)^" = "^getExpAsString(exp)), 
 				[],
 				ref [], 
 				Absyn.dummyInfo),
@@ -347,7 +376,8 @@ functor InstrumentFn(structure Absyn : ABSYN
 	    Absyn.ANDgoal(
 			Absyn.CALLgoal(
 				debug, 
-				makeExp(relIdent, locNOT, "not:"), 
+				makeExp(relIdent, locNOT, 
+				Control.selectCompilerMessage("not:","failure:")), 
 				[],
 				ref [],
 				Absyn.dummyInfo),
@@ -370,15 +400,20 @@ functor InstrumentFn(structure Absyn : ABSYN
 			if (List.length exp_star > 0)
 			then 
 			Absyn.ANDgoal(
-				printVars(exp_star,"in"),			
+				printVars(getExpsFromExpStar exp_star,"in"),			
 				Absyn.CALLgoal(
 					debug, 
 					makeExp(
 						relIdent, 
 						locCALL,
+						Control.selectCompilerMessage(
 						"call:"^print_longid(longid)^
-						print_parens_comma(exp_star, getExpAsString)^" => "
-						^print_parens_comma(pat_star, getPatAsString)), 
+						print_parens_comma(exp_star, getExpAsString)^" => "^
+						print_parens_comma(pat_star, getPatAsString),
+						"call:"^print_parens_comma(pat_star, getPatAsString)^" = "^
+						print_longid(longid)^
+						print_parens_comma(exp_star, getExpAsString)
+						)), 
 						[],
 						ref [],
 						Absyn.dummyInfo), 
@@ -389,9 +424,14 @@ functor InstrumentFn(structure Absyn : ABSYN
 					makeExp(
 						relIdent, 
 						locCALL,
+						Control.selectCompilerMessage(
 						"call:"^print_longid(longid)^
-						print_parens_comma(exp_star, getExpAsString)^" => "
-						^print_parens_comma(pat_star, getPatAsString)), 
+						print_parens_comma(exp_star, getExpAsString)^" => "^
+						print_parens_comma(pat_star, getPatAsString),
+						"call:"^print_parens_comma(pat_star, getPatAsString)^" = "^
+						print_longid(longid)^
+						print_parens_comma(exp_star, getExpAsString)
+						)), 
 						[],
 						ref [],
 						Absyn.dummyInfo),
@@ -415,7 +455,8 @@ functor InstrumentFn(structure Absyn : ABSYN
 				Absyn.dummyInfo), exp2], "in"),
 			Absyn.CALLgoal(debug, 
 				makeExp(relIdent, locEQUAL, 
-					"equal:"^print_ident(var1)^"="^getExpAsString(exp2)), 
+					Control.selectCompilerMessage("equal:","equality:")^
+					print_ident(var1)^" = "^getExpAsString(exp2)), 
 				[],	ref[], Absyn.dummyInfo),
 			Absyn.dummyInfo),				
 		 Absyn.EQUALgoal(var1, exp2, infoEQUAL),
@@ -430,7 +471,9 @@ functor InstrumentFn(structure Absyn : ABSYN
 	    Absyn.ANDgoal(
 			Absyn.CALLgoal(
 				debug, 
-				makeExp(relIdent, locLET, "let:"^getPatAsString(pat)^"="^getExpAsString(exp)), 
+				makeExp(relIdent, locLET, 
+				Control.selectCompilerMessage("let:","assignment:")
+				^getPatAsString(pat)^" = "^getExpAsString(exp)), 
 				[],
 				ref [],
 				Absyn.dummyInfo),
@@ -438,7 +481,7 @@ functor InstrumentFn(structure Absyn : ABSYN
 				Absyn.LETgoal(pat, exp, ref_pat, infoLET), 
 				Absyn.ANDgoal(
 					printPats([pat], "out"), 
-					printVars([exp], "out"), Absyn.dummyInfo),
+					printVars(getExpsFromExp exp, "out"), Absyn.dummyInfo),
 				Absyn.dummyInfo ), 
 			Absyn.dummyInfo )
       | instrumentGoal(
@@ -449,7 +492,7 @@ functor InstrumentFn(structure Absyn : ABSYN
 	    Absyn.ANDgoal(
 			Absyn.CALLgoal(
 				debug, 
-				makeExp(relIdent, locNOT, "not:"), 
+				makeExp(relIdent, locNOT, Control.selectCompilerMessage("not:","failure:")), 
 				[],
 				ref [], 
 				Absyn.dummyInfo),
@@ -513,9 +556,11 @@ functor InstrumentFn(structure Absyn : ABSYN
 					printPats(pat_star,"in"), 	
 					Absyn.CALLgoal(
 						debug, 
-						makeExp(relIdent, locGOAL, 
-							"axiom:"^stringIdent^
-							 print_parens_comma(pat_star, getPatAsString)^" => "^
+						makeExp(relIdent, locGOAL,
+							 Control.selectCompilerMessage("axiom:","case:")^
+							 stringIdent^
+							 print_parens_comma(pat_star, getPatAsString)^
+							 Control.selectCompilerMessage(" => "," then ")^
 							 print_parens_comma(getResultExps result, getExpAsString)), 
 						[],
 						ref [],
@@ -525,13 +570,15 @@ functor InstrumentFn(structure Absyn : ABSYN
 					Absyn.CALLgoal(
 						debug, 
 						makeExp(relIdent, locGOAL, 
-							"axiom:"^stringIdent^
-							 print_parens_comma(pat_star, getPatAsString)^" => "^
+							 Control.selectCompilerMessage("axiom:","case:")^
+							 stringIdent^
+							 print_parens_comma(pat_star, getPatAsString)^
+							 Control.selectCompilerMessage(" => "," then ")^
 							 print_parens_comma(resultExps, getExpAsString)), 
 						[],
 						ref [], 
 						Absyn.dummyInfo),
-				printVars(resultExps, "out"),
+				printVars(getExpsFromExpStar resultExps, "out"),
 				Absyn.dummyInfo)
 			else
 				if List.length pat_star > 0
@@ -541,8 +588,10 @@ functor InstrumentFn(structure Absyn : ABSYN
 					Absyn.CALLgoal(
 						debug, 
 						makeExp(relIdent, locGOAL, 
-							"axiom:"^stringIdent^
-							 print_parens_comma(pat_star, getPatAsString)^" => "^
+							 Control.selectCompilerMessage("axiom:","case:")^
+							 stringIdent^
+							 print_parens_comma(pat_star, getPatAsString)^
+							 Control.selectCompilerMessage(" => "," then ")^
 							 print_parens_comma(getResultExps result, getExpAsString)), 
 						[],
 						ref [], 
@@ -552,8 +601,10 @@ functor InstrumentFn(structure Absyn : ABSYN
 					Absyn.CALLgoal(
 						debug, 
 						makeExp(relIdent, locGOAL, 
-							"axiom:"^stringIdent^
-							 print_parens_comma(pat_star, getPatAsString)^" => "^
+							 Control.selectCompilerMessage("axiom:","case:")^
+							 stringIdent^
+							 print_parens_comma(pat_star, getPatAsString)^
+							 Control.selectCompilerMessage(" => "," then ")^
 							 print_parens_comma(resultExps, getExpAsString)), 
 						[],
 						ref [], 

@@ -1,10 +1,13 @@
-(* main/control.sml *)
+(* Control.sml *)
 
 structure Control: CONTROL =
   struct
 
     structure PERSISTENTParse = PERSISTENTParse
-     
+    structure Util = Util
+    
+	fun bug  s = Util.bug("Control."^s)
+    
     type serializationInfo = 
              {
 				file:    string, (* which filename was serialized *)
@@ -25,7 +28,7 @@ structure Control: CONTROL =
     (* version of the serialized files. if we change their format we can discard them easy *)
 	val serializationFileVersion = 2
 	fun getSerializationInfo(file) = PERSISTENTParse.parseSerializationInfo(file)
-
+		
     (* flag to write the symboltable or not*)
     val emitDebug = ref false
     (* flag to emit the program database or not *)
@@ -76,6 +79,15 @@ structure Control: CONTROL =
     
     (* what are we currently compiling? *)    
     val currentlyCompiling = ref UNKNOWN_FILE
+    
+	(* this one helps in selecting messages depending on what we are currently compiling *)
+	fun selectCompilerMessage(strRML, strMMC) =
+	(
+	case !currentlyCompiling of
+		RML_FILE => strRML
+	|	MO_FILE => strMMC
+	|	_ => bug("selectCompilerMessage: We don't know what file type are we compiling!")
+	)
     
 	fun fileBase (file) =
 	  let val {base,ext} = OS.Path.splitBaseExt file

@@ -1,0 +1,23 @@
+Compilation of RML frontent implemented in SML with the MLton compiler
+-----------------------------------------------------------------------
+Adrian Pop, adrpo@ida.liu.se, 2006-03-18
+
+
+By default RML use SML/NJ for compilation but is possible 
+from 2006-03-15 to compile also using MLton compiler which
+generates a really faster compiler.
+
+To compile the SML part of the RML:
+-----------------------------------
+cd compiler
+compiler> mlton -verbose 3 -target self RML.mlb
+then just copy the rml executable in the 
+rml/arch-os-compiler/bin/
+and edit the 
+rml/arch-os-compiler/bin/rmlc 
+to call the executable instead of the rml script.
+
+If you run into problems send me an email.
+
+Enjoy,
+Adrian Pop/

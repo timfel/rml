@@ -996,6 +996,7 @@ local
       structure String = gs_0
       structure TextIO = gs_5
       structure Time = gs_79
+      structure Util = gs_12
       Control.sml
    in
       structure gs_128 = Control

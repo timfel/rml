@@ -23,7 +23,7 @@ signature CONTROL =
     (* version of the serialized files. if we change their format we can discard them easy *)
 	val serializationFileVersion: int
 	val getSerializationInfo: string -> serializationInfo
-
+	
     (* flag to write the symboltable or not*)
     val emitDebug : bool ref
     (* flag to emit the program database or not *)
@@ -73,6 +73,9 @@ signature CONTROL =
     
     (* what are we currently compiling? *)
     val currentlyCompiling : filetype ref
+    
+	(* this one helps in selecting messages depending on what we are currently compiling *)
+	val selectCompilerMessage: string * string -> string    
     
     val fileBase:   string -> string
     val fileType:   string -> filetype
