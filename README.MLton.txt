@@ -10,7 +10,7 @@ generates a really faster compiler.
 To compile the SML part of the RML:
 -----------------------------------
 cd compiler
-compiler> mlton -verbose 3 -target self RML.mlb
+compiler> mlton -verbose 3 -target self rml.mlb
 then just copy the rml executable in the 
 rml/arch-os-compiler/bin/
 and edit the 
