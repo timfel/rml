@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2002-2005 by Adrian Pop
+Copyright (c) 2002-2006 by Adrian Pop
 
 Permission to use, copy, modify, and distribute this software and
 its documentation for NON-COMMERCIAL purposes and without fee is hereby 
@@ -40,17 +40,30 @@ USE OR PERFORMANCE OF THIS SOFTWARE.
 /**************************************************/
 
 #include <stdio.h>
-/*
-#include <termio.h>
-*/
+#if defined(__MINGW32__) || defined(_MSC_VER)
+
+#if defined(__MINGW32__) /* ********** MINGW32 stuff ******/
+/* we have readline */
 #include <readline/readline.h>
 #include <readline/history.h>
-#include <stdarg.h>
+/* do we have signal in ming32?? */
 #include <signal.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <stdlib.h>
-#include <unistd.h>
+
+#endif
+/*********** MING32 && MSVC stuff **********/
+
+#include <WinSock2.h>
+
+#define rmldb_send_sock(x,y,z) send(x,y,z,0)
+#define rmldb_recv_sock(x,y,z) recv(x,y,z,0)
+#define rmldb_close_sock closesocket
+#define rmldb_sock_errorno WSAGetLastError()
+
+#else /***************** unix stuff ***************/
+
+#include <readline/readline.h>
+#include <readline/history.h>
+#include <signal.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/unistd.h>
@@ -58,11 +71,25 @@ USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <netinet/in.h>
 #include <netdb.h>
 
+#define rmldb_send_sock(x,y,z) write(x,y,z)
+#define rmldb_recv_sock(x,y,z) read(x,y,z)
+#define rmldb_close_sock close
+#define rmldb_sock_errorno errno
+#define SOCKET_ERROR (-1)
+#define INVALID_SOCKET (-1)
+
+#endif
+
+#include <stdarg.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <stdlib.h>
+#include <unistd.h>
+
 #ifndef  _RML_DEBUG_H_
 #include "rml.h"
 #endif
 
-#define RMLDB_SOCK_DEBUG 0 /* make it 1 to debug the socket messages */
 
 #define RMLDB_TYPE_SUFFIX_NONE   0
 #define RMLDB_TYPE_SUFFIX_LIST   1
@@ -71,6 +98,7 @@ USE OR PERFORMANCE OF THIS SOFTWARE.
 #define RMLDB_TYPE_SUFFIX_VECTOR 4
 #define RMLDB_TYPE_SUFFIX_ARRAY  5
 
+int rmldb_sock_debug = 0; /* make it 1 to debug the socket messages */
 char* rmldb_command;
 int   rmldb_execution_type         = RMLDB_STEP;
 int   rmldb_execution_startup_type = RMLDB_STEP;
@@ -106,15 +134,13 @@ struct rmldb_var_node *rmldb_var_in_end;
 struct rmldb_var_node *rmldb_var_out_start;
 struct rmldb_var_node *rmldb_var_out_end;
 
-char*  rmldb_ttyname;
+char*  rmldb_ttyname = "DEFAULT";
 
 /* Local functions */
 #define RMLDB_MAX_LINE 10000
 FILE* rmldb_external_server_sock_file = NULL;
 int rmldb_external_server_sock = -1;
 int rmldb_external_server_sock_status = 0;
-/* void rmldb_open_socket(char* hostname, int port); */
-void rmldb_init_sockaddr (struct sockaddr_in *name, const char *hostname, int port);
 
 char rmldb_display_vars[RMLDB_MAX_DISPLAY_VARS][RMLDB_MAX_STRING];
 int rmldb_number_of_display_vars=0; /* of course, the number active display vars. */
@@ -165,12 +191,35 @@ int rmldb_range_incl(rmldb_range_db_t *r1, rmldb_range_db_t *r2)
 	return rmldb_range_cmp(r1,r2);
 }
 
+#if defined(__MINGW32__) /* ********** MINGW32 stuff ******/
+char* ttyname(int fd) 
+{
+	return rmldb_ttyname;
+}
+#endif
 /*
 this function inits the debugger
 */
 int rmldb_init(void)
 { 
 #ifdef RML_DEBUG
+
+#if defined(__MINGW32__) || defined(_MSC_VER)
+	/* initialize the socket library */
+    WSADATA info;
+    if (WSAStartup(MAKEWORD(2,0), &info)) 
+	{
+		if (rmldb_sock_debug) 
+			fprintf(stderr, "%s Error! WSAStartup failed: %s\n", 
+				RMLDB_PROMPT, 
+				strerror(rmldb_sock_errorno));
+    }
+
+#if defined(__MINGW32__)
+	signal (SIGINT, rmldb_use_quit);
+#endif
+	/* nothing to do on UNIX */
+#endif
 	char process_id[20];
 	snprintf(process_id, 20, "%d", getpid());
 	/* debug the damn parsers/lexers */
@@ -178,9 +227,9 @@ int rmldb_init(void)
 	/* aarmldbdebug = 1; */ 
 	if (rmldb_execution_startup_type == RMLDB_STEP)
 	{
-		printf("\nrmldb@> - RML debugger\n");
-		printf("rmldb@> - 2002-2005, PELAB/IDA/LiU, adrpo@ida.liu.se\n");  
-		printf("rmldb@> - debugging process %s \n", process_id);
+		printf("%s - Relational Meta-Language (RML) and MetaModelica (MMC) debugger\n", RMLDB_PROMPT);
+		printf("%s - Copyright 2002-2006, Adrian Pop [adrpo@ida.liu.se], PELAB/IDA/LiU\n", RMLDB_PROMPT);  
+		printf("%s - debugging process %s \n", RMLDB_PROMPT, process_id);
 	}
 	/* Readline support.  Set both application name and input file. */ 
 	rl_readline_name = RMLDB_PROMPT;
@@ -200,10 +249,10 @@ int rmldb_init(void)
 	else
 	{
 		if (rmldb_execution_startup_type == RMLDB_STEP)
-			printf("rmldb@> - on tty:%s \n", rmldb_ttyname);
+			printf("%s - on tty:%s \n", RMLDB_PROMPT, rmldb_ttyname);
 	}
 
-	signal (SIGINT, rmldb_use_quit);
+
 	using_history ();
 
 	/* initalize stuff */
@@ -245,9 +294,19 @@ adrpo 2002-10 creation
 int rmldb_end(void)
 {
 #ifdef RML_DEBUG
-	printf("\nrmldb@> - breaking just before exit\n");
+
+#if defined(__MINGW32__) || defined(_MSC_VER)
+	if(WSACleanup()) /* cleanup the socket library */
+		if (rmldb_sock_debug) 
+			fprintf(stderr, "%s Error! WSACleanup failed: %s\n", 
+				RMLDB_PROMPT, 
+				strerror(rmldb_sock_errorno));
+#endif
+	/*
+	printf("%s - breaking just before exit\n", RMLDB_PROMPT);
 	rmldb_parse();
-	printf("\nrmldb@> - handing the control to the runtime for exit\n");
+	*/
+	printf("%s - handing the control to the runtime for exit\n", RMLDB_PROMPT);
  #endif /* RML_DEBUG */
 }
 
@@ -291,6 +350,7 @@ void rmldb_show_help(void)
 	printf("Exiting the debugger/program:                    qu|quit|ex|exit|by|bye\n");
 	printf("Debugging/Undebugging the debugger parser:       dbgp|debugparse on|off {aadebug=1/0}\n");
 	printf("Debugging/Undebugging the rdb parser:            rdbdbgp|rdbdebugparse on|off {aarmldbdebug=1/0}\n");
+	printf("Debugging/Undebugging the socket sending:        dbgsock|debugsocket on|off\n");
 	printf("-------------------------------------------------------------------------------------\n");
 }
 
@@ -977,7 +1037,6 @@ void rmldb_set_output(char *outputFile)
 
 int rmldb_open_new_file ()
 {
-	struct stat buf;
 	int tty_file_descriptor = open(rmldb_ttyname, O_RDWR);
 	if (tty_file_descriptor == -1)
 	{
@@ -990,27 +1049,6 @@ int rmldb_open_new_file ()
 		fprintf(stderr, "fdopen aain failed: %s\n",
 			strerror(errno));
 	}
-	/*
-	if (!fflush(stdin))
-	{
-		fprintf(stderr, "fstat on stdin failed: %s\n",
-			strerror(errno));
-	}
-	*/
-	/*if (!ioctl(0, TIOCSCTTY, NULL))
-	{
-		ioctl(stderr, "fstat on stdin failed: %s\n",
-			strerror(errno));
-	}
-	if (!fstat(0, &buf))
-	{
-		fprintf(stderr, "fstat on stdin failed: %s\n",
-			strerror(errno));
-	}
-	/*if (!isatty(STDIN_FILENO)) return 0;*/
-	/*printf("Mumu here!");
-	getchar();*/
-	/* aain = stdin; */
 	/* Readline support.  Set both application name and input file. */ 
 	rl_readline_name = RMLDB_PROMPT;
 	rl_instream = aain;
@@ -1052,7 +1090,7 @@ int rmldb_parse(void)
 	{
 		while (aaparse() != 0) 
 		{
-			printf("rmldb@> - command error, showing help\n" );
+			printf("%s - command error, showing help\n", RMLDB_PROMPT);
 			rmldb_show_help();
 		}
 	}
@@ -2310,6 +2348,19 @@ void rmldb_var_show(void *p, rmldb_type_t* type, int depth)
 	}
 }
 
+void rmldb_init_sockaddr (struct sockaddr_in *name, const char *hostname, int port)
+{
+  struct hostent *hostinfo;
+  name->sin_family = AF_INET;
+  name->sin_port = htons (port);
+  hostinfo = gethostbyname (hostname);
+  if (hostinfo == NULL)
+  {
+      fprintf (stderr, "Unknown host %s.\n", hostname);
+      return;
+  }
+  name->sin_addr = *(struct in_addr *) hostinfo->h_addr;
+}
 
 void rmldb_open_socket(void)
 {
@@ -2318,41 +2369,62 @@ void rmldb_open_socket(void)
 	/* Create the socket. */
 	if (rmldb_external_server_sock_status) 
 	{
-		if (RMLDB_SOCK_DEBUG) fprintf(stderr, "\nSocket already opened!");
+		if (rmldb_sock_debug) 
+			fprintf(stderr, "%s Warning! Socket already opened. \n", 
+				RMLDB_PROMPT);
 		return;
 	}
 	rmldb_external_server_sock = socket (PF_INET, SOCK_STREAM, 0);
-	if (rmldb_external_server_sock < 0)
+	if (rmldb_external_server_sock == INVALID_SOCKET)
 	{
-		perror ("socket (client)");
+		if (rmldb_sock_debug) 
+			fprintf(stderr, "%s Error! socket opening failed: %s\n", 
+				RMLDB_PROMPT, 
+				strerror(rmldb_sock_errorno));
+		rmldb_external_server_sock_status = 0;
 		return;
 	}
 	struct sockaddr_in servername;
 	rmldb_init_sockaddr (&servername, hostname, port);
-	if (0 > connect (rmldb_external_server_sock, (struct sockaddr *) &servername, sizeof (servername)))
+	if (SOCKET_ERROR == connect (rmldb_external_server_sock, (struct sockaddr *) &servername, sizeof (servername)))
 	{
-		fprintf(stderr, "could not connect to the external viewer! is it started?\n");
+		if (rmldb_sock_debug) 
+			fprintf(stderr, "%s Error! socket connect failed: %s. Is the external viewer started?\n", 
+				RMLDB_PROMPT, 
+				strerror(rmldb_sock_errorno));
 		rmldb_external_server_sock_status = 0;
 		return;
 	} 
-	/* rmldb_external_server_sock_file = fdopen(rmldb_external_server_sock, "rw"); */
 	rmldb_external_server_sock_status = 1;
-	if (RMLDB_SOCK_DEBUG) fprintf(stderr, "\nSocket opened!");
+	if (rmldb_sock_debug) 
+		fprintf(stderr, "%s Info! socket opened and connected\n", 
+			RMLDB_PROMPT);
 }
 
 void rmldb_close_socket(void)
 {
+	int result;
 	if (rmldb_external_server_sock_status) 
 	{
 		rmldb_socket_outln("<.$STOP$.>");
 		rmldb_external_server_sock_status = 0;
-		/* fclose(rmldb_external_server_sock_file); */
-		close(rmldb_external_server_sock);
-		if (RMLDB_SOCK_DEBUG) fprintf(stderr, "\nSocket closed!\n");
+		result = rmldb_close_sock(rmldb_external_server_sock);
+		if (result == SOCKET_ERROR)
+		{
+			if (rmldb_sock_debug) 
+				fprintf(stderr, "%s Error! socket closing failed: %s.\n", 
+					RMLDB_PROMPT, 
+					strerror(rmldb_sock_errorno));
+		}
+		if (rmldb_sock_debug) 
+			fprintf(stderr, "%s Info! socket closed.\n", 
+				RMLDB_PROMPT);
 	}
 	else
 	{
-		if (RMLDB_SOCK_DEBUG) fprintf(stderr, "\nSocket already closed!\n");
+		if (rmldb_sock_debug) 
+			fprintf(stderr, "%s Warning! socket already closed.\n", 
+				RMLDB_PROMPT);
 	}
 }
 
@@ -2360,24 +2432,50 @@ void rmldb_socket_outln(char *msg)
 {
 	char buf[RMLDB_MAX_LINE+2];
 	int length = 0;
+	snprintf(buf, RMLDB_MAX_LINE, "%s\n", msg);
 	if (!rmldb_external_server_sock_status)	
 	{
-		if (RMLDB_SOCK_DEBUG) fprintf(stderr, "\nFailed sending: %s - socket closed", msg);
+		if (rmldb_sock_debug) 
+			fprintf(stderr, "%s Warning! socket is closed. Could not send: %s", 
+				RMLDB_PROMPT,
+				buf);
 		return;
 	}
-	snprintf(buf, RMLDB_MAX_LINE, "%s\n", msg);
-	if (RMLDB_SOCK_DEBUG) fprintf(stderr, "\nSending: %s", buf);
-	length = write(rmldb_external_server_sock, buf, strlen(buf));
-	if (length != strlen(buf))
-		rmldb_external_server_sock_status = 0;
-	if (!rmldb_external_server_sock_status) 
+	length = rmldb_send_sock(rmldb_external_server_sock, buf, strlen(buf));
+	if (length == SOCKET_ERROR)
 	{
-		if (RMLDB_SOCK_DEBUG) fprintf(stderr, "\nFailed sending: %s", buf);
+		if (rmldb_sock_debug) 
+			fprintf(stderr, "%s Error! socket send failed: %s. Could not send: %s", 
+				RMLDB_PROMPT,
+				strerror(rmldb_sock_errorno),
+				buf);
+		rmldb_external_server_sock_status = 0;
 		return;
 	}
-	length = read(rmldb_external_server_sock, buf, RMLDB_MAX_LINE);
+	if (length != strlen(buf))
+	{
+		rmldb_external_server_sock_status = 0;
+		return;
+	}
+	if (rmldb_sock_debug) 
+		fprintf(stderr, "%s Info! socket sent message: %s", 
+			RMLDB_PROMPT,
+			buf);
+	length = rmldb_recv_sock(rmldb_external_server_sock, buf, RMLDB_MAX_LINE);
+	if (length == SOCKET_ERROR)
+	{
+		if (rmldb_sock_debug) 
+			fprintf(stderr, "%s Error! socket recv message: %s", 
+				RMLDB_PROMPT,
+				strerror(rmldb_sock_errorno));
+		rmldb_external_server_sock_status = 0;
+		buf[0] = '\0';
+		return;
+	}
 	buf[length] = '\0';
-	if (RMLDB_SOCK_DEBUG) fprintf(stderr, "Server said: %s\n", buf);
+	if (rmldb_sock_debug) 
+		fprintf(stderr, "%s Info! socket recv message of acknowledge from server successfully\n", 
+			RMLDB_PROMPT);
 }
 
 void rmldb_socket_out(char *msg)
@@ -2385,34 +2483,35 @@ void rmldb_socket_out(char *msg)
 	int length = 0;
 	if (!rmldb_external_server_sock_status)
 	{
-		if (RMLDB_SOCK_DEBUG) fprintf(stderr, "\nFailed sending: %s - socket closed", msg);
+		if (rmldb_sock_debug) 
+			fprintf(stderr, "%s Warning! socket is closed. Could not send: %s\n", 
+				RMLDB_PROMPT,
+				msg);
 		return;
 	}
-	length = write(rmldb_external_server_sock, msg, strlen(msg));
-	if (length != strlen(msg))
-		rmldb_external_server_sock_status = 0;
-	if (!rmldb_external_server_sock_status) 
+	length = send(rmldb_external_server_sock, msg, strlen(msg), 0);
+	if (length == SOCKET_ERROR)
 	{
-		if (RMLDB_SOCK_DEBUG) fprintf(stderr, "\nFailed sending: %s", msg);
+		if (rmldb_sock_debug) 
+			fprintf(stderr, "%s Error! socket send failed: %s. Could not send: %s\n", 
+				RMLDB_PROMPT,
+				strerror(rmldb_sock_errorno),
+				msg);
+		rmldb_external_server_sock_status = 0;
 		return;
 	}
-	if (RMLDB_SOCK_DEBUG) fprintf(stderr, "\nSent: %s", msg);
+	if (length != strlen(msg))
+	{
+		rmldb_external_server_sock_status = 0;
+		return;
+	}
+	if (rmldb_sock_debug) 
+		fprintf(stderr, "%s Info! socket sent message: %s\n", 
+			RMLDB_PROMPT,
+			msg);
 }
 
 
-void rmldb_init_sockaddr (struct sockaddr_in *name, const char *hostname, int port)
-{
-  struct hostent *hostinfo;
-  name->sin_family = AF_INET;
-  name->sin_port = htons (port);
-  hostinfo = gethostbyname (hostname);
-  if (hostinfo == NULL)
-    {
-      fprintf (stderr, "Unknown host %s.\n", hostname);
-      return;
-    }
-  name->sin_addr = *(struct in_addr *) hostinfo->h_addr;
-}
 
 void rmldb_send_increment(int depth)
 {

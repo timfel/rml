@@ -87,9 +87,9 @@ functor LexArgSimpleFn(
     
 	exception ParseError
 	
-    fun errorMsg (lexarg as A{fileName,errFlag,thisLine,...}) (msg,_,_) =
+    fun errorMsg (lexarg as A{fileName,errFlag,currLine,...}) (msg,_,_) =
       (errFlag := true;
-       Util.bug (fileName^":"^(Int.toString(!thisLine))^"Error: "^msg);
+       Util.outStdErr (fileName^":"^(Int.toString(!currLine))^" Error: "^msg^"\n");
        raise ParseError)
        
     fun addImport (lexarg as A{imports,...}, import, left, right, visibility) =

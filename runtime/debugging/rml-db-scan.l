@@ -123,21 +123,21 @@ return T_MORE;
 
 <c_comment>
 {
-    "\*/\n"       {
+    "\*/\r\n"|"\*/\n"|"\*/\r" {
                     BEGIN(INITIAL);
                 }
     "/\*"       {
                      aarmldberror("Suspicious comment");
                 }
     [^\n]       /* Skip stuff in comments */
-    \n          /* Skip stuff in comments */
+	\r\n|\n|\r  { aarmldb_lineno++; }
     <<EOF>>     {
                      aarmldberror("Unterminated comment");
                      aarmldb_lineno = 1;
                      return T_EOF;
                  }
 }
-\n              { aarmldb_lineno++; return T_EOL; }
+\r\n|\n|\r      { aarmldb_lineno++; return T_EOL; }
 [ \t\r\010]+	{ /* Skip whitespace */ }
 <<EOF>>			{  aarmldb_lineno = 1; return T_EOF; }
 \/\/.*$         /* Skip single-line comment */

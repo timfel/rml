@@ -60,9 +60,23 @@ functor FrontEndFn(
     end
 
     (* instrument  *)
-    fun doInstrument(prefix, astModule) =
-       if !Control.doDebug then Instrument.instrument(prefix, astModule)
+    fun doInstrument(fileName, astModule) =
+       if !Control.doDebug 
+       then Instrument.instrument(fileName, astModule)
        else astModule
+       (* i don't think this is needed.
+       let 
+       val astModule = Instrument.instrument(fileName, astModule)
+	   val serializationFile = Control.getFileName(fileName, Control.SERIALIZATION_FILE)
+	   in 
+		 case Control.fileType fileName of
+			Control.MO_FILE (* we have to dump the serialization again as it was instrumented *)
+				=> Control.withOutput AbsynPersist.serializeModule astModule serializationFile
+		 |	_ => ();
+		astModule 
+       end
+       else astModule
+       *)
 
 	fun filterImportList(visibility,[]) = []
 	|	filterImportList(visibility,(str,v)::rest) = 

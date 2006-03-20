@@ -280,6 +280,11 @@ dbgp|debugparser {
 rdbdbgp|rdbdebugparser {
    return T_RDBDEBUGPARSER;
 }
+
+dbgsock|debugsocket {
+   return T_DEBUGSOCKET;
+}
+
 	  
 [ \t]+				{ /* Skip whitespace */ }
 

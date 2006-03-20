@@ -15,7 +15,7 @@ RML_BEGIN_LABEL(RML__debug)
     void *str = rmlA0;
     void *strrel = rmlA5; void *strgoal = rmlA6; 
     char s[RMLDB_MAX_STRING] = ""; 
-    snprintf(s, RMLDB_MAX_STRING, "%s:%d.%d.%d.%d relation[%s].goal[%s]", 
+    snprintf(s, RMLDB_MAX_STRING, "%s:%d.%d.%d.%d within[%s] -> [%s]", 
 				RML_STRINGDATA(str),		/* file */ 
 				RML_UNTAGFIXNUM(rmlA1),		/* start line */
 				RML_UNTAGFIXNUM(rmlA2),		/* start column */
@@ -52,7 +52,7 @@ RML_BEGIN_LABEL(RML__debug)
         rmldb_sprintf ("@%s", RML_STRINGDATA(strrel));
         rmldb_sprintf ("@%s", RML_STRINGDATA(strgoal));
         /* this is for emacs-mode */
-        snprintf(b, RMLDB_MAX_STRING, "\n@%s:%d.%d.%d.%d relation[%s].goal[%s]\n", 
+        snprintf(b, RMLDB_MAX_STRING, "\n@%s:%d.%d.%d.%d within[%s] -> [%s]\n", 
 				RML_STRINGDATA(str),		/* file */ 
 				RML_UNTAGFIXNUM(rmlA1),		/* start line */
 				RML_UNTAGFIXNUM(rmlA2),		/* start column */
@@ -123,7 +123,7 @@ RML_BEGIN_LABEL(RML__debug)
         rmldb_sprintf ("@%s", RML_STRINGDATA(strrel));
         rmldb_sprintf ("@%s", RML_STRINGDATA(strgoal));
         /* this is for emacs-mode */
-        snprintf(b, RMLDB_MAX_STRING, "\n@%s:%d.%d.%d.%d relation[%s].goal[%s]\n", 
+        snprintf(b, RMLDB_MAX_STRING, "\n@%s:%d.%d.%d.%d within[%s] -> [%s]\n", 
 				RML_STRINGDATA(str),		/* file */ 
 				RML_UNTAGFIXNUM(rmlA1),		/* start line */
 				RML_UNTAGFIXNUM(rmlA2),		/* start column */

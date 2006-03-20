@@ -16,7 +16,7 @@
 /************************************************************/
 /* this file will be included in the generated rml.h */
 /* adrpo some useful defines. */
-#define RMLDB_PROMPT "rmldb@>"
+#define RMLDB_PROMPT "rml+mmc db@>"
 #define RMLDB_RUN    0
 #define RMLDB_STEP   1
 #define RMLDB_NEXT   2
@@ -41,6 +41,7 @@
 #define RMLDB_MAX_DISPLAY_VARS 100
 
 /* adrpo - debugger global variables */ 
+extern int rmldb_sock_debug;
 extern int   rmldb_execution_type;
 extern int   rmldb_execution_startup_type;
 extern int   rmldb_show;

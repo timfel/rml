@@ -529,8 +529,8 @@ exp	(* expressions possibly starting with LPAREN *)
 		( Absyn.STRUCTexp(NONE, seq_exp, info) )
 	| LITexp LPAR literal SEMICOLON info RPAR
 		( Absyn.LITexp(literal, info) )
-	| CONexp LPAR longid SEMICOLON info RPAR
-		( Absyn.CONexp(longid, info) )
+	| CONexp LPAR longorshortid SEMICOLON info RPAR
+		( Absyn.CONexp(longorshortid, info) )
 	| IDENTexp LPAR longorshortid SEMICOLON REF LPAR exp RPAR SEMICOLON info RPAR
 		( Absyn.IDENTexp(longorshortid, ref exp, info) )
 

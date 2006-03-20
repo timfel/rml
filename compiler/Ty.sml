@@ -163,7 +163,16 @@ structure Ty : TY =
 				| [ty]	=> (printAtomicTypeOs(os, modid, ty); say1Os(os, #" "))
 				| _	=> (printTyseqOs(os, modid, tys); say1Os(os, #" "));
 				printTynameOs(os, modid, t))
-	    | NAMED(id_str, t) => (sayOs(os, id_str); sayOs(os, ":("); printTypeDispatchOs(os, modid, t, needParens); sayOs(os, ")"))
+	    | NAMED(id_str, t) => 
+			(
+			(* - do not dump the name of the type component
+			sayOs(os, id_str); sayOs(os, ":("); 
+			*) 
+			printTypeDispatchOs(os, modid, t, needParens)
+			(*; 
+			sayOs(os, ")")
+			*)
+			)
 
     fun printTypeOs(SOME(os), modid, ty) = (alphaCounter := ~1; printTypeNoParensOs(os, modid, ty))
       | printTypeOs(NONE, _, ty) = ()

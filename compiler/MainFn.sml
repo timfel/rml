@@ -151,39 +151,48 @@ functor MainFn(
 		|	NONE => ()
       end
 
-	fun help() =
+	fun helpBuiltin() =
 	(
-       sayErr "usage: rml [options] file.(rml|mo) ...\n";
-       sayErr "valid options are:\n";
-       sayErr "--\n";
-       sayErr "-E{no-,}ast\n";
-       sayErr "-E{no-,}cps\n";
-       sayErr "-E{no-,}fol\n";
-       sayErr "-E{no-,}rdb\n";
-       sayErr "-E{plain,diff,mask,sml}\n";
-       sayErr "-f{no-,}implicit-let\n";
-       sayErr "-f{,no-}reorder\n";
-       sayErr "-fswitch-rewrite-threshold=<integer>\n";
-       sayErr "-f{,no-}typecheck-only\n";
-       sayErr "-f{,no-}trace\n";
-       sayErr "-f{,no-}debug\n";
-       sayErr "-f{,no-}qualified-rdb\n";
-       sayErr "-f{,no-}rdb-only\n";
-       sayErr "-fdump-interface\n";
-       sayErr "-fdump-depends\n";
-       sayErr "-O\n";
-       sayErr "-O0\n";
-       sayErr "-O{,no-}code\n";
-       sayErr "-O{,no-}cps\n";
-       sayErr "-O{,no-}fol\n";
-       sayErr "-i\n";
-       sayErr "-v\n";
-       sayErr "-W{no-,}non-exhaustive\n";
-       sayErr "-help|--help|-h\n"
+       sayErr "defined builtin relations/functions are:\n";	
+       sayErr "print(string) => ()\n";
+       sayErr "[more to come here later; i was lazy]\n"
     )
 
-    fun usage badarg = (* check the compiler line arguments (parameters) *)
-      (sayErr("rml: invalid argument '" ^ badarg ^ "'\n");
+	fun help() =
+	(
+       sayErr "usage: rml [options] file1.(rml|mo) ... fileN.(rml|mo)\n";
+       sayErr "NOTE: you cannot mix .rml files with .mo files when given multiple files\n";       
+       sayErr "valid options are:\n";
+       sayErr "--\n";
+       sayErr "-E{no-}ast\n  do {not} dump the ast representation to file.ast; default to 'no'\n";
+       sayErr "-E{no-}cps\n  do {not} dump the cps representation to file.cps; default to 'no'\n";
+       sayErr "-E{no-}fol\n  do {not} dump the fol representation to file.fol and file.optim.fol; default to 'no'\n";
+       sayErr "-E{no-}rdb\n  do {not} dump the program database representation to file.rdb; default to 'no'; activated when -fdebug is used\n";
+       sayErr "-E{plain,diff,mask,sml}\n  generates code for the specified runtime; default to 'plain'\n";
+       sayErr "-f{no-}implicit-let\n  should implicit let be allowed? x = y instead of let x = y; x shoud be unbound; default to 'no'\n";
+       sayErr "-f{no-}reorder\n  should a reorder phase be applied after parsing? default to 'yes'\n";
+       sayErr "-fswitch-rewrite-threshold=<integer>\n  if there are less than <integer> cases in a switch rewrite to if; default to '3'\n";
+       sayErr "-f{no-}typecheck-only\n  only perform typecheck and do not generate code; default to 'no'\n";
+       sayErr "-f{no-}trace\n  generate code to print all calls to the standard error; NOTE: could be very large; default to 'no'\n";
+       sayErr "-f{no-}debug\n  generate debugging code\n";
+       sayErr "-f{no-}qualified-rdb\n  do {not} dump the qualified program database representation to file.rdb; default to 'no'\n";
+       sayErr "-f{no-}rdb-only\n  just dump the program database to file.rdb; also -fqualified-rdb and -ftypecheck-only are activated; default to 'no'\n";
+       sayErr "-W{no-}non-exhaustive\n  warn of non-exhaustive pattern matching; default to 'no'\n";
+       sayErr "-fdump-interface\n  dump the interface to the standard output\n";
+       sayErr "-fdump-depends\n  dump the dependencies to the standard output\n";
+       sayErr "-O\n  enable all optimizations; default to 'yes'\n";
+       sayErr "-O0\n  disable all optimizations; default to 'no'\n";
+       sayErr "-O{,no-}code\n  enable the optimization of code; default to 'yes'\n";
+       sayErr "-O{,no-}cps\n  enable the optimization of cps; default to 'yes'\n";
+       sayErr "-O{,no-}fol\n  enable the optimization of fol; default to 'yes'\n";
+       sayErr "-i\n  generate a SML interpreter\n";
+       sayErr "-v\n  print the version and exit\n";
+       sayErr "-builtin\n  print the defined builtin relations/functions and exit\n";
+       sayErr "-help|--help|-h\n  print the help and exit\n"
+    )
+
+    fun usage msg = (* check the compiler line arguments (parameters) *)
+      (sayErr(msg);
        help();
        Util.error "Usage")
     
@@ -264,9 +273,10 @@ functor MainFn(
 		  *)	  
 		)		
 	 | "-v" => version()
-	 | "--help" => usage arg
-	 | "-help"  => usage arg
-	 | "-h"     => usage arg
+	 | "-builtin" => helpBuiltin()
+	 | "--help" => help()
+	 | "-help"  => help()
+	 | "-h"     => help()
 	 | _ =>
 	    let val size = String.size arg
 		val srtPfx = "-fswitch-rewrite-threshold="
@@ -276,8 +286,8 @@ functor MainFn(
 		 String.substring(arg,0,srtPfxSize) = srtPfx then
 		case Int.fromString(String.substring(arg,srtPfxSize,size-srtPfxSize))
 		  of SOME i => Control.switchRewriteThreshold := i
-		   | NONE => usage arg
-	      else usage arg
+		   | NONE => usage("rml: invalid argument '" ^ arg ^ "'\n")
+	      else usage("rml: invalid argument '" ^ arg ^ "'\n")
 	    end
 
     (* function that processes a rml file (compilation) *)
@@ -288,15 +298,23 @@ functor MainFn(
 	      case (Control.fileType arg) of 
 				Control.RML_FILE => 
 				(
+				case (!Control.currentlyCompiling) of
+					Control.RML_FILE => ()
+				|	Control.UNKNOWN_FILE => ()
+				|	_ => usage("rml: invalid argument '" ^ arg ^ "'. You cannot mix .rml and .mo files\n");
 				Control.currentlyCompiling := Control.RML_FILE;
 				translate (Control.pathSplit arg)
 				)
 		  |		Control.MO_FILE  => 
 				(
+				case (!Control.currentlyCompiling) of
+					Control.MO_FILE => ()
+				|	Control.UNKNOWN_FILE => ()
+				|	_ => usage("rml: invalid argument '" ^ arg ^ "'. You cannot mix .rml and .mo files\n");
 				Control.currentlyCompiling := Control.MO_FILE;				
 				translate (Control.pathSplit arg)
 				)
-		  |		_ => usage arg
+		  |		_ => usage("rml: invalid argument '" ^ arg ^ "'\n")
       in
 		List.app process argv
       end
@@ -326,13 +344,29 @@ functor MainFn(
 		if String.sub(arg, 0) = #"-" then
 		  (option arg; loop(argv, prefixes))
 		else
-		  let val {base,ext} = OS.Path.splitBaseExt arg
-		  in
-		    case ext
-		      of SOME "rml" => loop(argv, (base,ext)::prefixes)
-		      |  SOME "mo"  => loop(argv, (base,ext)::prefixes)
-		      | _ => usage arg
-		  end
+		let val (base,ext) = Control.pathSplit(arg)
+		in
+	      case (Control.fileType arg) of 
+				Control.RML_FILE => 
+				(
+				case (!Control.currentlyCompiling) of
+					Control.RML_FILE => ()
+				|	Control.UNKNOWN_FILE => ()
+				|	_ => usage("rml: invalid argument '" ^ arg ^ "'. You cannot mix .rml and .mo files\n");
+				Control.currentlyCompiling := Control.RML_FILE;
+				loop(argv, (base,ext)::prefixes)
+				)
+		  |		Control.MO_FILE  => 
+				(
+				case (!Control.currentlyCompiling) of
+					Control.MO_FILE => ()
+				|	Control.UNKNOWN_FILE => ()
+				|	_ => usage("rml: invalid argument '" ^ arg ^ "'. You cannot mix .rml and .mo files\n");
+				Control.currentlyCompiling := Control.MO_FILE;
+				loop(argv, (base,ext)::prefixes)
+				)
+		  |		_ => usage("rml: invalid argument '" ^ arg ^ "'\n")
+	  end
       in
 		loop(argv, [])
       end
@@ -341,7 +375,6 @@ functor MainFn(
     fun main argv =
       let fun loop("-i"::argv) = interpreter argv
 	    | loop("-v"::argv) = (version(); loop argv)
-	    (* | loop("-dep"::argv) = dependency argv *)
 	    | loop argv = compiler argv
       in
 	    loop argv

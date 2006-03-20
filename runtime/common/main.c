@@ -7,6 +7,23 @@
 #include <stdlib.h>
 #include "rml.h"
 
+void rml_show_help(char *program, FILE* file)
+{
+	fprintf(file, "Usage: %s [runtime_options] program_options\n", program);
+	fprintf(file, "where [runtime_options] are:\n");
+	fprintf(file, "-log               prints runtime log information at the program exit\n");
+	fprintf(file, "-gcag              prints garbage collector log information at the program exit\n");
+	fprintf(file, "-bench             prints running time and other log information at the program exit\n");
+	fprintf(file, "-no-stack-check    instructs the runtime no to check for stack overflow\n");
+	fprintf(file, "-stack-size <size> instructs the runtime to alloc a stack of specified size\n");
+	fprintf(file, "-young-size <size> instructs the runtime to alloc a young size of specified size\n");
+	fprintf(file, "-debugrun          do not ask for commands when the program starts; sets the execution type to 'run'\n");
+	fprintf(file, "-debugfast         do not ask for commands when the program starts; sets the execution type to 'fast'\n");
+	fprintf(file, "-debugcalls        dumps all the calls to standard output; NOTE: can be very large\n");
+	fprintf(file, "-debugall          dumps all the calls and the values of variables to standard output; NOTE: can be extremly large\n");
+	fprintf(file, "-help              prints the help and exits\n");
+}
+
 static void rml_prim_argv(int argc, char **argv)
 {
 #if	defined(RML_STATE_APTR) || defined(RML_STATE_LPTR)
@@ -55,6 +72,7 @@ static unsigned long my_atoul(const char *nptr)
 
 int main(int argc, char **argv)
 {
+	char* program = argv[0];
 #ifdef RML_DEBUG
 	rmldb_execution_startup_type = RMLDB_STEP;
 #endif /* RML_DEBUG */
@@ -112,20 +130,28 @@ int main(int argc, char **argv)
 	    rmldb_execution_startup_type = RMLDB_TRACE_ALL;
         #endif /* RML_DEBUG */
 	    continue;
+	} else if( strcmp(arg, "help") == 0 ) {
+		rml_show_help(program, stdout);
+	    rml_exit(0);
 	} else if( strcmp(arg, "-") == 0 ) {
 	    break;
 	} else {
 	    fprintf(stderr, "Illegal argument: -%s\n", arg);
+		rml_show_help(program, stderr);
 	    rml_exit(1);
 	}
     }
     Main_5finit();
     rml_prim_argv(argc, argv);
-    if( rml_prim_once(RML_LABPTR(Main__main)) == 0 ) {
-	fprintf(stderr, "Execution failed!\n");
-	rml_exit(1);
-    } else
-	rml_exit(0);
+    if( rml_prim_once(RML_LABPTR(Main__main)) == 0 ) 
+	{
+        #ifdef RML_DEBUG
+		  rmldb_end(); /* cleanup the debugger */
+        #endif /* RML_DEBUG */
+		fprintf(stderr, "Execution failed!\n");
+		rml_exit(1);
+    } 
+	else rml_exit(0);
     /*NOTREACHED*/
     return 1;
 }

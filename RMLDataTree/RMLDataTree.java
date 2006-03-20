@@ -513,7 +513,7 @@ public class RMLDataTree extends JPanel implements TreeSelectionListener
 			 * depth|vName|vType|vFile|sl.sc.el.ec
 			 * false|bool|RML|0.0.0.0
 			 * true|bool|RML|0.0.0.0"
-			 * number:enum:DCONSTRUCTOR|TYPE|FILE|%d.%d.%d.%d 
+			 * number:enumer:DCONSTRUCTOR|TYPE|FILE|%d.%d.%d.%d 
 			 * int|int|RML|0.0.0.0
 			 * pointer:function (same module)|TYPE|RML|0.0.0.0
 			 * %f|real|RML|0.0.0.0
@@ -690,7 +690,7 @@ public class RMLDataTree extends JPanel implements TreeSelectionListener
 						  da<tatype constructor>,
 						  tu<ple>,
 						  li<st>,
-						  en<enum>,
+						  en<enumer>,
 						  op<option>,
 						  lv<ar>,
 						  re<al>,
@@ -825,10 +825,10 @@ public class RMLDataTree extends JPanel implements TreeSelectionListener
 	{
 		ArrayList expandedPaths = new ArrayList();
 		TreePath rootPath = new TreePath(tree.getModel().getRoot());
-		Enumeration enum = tree.getExpandedDescendants(rootPath);
-		if(enum != null)
-			while(enum.hasMoreElements())
-				expandedPaths.add(enum.nextElement());
+		Enumeration enumer = tree.getExpandedDescendants(rootPath);
+		if(enumer != null)
+			while(enumer.hasMoreElements())
+				expandedPaths.add(enumer.nextElement());
 		TreePath[] array = new TreePath[expandedPaths.size()];
 		expandedPaths.toArray(array);
 		return array;

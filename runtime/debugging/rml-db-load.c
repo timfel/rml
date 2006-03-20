@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2002-2005 by Adrian Pop
+Copyright (c) 2002-2006 by Adrian Pop
 
 Permission to use, copy, modify, and distribute this software and
 its documentation for NON-COMMERCIAL purposes and without fee is hereby 

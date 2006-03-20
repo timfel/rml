@@ -643,10 +643,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\PlainToCFn_old.sml"
-				>
-			</File>
-			<File
 				RelativePath=".\PMC.sig"
 				>
 			</File>
@@ -700,10 +696,6 @@
 			</File>
 			<File
 				RelativePath=".\ReorderSCC.sml"
-				>
-			</File>
-			<File
-				RelativePath=".\ReorderSCC_old.sml"
 				>
 			</File>
 			<File
@@ -967,6 +959,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\call-main.sml"
+				>
+			</File>
+			<File
 				RelativePath=".\MainMLton.sml"
 				>
 			</File>
@@ -975,11 +971,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\RML.mlb"
+				RelativePath=".\mlton_make_lex_grm.bat"
 				>
 			</File>
 			<File
-				RelativePath=".\rml_lex_grm.bat"
+				RelativePath=".\RML.mlb"
 				>
 			</File>
 			<File

@@ -6,7 +6,7 @@
 RML COPYRIGHT NOTICE, LICENSE AND DISCLAIMER.
 
 ------------------------------------------------------------------------
-Portions Copyright (c) 2002-2005 by Adrian Pop
+Portions Copyright (c) 2002-2006 by Adrian Pop
 (Versions above rml-2.1.8)
 
 Permission to use, copy, modify, and distribute this software and

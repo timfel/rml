@@ -16,8 +16,9 @@ functor StartFn(structure SysDep  : SYSDEP) : START =
       SysDep.handleInterrupt(main, argv);	  
       OS.Process.success
       )
-      handle SysDep.Interrupt => (sayErr "Interrupt\n"; OS.Process.failure)
-	   | exn => (sayErr "Error: "; sayErr(General.exnMessage exn);
+      handle 
+			SysDep.Interrupt => (sayErr "Interrupt\n"; OS.Process.failure)
+	   |	exn => (sayErr "Error: "; sayErr(General.exnMessage exn);
 		     sayErr "\n"; OS.Process.failure)
   end (* functor StartFn *)
 

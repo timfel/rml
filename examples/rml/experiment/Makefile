@@ -1,9 +1,9 @@
 include ../../../config.cache
 
 GOROOT=../../..
-LDLIBS=-lfl
+LDLIBS=-lfl -lreadline -ltermcap
 CLEAN=calc calc.exe $(CALCOBJS) main.c main.h *~ *.rdb *.fol *.ast *.cps *.exe *.stackdump 
-RMLCFLAGS=#-g -Wr,-East,-Ecps,-Efol
+RMLCFLAGS=-g -Wr,-East,-Ecps,-Efol
 
 # EVERYTHING
 all:	calc

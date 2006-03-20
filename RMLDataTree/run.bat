@@ -1,2 +1,2 @@
-javaw -classpath . RMLDataTree c:/bin/cygwin/home/adrpo/rml-2.2/examples/exp1/
+java -classpath . RMLDataTree c:/bin/cygwin/home/adrpo/dev/OpenModelica/Compiler/
 pause
