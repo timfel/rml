@@ -300,8 +300,8 @@ extern void rmldb_relation_db_add(
 
 /* program database stream */
 #ifdef RML_DEBUG
-#include <stdio.h>
-extern FILE* aarmldbin; /* the stream we need to parse from the rmldebugger */
+  #include <stdio.h>
+  extern FILE* aarmldbin; /* the stream we need to parse from the rmldebugger */
 #endif
 extern int   aarmldberror(char*);
 extern int   aarmldbparse(void);

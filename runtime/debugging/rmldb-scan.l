@@ -1,11 +1,11 @@
 %{
 
 #include "rmldb-parse.h"
+#include <string.h>
 
 #ifdef RML_DEBUG
 
 #include <stdlib.h>
-#include <string.h>
 #include <stdio.h>
 #include <errno.h>
 #include <readline/readline.h>
@@ -16,11 +16,11 @@
    does nothing! */
 
 #ifndef _PROTOTYPE
-#ifdef __STDC__
-#define _PROTOTYPE(func, args) func args
-#else
-#define _PROTOTYPE(func, args) func()
-#endif
+ #ifdef __STDC__
+  #define _PROTOTYPE(func, args) func args
+ #else
+  #define _PROTOTYPE(func, args) func()
+ #endif
 #endif
 
 #ifdef SMALL_BUF
@@ -112,9 +112,64 @@ rl_input (buf, result, max)
 }
 
 /* --- readline end */
-/* %option always-interactive */
 
 #endif /* RML_DEBUG */
+
+/* 
+this one tells the lexer if the 
+parser expects an identifier next
+*/
+extern int rmldb_expect_identifier;
+
+static struct rmldb_keyword
+{
+	char *names; /* names are separated by '|' */
+	int   tok;
+} 
+rmldb_keywords[] =
+{
+	{ "br|break|breakpoint",	T_BREAKPOINT				},
+	{ "de|depth",				T_DEPTH						},
+	{ "mx|maxstring",			T_MAXSTR					},
+	{ "sh|show",				T_SHOW						},
+	{ "on",						T_ON						},
+	{ "off",					T_OFF						},
+	{ "set",					T_SET						},
+	{ "sg|settings",			T_SETTINGS					},
+	{ "st|step",				T_STEP						},
+	{ "ne|next",				T_NEXT						},
+	{ "ru|run",					T_RUN						},
+	{ "bt|backtrace",			T_BACKTRACE					},
+	{ "fbt|fbacktrace",			T_FILTERED_BACKTRACE		},
+	{ "gbt|graphbacktrace",		T_GRAPH_BACKTRACE			},
+	{ "gfbt|graphfbacktrace",	T_GRAPH_FILTERED_BACKTRACE	},
+	{ "mb|maxbacktrace",		T_MAXBT						},
+	{ "ca|callchain",			T_CALLCHAIN					},
+	{ "fca|fcallchain",			T_FILTERED_CALLCHAIN		},
+	{ "gca|graphcallchain",		T_GRAPH_CALLCHAIN			},
+	{ "gfca|graphfcallchain",	T_GRAPH_FILTERED_CALLCHAIN	},
+	{ "mc|maxcallchain",		T_MAXCALLCHAIN				},
+	{ "gc|graphcallchain",		T_GRAPH_CALLCHAIN			},
+	{ "he|help",				T_HELP						},
+	{ "qu|quit|ex|exit|by|bye",	T_QUIT						},
+	{ "cl|clear",				T_CLEAR						},
+	{ "sts|stat|status",		T_STATUS					},
+	{ "ou|output",				T_OUTPUT					},
+	{ "pr|print",				T_PRINT						},
+	{ "pty|printtype",			T_PRINT_TYPE				},
+	{ "li|live|livevars",		T_LIVEVARS					},
+	{ "sz|size|sizeof",			T_SIZEOF					},
+	{ "di|display",				T_DISPLAY					},
+	{ "ud|undisplay",			T_UNDISPLAY					},
+	{ "gr|graph",				T_GRAPH						},
+	{ "fa|fast",				T_FAST						},
+	{ "dbgp|debugparser",		T_DEBUGPARSER				},
+	{ "rdbdbgp|rdbdebugparser",	T_RDBDEBUGPARSER			},
+	{ "dbgsock|debugsocket",	T_DEBUGSOCKET				},
+	{ 0,						0							}
+};
+
+/* %option always-interactive */
 
 %}
 
@@ -128,173 +183,65 @@ rl_input (buf, result, max)
 DIGIT	[0-9]
 %%
 
-br|break|breakpoint {
-	return T_BREAKPOINT;
-}
-
-de|depth {
-	return T_DEPTH;
-}
-
-ms|maxstring {
-	return T_MAXSTR;
-}
-
-sh|show {
-	return T_SHOW;
-}
-
-on {
-	return T_ON;
-}
-
-off {
-	return T_OFF;
-}
-
-set {
-	return T_SET;
-}
-
-sg|settings {
-	return T_SETTINGS;
-}
-
-st|step {
-	return T_STEP;
-}
-
-ne|next {
-	return T_NEXT;
-}
-				
-ru|run {
-	return T_RUN;
-}
-
-bt|backtrace {
-	return T_BACKTRACE;
-}
-
-fbt|fbacktrace {
-	return T_FILTERED_BACKTRACE;
-}								
-
-gbt|graphbacktrace {
-	return T_GRAPH_BACKTRACE;
-}
-
-gfbt|graphfbacktrace {
-	return T_GRAPH_FILTERED_BACKTRACE;
-}								
-
-mb|maxbacktrace {
-	return T_MAXBT;
-}
-
-ca|callchain {
-	return T_CALLCHAIN;
-}
-
-fca|fcallchain {
-	return T_FILTERED_CALLCHAIN;
-}								
-
-gca|graphcallchain {
-	return T_GRAPH_CALLCHAIN;
-}
-
-gfca|graphfcallchain {
-	return T_GRAPH_FILTERED_CALLCHAIN;
-}								
-
-mc|maxcallchain {
-	return T_MAXCALLCHAIN;
-}
-
-gc|graphcallchain
-{
-	return T_GRAPH_CALLCHAIN;
-}
-
-he|help {
-	return T_HELP;
-}
-
-end {
-	return T_END;
-}
-				
-qu|quit|ex|exit|by|bye {
-	return T_QUIT;
-}
-
-cl|clear {
-	return T_CLEAR;
-}
-
-sts|stat|status {
-	return T_STATUS;
-}
-
-ou|output {
-	return T_OUTPUT;
-}
-				
-pr|print {
-	return T_PRINT;
-}
-
-pty|printtype {
-	return T_PRINT_TYPE;
-}
-		
-li|live|livevars {
-	return T_LIVEVARS;
-}
-
-sz|size|sizeof	{
-	return T_SIZEOF;
-}
-
-di|display	{
-	return T_DISPLAY;
-}
-
-ud|undisplay {
-	return T_UNDISPLAY;
-}
-
-gr|graph {
-	return T_GRAPH;
-}
-
-fa|fast {
-   return T_FAST;
-}
-
-dbgp|debugparser {
-   return T_DEBUGPARSER;
-}
-
-rdbdbgp|rdbdebugparser {
-   return T_RDBDEBUGPARSER;
-}
-
-dbgsock|debugsocket {
-   return T_DEBUGSOCKET;
-}
 
 	  
 [ \t]+				{ /* Skip whitespace */ }
 
 [[:alnum:]|"."|":"|"'"|"_"|[:graph:]|[:punct:]]* { 
-	aalval.id = (char*)malloc(strlen(aatext)+1);
+	/* 
+	check for rmldb_keywords here. we need to do this because we 
+	want to have variable names as rmldb_keywords 
+	*/
+	int tok = T_ID, i = 0;
+	for( i = 0; rmldb_keywords[i].names; ++i ) 
+	{
+		/* first try a direct comparison */
+		if (strcmp(aatext, rmldb_keywords[i].names) == 0) 
+		{
+			tok = rmldb_keywords[i].tok; 
+			break;
+		}
+		else /* try the tokens */
+		{
+			char* token = strtok(rmldb_keywords[i].names,"|");
+			if (strcmp(aatext, token) == 0) 
+			{
+				tok = rmldb_keywords[i].tok; 
+				break;
+			}
+			while (token = strtok(NULL, "|"))
+			{
+				if (strcmp(aatext, token) == 0) 
+				{
+					tok = rmldb_keywords[i].tok; 
+					break;
+				}
+			}
+		}
+	}
+	if (tok == T_ID) /* there was no keyword, return the id */
+	{
+		aalval.id = (char*)malloc(strlen(aatext)+1);
 #ifdef RML_DEBUG
-	if (aadebug) printf("FLEX:[ID:%s]",aatext); 
+		if (aadebug) printf("FLEX:[ID:%s]", aatext); 
 #endif
-	strcpy(aalval.id, aatext); 
-	return T_ID; 
+		strcpy(aalval.id, aatext); 
+		return T_ID; 
+	}
+	else /* was a keyword, let's do some tests */
+	{
+		if (rmldb_expect_identifier) /* is the parser expecting an identifer? */
+		{
+			aalval.id = (char*)malloc(strlen(aatext)+1);
+	#ifdef RML_DEBUG
+			if (aadebug) printf("FLEX:[ID:%s]", aatext); 
+	#endif
+			strcpy(aalval.id, aatext); 
+			return T_ID; 
+		}
+		return tok;
+	}
+	
 }
 
 \n              { return T_EOL; }

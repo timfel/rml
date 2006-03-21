@@ -307,7 +307,7 @@ int rmldb_end(void)
 	rmldb_parse();
 	*/
 	printf("%s - handing the control to the runtime for exit\n", RMLDB_PROMPT);
- #endif /* RML_DEBUG */
+#endif /* RML_DEBUG */
 }
 
 void rmldb_show_help(void)

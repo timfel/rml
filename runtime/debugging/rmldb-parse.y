@@ -1,15 +1,28 @@
 %{
 
 #include "rml.h"
+#include <string.h>
+#include <stdlib.h>
 
 extern int aalex(void);
+#define FALSE 0
+#define TRUE  1
+/* 
+this one tells the lexer if the 
+parser expects an identifier next
+*/
+int rmldb_expect_identifier = FALSE;
+
 
 #define YYDEBUG 1
-#define YYERROR_VERBOSE                  /* Have this defined to give better
-                                            error messages. Using it causes
-					    some bison warnings at compiler
-					    compile time, however. Use as you
-					    wish. Not mandatory. */
+/* 
+Have this defined to give better
+error messages. Using it causes
+some bison warnings at compiler
+compile time, however. Use as you
+wish. Not mandatory. */
+#define YYERROR_VERBOSE
+                  
 %}
 
 
@@ -33,7 +46,7 @@ extern int aalex(void);
    (hint: maybe $$ has the type YYSTYPE?). */
 %token T_EOF T_ERROR T_EOL T_HELP 
 %token T_BREAKPOINT T_SET T_SETTINGS T_RUN T_STEP T_CLEAR 
-%token T_QUIT T_ON T_OFF T_DEPTH T_SHOW T_STATUS T_END T_DEBUGPARSER T_RDBDEBUGPARSER T_DEBUGSOCKET
+%token T_QUIT T_ON T_OFF T_DEPTH T_SHOW T_STATUS T_DEBUGPARSER T_RDBDEBUGPARSER T_DEBUGSOCKET
 %token T_OUTPUT T_LIVEVARS T_PRINT T_SIZEOF T_DISPLAY T_UNDISPLAY T_GRAPH T_FAST
 %token T_MAXBT T_BACKTRACE T_FILTERED_BACKTRACE
 %token T_GRAPH_BACKTRACE T_GRAPH_FILTERED_BACKTRACE
@@ -46,18 +59,20 @@ extern int aalex(void);
 %%
 
 command:  
-T_BREAKPOINT T_ON T_ID T_EOL
+T_BREAKPOINT T_ON { rmldb_expect_identifier = TRUE; } T_ID T_EOL
 {
 #ifdef RML_DEBUG
+  rmldb_expect_identifier = FALSE; 
   /* set On the filter on this relation */
   rmldb_add_relation_filter(aalval.id);
   rmldb_last_command = RMLDB_REPEAT_PARSE;
 #endif /* RML_DEBUG */
   YYACCEPT;
 }
-| T_BREAKPOINT T_OFF T_ID T_EOL
+| T_BREAKPOINT T_OFF { rmldb_expect_identifier = TRUE; } T_ID T_EOL
 {
 #ifdef RML_DEBUG
+  rmldb_expect_identifier = FALSE;
   /* set Off the filter on this relation */
   rmldb_del_relation_filter(aalval.id);
   rmldb_last_command = RMLDB_REPEAT_PARSE;
@@ -123,9 +138,10 @@ T_BREAKPOINT T_ON T_ID T_EOL
 #endif /* RML_DEBUG */
   YYACCEPT;
 }
-| T_FILTERED_BACKTRACE T_ID T_EOL
+| T_FILTERED_BACKTRACE { rmldb_expect_identifier = TRUE; } T_ID T_EOL
 {
 #ifdef RML_DEBUG
+  rmldb_expect_identifier = FALSE;
   rmldb_backtrace_print(aalval.id);
   rmldb_last_command = RMLDB_REPEAT_PARSE;
 #endif /* RML_DEBUG */
@@ -139,25 +155,28 @@ T_BREAKPOINT T_ON T_ID T_EOL
 #endif /* RML_DEBUG */
   YYACCEPT;
 }
-| T_GRAPH_FILTERED_BACKTRACE T_ID T_EOL
+| T_GRAPH_FILTERED_BACKTRACE { rmldb_expect_identifier = TRUE; } T_ID T_EOL
 {
 #ifdef RML_DEBUG
+  rmldb_expect_identifier = FALSE;
   rmldb_backtrace_send(aalval.id);
   rmldb_last_command = RMLDB_REPEAT_PARSE;
 #endif /* RML_DEBUG */
   YYACCEPT;   
 }
-| T_SET T_MAXBT T_ID T_EOL
+| T_SET T_MAXBT { rmldb_expect_identifier = TRUE; } T_ID T_EOL
 {
 #ifdef RML_DEBUG
+  rmldb_expect_identifier = FALSE;
   rmldb_set_max_backtrace(aalval.id);
   rmldb_last_command = RMLDB_REPEAT_PARSE;
 #endif /* RML_DEBUG */
   YYACCEPT;
 }
-| T_MAXBT T_ID T_EOL
+| T_MAXBT { rmldb_expect_identifier = TRUE; } T_ID T_EOL
 {
 #ifdef RML_DEBUG
+  rmldb_expect_identifier = FALSE;
   rmldb_set_max_backtrace(aalval.id);
   rmldb_last_command = RMLDB_REPEAT_PARSE;
 #endif /* RML_DEBUG */
@@ -171,9 +190,10 @@ T_BREAKPOINT T_ON T_ID T_EOL
 #endif /* RML_DEBUG */
   YYACCEPT;
 }
-| T_FILTERED_CALLCHAIN T_ID T_EOL
+| T_FILTERED_CALLCHAIN { rmldb_expect_identifier = TRUE; } T_ID T_EOL
 {
 #ifdef RML_DEBUG
+  rmldb_expect_identifier = FALSE;
   rmldb_callchain_print(aalval.id);
   rmldb_last_command = RMLDB_REPEAT_PARSE;
 #endif /* RML_DEBUG */
@@ -187,25 +207,28 @@ T_BREAKPOINT T_ON T_ID T_EOL
 #endif /* RML_DEBUG */
   YYACCEPT;
 }
-| T_GRAPH_FILTERED_CALLCHAIN T_ID T_EOL
+| T_GRAPH_FILTERED_CALLCHAIN { rmldb_expect_identifier = TRUE; } T_ID T_EOL
 {
 #ifdef RML_DEBUG
+  rmldb_expect_identifier = FALSE;
   rmldb_callchain_send(aalval.id);
   rmldb_last_command = RMLDB_REPEAT_PARSE;
 #endif /* RML_DEBUG */
   YYACCEPT;   
 }
-| T_SET T_MAXCALLCHAIN T_ID T_EOL
+| T_SET T_MAXCALLCHAIN { rmldb_expect_identifier = TRUE; } T_ID T_EOL
 {
 #ifdef RML_DEBUG
+  rmldb_expect_identifier = FALSE; 
   rmldb_set_max_callchain(aalval.id);
   rmldb_last_command = RMLDB_REPEAT_PARSE;
 #endif /* RML_DEBUG */
   YYACCEPT;
 }
-| T_MAXCALLCHAIN T_ID T_EOL
+| T_MAXCALLCHAIN { rmldb_expect_identifier = TRUE; } T_ID T_EOL
 {
 #ifdef RML_DEBUG
+  rmldb_expect_identifier = FALSE;
   rmldb_set_max_callchain(aalval.id);
   rmldb_last_command = RMLDB_REPEAT_PARSE;
 #endif /* RML_DEBUG */
@@ -227,33 +250,37 @@ T_BREAKPOINT T_ON T_ID T_EOL
 #endif /* RML_DEBUG */
   rml_exit(2);
 }
-| T_SET T_DEPTH T_ID T_EOL
+| T_SET T_DEPTH { rmldb_expect_identifier = TRUE; } T_ID T_EOL
 {
 #ifdef RML_DEBUG
+  rmldb_expect_identifier = FALSE;
   rmldb_set_depth(aalval.id);
   rmldb_last_command = RMLDB_REPEAT_PARSE;
 #endif /* RML_DEBUG */
   YYACCEPT;
 }
-| T_DEPTH T_ID T_EOL
+| T_DEPTH { rmldb_expect_identifier = TRUE; } T_ID T_EOL
 {
 #ifdef RML_DEBUG
+  rmldb_expect_identifier = FALSE;
   rmldb_set_depth(aalval.id);
   rmldb_last_command = RMLDB_REPEAT_PARSE;
 #endif /* RML_DEBUG */
   YYACCEPT;
 }
-| T_SET T_MAXSTR T_ID T_EOL
+| T_SET T_MAXSTR { rmldb_expect_identifier = TRUE; } T_ID T_EOL
 {
 #ifdef RML_DEBUG
+  rmldb_expect_identifier = FALSE;
   rmldb_set_maxstr(aalval.id);
   rmldb_last_command = RMLDB_REPEAT_PARSE;
 #endif /* RML_DEBUG */
   YYACCEPT;
 }
-| T_MAXSTR T_ID T_EOL
+| T_MAXSTR { rmldb_expect_identifier = TRUE; } T_ID T_EOL
 {
 #ifdef RML_DEBUG
+  rmldb_expect_identifier = FALSE;
   rmldb_set_maxstr(aalval.id);
   rmldb_last_command = RMLDB_REPEAT_PARSE;
 #endif /* RML_DEBUG */
@@ -291,33 +318,37 @@ T_BREAKPOINT T_ON T_ID T_EOL
 #endif /* RML_DEBUG */
   YYACCEPT;
 }
-| T_OUTPUT T_ID T_EOL
+| T_OUTPUT { rmldb_expect_identifier = TRUE; } T_ID T_EOL
 {
 #ifdef RML_DEBUG
+  rmldb_expect_identifier = FALSE;
   rmldb_set_output(aalval.id);
   rmldb_last_command = RMLDB_REPEAT_PARSE;
 #endif /* RML_DEBUG */
   YYACCEPT;
 }
-| T_PRINT T_ID T_EOL
+| T_PRINT { rmldb_expect_identifier = TRUE; } T_ID T_EOL
 {
 #ifdef RML_DEBUG
+  rmldb_expect_identifier = FALSE;
   rmldb_last_command = RMLDB_REPEAT_PARSE;
   rmldb_print_variable(aalval.id);
 #endif /* RML_DEBUG */
   YYACCEPT;
 }
-| T_PRINT_TYPE T_ID T_EOL
+| T_PRINT_TYPE { rmldb_expect_identifier = TRUE; } T_ID T_EOL
 {
 #ifdef RML_DEBUG
+  rmldb_expect_identifier = FALSE;
   rmldb_last_command = RMLDB_REPEAT_PARSE;
   rmldb_print_type_info_id(aalval.id, stdout);
 #endif /* RML_DEBUG */
   YYACCEPT;
 }
-| T_SIZEOF T_ID T_EOL
+| T_SIZEOF { rmldb_expect_identifier = TRUE; } T_ID T_EOL
 {
 #ifdef RML_DEBUG
+  rmldb_expect_identifier = FALSE;
   rmldb_last_command = RMLDB_REPEAT_PARSE;
   rmldb_print_sizeof_variable(aalval.id);
 #endif /* RML_DEBUG */
@@ -371,9 +402,10 @@ T_BREAKPOINT T_ON T_ID T_EOL
 #endif /* RML_DEBUG */
   YYACCEPT;
 }
-| T_DISPLAY T_ID T_EOL
+| T_DISPLAY { rmldb_expect_identifier = TRUE; } T_ID T_EOL
 {
 #ifdef RML_DEBUG
+  rmldb_expect_identifier = FALSE;
   rmldb_last_command = RMLDB_REPEAT_PARSE;
   rmldb_display_variable(aalval.id);
 #endif /* RML_DEBUG */
@@ -387,9 +419,10 @@ T_BREAKPOINT T_ON T_ID T_EOL
 #endif /* RML_DEBUG */
   YYACCEPT;	
 }
-| T_UNDISPLAY T_ID T_EOL
+| T_UNDISPLAY { rmldb_expect_identifier = TRUE; } T_ID T_EOL
 {
 #ifdef RML_DEBUG
+  rmldb_expect_identifier = FALSE;
   rmldb_last_command = RMLDB_REPEAT_PARSE;
   rmldb_undisplay_variable(aalval.id);
 #endif /* RML_DEBUG */
@@ -407,9 +440,10 @@ T_BREAKPOINT T_ON T_ID T_EOL
 #endif /* RML_DEBUG */
   YYACCEPT;
 }
-| T_GRAPH T_ID T_EOL
+| T_GRAPH { rmldb_expect_identifier = TRUE; } T_ID T_EOL
 {
 #ifdef RML_DEBUG
+  rmldb_expect_identifier = FALSE;
   rmldb_last_command = RMLDB_REPEAT_PARSE;
   rmldb_view_variable(aalval.id);
 #endif /* RML_DEBUG */

@@ -1,15 +1,19 @@
 %{
 #include "rml.h"
+#include <string.h>
+#include <stdlib.h>
 
 extern int aarmldblex(void);
 
 #define YYMAXDEPTH 100000000
 #define YYDEBUG 1
-#define YYERROR_VERBOSE                  /* Have this defined to give better
-                                            error messages. Using it causes
-					    some bison warnings at compiler
-					    compile time, however. Use as you
-					    wish. Not mandatory. */
+/* 
+Have this defined to give better
+error messages. Using it causes
+some bison warnings at compiler
+compile time, however. Use as you
+wish. Not mandatory. */
+#define YYERROR_VERBOSE                  
 
 /* #define _DEBUG_RDB_ */
 %}
