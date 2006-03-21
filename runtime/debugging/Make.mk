@@ -3,6 +3,8 @@
 #
 GOROOT=../..
 
+GENERATED=rmldb-parse.c rmldb-scan.c rmldb-parse.h rml-db-parse.c rml-db-scan.c rml-db-parse.h
+			
 default: rmldb-parse.c rmldb-scan.c rml-db-parse.c rml-db-scan.c
 
 rmldb-parse.c rmldb-scan.h : rmldb-parse.y
@@ -35,6 +37,6 @@ realclean:	clean
 
 clean:
 	rm -f *.o core rmldb \
-	      a.out core mon.out gmon.out *~ 
+	      a.out core mon.out gmon.out *~ $(GENERATED)
 
 
