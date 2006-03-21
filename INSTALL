@@ -1,6 +1,9 @@
 RML INSTALLATION GUIDE
-===================================================
-Updated 2006-03-20 by Adrian Pop, adrpo@ida.liu.se
+==========================================================
+Last updated in 2006-03-21 by Adrian Pop, adrpo@ida.liu.se
+ 
+To install follow the steps below and if you run 
+into problems read the NOTE at the end of this file.
 
 1. You must have a recent (110.57 or later) version of SML/NJ installed.
    The RML compiler is written for the new SML '97 dialect of Standard ML;
@@ -126,3 +129,12 @@ Non-standard configurations
     allow you to control whether the debug-enabled and profile-enabled
     runtime libraries are to be built or not.
 
+
+NOTE: 
+ If you run into problems during installation please
+ run the command:
+ rml-directory> ./etc/trace-install.sh configure-parameters
+ Where configure-parameters are the command line parameters you gave to 
+ the configure script.
+ Then send the created trace-install.txt to Adrian Pop [adrpo@ida.liu.se] 
+ to get help. Thank you, Adrian Pop, 2006-03-21
