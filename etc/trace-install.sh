@@ -31,7 +31,7 @@ echo `flex --version` >> trace-install.txt
 echo "TRACE -> Bison:" >> trace-install.txt
 echo `bison --version` >> trace-install.txt
 echo "TRACE -> Gcc:" >> trace-install.txt
-echo `gcc -v` >> trace-install.txt 2>&1
+gcc -v >> trace-install.txt 2>&1
 echo "TRACE -> SML/NJ:" >> trace-install.txt
 echo `echo '' | sml` >> trace-install.txt
 echo Trace was finished.
