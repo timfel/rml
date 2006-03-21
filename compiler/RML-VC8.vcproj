@@ -963,6 +963,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\INSTALL"
+				>
+			</File>
+			<File
+				RelativePath="..\INSTALL.MLton.txt"
+				>
+			</File>
+			<File
 				RelativePath=".\MainMLton.sml"
 				>
 			</File>
@@ -975,7 +983,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\RML.mlb"
+				RelativePath=".\rml.mlb"
 				>
 			</File>
 			<File

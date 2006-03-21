@@ -1,12 +1,18 @@
 RML INSTALLATION GUIDE
-======================
+===================================================
+Updated 2006-03-20 by Adrian Pop, adrpo@ida.liu.se
 
-1. You must have a recent (110 or later) version of SML/NJ installed.
+1. You must have a recent (110.57 or later) version of SML/NJ installed.
    The RML compiler is written for the new SML '97 dialect of Standard ML;
    it will not compile in the ancient 0.93 release of SML/NJ.
 
-   The SML/NJ web page, ftp://cm.bell-labs.com/cm/cs/what/smlnj/index.html,
+   The SML/NJ web page, http://www.smlnj.org,
    contains all necessary information about obtaining and installing SML/NJ.
+   
+   The latest RML also compiles with the MLton compiler which gives 
+   speedups of ~50% on compilation times. To compile the rml frontend 
+   with MLton follow all the steps in this file and then refer to 
+   instructions in INSTALL.MLton.txt
 
 2. In the RML root directory, execute:
 
@@ -119,3 +125,4 @@ Non-standard configurations
     The `--disable-debug' and `--disable-profile' options to ./configure
     allow you to control whether the debug-enabled and profile-enabled
     runtime libraries are to be built or not.
+
