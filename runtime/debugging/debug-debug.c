@@ -1,6 +1,7 @@
-/* misc_print.c */
-#include <stdio.h>
+/* debug-debug.c */
 #include "rml.h"
+#include <stdio.h>
+#include <string.h>
 
 RML_BEGIN_LABEL(RML__debug)
 {

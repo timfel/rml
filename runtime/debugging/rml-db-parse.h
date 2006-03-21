@@ -78,7 +78,7 @@
 
 
 #if ! defined (YYSTYPE) && ! defined (YYSTYPE_IS_DECLARED)
-#line 21 "rml-db-parse.y"
+#line 25 "rml-db-parse.y"
 typedef union YYSTYPE {
   int vint;
   char *vid;

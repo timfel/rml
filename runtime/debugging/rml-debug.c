@@ -224,7 +224,7 @@ int rmldb_init(void)
 	snprintf(process_id, 20, "%d", getpid());
 	/* debug the damn parsers/lexers */
 	/* aadebug = 1; */
-	/* aarmldbdebug = 1; */ 
+	/* aarmldbdebug = 1; */
 	if (rmldb_execution_startup_type == RMLDB_STEP)
 	{
 		printf("%s - Relational Meta-Language (RML) and MetaModelica (MMC) debugger\n", RMLDB_PROMPT);

@@ -121,7 +121,7 @@ parser expects an identifier next
 */
 extern int rmldb_expect_identifier;
 
-static struct rmldb_keyword
+static const struct rmldb_keyword
 {
 	char *names; /* names are separated by '|' */
 	int   tok;
@@ -203,7 +203,7 @@ DIGIT	[0-9]
 		}
 		else /* try the tokens */
 		{
-			char* token = strtok(rmldb_keywords[i].names,"|");
+			char* token = strtok(strdup(rmldb_keywords[i].names),"|");
 			if (strcmp(aatext, token) == 0) 
 			{
 				tok = rmldb_keywords[i].tok; 
