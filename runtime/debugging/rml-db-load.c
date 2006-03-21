@@ -38,6 +38,7 @@ USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "rml.h"
 #endif
 #include <stdio.h>
+#include <stdlib.h>
 
 rmldb_var_db_t *rmldb_var_db_start;
 rmldb_var_db_t *rmldb_var_db_end;
