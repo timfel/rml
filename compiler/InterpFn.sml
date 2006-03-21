@@ -235,7 +235,7 @@ functor InterpFn(structure Util : UTIL
 
     and invoke(clause, v_star, ME, VE, fc, pc, s) =
       case clause
-	of Absyn.CLAUSE1(goal_opt, _, pat_star, result, _, _) =>
+	of Absyn.CLAUSE1(goal_opt, _, pat_star, result, _, _, _) =>
 	    (case match_star(pat_star, v_star)
 	       of SOME VE' =>
 		    let val gc = ANDRETURN(ME, result, pc)
@@ -253,7 +253,7 @@ functor InterpFn(structure Util : UTIL
     (* Relation Bindings *)
 
     fun evalRel(ME, VE, relbinds) =
-      let fun evRel(Absyn.RELBIND(var, _, clause, _), VE') =
+      let fun evRel(Absyn.RELBIND(var, _, clause, _, _), VE') =
 	    StrDict.insert(VE', var,
 			   InterpCore.CLOSURE{clause=clause, ME=ME,
 					      VE=VE, VE_rec=StrDict.empty})

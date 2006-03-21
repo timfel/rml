@@ -350,11 +350,14 @@ functor MOToRMLFn(
 				       | VAL of Absyn.ident * (* variable identifier *)
 								Absyn.exp option * (* variable initialization *)
 								Absyn.ty option * (* variable type *)
+								Absyn.attr * (* variable attributes *)
 								Absyn.info (* variable position *)
 	                   | INTy of Absyn.ty * (* type input *) 
-								 Absyn.ident (* variable name *)
+								 Absyn.ident * (* variable name *)
+								 Absyn.attr (* variable attributes *)								 
 	                   | OUTTy of Absyn.ty * (* type output *) 
-								  Absyn.ident (* variable name *)
+								  Absyn.ident * (* variable name *)
+								  Absyn.attr (* variable attributes *)								  
 	                   | ALGORITHM of Absyn.clause * Absyn.info      (* algorithms != match *)
 	                   | FUNCTYPE of Absyn.ident option *  (* scope  *) 
 									 Absyn.ident *		   (* name   *)
@@ -363,6 +366,7 @@ functor MOToRMLFn(
 	                   | REL of Absyn.ident * 
 	                            Absyn.ty * 
 	                            Absyn.clause option * 
+	                            (Absyn.ident * Absyn.ty option * Absyn.exp option * Absyn.attr) list * (* local variables *)
 	                            Absyn.info
 	                            
 	type constructs = construct list
@@ -769,7 +773,7 @@ functor MOToRMLFn(
 								ident, 
 								elementSpec as Absyn.COMPONENTS(_, typeSpec, components, _),
 								info, 
-								NONE),
+								_),
 							infoElmItem)::elems) =
 					let val ty =  getType(typeSpec)
 					in 
@@ -1752,6 +1756,32 @@ functor MOToRMLFn(
 	and extractPatterns(patterns) = 
 		 map transformPattern patterns
 
+	fun translateValExp(exp) = 
+	let val (result, goal, info) = translateExp(exp)
+	in
+		case result of
+			Absyn.RETURN([x], info) => x
+		|	_ => 
+			errorAtFunction(info, "unexpected expression at initialization", "translateValExp")
+	end
+
+	
+	fun makeExpFromMod(Absyn.CLASSMOD(_, NONE, info)) = 
+		errorAtFunction(
+			info, 
+			"only component declaration of the form: [constant] TypeName x [= expression]; are allowed", 
+			"makeExpFromMod")
+	|	makeExpFromMod(Absyn.CLASSMOD(_, SOME(mexp), info)) =
+		 translateValExp(mexp)
+
+	fun getExpFromModication(modif) =		 
+	let val exp = 
+			case modif of
+				NONE => NONE
+			|	SOME(modification) => SOME(makeExpFromMod(modification))
+	in
+		exp
+	end
 		
 	fun translateEqualsEquation(exp1, exp2, infoEq) =
 	(
@@ -1998,7 +2028,7 @@ functor MOToRMLFn(
 				end		
 	)
 	
-	fun buildGoalz(Absyn.EQUATIONITEM(equation, _, info), decls, localdecls) =
+	fun buildGoalz(Absyn.EQUATIONITEM(equation, _, info)) =
 	(
 		debug("buildGoalz\n"); 
 		(case equation of 
@@ -2034,7 +2064,7 @@ functor MOToRMLFn(
 					(goal, infoEq)
 				end									   
 		    | Absyn.EQ_FAILURE(eq, info) =>
-				let val (goal, infoEq) = buildGoalz(Absyn.EQUATIONITEM(eq, NONE, info), decls, localdecls)
+				let val (goal, infoEq) = buildGoalz(Absyn.EQUATIONITEM(eq, NONE, info))
 				in
 				 (Absyn.NOTgoal(goal, info),info)
 				end
@@ -2055,24 +2085,24 @@ functor MOToRMLFn(
 				errorAtFunction(info,"unexpected equation","buildGoalz")
 		)
 	)
-	|   buildGoalz(Absyn.EQUATIONITEMANN(_, info), decls, localdecls) = 
+	|   buildGoalz(Absyn.EQUATIONITEMANN(_, info)) = 
 			errorAtFunction(info,"unexpected annotation","buildGoalz")
 
-	fun buildNonEmptyGoals(x::nil, exp, decls, localdecls, infoGoal) = buildGoalz(x, decls, localdecls)
-	|   buildNonEmptyGoals(x::rest, exp, decls, localdecls, infoGoal) =
-		let val (goal1, info1) = buildGoalz(x, decls, localdecls)
-			val (goal2, info2) = buildNonEmptyGoals(rest, exp, decls, localdecls, infoGoal)
+	fun buildNonEmptyGoals(x::nil, exp, infoGoal) = buildGoalz(x)
+	|   buildNonEmptyGoals(x::rest, exp,  infoGoal) =
+		let val (goal1, info1) = buildGoalz(x)
+			val (goal2, info2) = buildNonEmptyGoals(rest, exp, infoGoal)
 		in
 			(
 			Absyn.ANDgoal(goal1, goal2, mkCtxInfo(info1, info2)), 
 			mkCtxInfo(info1, info2)
 			)
 		end	
-	|	buildNonEmptyGoals([], exp, decls, localdecls, infoGoal) = 
+	|	buildNonEmptyGoals([], exp, infoGoal) = 
 			errorAtFunction(infoGoal, "empty equation list", "buildNonEmptyGoals")
 							
 	(* axiom *)
-	fun buildGoal([], exp, decls, localdecls, infoGoal) =
+	fun buildGoal([], exp, infoGoal) =
 		let val (result, goal, info) = 
 				let val _ = translatingThen := true; (* signaling we ARE translating then part *)
 					val x = translateExp(exp)
@@ -2094,13 +2124,13 @@ functor MOToRMLFn(
 						| _ => result, info)
 		end 
 	(* normal rule *)
-	| buildGoal(seq_eq, exp, decls, localdecls, infoGoal) = 
+	| buildGoal(seq_eq, exp, infoGoal) = 
 		let val (result, goal2, info2) = 
 				let val _ = translatingThen := true; (* signaling we ARE translating then part *)
 					val x = translateExp(exp)
 					val _ = translatingThen := false; (* signaling we are NOT translating then part *)
 				in x end
-			val (goal1, info1) = buildNonEmptyGoals(seq_eq, exp, decls, localdecls, infoGoal)
+			val (goal1, info1) = buildNonEmptyGoals(seq_eq, exp, infoGoal)
 		in 
 			case goal2 of 
 				SOME(g2) => 
@@ -2131,7 +2161,65 @@ functor MOToRMLFn(
 			else map apply_wild expressions
 		end
 	|   constructWildPatternList(_, info) = [Absyn.WILDpat(info)]
-					
+
+
+	fun transformAttr(Absyn.ATTR(variability, direction, info), visibility) =
+	let val public = ref visibility
+		val final  = ref false
+		val var    = ref false
+		val param  = ref false
+		val const  = ref false
+		val input  = ref false
+		val output = ref false
+		val bidir  = ref false
+		val pos    = ref info
+
+	in
+		case variability of
+			Absyn.VAR      =>  var   := true
+		|	Absyn.PARAM(_) =>  param := true
+		|	Absyn.CONST(_) =>  const := true; 
+		case direction of
+			Absyn.INPUT(_)  => input  := true 
+		|	Absyn.OUTPUT(_) => output := true
+		|	Absyn.BIDIR(_)  => bidir  := true;
+		Absyn.ATTRIBUTES{
+			public=public, final=final, var=var, 
+			param=param, const=const, input=input, 
+			output=output, bidir=bidir, pos=pos}
+	end
+
+	fun getLocalVarsFromElementSpec(
+			Absyn.COMPONENTS(
+				elementAttributes,
+				typeSpec (* Type *),
+				componentItemList,
+				_), visibility) = 
+		let val typ = getType(typeSpec)
+			fun get(Absyn.COMPONENTITEM(Absyn.COMPONENT(id,modif,_), _, _)) = 
+					(id, SOME(typ), getExpFromModication(modif), 
+					 transformAttr(elementAttributes, visibility))
+		in  
+			map get componentItemList
+		end
+	fun getLocalVarsFromElementSpec(_, _) = []
+
+	fun makeVarList(components, attr, tySpec, visibility) = 
+	let val ty = getType(tySpec)
+		fun get(Absyn.COMPONENTITEM(Absyn.COMPONENT(id,modif,info), _, _)) = 
+		let val attributes = transformAttr(attr, visibility)
+		in
+			VAL(id, getExpFromModication(modif), SOME(ty), attributes, info)
+		end
+	in
+		map get components		
+	end
+
+	fun getLocalVars([], visibility) = ([])
+	|	getLocalVars(Absyn.ELEMENTITEM(Absyn.ELEMENT(_,_,_,_,elementSpec,_,_), _)::rest, visibility) =
+			getLocalVarsFromElementSpec(elementSpec, visibility) @ getLocalVars(rest, visibility)
+	|	getLocalVars(Absyn.ANNOTATIONITEM(_)::rest, visibility) = getLocalVars(rest, visibility)
+						
 	fun buildClauses(ident, matchExp, 
 			Absyn.CASE(
 				patterns,
@@ -2151,7 +2239,9 @@ functor MOToRMLFn(
 							"buildClauses")
 					else ()
 			*)
-			val (goal, result, info) = buildGoal(equations, exp, elems, localdecls, infoCase)
+			val (goal, result, info) = buildGoal(equations, exp, infoCase)
+			val localMatchVars = getLocalVars(elems, false)
+			val localCaseVars  = getLocalVars(localdecls, false)
 		in 
 			(
 			Absyn.CLAUSE1(
@@ -2159,7 +2249,8 @@ functor MOToRMLFn(
 				ident,
 				rmlPatterns,
 				result, 
-				ref [], 
+				ref [],
+				localCaseVars @ localMatchVars, 
 				info), 
 			info)
 		end
@@ -2170,7 +2261,9 @@ functor MOToRMLFn(
 				exp,
 				_,
 				infoElse)::nil, elems, infoMatch) =
-		let val (goal, result, info) = buildGoal(equations, exp, elems, localdecls, infoElse)
+		let val (goal, result, info) = buildGoal(equations, exp, infoElse)
+			val localMatchVars = getLocalVars(elems, false)
+			val localCaseVars = getLocalVars(localdecls, false)
 		in 
 			(
 			Absyn.CLAUSE1(
@@ -2179,6 +2272,7 @@ functor MOToRMLFn(
 				constructWildPatternList(matchExp, infoElse),
 				result, 
 				ref [], 
+				localCaseVars @ localMatchVars, 
 				info), 
 			info)
 		end
@@ -2194,13 +2288,7 @@ functor MOToRMLFn(
 		mkCtxInfo(infoc1, infoc2)
 		)
 		end
-	(*
-	| buildClauses(ident, matchExp, case, elems, infoMatch) = 
-		errorAtFunction(
-			infoMatch, 
-			"case or else expected in the match/matchcontinue construct", 
-			"buildClauses")
-	*)	
+		
 	fun constructClause(ident,
 			Absyn.ALGORITHMITEM(
 				Absyn.ALG_ASSIGN(
@@ -2208,7 +2296,7 @@ functor MOToRMLFn(
 					Absyn.MATCHexp(
 					_, (* match type, ignored for now *)
 					Exp, 
-					ElementItems, 
+					ElementItems,
 					Cases,
 					comment,
 					infoMatch),
@@ -2275,6 +2363,7 @@ functor MOToRMLFn(
 			Absyn.EQUATIONITEM(transformAlgorithmToEquation(info, x), comment, info) 
 			:: transformAlgorithmsToEquations(rest)
 
+	(* normal algorithms not including MACHexp so localvars in clause is [] *)
 	fun constructAlgorithms(ident, algItems, infoAlgItems) = 
 	let val equations = transformAlgorithmsToEquations(algItems)
 	    val (goal, result, info) = 
@@ -2286,11 +2375,9 @@ functor MOToRMLFn(
 							[], 
 							Absyn.identCtxInfo ident),
 						Absyn.identCtxInfo ident), 
-					[], 
-					[],
 					infoAlgItems)
 	in
-		[ALGORITHM(Absyn.CLAUSE1(goal, ident, [], result, ref [], info), info)]
+		[ALGORITHM(Absyn.CLAUSE1(goal, ident, [], result, ref [], [] (* localvars *), info), info)]
 	end
 
 	fun constructClauses(ident, [], infoAlgItems) = []
@@ -2324,7 +2411,7 @@ functor MOToRMLFn(
 	|	getInTy(h::rest) = 
 	(
 		case h of 
-			INTy(x, id)  => Absyn.NAMEDty(id,x,Absyn.identCtxInfo(id)) :: getInTy(rest)
+			INTy(x, id, _)  => Absyn.NAMEDty(id,x,Absyn.identCtxInfo(id)) :: getInTy(rest)
 		|	_ => getInTy(rest)
  	)
 
@@ -2332,7 +2419,7 @@ functor MOToRMLFn(
 	|	getOutTy(h::rest) = 
 	(
 		case h of 
-			OUTTy(x, id)  => Absyn.NAMEDty(id,x,Absyn.identCtxInfo(id)) :: getOutTy(rest)
+			OUTTy(x, id, _)  => Absyn.NAMEDty(id,x,Absyn.identCtxInfo(id)) :: getOutTy(rest)
 		|	_ => getOutTy(rest)
  	)
 
@@ -2340,7 +2427,7 @@ functor MOToRMLFn(
 	|	getInPat(h::rest) = 
 	(
 		case h of 
-			INTy(_, id)  => 		
+			INTy(_, id, _)  => 		
 				Absyn.IDENTpat(
 					id, 
 					ref(Absyn.WILDpat(Absyn.dummyInfo)), 
@@ -2352,7 +2439,7 @@ functor MOToRMLFn(
 	|	getOutRes(h::rest) = 
 	(
 		case h of 
-			OUTTy(_, id)  => 		
+			OUTTy(_, id, _)  => 		
 			Absyn.IDENTexp(
 				Absyn.LONGID(
 					NONE, 
@@ -2395,8 +2482,8 @@ functor MOToRMLFn(
 	input, output, type, functype, replaceable types,
 	and variables 
 	*)
-	fun splitElements(f_ident, []) = []
-	|	splitElements(f_ident, elementItem::rest) = 
+	fun splitElements(f_ident, [], visibility) = []
+	|	splitElements(f_ident, elementItem::rest, visibility) = 
 		(
 		case elementItem of
 			Absyn.ELEMENTITEM(
@@ -2437,7 +2524,7 @@ functor MOToRMLFn(
 					 val tyvar = Absyn.VARty(varty,tmpInfo)
 					 val tybind = Absyn.TYPBIND([varty],identclass,tyvar,tmpInfo)
 				 in 
-				  TyV(varty)::(TyB(tybind)::splitElements(f_ident, rest))
+				  TyV(varty)::(TyB(tybind)::splitElements(f_ident, rest, visibility))
 				 end
 				)
 			|	Absyn.R_FUNCTION(_) =>
@@ -2449,7 +2536,7 @@ functor MOToRMLFn(
 						SOME(f_ident), 
 						identclass, 
 						buildRelationSpecAndDec(identclass, classparts))::
-					splitElements(f_ident, rest)
+					splitElements(f_ident, rest, visibility)
 			)
 			|	Absyn.R_FUNCTION_TYPE(_) =>
 				(
@@ -2460,7 +2547,7 @@ functor MOToRMLFn(
 						SOME(f_ident), 
 						identclass, 
 						buildRelationSpecAndDec(identclass, classparts))::
-					splitElements(f_ident, rest)
+					splitElements(f_ident, rest, visibility)
 			)
 			|	Absyn.R_TYPE(info) =>
 				(
@@ -2468,7 +2555,7 @@ functor MOToRMLFn(
 					then errorAtFunction(info, "types cannot have parts!", "splitElements") 
 					else
 					(* collect the type *) 
-					TyV(identclass)::splitElements(f_ident, rest) 
+					TyV(identclass)::splitElements(f_ident, rest, visibility) 
 				)
 			
 			)
@@ -2486,25 +2573,25 @@ functor MOToRMLFn(
 								_),
 					_), 
 					info, 
-					NONE),
+					_),
 				_) => 
 			(debug("splitElements\n");
 			 case classdef of
 				(* list, Option, tuple, polymorphic *)
  			    Absyn.DERIVED(typeSpec, _, _, _, infoDerived)	=> 
  				TyB(getDerivedType(identclass, typeSpec))
-				::splitElements(f_ident, rest)
+				::splitElements(f_ident, rest, visibility)
 			| _ => errorAtFunction(info, "derived class definition expected", "splitElements")
  			)
 		|	Absyn.ELEMENTITEM(
 				Absyn.ELEMENT(_,_,_,
 					ident, 
 					ementSpec as Absyn.COMPONENTS(
-						Absyn.ATTR(
+						attr as Absyn.ATTR(
 							variability, 
 							direction, _), path, components, _),
 					info, 
-					NONE),
+					_),
 					_) => 
 			(*
 			COMPONENTS test for:
@@ -2518,19 +2605,22 @@ functor MOToRMLFn(
 					(
 					case components of 
 						[Absyn.COMPONENTITEM(Absyn.COMPONENT(ident, _, _), _, _)]
-						=> INTy(getType(path), ident)::splitElements(f_ident, rest) 
+						=> INTy(getType(path), ident, transformAttr(attr, visibility))::
+						   splitElements(f_ident, rest, visibility) 
 					| _ => errorAtFunction(info, "only one component must appear in input declarations", "splitElements")
 					)
 				|	Absyn.OUTPUT(infoInput) => 
 					(
 					case components of 
 						[Absyn.COMPONENTITEM(Absyn.COMPONENT(ident, _, _), _, _)] 
-						=> OUTTy(getType(path), ident)::splitElements(f_ident, rest)
+						=> OUTTy(getType(path), ident, transformAttr(attr, visibility))::
+						   splitElements(f_ident, rest, visibility)
 					| _ => errorAtFunction(info, "only one component must appear in output declarations", "splitElements")
 					)
 				(* other components we don't care about it now! *)
 				|   Absyn.BIDIR(infoBidir) => (* TODO! COLLECT THESE! *)
-						splitElements(f_ident, rest)
+						makeVarList(components, attr, path, visibility) @ 
+						splitElements(f_ident, rest, visibility)
 			)
 		)
 		
@@ -2542,9 +2632,9 @@ functor MOToRMLFn(
 		  	debug ("buildRelationSpecAndDec: classparts: "^L(rest)^"\n");
 			case classpart of
 			Absyn.PUBLIC(elementItems, _) => 
-				splitElements(ident, elementItems) @ buildRelationSpecAndDec(ident, rest)
+				splitElements(ident, elementItems, true) @ buildRelationSpecAndDec(ident, rest)
 			| Absyn.PROTECTED(elementItems, _) => 
-				splitElements(ident, elementItems) @ buildRelationSpecAndDec(ident, rest)
+				splitElements(ident, elementItems, false) @ buildRelationSpecAndDec(ident, rest)
 			| Absyn.ALGORITHMS(algorithmItems, infoAlgItems) => 
 				constructClauses(ident, algorithmItems, infoAlgItems) @ buildRelationSpecAndDec(ident, rest)
 			| Absyn.EXTERNAL(externalDecl, _, _, info) =>
@@ -2567,6 +2657,11 @@ functor MOToRMLFn(
 			  x as ALGORITHM(clause, info) => [x]
 			| _ => sweepALGORITHM(classparts)
 
+	fun sweepVARIABLES([]) = []
+	|   sweepVARIABLES(var::rest) =
+		case var of
+			  VAL(id, exp, ty, attr, info) => (id, ty, exp, attr)::sweepVARIABLES(rest)
+			| _ => sweepVARIABLES(rest)
 	(* 
 	   returns (rels, binds) 
 	   FunctionTypes SHOULD BE AUGMENTED WITH THE FUNCTION NAME 
@@ -2583,12 +2678,13 @@ functor MOToRMLFn(
 			let val clauseList = sweepCLAUSE(resultlist)
 				val algList = sweepALGORITHM(resultlist)
 				val ty = constructRelationTy(resultlist)
+				val variables = sweepVARIABLES(resultlist)
 				val (rels, binds) =	
 					if (List.length clauseList >= 1)
 					then
 						let val CLAUSE(clause, infoClause) = List.hd clauseList
 						in
-						 ([REL(ident, ty, SOME(clause), infoClause)], resultlist)
+						 ([REL(ident, ty, SOME(clause), variables, infoClause)], resultlist)
 						end
 					else (* no clause in this relation => external or functype *)
 						if (List.length algList >= 1)
@@ -2596,34 +2692,38 @@ functor MOToRMLFn(
 							let val ALGORITHM(clause, infoClause) = List.hd algList
 								val res = constructClauseResult(resultlist)
 								val pats = constructClausePattern(resultlist)
-								val Absyn.CLAUSE1(goal, relid, _, _, _, infoC) = clause
-								val clause_good = Absyn.CLAUSE1(goal, relid, pats, res, ref [], infoC)
+								val Absyn.CLAUSE1(goal, relid, _, _, _, vars, infoC) = clause
+								val clause_good = Absyn.CLAUSE1(goal, relid, pats, res, ref [], vars, infoC)
 							in
-							([REL(ident, ty, SOME(clause_good), infoClause)], resultlist)
+							([REL(ident, ty, SOME(clause_good), variables, infoClause)], resultlist)
 							end
 						else (* no clause in this relation => external or functype *)
-						 ([REL(ident, ty, NONE, Absyn.identCtxInfo ident)], resultlist)				
+						 ([REL(ident, ty, NONE, variables, Absyn.identCtxInfo ident)], resultlist)				
 			in
 				debug("constructRelationsAndDatatypes\n");
 				(rels, binds)
 			end
 
-	fun fixSpec(REL(ident, ty, NONE, info)) = Absyn.RELspec(ident, ty, info)
-	|	fixSpec(REL(ident, ty, SOME(clause), info)) = Absyn.RELspec(ident, ty, info)			
+	fun fixSpec(REL(ident, ty, NONE, _, info)) = Absyn.RELspec(ident, ty, info)
+	|	fixSpec(REL(ident, ty, SOME(clause), _, info)) = Absyn.RELspec(ident, ty, info)			
 	
 	fun fixDecs([]) = []
-	|	fixDecs(REL(ident, ty, NONE, info)::rest) = fixDecs(rest)
-	|	fixDecs(REL(ident, ty, SOME(clause), info)::rest) = 
-			Absyn.RELBIND(ident, SOME(ty), clause, info)::fixDecs(rest)
+	|	fixDecs(REL(ident, ty, NONE, variables, info)::rest) = fixDecs(rest)
+	|	fixDecs(REL(ident, ty, SOME(clause), variables, info)::rest) = 
+			Absyn.RELBIND(ident, SOME(ty), clause, variables, info)::fixDecs(rest)
 
 	fun fixSpecBinds([]) = []
 	| fixSpecBinds(TyB(x)::rest) = Absyn.TYPEspec([x], Absyn.dummyInfo)::fixSpecBinds(rest)
-	| fixSpecBinds(VAL(id, exp_opt, ty_opt, info)::rest) = 
-		(
+	| fixSpecBinds(VAL(id, exp_opt, ty_opt, attr, info)::rest) = 
+	let val Absyn.ATTRIBUTES{const,...} = attr
+	in
+		if !const
+		then 
 		case ty_opt of 
 			SOME(ty) => Absyn.VALspec(id, ty, info)::fixSpecBinds(rest)
 		|	NONE => fixSpecBinds(rest)
-		)
+		else fixSpecBinds(rest)
+	end
 	| fixSpecBinds(FUNCTYPE(_, reltypeid, constructs)::rest) = 
 		Absyn.TYPEspec(
 			[Absyn.TYPBIND([], reltypeid, constructRelationTy(constructs), Absyn.identCtxInfo reltypeid)], 
@@ -2694,12 +2794,12 @@ functor MOToRMLFn(
 		if isPresentInSpecs(specs, z) 
 		then fixDecBinds(specs, rest)
 		else Absyn.TYPEdec([x], Absyn.dummyInfo)::fixDecBinds(specs, rest)
-	| fixDecBinds(specs, VAL(id, exp_opt, ty_opt, info)::rest) = 
-		(
+	| fixDecBinds(specs, VAL(id, exp_opt, ty_opt, attr, info)::rest) = 
+	(
 		case exp_opt of 
 			SOME(exp) => Absyn.VALdec(id, exp, info)::fixDecBinds(specs, rest)
 		|	NONE => fixDecBinds(specs, rest)
-		)
+	)
 	| fixDecBinds(specs, FUNCTYPE(_, ftypeid, constructs)::rest) = 
 		Absyn.TYPEdec(
 			[Absyn.TYPBIND([], ftypeid, constructRelationTy(constructs), Absyn.identCtxInfo ftypeid)], 
@@ -2743,22 +2843,22 @@ functor MOToRMLFn(
 						info3)
 				)
 
-	fun fixInputOutputScope (ident, ftypeident) (x as INTy(Absyn.CONSty(tylist, lid, info), cId)) = 
+	fun fixInputOutputScope (ident, ftypeident) (x as INTy(Absyn.CONSty(tylist, lid, info), cId, attr)) = 
 	(
 		debug("\nrel:"^(Absyn.identName ident)^
 			  " ftype:"^(Absyn.identName ftypeident)^
 			  " type: "^(Absyn.lidentName lid)^"\n"); 
 		if (Absyn.lidentName lid = Absyn.identName ftypeident)
-		then INTy(Absyn.CONSty(tylist, concatLIds(ident, lid), info), cId)
+		then INTy(Absyn.CONSty(tylist, concatLIds(ident, lid), info), cId, attr)
 		else x
 	)
-	|	fixInputOutputScope (ident, ftypeident) (x as OUTTy(Absyn.CONSty(tylist, lid, info), cId)) = 
+	|	fixInputOutputScope (ident, ftypeident) (x as OUTTy(Absyn.CONSty(tylist, lid, info), cId, attr)) = 
 	(
 		debug("\nrel:"^(Absyn.identName ident)^
 			  " ftype:"^(Absyn.identName ftypeident)^
 			  " type: "^(Absyn.lidentName lid)^"\n"); 
 		if (Absyn.lidentName lid = Absyn.identName ftypeident)
-		then OUTTy(Absyn.CONSty(tylist, concatLIds(ident, lid), info), cId)
+		then OUTTy(Absyn.CONSty(tylist, concatLIds(ident, lid), info), cId, attr)
 		else x
 	)
 	(*
@@ -2879,56 +2979,39 @@ functor MOToRMLFn(
  				(* array / vector *)
  			|   _ => errorAtFunction(info, "derived type expected", "sweepTypes")
  			)
-
-
-	fun translateValExp(exp) = 
-	let val (result, goal, info) = translateExp(exp)
-	in
-		case result of
-			Absyn.RETURN([x], info) => x
-		|	_ => 
-			errorAtFunction(info, "unexpected expression at initialization", "translateValExp")
-	end
-
 	
-	fun makeExpFromMod(Absyn.CLASSMOD(_, NONE, info)) = 
-		errorAtFunction(
-			info, 
-			"only component declaration of the form: [constant] TypeName x [= expression]; are allowed", 
-			"makeExpFromMod")
-	|	makeExpFromMod(Absyn.CLASSMOD(_, SOME(mexp), info)) =
-		 translateValExp(mexp)
-	
-	fun walkCompList([], ty) = []
+	fun walkCompList([], ty, _, _) = []
 	|	walkCompList(
 		Absyn.COMPONENTITEM(
-			Absyn.COMPONENT(id, modif, info), _, _)::components, ty) =
-		let val exp = 
-				case modif of
-					NONE => NONE
-				|	SOME(modification) => SOME(makeExpFromMod(modification))
+			Absyn.COMPONENT(id, modif, info), _, _)::components, ty, attr, visibility) =
+		let val exp = getExpFromModication(modif)
 		in 
-		 VAL(id, exp, SOME(ty), info)::walkCompList(components, ty)
+		 VAL(id, exp, SOME(ty), transformAttr(attr, visibility), info)::
+		 walkCompList(components, ty, attr, visibility)
 		end
 	
 	fun fixSpecsAndDecs([], isPublic, s, d) = (s, d)
-	|	fixSpecsAndDecs(VAL(id, exp_opt, SOME(ty), info)::rest, isPublic, s, d) = 
-		(
-		case (exp_opt) of 
-			SOME(exp) => 
-				fixSpecsAndDecs(rest, isPublic,
-					s @ (if (isPublic = true) then [Absyn.VALspec(id, ty, info)] else []), 
-					d @ [Absyn.VALdec(id, exp, info)])
-		|	NONE	 => 
-			errorAtFunction(info, "expression expected", "fixSpecsAndDecs")		
-		)
-	|	fixSpecsAndDecs(VAL(_, _, _, info)::rest, isPublic, s, d) =
+	|	fixSpecsAndDecs(VAL(id, exp_opt, SOME(ty), attr, info)::rest, isPublic, s, d) = 
+		let val Absyn.ATTRIBUTES{const,...} = attr
+		in
+			if !const
+			then 
+			case (exp_opt) of 
+				SOME(exp) => 
+					fixSpecsAndDecs(rest, isPublic,
+						s @ (if (isPublic = true) then [Absyn.VALspec(id, ty, info)] else []), 
+						d @ [Absyn.VALdec(id, exp, info)])
+			|	NONE	 => 
+				errorAtFunction(info, "expression expected", "fixSpecsAndDecs")
+			else fixSpecsAndDecs(rest, isPublic, s, d)		
+		end
+	|	fixSpecsAndDecs(VAL(_, _, _, _, info)::rest, isPublic, s, d) =
 			errorAtFunction(info, "expression and type expected", "fixSpecsAndDecs")
 
-	fun createValDecls(Absyn.COMPONENTS(ElemAttr, Path, CompList, info), isPublic, specs, decs) =
+	fun createValDecls(Absyn.COMPONENTS(elemAttr, Path, CompList, info), isPublic, specs, decs) =
 		let val typ = getType(Path)
 		in		
-			fixSpecsAndDecs(walkCompList(CompList, typ), isPublic, specs, decs)		
+			fixSpecsAndDecs(walkCompList(CompList, typ, elemAttr, isPublic), isPublic, specs, decs)		
 		end
 	|	createValDecls(Absyn.CLASSDEF(_, _, info), isPublic, specs, decs) =
 			errorAtFunction(info,"component declaration expected", "createValDecls")
@@ -3134,17 +3217,35 @@ functor MOToRMLFn(
 	|	fixRELSpecsWithTyVar(x::rest, bindlist) = x::fixRELSpecsWithTyVar(rest, bindlist)
 
 
+	fun fixTypeVariables([], bindlist) = []
+	|	fixTypeVariables((id, SOME(ty), exp, attr)::rest, bindlist) = 
+	let
+	in
+		(id, SOME(setTyVar(ty, bindlist)), exp, attr)::fixTypeVariables(rest, bindlist)
+	end
+	|	fixTypeVariables(_::rest, bindlist) = fixTypeVariables(rest, bindlist)
+	
+	fun fixTypeVariablesInClause(Absyn.CLAUSE1(g, id, pl, rs, plr, localVars, info), bindlist) = 
+		Absyn.CLAUSE1(g, id, pl, rs, plr, fixTypeVariables(localVars, bindlist), info)		
+	|	fixTypeVariablesInClause(Absyn.CLAUSE2(c1, c2, info), bindlist) =
+		Absyn.CLAUSE2(
+			fixTypeVariablesInClause(c1, bindlist), 
+			fixTypeVariablesInClause(c2, bindlist), 
+			info)
+
 	fun fixRELBINDSDecsWithTyVar([], bindlist) = []
-	|	fixRELBINDSDecsWithTyVar(Absyn.RELBIND(ident, ty_opt, clause, info)::rest, bindlist) =
-		(
+	|	fixRELBINDSDecsWithTyVar(Absyn.RELBIND(ident, ty_opt, clause, x, info)::rest, bindlist) =
+		let val x = fixTypeVariables(x, bindlist)
+			val clause = fixTypeVariablesInClause(clause, bindlist)
+		in
 		case ty_opt of
 			NONE => 
-				Absyn.RELBIND(ident, NONE, clause, info)::
+				Absyn.RELBIND(ident, NONE, clause, x, info)::
 				fixRELBINDSDecsWithTyVar(rest, bindlist)
 		|	SOME(ty) => 
-				Absyn.RELBIND(ident, SOME(setTyVar(ty, bindlist)), clause, info)::
+				Absyn.RELBIND(ident, SOME(setTyVar(ty, bindlist)), clause, x, info)::
 				fixRELBINDSDecsWithTyVar(rest, bindlist)
-		)
+		end
 
 	fun fixRELDecsWithTyVar([], bindlist) = []
 	|	fixRELDecsWithTyVar(Absyn.RELdec(reldecs, info)::rest, bindlist) =

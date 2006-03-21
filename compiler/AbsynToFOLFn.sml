@@ -150,7 +150,7 @@ functor AbsynToFOLFn(structure StrDict : STR_DICT
 	  end
 
     fun cnvClause vars =
-      let fun mkdisj(Absyn.CLAUSE1(goalOpt, _, pats, result, ref(pats_positional), _)) =
+      let fun mkdisj(Absyn.CLAUSE1(goalOpt, _, pats, result, ref(pats_positional), _, _)) =
 		let val (pats', VE) = (* fixed the named arguments to positional *)
 			if List.length pats_positional = 0 
 			then cnvPats(pats, StrDict.empty)
@@ -174,13 +174,13 @@ functor AbsynToFOLFn(structure StrDict : STR_DICT
 		mkdisj
       end
 
-    fun clauseArity(Absyn.CLAUSE1(_, _, pats, _, ref(pats_positional), _)) = 
+    fun clauseArity(Absyn.CLAUSE1(_, _, pats, _, ref(pats_positional), _, _)) = 
 			if List.length pats_positional = 0 (* fixed the named arguments to positional *)
 			then List.length pats
 			else List.length pats_positional
       | clauseArity(Absyn.CLAUSE2(cl1, _, _)) = clauseArity cl1
 
-    fun cnvRelBind (Absyn.RELBIND(var, _, cl, _)) =
+    fun cnvRelBind (Absyn.RELBIND(var, _, cl, _, _)) =
       let val vars = newvars(clauseArity cl)
       in
 		FOL.REL(cnvId var, vars, cnvClause vars cl)

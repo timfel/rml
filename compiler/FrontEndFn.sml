@@ -475,6 +475,7 @@ functor FrontEndFn(
 				then ()
 				else Control.withOutput AbsynPrint.printInterface translated interfaceFile;
 				*)
+				Control.withOutput AbsynPrint.printModule translated (interfaceFile^".rmod");
 				(* dump the serialization *)
 				case Control.fileType file of
 						Control.MO_FILE (* dump .srz only if is .mo file and the .srz is dirty *)

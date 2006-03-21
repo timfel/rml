@@ -123,8 +123,8 @@ fun mkCtxInfo(Absyn.INFO(file1,loc1,loc2,Absyn.LOC(sl1,sc1,el1,ec1)),
 				Absyn.INFO(file1,loc1,loc4,Absyn.LOC(sl1,sc1,el2,ec2))
 
 fun join_default(c1, NONE) = c1
-  | join_default(c1, SOME(c2 as Absyn.CLAUSE1(_,_,_,_,_,infoC2))) =
-      let fun join(c1 as Absyn.CLAUSE1(_,_,_,_,_,infoC1)) = 
+  | join_default(c1, SOME(c2 as Absyn.CLAUSE1(_,_,_,_,_,_,infoC2))) =
+      let fun join(c1 as Absyn.CLAUSE1(_,_,_,_,_,_,infoC1)) = 
 			Absyn.CLAUSE2(c1, c2, mkCtxInfo(infoC1,infoC2))
 	    | join(Absyn.CLAUSE2(c11,c12, infoC1)) = 
 			Absyn.CLAUSE2(c11, join c12, mkCtxInfo(infoC1, infoC2))
@@ -132,7 +132,7 @@ fun join_default(c1, NONE) = c1
 		join c1
       end
   | join_default(c1, SOME(c2 as Absyn.CLAUSE2(_,_,infoC2))) =
-      let fun join(c1 as Absyn.CLAUSE1(_,_,_,_,_,infoC1)) = 
+      let fun join(c1 as Absyn.CLAUSE1(_,_,_,_,_,_,infoC1)) = 
 			Absyn.CLAUSE2(c1, c2, mkCtxInfo(infoC1,infoC2))
 	    | join(Absyn.CLAUSE2(c11,c12, infoC1)) = 
 			Absyn.CLAUSE2(c11, join c12, mkCtxInfo(infoC1, infoC2))
@@ -1879,7 +1879,7 @@ MlyValue.ident ident1, (identleft as ident1left), _)) :: rest671)) =>
 			Cache.PROTECTED
 			);
 	
-		Absyn.RELBIND(ident, relbind_ty_opt, join_default(clause_plus,default_opt),
+		Absyn.RELBIND(ident, relbind_ty_opt, join_default(clause_plus,default_opt), [],
 			makeInfo lexArg (identleft, ENDright)) 
 )
 end)
@@ -2083,7 +2083,7 @@ conjunctive_goal_opt1) = conjunctive_goal_opt1 ()
  val  (seq_pat as seq_pat1) = seq_pat1 ()
  val  (result as result1) = result1 ()
  in (
- Absyn.CLAUSE1(conjunctive_goal_opt, ident, seq_pat, result, ref [], 
+ Absyn.CLAUSE1(conjunctive_goal_opt, ident, seq_pat, result, ref [], [], 
 			makeInfo lexArg (RULEleft, resultright)) 
 )
 end)
@@ -2097,7 +2097,7 @@ MlyValue.ident ident1, _, _)) :: ( _, ( _, (AXIOMleft as AXIOM1left),
  val  (seq_pat as seq_pat1) = seq_pat1 ()
  val  (result as result1) = result1 ()
  in (
- Absyn.CLAUSE1(NONE, ident, seq_pat, result, ref [],
+ Absyn.CLAUSE1(NONE, ident, seq_pat, result, ref [], [], 
 			makeInfo lexArg (AXIOMleft, resultright)) 
 )
 end)
@@ -2114,7 +2114,7 @@ conjunctive_goal_opt1 ()
  val  (seq_pat as seq_pat1) = seq_pat1 ()
  in (
  Absyn.CLAUSE1(conjunctive_goal_opt, ident, seq_pat, 
-		    Absyn.RETURN([], makeInfo lexArg (identleft,identright)), ref [], 
+		    Absyn.RETURN([], makeInfo lexArg (identleft,identright)), ref [], [], 
 			makeInfo lexArg (RULEleft, seq_patright)) 
 )
 end)
@@ -2128,7 +2128,7 @@ ident1) = ident1 ()
  val  (seq_pat as seq_pat1) = seq_pat1 ()
  in (
  Absyn.CLAUSE1(NONE, ident, seq_pat, 
-		    Absyn.RETURN([], makeInfo lexArg (identleft,identright)), ref [],
+		    Absyn.RETURN([], makeInfo lexArg (identleft,identright)), ref [], [], 
 			makeInfo lexArg (AXIOMleft, seq_patright)) 
 )
 end)

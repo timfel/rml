@@ -375,7 +375,7 @@ relbind
 			Cache.PROTECTED					
 			);
 	
-		Absyn.RELBIND(ident, relbind_ty_opt, clause_plus, info) 
+		Absyn.RELBIND(ident, relbind_ty_opt, clause_plus, [], info) 
 	)
 
 relbind_ty_opt
@@ -495,10 +495,10 @@ clause_plus
 clause
 	: CLAUSE1 LPAR SOM LPAR goal RPAR SEMICOLON ident SEMICOLON 
 	  seq_pat SEMICOLON result SEMICOLON REF LPAR seq_pat RPAR SEMICOLON info RPAR
-		( Absyn.CLAUSE1(SOME(goal), ident, seq_pat1, result, ref seq_pat2, info) )
+		( Absyn.CLAUSE1(SOME(goal), ident, seq_pat1, result, ref seq_pat2, [], info) )
 	| CLAUSE1 LPAR NON LPAR RPAR SEMICOLON ident SEMICOLON seq_pat SEMICOLON 
 	  result SEMICOLON REF LPAR seq_pat RPAR SEMICOLON info RPAR
-		( Absyn.CLAUSE1(NONE, ident, seq_pat1, result, ref seq_pat2, info) )
+		( Absyn.CLAUSE1(NONE, ident, seq_pat1, result, ref seq_pat2, [], info) )
 
 result
 	: RETURN LPAR seq_exp SEMICOLON info RPAR

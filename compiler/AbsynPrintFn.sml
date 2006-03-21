@@ -113,7 +113,7 @@ functor AbsynPrintFn(structure MakeString : MAKESTRING
     fun prResult(os, Absyn.RETURN(exps, _)) = print_parens_comma(os, exps, print_exp)
       | prResult(os, Absyn.FAIL _) = prStr(os, "fail")
 
-    fun print_clause(os, Absyn.CLAUSE1(g_opt, id, pat_star, result, _, _)) =
+    fun print_clause(os, Absyn.CLAUSE1(g_opt, id, pat_star, result, _, _, _)) =
 	  (prStr(os, "\n  rule ");
 	   print_g_opt(os, g_opt);
 	   prStr(os, "\n       ----\n       ");
@@ -153,7 +153,7 @@ functor AbsynPrintFn(structure MakeString : MAKESTRING
       | print_withtype(os, typbind_star) =
 	  (prStr(os, "withtype "); print_typbind_star(os, typbind_star))
 
-    fun print_relbind(os, Absyn.RELBIND(ident, ty_opt, clause, _)) =
+    fun print_relbind(os, Absyn.RELBIND(ident, ty_opt, clause, _, _)) =
       (print_ident(os, ident); print_ty_opt(os, ty_opt);
        prStr(os, " ="); print_clause(os, clause); prStr(os, "\nend\n"))
 

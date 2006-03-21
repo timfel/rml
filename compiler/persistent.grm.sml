@@ -1925,7 +1925,7 @@ ident as ident1) = ident1 ()
 			Cache.PROTECTED					
 			);
 	
-		Absyn.RELBIND(ident, relbind_ty_opt, clause_plus, info) 
+		Absyn.RELBIND(ident, relbind_ty_opt, clause_plus, [], info) 
 	
 )
 end)
@@ -2226,7 +2226,7 @@ MlyValue.clause (fn _ => let val  (goal as goal1) = goal1 ()
  val  seq_pat2 = seq_pat2 ()
  val  (info as info1) = info1 ()
  in (
- Absyn.CLAUSE1(SOME(goal), ident, seq_pat1, result, ref seq_pat2, info) 
+ Absyn.CLAUSE1(SOME(goal), ident, seq_pat1, result, ref seq_pat2, [], info) 
 )
 end)
  in ( LrTable.NT 26, ( result, CLAUSE11left, RPAR3right), rest671)
@@ -2243,8 +2243,8 @@ ident as ident1) = ident1 ()
  val  seq_pat2 = seq_pat2 ()
  val  (info as info1) = info1 ()
  in (
- Absyn.CLAUSE1(NONE, ident, seq_pat1, result, ref seq_pat2, info) )
-
+ Absyn.CLAUSE1(NONE, ident, seq_pat1, result, ref seq_pat2, [], info) 
+)
 end)
  in ( LrTable.NT 26, ( result, CLAUSE11left, RPAR3right), rest671)
 end

@@ -624,6 +624,7 @@ functor InstrumentFn(structure Absyn : ABSYN
 				id,
 				pat_star, result,
 				ref_pat_star,
+				vars,
 				infoCLAUSE1 as Absyn.INFO(_, _, _, locCLAUSE1)), 
 				relIdent) =
 		Absyn.CLAUSE1(
@@ -633,15 +634,15 @@ functor InstrumentFn(structure Absyn : ABSYN
 				locCLAUSE1, 
 				pat_star, 
 				result), 
-			id, pat_star, result, ref_pat_star, infoCLAUSE1)
+			id, pat_star, result, ref_pat_star, vars, infoCLAUSE1)
       | instrumentClause(Absyn.CLAUSE2(cl1,cl2, infoCLAUSE2), relIdent) =
 	    Absyn.CLAUSE2(
 			instrumentClause(cl1, relIdent), 
 			instrumentClause(cl2, relIdent),
 			infoCLAUSE2)
        
-    fun instrumentRel(Absyn.RELBIND(ident, ty_op, clause, infoRELBIND)) = 
-       Absyn.RELBIND(ident, ty_op, instrumentClause(clause, ident), infoRELBIND)
+    fun instrumentRel(Absyn.RELBIND(ident, ty_op, clause, x, infoRELBIND)) = 
+       Absyn.RELBIND(ident, ty_op, instrumentClause(clause, ident), x, infoRELBIND)
     
     fun instrumentDec(Absyn.RELdec(rels, infoREL)) = Absyn.RELdec(map instrumentRel rels, infoREL)
       | instrumentDec dec = dec 

@@ -58,8 +58,29 @@ functor AbsynFn(structure MakeString : MAKESTRING
     datatype result	= RETURN of exp list * info
 					| FAIL of info
 					
-	(* adrpo added 2005-11-08 the pat list ref component in the CLAUSE1 *) 					
-    datatype clause	= CLAUSE1 of goal option * ident * pat list * result * pat list ref * info
+	datatype attr = ATTRIBUTES of 
+					{ 
+						public: bool ref,
+						final : bool ref,
+						var   : bool ref,
+						param : bool ref,
+						const : bool ref,
+						input : bool ref,
+						output: bool ref,
+						bidir : bool ref,
+						pos   : info ref
+					}
+	(* 
+	adrpo added 2005-11-08 the pat list ref component in the CLAUSE1 
+	adrpo added 2006-03-18 the list of variables with types 
+	*) 					
+    datatype clause	= CLAUSE1 of goal option 
+                               * ident 
+                               * pat list 
+                               * result 
+                               * pat list ref 
+                               * (ident * ty option * exp option * attr) list (* list of variables and their type *)
+                               * info
 					| CLAUSE2 of clause * clause * info 
 
     datatype conbind = CONcb of ident * info
@@ -69,7 +90,14 @@ functor AbsynFn(structure MakeString : MAKESTRING
 
     datatype typbind = TYPBIND of tyvar list * ident * ty * info
 
-    datatype relbind = RELBIND of ident * ty option * clause * info
+	(* 
+	adrpo added 2006-03-18 the list of variables with types 
+	*) 					
+    datatype relbind = RELBIND of ident 
+								* ty option 
+								* clause
+								* (ident * ty option * exp option * attr) list (* inputs * outputs * normal vars *)
+								* info
 
     datatype spec = WITHspec of string * interface ref * info
 				  | ABSTYPEspec of bool * tyvar list * ident * info

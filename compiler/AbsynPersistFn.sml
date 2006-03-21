@@ -312,7 +312,7 @@ functor AbsynPersistFn(structure MakeString : MAKESTRING
 	   prPR(os))
       | prResult(os, Absyn.FAIL info) = (prHD(os, "$FAIL"); prInfo(os, info); prPR(os))
 
-    fun print_clause(os, Absyn.CLAUSE1(g_opt, id, pat_star, result, ref pat_stars, info)) =
+    fun print_clause(os, Absyn.CLAUSE1(g_opt, id, pat_star, result, ref pat_stars, _, info)) =
 	  (
 	   prHD(os,"$CLAUSE1");			  
 	   print_g_opt(os, g_opt);
@@ -393,7 +393,7 @@ functor AbsynPersistFn(structure MakeString : MAKESTRING
     fun print_withtype(os, []) = ()
       | print_withtype(os, typbind_star) = print_typbind_star(os, typbind_star)
 
-    fun print_relbind(os, Absyn.RELBIND(ident, ty_opt, clause, info)) =
+    fun print_relbind(os, Absyn.RELBIND(ident, ty_opt, clause, _, info)) =
       (
 	   prHD(os,"$RELBIND");               
        print_ident(os, ident); 
