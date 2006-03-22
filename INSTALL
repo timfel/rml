@@ -38,6 +38,11 @@ into problems read the NOTE at the end of this file.
 			and ml-yacc. These tools must be in your $PATH.
 
 	HEAP_SUFFIX	The suffix appended by SML/NJ to exported heap images.
+	
+   NOTE: The debugging runtime of RML depends on the 'readline' library.
+         If you don't have this library installed you can run configure with:
+	 
+	 ./configure --disable-debug
 
 3. The configure script automatically executes 'make configure' after non-trivial
    changes in the configuration parameters, using config.cache to tailor the
