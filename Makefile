@@ -2,7 +2,7 @@
 # Root Makefile
 #
 SHELL=/bin/sh
-SUBDIRS=compiler etc runtime #examples oldexamples
+SUBDIRS=compiler etc runtime examples
 
 default:	config.cache
 	$(MAKE) MAKETARGET=default all-subdirs
