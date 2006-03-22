@@ -1,8 +1,0 @@
-#!/bin/bash
-RMLHOME=/cygdrive/c/bin/cygwin/home/adrpo/rml-2.2/x86-cygwin-gcc/
-ANTLRHOME=/cygdrive/c/dev/soft/antlr/lib/cpp
-CLASSPATH="c:/dev/soft/javacup;c:/dev/soft/antlr/antlr.jar;c:/dev/soft/antlr;$CLASSPATH"
-MOSHHOME=/cygdrive/c/dev/modelica/mosh
-MODELICAPATH=/cygdrive/c/dev/ModelicaLibrary/1.5/
-CORBAHOME=/cygdrive/c/dev/soft/mico
-export RMLHOME ANTLRHOME CLASSPATH MOSHHOME MODELICAPATH CORBAHOME

@@ -1,8 +1,0 @@
-
-module Parse:
-
-	with "absyn.rml"
-
-	relation parse: () => Absyn.Stmt
-
-end

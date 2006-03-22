@@ -1,5 +1,0 @@
-(* parse.rml *)
-module Parse:
-  with "absyn.rml"
-  relation parse: string => Absyn.Dec list
-end
