@@ -1,8 +1,0 @@
-module moda:
-
-  datatype Exp = SPECop of int vector list
-	       | DUPexp of (Exp * int) vector  
-	       | SPECexp of int list  
-               | DUP of int vector list
-
-end
