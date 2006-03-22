@@ -1,8 +1,0 @@
-v:<main.rml>:18.13.18.16|[13.2.19.1]|main[argv:string list]
-v:<main.rml>:18.8.18.10|[13.2.19.1]|main[arg:string]
-v:<main.rml>:13.25.13.25|[13.2.19.1]|main[k:int]
-v:<main.rml>:14.18.14.21|[13.2.19.1]|main[prog:Absyn.exp]
-/*  ME_Dict: */
-/*  TE': */
-/*  VE'': */
-r:<main.rml>:10.10.10.13|main:string list => ()

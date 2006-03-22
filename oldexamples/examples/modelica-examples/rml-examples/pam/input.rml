@@ -1,5 +1,0 @@
-module Input:
-
-  relation read:() => int
-
-end
