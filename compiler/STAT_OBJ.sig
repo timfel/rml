@@ -14,8 +14,12 @@ signature STAT_OBJ =
     sharing Ty = TyFcn.Ty = TyScheme.Ty
 
     datatype valkind	= CON | VAR | REL
-    datatype valstr	= VALSTR of {vk: valkind,
-				     sigma: TyScheme.tyscheme}
+    datatype valstr	= VALSTR of 
+			{
+				vk: valkind, 
+				sigma: TyScheme.tyscheme, 
+				localVE: valstr Absyn.IdentDict.dict
+			}
     datatype tystr	= TYSTR of {theta: TyFcn.tyfcn,
 				    abstract: bool}
     datatype modstr	= MODSTR of {TE: tystr Absyn.IdentDict.dict,

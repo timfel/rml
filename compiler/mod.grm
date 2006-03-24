@@ -108,6 +108,32 @@ fun makeELEMENT(isFinal,
   )
 
 
+	fun addImports ([], _, lexArg) = ()
+	|	addImports ((imp, (x as (sp,sl,sc), y as (ep,el,ec)))::rest, v, lexArg) =
+	(
+		LexArg.addImport(lexArg, imp, x, y, v);
+		addImports(rest, v, lexArg)
+	)
+	
+	fun addRestrictions ([], _, lexArg) = ()
+	|	addRestrictions ((restr, r)::rest, v, lexArg) =
+	(
+		case r of
+			Absyn.R_RECORD(_)   => LexArg.addRestriction(lexArg, restr, Cache.REC, v)
+		|	Absyn.R_FUNCTION(_) => LexArg.addRestriction(lexArg, restr, Cache.FUN, v)
+		|	_ => ();
+		addRestrictions(rest, v, lexArg)
+	)
+		
+
+	fun addImportsAndRestrictions(element_list, v, lexArg) =
+	let val imports    = Absyn.filterImports element_list
+		val recAndfunc = Absyn.filterFunctionsAndRecords element_list
+	in
+		addImports(imports, v, lexArg);
+		addRestrictions(recAndfunc, v, lexArg)
+	end
+
 %%
 
 %name MOD
@@ -395,6 +421,7 @@ fun makeELEMENT(isFinal,
 	| argument_list of Absyn.ElementArg list
 	| argument of Absyn.ElementArg
 	| equation_clause of Absyn.ClassPart 
+	| equation_clause_case of Absyn.ClassPart
 	| equation_annotation_list of Absyn.EquationItem list
 	| constraining_clause of Absyn.ElementSpec
 	| opt_constraining_clause of Absyn.ElementSpec option
@@ -729,21 +756,7 @@ optPARTIAL:
 (* we don't care about final here! *)
 class_definition:
 	class_type ident class_specifier 
-	(
-		case class_type of
-			Absyn.R_RECORD(_)   =>
-				LexArg.addRestriction(
-					lexArg, Absyn.identName ident,
-					Cache.REC,
-					!(LexArg.currVisibility lexArg)					
-					)
-		|	Absyn.R_FUNCTION(_) =>
-				 LexArg.addRestriction(
-					lexArg, Absyn.identName ident,
-					Cache.FUN,
-					!(LexArg.currVisibility lexArg))
-		|	_ => ();
-		
+	(		
 		case class_specifier of 
 			SOME(class_specifier)
 			=> Absyn.CLASS(ident,
@@ -942,37 +955,28 @@ explicit_import_name:
 implicit_import_name:
 	name_path DOTSTAR
 		( 
-		  LexArg.addImport(
-			lexArg, 
-			(Absyn.getLastPathAsString name_path)^".mo",
-			name_pathleft, DOTSTARright, !(LexArg.currVisibility lexArg));
 		
 		  Absyn.UNQUAL_IMPORT(
 			name_path,
 			makeInfo lexArg (name_pathleft, DOTSTARright)))
 	| name_path
-		( 		  
-		  LexArg.addImport 
-			(lexArg, 
-			 (Absyn.getLastPathAsString name_path)^".mo", 
-			 name_pathleft, name_pathright, !(LexArg.currVisibility lexArg));
-			
+		( 
 		  Absyn.QUAL_IMPORT(
 			name_path,
 			makeInfo lexArg (name_pathleft, name_pathright)))
 	
 composition:
 	element_list 
-	(		
-		LexArg.currVisibility(lexArg) := Cache.PUBLIC;
-			
+	(	
+		addImportsAndRestrictions(element_list, Cache.PUBLIC, lexArg);
+		
 		[ Absyn.PUBLIC(
 			element_list,
 			makeInfo lexArg (element_listleft, element_listright)) ]
 	)
 	| element_list composition_sublist
 	(	
-		LexArg.currVisibility(lexArg) := Cache.PUBLIC;	
+		addImportsAndRestrictions(element_list, Cache.PUBLIC, lexArg);
 		Absyn.PUBLIC(
 			element_list,
 			makeInfo lexArg (element_listleft, element_listright))::composition_sublist
@@ -981,21 +985,21 @@ composition:
 composition_sublist:
 	  PUBLIC element_list composition_sublist 
 	(	
-		LexArg.currVisibility(lexArg) := Cache.PUBLIC;
+		addImportsAndRestrictions(element_list, Cache.PUBLIC, lexArg);
 			
 		Absyn.PUBLIC(
 			element_list,
 			makeInfo lexArg (PUBLICleft, element_listright))::composition_sublist )
 	| PROTECTED element_list composition_sublist 
 	( 		
-		LexArg.currVisibility(lexArg) := Cache.PROTECTED;
+		addImportsAndRestrictions(element_list, Cache.PROTECTED, lexArg);
 	
 		Absyn.PROTECTED(
 			element_list,
 			makeInfo lexArg (PROTECTEDleft, element_listright))::composition_sublist )
 	| LOCAL PROTECTED element_list composition_sublist 
 	( 
-		LexArg.currVisibility(lexArg) := Cache.PROTECTED;
+		addImportsAndRestrictions(element_list, Cache.PROTECTED, lexArg);
 	
 		Absyn.PROTECTED(
 			element_list,
@@ -1821,25 +1825,26 @@ case_list:
 	| case_stmt	
 		( [case_stmt] )
 
+equation_clause_case:
+	EQUATION equation_annotation_list
+	( 
+		Absyn.EQUATIONS(
+			equation_annotation_list,
+			makeInfo lexArg (EQUATIONleft, equation_annotation_listright)) 
+	)
+	| (* empty *)
+	( Absyn.EQUATIONS(
+			[],
+			makeInfo lexArg (defaultPos, defaultPos))  
+	)
+
 case_stmt:
-	 CASE seq_pat opt_string_comment local_element_list equation_clause THEN expression SEMICOLON 
+	 CASE seq_pat opt_string_comment local_element_list equation_clause_case THEN expression SEMICOLON 
 	( 
 		Absyn.CASE(
 			seq_pat, 
 			local_element_list, 
-			equation_clause, 
-			expression,
-			opt_string_comment,
-			makeInfo lexArg (CASEleft, SEMICOLONright)) 
-	)
-	| CASE seq_pat opt_string_comment local_element_list THEN expression SEMICOLON 
-	( 
-		Absyn.CASE(
-			seq_pat, 
-			[], 
-			Absyn.EQUATIONS(
-				[],
-				makeInfo lexArg (CASEleft, SEMICOLONright)), 
+			equation_clause_case, 
 			expression,
 			opt_string_comment,
 			makeInfo lexArg (CASEleft, SEMICOLONright)) 
@@ -1848,11 +1853,11 @@ case_stmt:
 case_else:
   (* empty *)
   ( [] )  
-| ELSE opt_string_comment local_element_list equation_clause THEN expression SEMICOLON
+| ELSE opt_string_comment local_element_list equation_clause_case THEN expression SEMICOLON
   ( 
 	[Absyn.ELSE( 
 		local_element_list, 
-		equation_clause, 
+		equation_clause_case, 
 		expression,
 		opt_string_comment,
 		makeInfo lexArg (ELSEleft, SEMICOLONright))] 
@@ -2485,3 +2490,31 @@ annotation:
 			makeInfo lexArg (ANNOTATIONleft, class_modificationright)) )
 	
 	
+(* saved
+case class_type of
+	Absyn.R_RECORD(_)   =>
+		LexArg.addRestriction(
+			lexArg, Absyn.identName ident,
+			Cache.REC,
+			!(LexArg.currVisibility lexArg)					
+			)
+|	Absyn.R_FUNCTION(_) =>
+		 LexArg.addRestriction(
+			lexArg, Absyn.identName ident,
+			Cache.FUN,
+			!(LexArg.currVisibility lexArg))
+|	_ => ();
+*)
+(*
+  LexArg.addImport(
+	lexArg, 
+	(Absyn.getLastPathAsString name_path)^".mo",
+	name_pathleft, DOTSTARright, !(LexArg.currVisibility lexArg));
+*)
+(*		  
+  LexArg.addImport 
+	(lexArg, 
+	 (Absyn.getLastPathAsString name_path)^".mo", 
+	 name_pathleft, name_pathright, !(LexArg.currVisibility lexArg));
+*)
+			

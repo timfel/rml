@@ -1,5 +1,18 @@
 (* parser/rml.grm -- ML-Yacc grammar for the .mo persistency layer *)
 
+fun mkb(0) = ref false
+|	mkb(_) = ref true
+
+fun makeAttr(p, f, v, par, c, i, out, b) =
+	Absyn.ATTRIBUTES{
+		public = mkb(p), 
+		final = mkb(f), 
+		var=mkb(v), 
+		param=mkb(par),
+		const=mkb(c), 
+		input=mkb(i), 
+		output=mkb(out), 
+		bidir=mkb(b)}
  
 %%
 
@@ -86,6 +99,8 @@
 	|   SERIALIZATION_INFO
 	|   SERIALIZATION_INFO_END
 	|   START_SERIALIZATION_INFO
+	|   LV
+	|   ATTR
 	|   START_INTERFACE
 	|	START_MODULE	
 	
@@ -145,6 +160,8 @@
   DECLARATIONS
   DUMMY_SOURCE
   DUMMY_INTERFACE
+  LV
+  ATTR
   SERIALIZATION_INFO
   SERIALIZATION_INFO_END
 
@@ -209,6 +226,11 @@
 	|	ident of Absyn.ident
 	|	tyvar of Absyn.ident
 	|   info of Absyn.info
+	|	ty_opt of Absyn.ty option
+	|   exp_opt of Absyn.exp option
+	|	attributes of Absyn.attr
+	|	local_var of (Absyn.ident * Absyn.ty option * Absyn.exp option * Absyn.attr)
+	|	local_vars of (Absyn.ident * Absyn.ty option * Absyn.exp option * Absyn.attr) list
 
 %eop EOF_HARD EOF_SOFT MODULE DECLARATIONS
 %noshift EOF_HARD
@@ -367,7 +389,8 @@ relbind_plus
 		( relbind :: relbind_plus )
 
 relbind
-	: RELBIND LPAR ident SEMICOLON relbind_ty_opt SEMICOLON clause_plus SEMICOLON info RPAR
+	: RELBIND LPAR ident SEMICOLON relbind_ty_opt SEMICOLON 
+	  clause_plus SEMICOLON LPAR local_vars RPAR SEMICOLON info RPAR
 	( 
 		LexArgSimple.addRestriction(
 			lexArg, Absyn.identName ident,
@@ -375,7 +398,7 @@ relbind
 			Cache.PROTECTED					
 			);
 	
-		Absyn.RELBIND(ident, relbind_ty_opt, clause_plus, [], info) 
+		Absyn.RELBIND(ident, relbind_ty_opt, clause_plus, local_vars, info) 
 	)
 
 relbind_ty_opt
@@ -492,13 +515,45 @@ clause_plus
 	| CLAUSE2 LPAR clause SEMICOLON clause_plus SEMICOLON info RPAR
 		( Absyn.CLAUSE2(clause, clause_plus, info) )
 
+attributes
+	: ATTR LPAR ICON SEMICOLON ICON SEMICOLON ICON SEMICOLON ICON SEMICOLON
+	            ICON SEMICOLON ICON SEMICOLON ICON SEMICOLON ICON RPAR  
+		( makeAttr(ICON1, ICON2, ICON3, ICON4, ICON5, ICON6, ICON7, ICON8) )
+		
+ty_opt
+	: SOM LPAR ty RPAR
+		( SOME(ty) )
+	| NON LPAR RPAR
+		( NONE )
+
+exp_opt
+	: SOM LPAR exp RPAR
+		( SOME(exp) )
+	| NON LPAR RPAR
+		( NONE )
+
+local_var
+	: LV LPAR ident SEMICOLON ty_opt SEMICOLON exp_opt SEMICOLON attributes RPAR
+		( (ident, ty_opt, exp_opt, attributes) )	
+
+local_vars
+	: (* empty *)
+		( [] )
+	| local_var 
+		( [local_var] )
+	| local_var COMMA local_vars
+		( local_var::local_vars )
+	
+
 clause
 	: CLAUSE1 LPAR SOM LPAR goal RPAR SEMICOLON ident SEMICOLON 
-	  seq_pat SEMICOLON result SEMICOLON REF LPAR seq_pat RPAR SEMICOLON info RPAR
-		( Absyn.CLAUSE1(SOME(goal), ident, seq_pat1, result, ref seq_pat2, [], info) )
+	  seq_pat SEMICOLON result SEMICOLON REF LPAR seq_pat RPAR SEMICOLON 
+	  LPAR local_vars RPAR SEMICOLON info RPAR
+		( Absyn.CLAUSE1(SOME(goal), ident, seq_pat1, result, ref seq_pat2, local_vars, info) )
 	| CLAUSE1 LPAR NON LPAR RPAR SEMICOLON ident SEMICOLON seq_pat SEMICOLON 
-	  result SEMICOLON REF LPAR seq_pat RPAR SEMICOLON info RPAR
-		( Absyn.CLAUSE1(NONE, ident, seq_pat1, result, ref seq_pat2, [], info) )
+	  result SEMICOLON REF LPAR seq_pat RPAR SEMICOLON 
+	  LPAR local_vars RPAR SEMICOLON info RPAR
+		( Absyn.CLAUSE1(NONE, ident, seq_pat1, result, ref seq_pat2, local_vars, info) )
 
 result
 	: RETURN LPAR seq_exp SEMICOLON info RPAR

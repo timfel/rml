@@ -37,18 +37,18 @@ functor ReorderValFn(structure Util : UTIL
 
     fun scanPat(pat, VE) =
       case pat
-	of Absyn.WILDpat (_) => VE
-	 | Absyn.LITpat (_,_) => VE
-	 | Absyn.CONpat (_,_) => VE
-	 | Absyn.STRUCTpat(_,pats,_,_) => List.foldl scanPat VE pats
-	 | Absyn.BINDpat(var,pat,_) => scanPat(pat, IdentDict.insert(VE, var, ~1))
-	 | Absyn.IDENTpat(var,_, _) =>
-	    (* Reordering is done before StatElab has had a chance to qualify
-	     * this identifier occurrence as a constant or a variable binding.
-	     * Either choice is safe, however.
-	     *)
-	    IdentDict.insert(VE, var, ~1)
-	 | Absyn.NAMEDpat(ident, pat, _) => scanPat(pat, VE)
+		of Absyn.WILDpat (_) => VE
+		 | Absyn.LITpat (_,_) => VE
+		 | Absyn.CONpat (_,_) => VE
+		 | Absyn.STRUCTpat(_,pats,_,_) => List.foldl scanPat VE pats
+		 | Absyn.BINDpat(var,pat,_) => scanPat(pat, IdentDict.insert(VE, var, ~1))
+		 | Absyn.IDENTpat(var,_, _) =>
+			(* Reordering is done before StatElab has had a chance to qualify
+			 * this identifier occurrence as a constant or a variable binding.
+			 * Either choice is safe, however.
+			 *)
+			IdentDict.insert(VE, var, ~1)
+		 | Absyn.NAMEDpat(ident, pat, _) => scanPat(pat, VE)
 
     fun depsOfVar(VE, var, deps) =
       case IdentDict.find(VE, var)
@@ -68,12 +68,12 @@ functor ReorderValFn(structure Util : UTIL
 	       | Absyn.STRUCTexp(_, exps, _) => List.foldl depsOf deps exps
 	       | Absyn.IDENTexp(longid, _, _) => depsOfLongid(VE, longid, deps)
       in
-	depsOf
+		depsOf
       end
 
     fun depsOfGoal(goal, (VE,deps)) =
-      case goal
-	of Absyn.CALLgoal(longid, exps, pats, _, _) =>
+      case goal of 
+		Absyn.CALLgoal(longid, exps, pats, _, _) =>
 	    (List.foldl scanPat VE pats,
 	     List.foldl (depsOfExp VE) (depsOfLongid(VE,longid,deps)) exps)
 	 | Absyn.EQUALgoal(var, exp, _) => (VE,depsOfVar(VE,var,depsOfExp VE (exp,deps)))
@@ -91,7 +91,7 @@ functor ReorderValFn(structure Util : UTIL
 
     fun depsOfClause(VE, clause, deps) =
       case clause
-	of Absyn.CLAUSE1(goal_opt, _, pats, result, _, [], _) =>
+	of Absyn.CLAUSE1(goal_opt, _, pats, result, _, localVars, _) =>
 	    let val VE = List.foldl scanPat VE pats
 		val (VE,deps) = depsOfGoalOpt(goal_opt, VE, deps)
 	    in

@@ -1448,6 +1448,7 @@ local
       signature REORDER = gs_177
       signature REORDER_TY = gs_179
       signature REORDER_VAL = gs_178
+      signature UTIL = gs_3
       ReorderFn.sml
    in
       functor gs_180 = ReorderFn
@@ -1514,6 +1515,7 @@ local
       functor ReorderFn = gs_180
       structure ReorderTy = gs_186
       structure ReorderVal = gs_184
+      structure Util = gs_12
       Reorder.sml
    in
       structure gs_187 = Reorder

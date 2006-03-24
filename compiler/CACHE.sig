@@ -6,7 +6,7 @@ signature CACHE =
 	structure Absyn  : ABSYN
     structure StrDict: STR_DICT
     
-    datatype visibility  = PUBLIC | PROTECTED | BOTH 
+    datatype visibility  = PUBLIC | PROTECTED | BOTH
     datatype restriction = FUN    | REC
     datatype ftype = RML | MOD | SRZ    
     

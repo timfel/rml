@@ -113,8 +113,27 @@ functor AbsynPrintFn(structure MakeString : MAKESTRING
     fun prResult(os, Absyn.RETURN(exps, _)) = print_parens_comma(os, exps, print_exp)
       | prResult(os, Absyn.FAIL _) = prStr(os, "fail")
 
-    fun print_clause(os, Absyn.CLAUSE1(g_opt, id, pat_star, result, _, _, _)) =
+	fun printLocalVars(os, ([])) = prStr(os, "\n")
+	|	printLocalVars(os, ((id, SOME(ty), exp, _)::rest)) =
+	(
+		prStr(os, "\n\tval ");
+		print_ident(os, id); prStr(os, ":");
+		print_ty(os, ty); prStr(os, " ");
+		printLocalVars(os, rest)
+	)
+	|	printLocalVars(os, ((id, _, _, _)::rest)) = 
+	(
+		prStr(os, "\n\tval ");
+		print_ident(os, id); prStr(os, ":");
+		prStr(os, "?"); prStr(os, " ");
+		printLocalVars(os, rest)
+	)	
+
+    fun print_clause(os, Absyn.CLAUSE1(g_opt, id, pat_star, result, _, localVars, _)) =
 	  (prStr(os, "\n  rule ");
+	   prStr(os, "\n  local"); 
+	   printLocalVars(os, localVars);
+	   prStr(os, "\t");
 	   print_g_opt(os, g_opt);
 	   prStr(os, "\n       ----\n       ");
 	   print_ident(os, id);
@@ -153,9 +172,15 @@ functor AbsynPrintFn(structure MakeString : MAKESTRING
       | print_withtype(os, typbind_star) =
 	  (prStr(os, "withtype "); print_typbind_star(os, typbind_star))
 
-    fun print_relbind(os, Absyn.RELBIND(ident, ty_opt, clause, _, _)) =
-      (print_ident(os, ident); print_ty_opt(os, ty_opt);
-       prStr(os, " ="); print_clause(os, clause); prStr(os, "\nend\n"))
+    fun print_relbind(os, Absyn.RELBIND(ident, ty_opt, clause, localVars, _)) =
+      (
+	   print_ident(os, ident); print_ty_opt(os, ty_opt);
+       prStr(os, " =");
+	   prStr(os, "\n  local val "); 
+	   printLocalVars(os, localVars);
+	   prStr(os, "\t");
+	   print_clause(os, clause); 
+       prStr(os, "\nend\n"))
 
     fun print_relbind_star(os, relbind_star) =
       print_sequence(os, "", "and ", "", relbind_star, print_relbind)

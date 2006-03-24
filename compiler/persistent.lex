@@ -140,7 +140,9 @@ val kwds =
   ("$DECLARATIONS", Tokens.DECLARATIONS),
   ("$DUMMY_SOURCE", Tokens.DUMMY_SOURCE),
   ("$DUMMY_INTERFACE", Tokens.DUMMY_INTERFACE),
-  ("$SerializationInfo", Tokens.SERIALIZATION_INFO)    
+  ("$SerializationInfo", Tokens.SERIALIZATION_INFO),
+  ("$LV", Tokens.LV),
+  ("$ATTR", Tokens.ATTR)      
 ]
 
 fun makeIDENT(pos1, str) =
@@ -206,7 +208,7 @@ ccon="#\""{cdesc}\";
 alpha=[A-Za-z];
 alnum={alpha}|[_'0-9];
 kwd="$"{alpha}{alnum}*;
-id={alpha}{alnum}*;
+id={alpha}({alnum}|".")*;
 
 tyvar="'"+{alpha}{alnum}*;
 

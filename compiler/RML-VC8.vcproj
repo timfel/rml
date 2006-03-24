@@ -687,14 +687,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\ReorderParse.sml"
-				>
-			</File>
-			<File
-				RelativePath=".\ReorderParseFn.sml"
-				>
-			</File>
-			<File
 				RelativePath=".\ReorderSCC.sml"
 				>
 			</File>

@@ -414,7 +414,7 @@ functor FrontEndFn(
 	else 
 	(* load it *)
 	let fun loop([],r) = ()
-		|	loop(x::rest,r) = (loadTranslate(x,r,alreadyLoaded, translateNeeded); loop(rest,r))	 
+		|	loop(x::rest,r) = (loadTranslate(x, r, alreadyLoaded, translateNeeded); loop(rest,r))	 
 	in
 		let val entryMOD = Cache.getCacheEntry(repository, Cache.modCache, file)
 			val entryRML = Cache.getCacheEntry(repository, Cache.rmlCache, file)
@@ -474,8 +474,8 @@ functor FrontEndFn(
 				if not(!Control.dumpInterface) andalso Control.isInterfaceFileValid(file)   
 				then ()
 				else Control.withOutput AbsynPrint.printInterface translated interfaceFile;
-				*)
 				Control.withOutput AbsynPrint.printModule translated (interfaceFile^".rmod");
+				*)
 				(* dump the serialization *)
 				case Control.fileType file of
 						Control.MO_FILE (* dump .srz only if is .mo file and the .srz is dirty *)
@@ -515,12 +515,12 @@ functor FrontEndFn(
 	)
 	else NONE
 
-	and loadMODFile(file, repository, alreadyTranslated, loadInterfaceOnly) = 
+	and loadMODFile(file, repository, alreadyTranslated, alreadyLoaded, loadInterfaceOnly) = 
 	let val entryRML = Cache.getCacheEntry(repository, Cache.rmlCache, file)
 		val entrySRZ = Cache.getCacheEntry(repository, Cache.srzCache, file)
 		val entryMOD = Cache.getCacheEntry(repository, Cache.modCache, file)
 		val translateNeeded = ref []
-		val alreadyLoaded = ref []		
+		val _ = alreadyLoaded = ref []
 		val isSRZ = ref false 
 		fun apply (f,r,loadInterfaceOnly) = 
 			let val	module = loadSerializedMODFile(file, repository, loadInterfaceOnly);
@@ -624,14 +624,21 @@ functor FrontEndFn(
 			else 
 			let in
 			  debug ("loadMODFile: Translating Additional:"^x^"\n"); 
-			  loadMODFile(x, r, alreadyTranslated, true); loop(rest,r)
+			  loadMODFile(x, r, alreadyTranslated, alreadyLoaded, true); loop(rest,r)
 			end
 		val currentModuleDependencies = getMODImports(file, repository, false)
-		val dependencies = currentModuleDependencies @(!translateNeeded)
+		fun append([]) = ()
+		|	append(x::rest) = 
+			if List.exists (fn y => (x = y)) (!translateNeeded)
+			then append(rest)
+			else (translateNeeded := x :: (!translateNeeded); append(rest))
+		val _ = append(currentModuleDependencies)
+		val dependencies = !translateNeeded
 		(*
 		val _ = printDependencies(file, dependencies)
 		val _ = printAlready(file, !alreadyTranslated) 
 		*)
+
 	in
 		loop(dependencies,repository); 
 
@@ -643,12 +650,13 @@ functor FrontEndFn(
     let val file = OS.Path.joinBaseExt {base = prefix, ext = ext}
 		val _ = debug ("parse: Main file to parse: "^file^"\n")
 		val alreadyTranslated = ref []
+		val alreadyLoaded = ref []		
 		val (module, currentModuleDependencies) =
 		case (Control.fileType file) of 
 			Control.RML_FILE => 
 			loadRMLFile ( file, repository )
 		|	Control.MO_FILE  => 
-			loadMODFile ( file, repository, alreadyTranslated, false)
+			loadMODFile ( file, repository, alreadyTranslated, alreadyLoaded, false)
 		|	_ => Util.error("FrontEndFn.parse: unknown file type:"^file)
     in
 		(* all dependencies are loaded! see about includes! *)

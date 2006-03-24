@@ -11,7 +11,7 @@ functor CacheFn(
 	
 	fun bug s = Util.bug("CacheFn."^s)
 	
-    datatype visibility  = PUBLIC | PROTECTED | BOTH 
+    datatype visibility  = PUBLIC | PROTECTED | BOTH
     datatype restriction = FUN | REC
     datatype ftype = RML | MOD | SRZ
     

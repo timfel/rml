@@ -67,8 +67,7 @@ functor AbsynFn(structure MakeString : MAKESTRING
 						const : bool ref,
 						input : bool ref,
 						output: bool ref,
-						bidir : bool ref,
-						pos   : info ref
+						bidir : bool ref
 					}
 	(* 
 	adrpo added 2005-11-08 the pat list ref component in the CLAUSE1 
@@ -571,6 +570,38 @@ functor AbsynFn(structure MakeString : MAKESTRING
   fun getPathAsString(QUALIFIED(IDENT(s,_), p, _)) = s^"."^getPathAsString(p)
   |   getPathAsString(PATHIDENT(IDENT(s,_), _)) = s
   |   getPathAsString(TYPEVARIABLE(IDENT(s,_), _)) = s
-  
+
+  fun getPozFromInfo(INFO(_, sp,ep, LOC(sl,sc,el,ec))) =
+		((sp,sl,sc),(ep,el,ec))
+		  
+  fun filterImports([]) = []
+  |	  filterImports(
+		ELEMENTITEM(
+			ELEMENT(_,_,_,ident, IMPORT(import,_, info), _, _),_)::rest) =
+			(
+			case import of
+				QUAL_IMPORT(path, importInfo) => 
+				((getLastPathAsString path)^".mo", getPozFromInfo(importInfo))
+				::filterImports(rest)
+			|	UNQUAL_IMPORT(path, importInfo) => 
+				((getLastPathAsString path)^".mo", getPozFromInfo(importInfo))
+				::filterImports(rest)
+			|	_ => filterImports(rest)
+			)
+	|   filterImports(_::rest) = filterImports(rest)
+
+  fun filterFunctionsAndRecords([]) = []
+  |   filterFunctionsAndRecords(
+		ELEMENTITEM(
+			ELEMENT(_,_,_,ident, CLASSDEF(_, class, _), _, _),_)::rest) =
+			(
+			case class of
+				CLASS(id, _, _, _, r as R_RECORD(_), _, info) =>
+				(identName id, r)::filterFunctionsAndRecords(rest)
+			|	CLASS(id, _, _, _, r as R_FUNCTION(_), _, info) => 
+				(identName id, r)::filterFunctionsAndRecords(rest)
+			|	_ => filterFunctionsAndRecords(rest)
+			)
+  |   filterFunctionsAndRecords(_::rest) = filterFunctionsAndRecords(rest)
   
 end (* functor AbsynFn *)

@@ -103,7 +103,7 @@ functor PERSISTENTParseFn(structure Absyn : ABSYN
     fun parseInterface(file, repository) = 
     let val start = Time.now()
 		val _ = debug("parseInterface: "^file^" -> ")
-		val result = parse(Tokens.START_INTERFACE, file, repository, false)
+		val result = parse(Tokens.START_INTERFACE, file, repository, true)
 		val stop = Time.now()
 		val interval = Time.- (stop, start)
 		val _ = debug("("^(Time.fmt 5 interval)^")\n")

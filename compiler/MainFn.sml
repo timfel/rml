@@ -56,6 +56,7 @@ functor MainFn(
     val optCode = ref true
     
     structure StrDict = Cache.StrDict
+    type repository = Cache.repository
     
     (* function that does the rml to sml translation *)
     fun doSml((prefix, ext), cpsModule) =
@@ -123,17 +124,15 @@ functor MainFn(
 			else cpsModule
            
     (* function that translates a RML file into C representation (actual compilation) *)
-    fun translate ( (prefix, ext) )=
+    fun translate ( (prefix, ext), repository )=
       let	val fileName = OS.Path.joinBaseExt {base = prefix, ext = ext}
-			val astModule = 
-					FrontEnd.processFile(
-						(prefix,ext),
-						Cache.new(
-							Cache.new(
-								Cache.new(
-									ref StrDict.empty, Cache.rmlCache), 
-								Cache.modCache), 
-							Cache.srzCache)) 
+			val repository = Cache.new(
+									Cache.new(
+										Cache.new(
+											ref StrDict.empty, Cache.rmlCache), 
+										Cache.modCache), 
+								   Cache.srzCache)			 
+			val astModule = FrontEnd.processFile((prefix,ext), repository)
 	  in	  		
 		case astModule of
 			SOME(astModule) =>
@@ -291,7 +290,7 @@ functor MainFn(
 	    end
 
     (* function that processes a rml file (compilation) *)
-    fun compiler argv =
+    fun compiler (argv, repository) =
       let fun process arg =
 	    if String.sub(arg, 0) = #"-" then option arg
 	    else
@@ -303,7 +302,7 @@ functor MainFn(
 				|	Control.UNKNOWN_FILE => ()
 				|	_ => usage("rml: invalid argument '" ^ arg ^ "'. You cannot mix .rml and .mo files\n");
 				Control.currentlyCompiling := Control.RML_FILE;
-				translate (Control.pathSplit arg)
+				translate (Control.pathSplit arg, repository)
 				)
 		  |		Control.MO_FILE  => 
 				(
@@ -312,7 +311,7 @@ functor MainFn(
 				|	Control.UNKNOWN_FILE => ()
 				|	_ => usage("rml: invalid argument '" ^ arg ^ "'. You cannot mix .rml and .mo files\n");
 				Control.currentlyCompiling := Control.MO_FILE;				
-				translate (Control.pathSplit arg)
+				translate (Control.pathSplit arg, repository)
 				)
 		  |		_ => usage("rml: invalid argument '" ^ arg ^ "'\n")
       in
@@ -320,24 +319,22 @@ functor MainFn(
       end
 
     (* function to run the interpreter *)
-    fun run(prefixes, argv) =
-	  let val modseq = 
-				FrontEnd.processProgram(
-					prefixes,
-						Cache.new(
+    fun run(prefixes, argv, repository) =
+	  let val repository = Cache.new(
 							Cache.new(
 								Cache.new(
 									ref StrDict.empty, Cache.rmlCache), 
 								Cache.modCache), 
-							Cache.srzCache))
+						   Cache.srzCache)
+	  val modseq = FrontEnd.processProgram(prefixes, repository)
       in
 	    Interp.run(modseq, argv)
       end
 
     (* the main loop of the interpreter *)
-    fun interpreter argv =
+    fun interpreter (argv, repository) =
       let fun revRun([], _) = ()
-	    | revRun(prefixes, argv) = run(rev prefixes, argv)
+	    | revRun(prefixes, argv) = run(rev prefixes, argv, repository)
 	  fun loop([], prefixes) = revRun(prefixes, [])
 	    | loop("--"::argv, prefixes) = revRun(prefixes, argv)
 	    | loop(arg::argv, prefixes) =
@@ -373,9 +370,15 @@ functor MainFn(
 
     (* the main function *)
     fun main argv =
-      let fun loop("-i"::argv) = interpreter argv
+      let val repository = Cache.new(
+							Cache.new(
+								Cache.new(
+									ref StrDict.empty, Cache.rmlCache), 
+								Cache.modCache), 
+						   Cache.srzCache)
+		fun loop("-i"::argv) = interpreter (argv, repository)
 	    | loop("-v"::argv) = (version(); loop argv)
-	    | loop argv = compiler argv
+	    | loop argv = compiler (argv, repository)
       in
 	    loop argv
       end

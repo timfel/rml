@@ -4,11 +4,15 @@ functor ReorderFn(
 	structure ReorderTy : REORDER_TY
 	structure ReorderVal : REORDER_VAL
 	structure Control : CONTROL		  
+	structure Util : UTIL
 	sharing ReorderTy.Absyn = ReorderVal.Absyn		  
 	) : REORDER =
   struct
 
     structure Absyn = ReorderTy.Absyn
+    
+	val debugFlag = false
+	fun debug s = if (debugFlag) then Util.outStdErr ("ReorderFn."^s) else ()    
 
     fun addTyp(typbnd, ts) = ReorderTy.TYPBND(typbnd)::ts
     fun addDat(datbnd, ts) = ReorderTy.DATBND(datbnd)::ts
@@ -79,6 +83,7 @@ functor ReorderFn(
       then 
       let val specs = reorderSpecs(source, specs)
       in
+		debug ("reorderInterface:"^(Absyn.identName modid)^"\n");
 		Absyn.INTERFACE({modid=modid, specs=specs, source=source}, infoI)
       end
       else interface
@@ -86,8 +91,9 @@ functor ReorderFn(
     fun reorderModule(module as Absyn.MODULE(interface, decs, infoM)) =
 	  if !Control.doReorder 
       then 
-      let val Absyn.INTERFACE({source,...}, infoI) = interface
+      let val Absyn.INTERFACE({source,modid,...}, infoI) = interface
       in
+		debug ("reorderModule:"^(Absyn.identName modid)^"\n");
 		Absyn.MODULE(reorderInterface interface, reorderDecs(source, decs), infoM)
       end
       else module

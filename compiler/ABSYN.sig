@@ -66,8 +66,7 @@ signature ABSYN =
 						const : bool ref,
 						input : bool ref,
 						output: bool ref,
-						bidir : bool ref,
-						pos   : info ref
+						bidir : bool ref
 					}
 	(* 
 	adrpo added 2005-11-08 the pat list ref component in the CLAUSE1 
@@ -552,5 +551,7 @@ signature ABSYN =
   val getLastPathAsString : Path -> string
   val getCrefAsString     : ComponentRef -> string
   val getPathAsString     : Path -> string
-    	
+  val filterImports    	  : ElementItem list -> (string * ((int*int*int) * (int*int*int))) list
+  val filterFunctionsAndRecords : ElementItem list -> (string * Restriction) list
+  
   end (* signature ABSYN *)

@@ -311,8 +311,44 @@ functor AbsynPersistFn(structure MakeString : MAKESTRING
 	   prInfo(os, info); 
 	   prPR(os))
       | prResult(os, Absyn.FAIL info) = (prHD(os, "$FAIL"); prInfo(os, info); prPR(os))
+      
+    fun printAttributes(os, Absyn.ATTRIBUTES{public, final, var, param, const, input, output, bidir}) =
+    (
+	   prHD(os,"$ATTR");
+	   if !public then prStr(os, Int.toString 1) else prStr(os, Int.toString 0);
+	   prSC(os);
+	   if !final then prStr(os, Int.toString 1) else prStr(os, Int.toString 0);
+	   prSC(os);
+	   if !var then prStr(os, Int.toString 1) else prStr(os, Int.toString 0);
+	   prSC(os);
+	   if !param then prStr(os, Int.toString 1) else prStr(os, Int.toString 0);
+	   prSC(os);	   
+	   if !const then prStr(os, Int.toString 1) else prStr(os, Int.toString 0);
+	   prSC(os);
+	   if !input then prStr(os, Int.toString 1) else prStr(os, Int.toString 0);
+	   prSC(os);
+	   if !output then prStr(os, Int.toString 1) else prStr(os, Int.toString 0);
+	   prSC(os);
+	   if !bidir then prStr(os, Int.toString 1) else prStr(os, Int.toString 0);
+	   prPR(os)
+    )
+    
+    fun printLocalVar(os, (id, ty, exp,attr)) =
+	(
+	   prHD(os,"$LV");
+	   print_ident(os, id);
+	   prSC(os);
+	   case ty of SOME(ty) => (prHD(os,"$SOM"); print_ty(os, ty)) | NONE => prHD(os,"$NON");
+	   prPR(os); 
+	   prSC(os);
+	   case exp of SOME(exp) => (prHD(os,"$SOM"); print_exp(os, exp)) | NONE => prHD(os,"$NON");
+	   prPR(os);
+	   prSC(os); 
+	   printAttributes(os, attr);
+	   prPR(os)
+	)
 
-    fun print_clause(os, Absyn.CLAUSE1(g_opt, id, pat_star, result, ref pat_stars, _, info)) =
+    fun print_clause(os, Absyn.CLAUSE1(g_opt, id, pat_star, result, ref pat_stars, localVars, info)) =
 	  (
 	   prHD(os,"$CLAUSE1");			  
 	   print_g_opt(os, g_opt);
@@ -326,6 +362,10 @@ functor AbsynPersistFn(structure MakeString : MAKESTRING
 	   prHD(os,"$REF");
 	   print_parens_comma(os, pat_stars, print_pat);
 	   prPR(os);	     	   
+	   prSC(os);
+	   prPL(os);       
+	   print_list(os, localVars, printLocalVar);
+       prPR(os); 	   
 	   prSC(os);
 	   prInfo(os, info); 
 	   prPR(os))
@@ -393,15 +433,19 @@ functor AbsynPersistFn(structure MakeString : MAKESTRING
     fun print_withtype(os, []) = ()
       | print_withtype(os, typbind_star) = print_typbind_star(os, typbind_star)
 
-    fun print_relbind(os, Absyn.RELBIND(ident, ty_opt, clause, _, info)) =
+    fun print_relbind(os, Absyn.RELBIND(ident, ty_opt, clause, localVars, info)) =
       (
-	   prHD(os,"$RELBIND");               
+	   prHD(os,"$RELBIND");   
        print_ident(os, ident); 
        prSC(os);
        print_ty_opt(os, ty_opt);
        prSC(os); 
        print_clause(os, clause); 
        prSC(os); 
+	   prPL(os);       
+	   print_list(os, localVars, printLocalVar);
+       prPR(os); 	   
+	   prSC(os);
        prInfo(os, info); 
        prPR(os))
 

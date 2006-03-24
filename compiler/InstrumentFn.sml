@@ -149,6 +149,7 @@ functor InstrumentFn(structure Absyn : ABSYN
       | getInfoFromExp(Absyn.CONexp(longcon, info)) = info
       | getInfoFromExp(Absyn.STRUCTexp(ctor, Exp_star, info)) = info
       | getInfoFromExp(Absyn.IDENTexp(id, _, info)) = info
+      | getInfoFromExp(Absyn.VARexp(longId, info)) = info
 
     (* ------------------------------------------------------ *)
     (* ------------------------------------------------------ *)
@@ -237,7 +238,8 @@ functor InstrumentFn(structure Absyn : ABSYN
 					Absyn.dummyInfo)
 	end
 
-    fun getExpsFromExp(Absyn.LITexp(lit, infoLIT)) = []
+    fun getExpsFromExp(x as Absyn.VARexp(longid,info)) = [x]
+	  | getExpsFromExp(Absyn.LITexp(lit, infoLIT)) = []
       | getExpsFromExp(Absyn.CONexp(longcon, infoCON)) = [Absyn.CONexp(longcon, infoCON)]
       | getExpsFromExp(Absyn.STRUCTexp(ctor, exp_star, _)) = getExpsFromExpStar exp_star
       | getExpsFromExp(id as Absyn.IDENTexp(_, _, _)) = [id]
