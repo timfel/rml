@@ -116,14 +116,14 @@ functor AbsynPrintFn(structure MakeString : MAKESTRING
 	fun printLocalVars(os, ([])) = prStr(os, "\n")
 	|	printLocalVars(os, ((id, SOME(ty), exp, _)::rest)) =
 	(
-		prStr(os, "\n\tval ");
+		prStr(os, "\n       val ");
 		print_ident(os, id); prStr(os, ":");
 		print_ty(os, ty); prStr(os, " ");
 		printLocalVars(os, rest)
 	)
 	|	printLocalVars(os, ((id, _, _, _)::rest)) = 
 	(
-		prStr(os, "\n\tval ");
+		prStr(os, "\n       val ");
 		print_ident(os, id); prStr(os, ":");
 		prStr(os, "?"); prStr(os, " ");
 		printLocalVars(os, rest)
@@ -172,13 +172,22 @@ functor AbsynPrintFn(structure MakeString : MAKESTRING
       | print_withtype(os, typbind_star) =
 	  (prStr(os, "withtype "); print_typbind_star(os, typbind_star))
 
-    fun print_relbind(os, Absyn.RELBIND(ident, ty_opt, clause, localVars, _)) =
+	fun printMatchExps(os, NONE) = 	prStr(os, "\n\tmatchexp: NONE")
+	|	printMatchExps(os, SOME(exp, _, pat, _)) =
+	(
+		prStr(os, "\n\n       matchexp: ");
+		print_pat(os, pat); prStr(os, " = "); print_exp(os, exp); 
+		prStr(os, "\n       ")
+	)
+	
+    fun print_relbind(os, Absyn.RELBIND(ident, ty_opt, clause, localVars, exps, _)) =
       (
 	   print_ident(os, ident); print_ty_opt(os, ty_opt);
-       prStr(os, " =");
-	   prStr(os, "\n  local val "); 
+       prStr(os, " = ");
+       printMatchExps(os, exps);
+	   prStr(os, "\n  local"); 
 	   printLocalVars(os, localVars);
-	   prStr(os, "\t");
+	   prStr(os, "       ");
 	   print_clause(os, clause); 
        prStr(os, "\nend\n"))
 

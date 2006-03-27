@@ -253,7 +253,7 @@ functor InterpFn(structure Util : UTIL
     (* Relation Bindings *)
 
     fun evalRel(ME, VE, relbinds) =
-      let fun evRel(Absyn.RELBIND(var, _, clause, _, _), VE') =
+      let fun evRel(Absyn.RELBIND(var, _, clause, _, _, _), VE') =
 	    StrDict.insert(VE', var,
 			   InterpCore.CLOSURE{clause=clause, ME=ME,
 					      VE=VE, VE_rec=StrDict.empty})

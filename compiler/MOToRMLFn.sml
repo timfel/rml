@@ -343,6 +343,10 @@ functor MOToRMLFn(
 	datatype construct = CoB of Absyn.conbind      (* constructors   *)
 	                   | TyB of Absyn.typbind      (* type bindings  *)
 	                   | TyV of Absyn.tyvar        (* type variables *)
+	                   | MATCHexp of Absyn.exp *    (* the expression in the match *)
+	                                 Absyn.info *
+									 Absyn.pat *    (* the result of the match *)
+	                                 Absyn.info
 						 (* match clauses  *)		
 				       | CLAUSE of Absyn.clause *   (* clause *)
 								   Absyn.info   (* position *)
@@ -367,9 +371,12 @@ functor MOToRMLFn(
 	                   | REL of Absyn.ident * 
 	                            Absyn.ty * 
 	                            Absyn.clause option * 
-	                            (Absyn.ident * 
-	                             Absyn.ty option * Absyn.exp option * Absyn.attr) list * (* local variables *)
-	                            Absyn.info
+	                            (Absyn.ident * Absyn.ty option * Absyn.exp option * Absyn.attr) list * (* local variables *)
+	                            (Absyn.exp *  (* match expression *)
+	                             Absyn.info * (* match info *) 
+	                             Absyn.pat *  (* match return expression *)
+	                             Absyn.info) option * (* match info *)
+	                            Absyn.info  
 	                            
 	type constructs = construct list
 
@@ -2330,7 +2337,8 @@ functor MOToRMLFn(
 				exp,
 				_,
 				infoCase)::nil, elems, infoMatch) =
-		let val nrOfPats = List.length (constructWildPatternList(matchExp,infoCase))
+		let 
+		    val nrOfPats = List.length (constructWildPatternList(matchExp,infoCase))
 		    val rmlPatterns = extractPatterns(patterns)
 		    val nrOfRmlPats = List.length rmlPatterns
 		    (* TODO! check this! 
@@ -2371,11 +2379,6 @@ functor MOToRMLFn(
 			val _ = print("Case locals:"^L(localdecls)^" at "^(getStringLoc(infoElse))^"\n")
 			val localMatchVars = getLocalVars(elems, false)
 			val localCaseVars = getLocalVars(localdecls, false)
-			(*
-			val _ = if List.length rest > 0
-					then warnAtFunction(infoElse, "ignoring the cases after this else.", "buildClauses")
-					else ()
-			*)
 		in 
 			(
 			Absyn.CLAUSE1(
@@ -2506,24 +2509,37 @@ functor MOToRMLFn(
 		[ALGORITHM(Absyn.CLAUSE1(goal, ident, [], result, ref [], [] (* localvars *), info), info)]
 	end
 
+	and applyConstructClause(ident, x, infoAlgItems, rest, Exp, resultExp) =
+	let val (result1, goal1, info1) = translateExp(Exp)
+		val patResult = translateExpToPat(resultExp)
+		val _ = case goal1 of 
+					NONE => ()
+				|	SOME(_) => warnAtFunction(
+									info1, 
+									"the the match/matchcontinue expression must contain only identifiers!", 
+									"applyConstructClause")
+		val matchExp = getExp(result1, goal1, info1)
+	in
+	(if List.length rest > 0
+	 then warnAtFunction(
+			infoAlgItems, 
+			"only the first algorithm statement translated, the following are ignored!", 
+			"constructClauses") 
+	 else ();
+		[MATCHexp(matchExp, info1, patResult, info1)] @ constructClause(ident, x)
+		(* @ constructClauses(ident, rest, infoAlgItems) *) ) 
+	end
+
 	and constructClauses(ident, [], infoAlgItems) = []
 	|	constructClauses(ident, x::rest, infoAlgItems) =
 		(
 		  case x of 
 		    (* if first one is a match take it*)
-			Absyn.ALGORITHMITEM(Absyn.ALG_ASSIGN(_, Absyn.MATCHexp(_), _),_,_) 
-				=> 
-				(if List.length rest > 0
-				 then warnAtFunction(infoAlgItems, "only the first algorithm statement translated, the following are ignored!", "constructClauses") else ();
-				 constructClause(ident, x))
-				(* constructClauses(ident, rest, infoAlgItems) *)
+			Absyn.ALGORITHMITEM(Absyn.ALG_ASSIGN(resultExp, Absyn.MATCHexp(MatchType, Exp, ElementItemList, CaseList, comment, info), _),_,_) 
+				=> 	applyConstructClause(ident, x, infoAlgItems, rest, Exp, resultExp)
 			(* if first one is a match take it*)
-		  |	Absyn.ALGORITHMITEM(Absyn.ALG_TUPLE_ASSIGN(_, Absyn.MATCHexp(_), _),_,_)
-				=> 
-				(if List.length rest > 0
-				 then warnAtFunction(infoAlgItems, "only the first algorithm statement translated, the following are ignored!", "constructClauses") else ();
-				 constructClause(ident, x))
-				 (* constructClauses(ident, rest, infoAlgItems) *)		  
+		  |	Absyn.ALGORITHMITEM(Absyn.ALG_TUPLE_ASSIGN(resultExp, Absyn.MATCHexp(MatchType, Exp, ElementItemList, CaseList, comment, info), _),_,_)
+				=> 	applyConstructClause(ident, x, infoAlgItems, rest, Exp, resultExp)
 		    (* if is not a match construct then is a simple algorithm section *)
 		  | Absyn.ALGORITHMITEM(_, _, infoAlgItems) => constructAlgorithms(ident, x::rest, infoAlgItems)
 		  | Absyn.ALGORITHMITEMANN(_, info) =>
@@ -2719,8 +2735,18 @@ functor MOToRMLFn(
 	|   sweepVARIABLES(var::rest) =
 	(
 		case var of
-			  VAL(id, exp, ty, attr, info, scope) => (id, ty, exp, attr)::sweepVARIABLES(rest)
-			| _ => sweepVARIABLES(rest)
+			VAL(id, exp, ty, attr, info, scope) => (id, ty, exp, attr)::sweepVARIABLES(rest)
+		|	INTy(ty, id, attr) => (id, SOME(ty), NONE, attr)::sweepVARIABLES(rest)
+		|	OUTTy(ty, id, attr) => (id, SOME(ty), NONE, attr)::sweepVARIABLES(rest)
+		|	_ => sweepVARIABLES(rest)
+	)
+	fun sweepMATCHexp([]) = []
+	|   sweepMATCHexp(match::rest) =
+	(
+		case match of
+			  MATCHexp(matchExp, infoMatchExp, resultMatchExp, infoResultMatchExp) => 
+			  (matchExp, infoMatchExp, resultMatchExp, infoResultMatchExp)::sweepMATCHexp(rest)
+			| _ => sweepMATCHexp(rest)
 	)
 	(* 
 	   returns (rels, binds) 
@@ -2739,6 +2765,10 @@ functor MOToRMLFn(
 				val algList = sweepALGORITHM(resultlist)
 				val ty = constructRelationTy(resultlist)
 				val variables = sweepVARIABLES(resultlist)
+				val matchExps = sweepMATCHexp(resultlist)
+				val matchExps = if List.length matchExps >= 1
+								then SOME(List.hd matchExps)
+								else NONE
 				val (rels, binds) =	
 					if (List.length clauseList >= 1)
 					then
@@ -2747,7 +2777,7 @@ functor MOToRMLFn(
 									CLAUSE(clause, infoClause) => (clause, infoClause)
 								|	_ => bug ("constructRelationsAndDatatypes: expected clause here") 
 						in
-						 ([REL(ident, ty, SOME(clause), variables, infoClause)], resultlist)
+						 ([REL(ident, ty, SOME(clause), variables, matchExps, infoClause)], resultlist)
 						end
 					else (* no clause in this relation => external or functype *)
 						if (List.length algList >= 1)
@@ -2764,26 +2794,26 @@ functor MOToRMLFn(
 										=> Absyn.CLAUSE1(goal, relid, pats, res, ref [], vars, infoC)
 									|	_ => bug ("constructRelationsAndDatatypes: we should not have multiple clauses here") 
 							in
-							([REL(ident, ty, SOME(clause_good), variables, infoClause)], resultlist)
+							([REL(ident, ty, SOME(clause_good), variables, matchExps, infoClause)], resultlist)
 							end
 						else (* no clause in this relation => external or functype *)
-						 ([REL(ident, ty, NONE, variables, Absyn.identCtxInfo ident)], resultlist)				
+						 ([REL(ident, ty, NONE, variables, matchExps, Absyn.identCtxInfo ident)], resultlist)				
 			in
 				debug("constructRelationsAndDatatypes\n");
 				(rels, binds)
 			end
 
 	fun fixSpecs([]) = []
-	|	fixSpecs(REL(ident, ty, NONE, _, info)::rest) = 
+	|	fixSpecs(REL(ident, ty, NONE, _, _, info)::rest) = 
 			Absyn.RELspec(ident, ty, info) :: fixSpecs(rest)
-	|	fixSpecs(REL(ident, ty, SOME(clause), _, info)::rest) = 
+	|	fixSpecs(REL(ident, ty, SOME(clause), _, _, info)::rest) = 
 			Absyn.RELspec(ident, ty, info) :: fixSpecs(rest)
 	|	fixSpecs(_::rest) = fixSpecs(rest)
 	
 	fun fixDecs([]) = []
-	|	fixDecs(REL(ident, ty, NONE, variables, info)::rest) = fixDecs(rest)
-	|	fixDecs(REL(ident, ty, SOME(clause), variables, info)::rest) = 
-			Absyn.RELBIND(ident, SOME(ty), clause, variables, info)::fixDecs(rest)
+	|	fixDecs(REL(ident, ty, NONE, variables, _, info)::rest) = fixDecs(rest)
+	|	fixDecs(REL(ident, ty, SOME(clause), variables, matchExps, info)::rest) = 
+			Absyn.RELBIND(ident, SOME(ty), clause, variables, matchExps, info)::fixDecs(rest)
 	|	fixDecs(_::rest) = fixDecs(rest)
 
 	fun fixSpecBinds([]) = []
@@ -2978,7 +3008,7 @@ functor MOToRMLFn(
 			=> CLAUSE(fixClauseLocalVariables(ident, ftypeident, clause), info)
 		|	VAL(id, exp, SOME(ty), attr, info, ident_option) =>
 			VAL(id, exp, SOME((fixTypeScope (ident, ftypeident)) ty), attr, info, ident_option)
-		|	REL(idR, tyR, clauseR, varlist, info) =>
+		|	REL(idR, tyR, clauseR, varlist, matchexps, info) =>
 			let fun fix(x as (i, SOME(ty), exp, attr)) = 
 						(i, SOME((fixTypeScope (ident, ftypeident)) ty), exp, attr)
 				|	fix(x as (i, NONE, exp, attr)) = x
@@ -2988,7 +3018,7 @@ functor MOToRMLFn(
 					SOME(clause) => 
 					SOME(fixClauseLocalVariables(ident, ftypeident, clause))
 				|	NONE => NONE,
-				map fix varlist, info)
+				map fix varlist, matchexps, info)
 			end
 		|	_ => x
 		end
@@ -3355,16 +3385,16 @@ functor MOToRMLFn(
 			info)
 
 	fun fixRELBINDSDecsWithTyVar([], bindlist) = []
-	|	fixRELBINDSDecsWithTyVar(Absyn.RELBIND(ident, ty_opt, clause, x, info)::rest, bindlist) =
+	|	fixRELBINDSDecsWithTyVar(Absyn.RELBIND(ident, ty_opt, clause, x, y, info)::rest, bindlist) =
 		let val x = fixTypeVariablesInLocalVars(x, bindlist)
 			val clause = fixTypeVariablesInClause(clause, bindlist)
 		in
 		case ty_opt of
 			NONE => 
-				Absyn.RELBIND(ident, NONE, clause, x, info)::
+				Absyn.RELBIND(ident, NONE, clause, x, y, info)::
 				fixRELBINDSDecsWithTyVar(rest, bindlist)
 		|	SOME(ty) => 
-				Absyn.RELBIND(ident, SOME(setTyVar(ty, bindlist)), clause, x, info)::
+				Absyn.RELBIND(ident, SOME(setTyVar(ty, bindlist)), clause, x, y, info)::
 				fixRELBINDSDecsWithTyVar(rest, bindlist)
 		end
 

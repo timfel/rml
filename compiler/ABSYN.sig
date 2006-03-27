@@ -95,6 +95,7 @@ signature ABSYN =
 								* ty option 
 								* clause
 								* (ident * ty option * exp option * attr) list (* inputs * outputs * normal vars *)
+								* (exp * info * pat * info) option (* match exp and match return exp *)
 								* info
 
     datatype spec = WITHspec of string * interface ref * info

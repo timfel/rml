@@ -116,13 +116,13 @@ functor ReorderValFn(structure Util : UTIL
 	  in
 	    Array.update(depArr, i, deps)
 	  end
-      | analyseValBnd source VE depArr (i,RELBND(Absyn.RELBIND(_,_,clause, _, _))) =
+      | analyseValBnd source VE depArr (i,RELBND(Absyn.RELBIND(_,_,clause, _, _, _))) =
 			Array.update(depArr, i, depsOfClause(VE,clause,[]))
 
     (* REORDERING *)
 
     fun varOf(VALBND(var,_)) = var
-      | varOf(RELBND(Absyn.RELBIND(var, _, _, _, _))) = var
+      | varOf(RELBND(Absyn.RELBIND(var, _, _, _, _, _))) = var
 
     fun addIndex source (i, valb, VE) =
       let val var = varOf valb
@@ -146,7 +146,7 @@ functor ReorderValFn(structure Util : UTIL
 		end
 	    | split([], relbnds, []) = RELDEC relbnds
 	    | split([], relbnds, valbnds) =
-		let fun sayRel(Absyn.RELBIND(var, _, _, _, _)) =
+		let fun sayRel(Absyn.RELBIND(var, _, _, _, _, _)) =
 		      sayIdError(source, "relation ", var)
 		    fun sayVar(var,_) = sayIdError(source, "variable ", var)
 		in

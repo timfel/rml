@@ -92,6 +92,9 @@ functor StatElabFn(structure Util : UTIL
       (sayIdError(msg, name, ctxInfo);
        raise StaticElaborationError)
 
+    fun idUndeclaredError(kind, Absyn.IDENT(name, ctxInfo)) = 
+		idError("no declaration for " ^ kind ^ " ", name, ctxInfo)
+		
     fun idUnboundError(kind, Absyn.IDENT(name, ctxInfo)) = 
 		idError("unbound " ^ kind ^ " ", name, ctxInfo)
 
@@ -157,6 +160,13 @@ functor StatElabFn(structure Util : UTIL
 						Absyn.identCtxInfo id)
 
     (* Various short/longid lookup functions *)
+
+    fun lookupDeclared(env, id, kind) =
+      case IdentDict.find(env, id)
+		of SOME attr => (* print ("\nfound :"^(Absyn.identName id)^" as "^kind); *) attr
+		| NONE => idUndeclaredError(kind, id)
+
+    fun lookupDeclaredVar(VE, var)     = (* print "\nsearch VE:"; *) lookupDeclared(VE, var, "variable")
 
     fun lookup(env, id, kind) =
       case IdentDict.find(env, id)
@@ -383,7 +393,7 @@ functor StatElabFn(structure Util : UTIL
 		    val _ = assert_unbound_con(VE, con)
 		    val _ = assert_unbound_con(CE, con)
 		    val sigma = TyScheme.genAll tau
-		    val bnd = StatObj.VALSTR{vk=StatObj.CON,sigma=sigma,localVE=IdentDict.empty}
+		    val bnd = StatObj.VALSTR{vk=StatObj.CON,sigma=sigma,localVE=IdentDict.empty, global=false}
 		    val CE' = IdentDict.insert(CE, con, bnd)
 		in
 		  elab(CE', PreCE, conbind)
@@ -516,7 +526,7 @@ functor StatElabFn(structure Util : UTIL
 		let val _ = checkVar(IdentDict.empty, VE, var)
 		    val tau = elab_ty ME TE NONE ty
 		    val sigma = TyScheme.genAll tau
-		    val bnd = StatObj.VALSTR{vk=StatObj.VAR, sigma=sigma, localVE=IdentDict.empty}
+		    val bnd = StatObj.VALSTR{vk=StatObj.VAR, sigma=sigma, localVE=IdentDict.empty, global=true}
 		    val VE' = IdentDict.insert(VE, var, bnd)
 		in
 		  elab(ME, TE, VE', specs)
@@ -531,7 +541,7 @@ functor StatElabFn(structure Util : UTIL
 								Absyn.identName var,
 								Absyn.identCtxInfo var)
 		    val sigma = TyScheme.genAll tau
-		    val bnd = StatObj.VALSTR{vk=StatObj.REL, sigma=sigma, localVE=IdentDict.empty}
+		    val bnd = StatObj.VALSTR{vk=StatObj.REL, sigma=sigma, localVE=IdentDict.empty, global=true}
 		    val VE' = IdentDict.insert(VE, var, bnd)
 		in
 		  elab(ME, TE, VE', specs)
@@ -735,7 +745,7 @@ functor StatElabFn(structure Util : UTIL
 			          elab_pat_os(relationId, ctxInfoClause, os, ME, VE, VE_pat, pat)
 			val _ = checkVar(VE, VE'_pat, var)
 			val sigma = TyScheme.genNone tau
-			val bnd = StatObj.VALSTR{vk=StatObj.VAR, sigma=sigma, localVE=IdentDict.empty}
+			val bnd = StatObj.VALSTR{vk=StatObj.VAR, sigma=sigma, localVE=IdentDict.empty, global=false}
 			in
 			 (IdentDict.insert(VE'_pat,var,bnd), tau)
 			end
@@ -751,7 +761,7 @@ functor StatElabFn(structure Util : UTIL
 						Absyn.dummyInfo)
 				val tau = Ty.VAR(Ty.newTyvar())
 				val sigma = TyScheme.genNone tau
-				val bnd = StatObj.VALSTR{vk=StatObj.VAR, sigma=sigma, localVE=IdentDict.empty}
+				val bnd = StatObj.VALSTR{vk=StatObj.VAR, sigma=sigma, localVE=IdentDict.empty, global=false}
 			in
 				(IdentDict.insert(VE_pat,id,bnd), tau)
 			end
@@ -779,7 +789,7 @@ functor StatElabFn(structure Util : UTIL
 			          elab_pat_os(relationId, ctxInfoClause, os, ME, VE, VE_pat, pat)
 			val _ = checkVar(VE, VE'_pat, var)
 			val sigma = TyScheme.genNone tau
-			val bnd = StatObj.VALSTR{vk=StatObj.VAR, sigma=sigma, localVE=IdentDict.empty}
+			val bnd = StatObj.VALSTR{vk=StatObj.VAR, sigma=sigma, localVE=IdentDict.empty, global=false}
 			in
 			 (VE'_pat, Ty.NAMED(Absyn.identName var, tau))
 			end
@@ -1012,7 +1022,7 @@ functor StatElabFn(structure Util : UTIL
 			          elab_pat_os(relationId, ctxInfoClause, os, ME, VE, VE_pat, pat)
 			val _ = checkVar(VE, VE'_pat, var)
 			val sigma = TyScheme.genNone tau
-			val bnd = StatObj.VALSTR{vk=StatObj.VAR, sigma=sigma, localVE=IdentDict.empty}
+			val bnd = StatObj.VALSTR{vk=StatObj.VAR, sigma=sigma, localVE=IdentDict.empty, global=false}
 			in
 			 (IdentDict.insert(VE'_pat,var,bnd), tau)
 			end
@@ -1028,7 +1038,7 @@ functor StatElabFn(structure Util : UTIL
 						Absyn.dummyInfo)
 				val tau = Ty.VAR(Ty.newTyvar())
 				val sigma = TyScheme.genNone tau
-				val bnd = StatObj.VALSTR{vk=StatObj.VAR, sigma=sigma, localVE=IdentDict.empty}
+				val bnd = StatObj.VALSTR{vk=StatObj.VAR, sigma=sigma, localVE=IdentDict.empty, global=false}
 			in
 				(IdentDict.insert(VE_pat,id,bnd), tau)
 			end
@@ -1058,7 +1068,7 @@ functor StatElabFn(structure Util : UTIL
 			          something like na1 = na1 as ...
 			val _ = checkVar(VE, VE'_pat, var)
 			val sigma = TyScheme.genNone tau
-			val bnd = StatObj.VALSTR{vk=StatObj.VAR, sigma=sigma, localVE=IdentDict.empty}
+			val bnd = StatObj.VALSTR{vk=StatObj.VAR, sigma=sigma, localVE=IdentDict.empty, global=false}
 			*)
 			in
 			 (VE'_pat, Ty.NAMED(Absyn.identName var, tau))
@@ -1253,7 +1263,7 @@ functor StatElabFn(structure Util : UTIL
 			of NONE =>
 				if !Control.allowImplicitLet then
 				 let val sigma = TyScheme.genNone tau
-				  val bnd = StatObj.VALSTR{vk=StatObj.VAR, sigma=sigma, localVE=IdentDict.empty}
+				  val bnd = StatObj.VALSTR{vk=StatObj.VAR, sigma=sigma, localVE=IdentDict.empty, global=false}
 				 in
 					IdentDict.insert(VE, var, bnd)
 				 end
@@ -1355,7 +1365,7 @@ functor StatElabFn(structure Util : UTIL
 	     *)
 	    let val tau = TyScheme.instFree sigma
 		val sigma' = TyScheme.genAll tau
-		val bnd = StatObj.VALSTR{vk=StatObj.REL, sigma=sigma', localVE=IdentDict.empty}
+		val bnd = StatObj.VALSTR{vk=StatObj.REL, sigma=sigma', localVE=IdentDict.empty, global=false}
 	    in
 	      IdentDict.insert(VE, var, bnd)
 	    end
@@ -1389,7 +1399,7 @@ functor StatElabFn(structure Util : UTIL
 				case tauLocal of
 					SOME(tauLocal) => 
 					let val sigmaLocal = TyScheme.genAll tauLocal
-						val bndLocal = StatObj.VALSTR{vk=StatObj.REL, sigma=sigmaLocal, localVE=IdentDict.empty}
+						val bndLocal = StatObj.VALSTR{vk=StatObj.REL, sigma=sigmaLocal, localVE=IdentDict.empty, global=false}
 					in
 						elaborateLocalVariables(rest, IdentDict.insert(d, id, bndLocal))
 					end
@@ -1452,8 +1462,12 @@ functor StatElabFn(structure Util : UTIL
 			Dict
 		  end
 		  
-		  fun checkLocalVariable(var, StatObj.VALSTR{sigma,vk,...}, d) =
-			let val tau = TyScheme.instFree sigma
+		  (* only the non global ones *)
+		  fun checkLocalVariable(var, StatObj.VALSTR{sigma,vk,global,...}, d) =
+		  if (String.isPrefix "temp_t_"  (Absyn.identName var)) then (d)
+		  else  if global then (d)
+		  else
+		  let val tau = TyScheme.instFree sigma
 				val sigma' = TyScheme.genAll tau
 				val tau = TyScheme.instFree sigma			
 		  in
@@ -1461,10 +1475,9 @@ functor StatElabFn(structure Util : UTIL
 				StatObj.VAR => 
 				let val _ = debug ("checkLocalVariable: relation["^(Absyn.identName varRel)^"]\n")
 					val tauLocal = 
-						case IdentDict.find(localVE, var) of
-							SOME(StatObj.VALSTR{sigma,vk,...}) => SOME(TyScheme.instFree sigma) 
-						|	_ => NONE
-		
+							case lookupDeclaredVar(localVE, var) of
+								StatObj.VALSTR{sigma,vk,...} =>	SOME(TyScheme.instFree sigma) 
+							(* |	_ => NONE *)
 				in
 					case tauLocal of 
 						SOME(tLocal) => 
@@ -1487,8 +1500,8 @@ functor StatElabFn(structure Util : UTIL
 								Absyn.identName var,
 								Absyn.identCtxInfo var );
 							sayErr("It's declared "); 
-							sayTyErrExplain(explain); sayErr("\n")
-							(*raise StaticElaborationError*)
+							sayTyErrExplain(explain); sayErr("\n");
+							raise StaticElaborationError
 							(* 
 							sayTyErr(explain,"variable usage:", 
 								(Absyn.identName var)^" It's "^explain^" expected!" 
@@ -1506,8 +1519,10 @@ functor StatElabFn(structure Util : UTIL
 		   |	_ => ();
 		   d
 		  end
-		  (* checking *)
-		  val _ = IdentDict.fold(checkLocalVariable, IdentDict.empty, VE')
+		  (* checking of locals only if we compile from .mo *)
+		  val _ = case !Control.currentlyCompiling of
+					Control.MO_FILE => IdentDict.fold(checkLocalVariable, IdentDict.empty, VE')
+				  | _ => (VE')
 		 in
 		   case os of
 		     SOME (_) => (IdentDict.fold(printVE, IdentDict.empty, VE'); ())
@@ -1527,7 +1542,7 @@ functor StatElabFn(structure Util : UTIL
     (* Check a set of relation bindings *)
 
     fun check_relbinds(os, modid, ME, TE, VE, relbinds) =
-      let fun check(Absyn.RELBIND(var, _, clause, localVars, _)) =
+      let fun check(Absyn.RELBIND(var, _, clause, localVars, matchExps, _)) =
 	    let val sigma = assert_rel(var, lookupVar(VE, var))
 		val tau = TyScheme.instRigid sigma
 	    in
@@ -1539,7 +1554,7 @@ functor StatElabFn(structure Util : UTIL
 
     (* Elaborate a set of relation bindings *)
     fun elab_relbinds(ME, TE, VE, VE_rel, relbinds) =
-      let fun elab(Absyn.RELBIND(var, ty_opt, _, localVars, _), VE_rel) =
+      let fun elab(Absyn.RELBIND(var, ty_opt, _, localVars, matchExps, _), VE_rel) =
 	    (* Here we should do checkVar(empty, VE+VE_rel, var), but to
 	     * avoid the IdentDict.plus, we inline the equivalent checks.
 	     *)
@@ -1558,7 +1573,7 @@ functor StatElabFn(structure Util : UTIL
 		|	elaborateLocalVariables((id, SOME(ty), _, _)::rest, d) =
 			let val tauLocal = elab_ty ME TE NONE ty
 				val sigmaLocal = TyScheme.genAll tauLocal
-				val bndLocal = StatObj.VALSTR{vk=StatObj.REL, sigma=sigmaLocal, localVE=IdentDict.empty}
+				val bndLocal = StatObj.VALSTR{vk=StatObj.REL, sigma=sigmaLocal, localVE=IdentDict.empty, global=false}
 			in
 				elaborateLocalVariables(rest, IdentDict.insert(d, id, bndLocal))				
 			end
@@ -1567,7 +1582,8 @@ functor StatElabFn(structure Util : UTIL
 		val bnd = StatObj.VALSTR{
 					vk=StatObj.REL, 
 					sigma=sigma, 
-					localVE=elaborateLocalVariables(localVars, IdentDict.empty)}
+					localVE=elaborateLocalVariables(localVars, IdentDict.empty),
+					global=false}
 	    in
 	      IdentDict.insert(VE_rel, var, bnd) 
 	    end
@@ -1611,7 +1627,7 @@ functor StatElabFn(structure Util : UTIL
 			     | _ => strayExnBug(exn, Absyn.identName var, ctxInfo));
 			 raise StaticElaborationError)
 		    val sigma = TyScheme.genAll tau
-		    val bnd = StatObj.VALSTR{vk=StatObj.VAR, sigma=sigma, localVE=IdentDict.empty}
+		    val bnd = StatObj.VALSTR{vk=StatObj.VAR, sigma=sigma, localVE=IdentDict.empty, global=true}
 		    val VE' = IdentDict.insert(VE, var, bnd)
 		in
 		  elab(ME, TE, VE', decs)

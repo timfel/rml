@@ -21,7 +21,8 @@ functor StatObjFn(
 			{
 				vk: valkind, 
 				sigma: TyScheme.tyscheme, 
-				localVE: valstr Absyn.IdentDict.dict
+				localVE: valstr Absyn.IdentDict.dict,
+				global: bool
 			}
 			
     datatype tystr	= TYSTR of {theta: TyFcn.tyfcn,
@@ -120,7 +121,7 @@ functor StatObjFn(
 	    let val sigma = TyScheme.genAll tau
 		val id = Absyn.rmlIdent id
 	    in
-	      IdentDict.insert(VE, id, VALSTR{vk=vk, sigma=sigma, localVE=IdentDict.empty})
+	      IdentDict.insert(VE, id, VALSTR{vk=vk, sigma=sigma, localVE=IdentDict.empty, global=true})
 	    end
 	  fun bindRel(VE, var, domtaus, codtaus) =
 	    bind(VE, var, Ty.REL(domtaus,codtaus), REL)

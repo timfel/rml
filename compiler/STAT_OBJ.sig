@@ -18,7 +18,8 @@ signature STAT_OBJ =
 			{
 				vk: valkind, 
 				sigma: TyScheme.tyscheme, 
-				localVE: valstr Absyn.IdentDict.dict
+				localVE: valstr Absyn.IdentDict.dict,
+				global: bool
 			}
     datatype tystr	= TYSTR of {theta: TyFcn.tyfcn,
 				    abstract: bool}

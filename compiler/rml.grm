@@ -437,7 +437,7 @@ relbind
 			Cache.PROTECTED
 			);
 	
-		Absyn.RELBIND(ident, relbind_ty_opt, join_default(clause_plus,default_opt), [],
+		Absyn.RELBIND(ident, relbind_ty_opt, join_default(clause_plus,default_opt), [], NONE,
 			makeInfo lexArg (identleft, ENDright)) )
 
 relbind_ty_opt

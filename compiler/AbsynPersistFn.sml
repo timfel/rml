@@ -433,7 +433,21 @@ functor AbsynPersistFn(structure MakeString : MAKESTRING
     fun print_withtype(os, []) = ()
       | print_withtype(os, typbind_star) = print_typbind_star(os, typbind_star)
 
-    fun print_relbind(os, Absyn.RELBIND(ident, ty_opt, clause, localVars, info)) =
+	fun prMatchExps(os, NONE) = (prHD(os, "$NON"); prPR(os))
+	|	prMatchExps(os, SOME(exp, info1, pat, info2)) = 
+	(
+		prHD(os, "$SOM");
+		print_exp(os, exp);
+		prSC(os);
+		prInfo(os, info1);
+		prSC(os);
+		print_pat(os, pat);
+		prSC(os);
+		prInfo(os, info2);
+		prPR(os)
+	)
+
+    fun print_relbind(os, Absyn.RELBIND(ident, ty_opt, clause, localVars, matchExps, info)) =
       (
 	   prHD(os,"$RELBIND");   
        print_ident(os, ident); 
@@ -445,6 +459,8 @@ functor AbsynPersistFn(structure MakeString : MAKESTRING
 	   prPL(os);       
 	   print_list(os, localVars, printLocalVar);
        prPR(os); 	   
+	   prSC(os);
+	   prMatchExps(os, matchExps);
 	   prSC(os);
        prInfo(os, info); 
        prPR(os))

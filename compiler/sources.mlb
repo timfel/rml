@@ -1539,6 +1539,7 @@ local
       signature STAT_OBJ = gs_161
       structure TextIO = gs_5
       signature UTIL = gs_3
+      structure String = gs_0
       StatElabFn.sml
    in
       functor gs_189 = StatElabFn
@@ -2087,6 +2088,7 @@ local
       functor StatElabFn = gs_189
       structure StatObj = gs_217
       structure Util = gs_12
+      structure String = gs_0
       StatElab.sml
    in
       structure gs_238 = StatElab

@@ -180,7 +180,7 @@ functor AbsynToFOLFn(structure StrDict : STR_DICT
 			else List.length pats_positional
       | clauseArity(Absyn.CLAUSE2(cl1, _, _)) = clauseArity cl1
 
-    fun cnvRelBind (Absyn.RELBIND(var, _, cl, _, _)) =
+    fun cnvRelBind (Absyn.RELBIND(var, _, cl, _, _, _)) =
       let val vars = newvars(clauseArity cl)
       in
 		FOL.REL(cnvId var, vars, cnvClause vars cl)

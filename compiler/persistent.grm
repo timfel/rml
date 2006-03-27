@@ -178,6 +178,7 @@ fun makeAttr(p, f, v, par, c, i, out, b) =
 	|	spec of Absyn.spec
 	|	dec_star of Absyn.dec list
 	|	dec of Absyn.dec
+	|	matchexps_opt of (Absyn.exp * Absyn.info * Absyn.pat * Absyn.info) option
 	|	relbind of Absyn.relbind
 	|	relbind_plus of Absyn.relbind list
 	|	relbind_ty_opt of Absyn.ty option
@@ -387,10 +388,16 @@ relbind_plus
 		( [relbind] )
 	| relbind COMMA relbind_plus
 		( relbind :: relbind_plus )
+		
+matchexps_opt:
+		NON LPAR RPAR
+		(NONE)
+	|	SOM LPAR exp SEMICOLON info SEMICOLON pat SEMICOLON info RPAR
+		( SOME(exp, info1, pat, info2) )
 
 relbind
 	: RELBIND LPAR ident SEMICOLON relbind_ty_opt SEMICOLON 
-	  clause_plus SEMICOLON LPAR local_vars RPAR SEMICOLON info RPAR
+	  clause_plus SEMICOLON LPAR local_vars RPAR SEMICOLON matchexps_opt SEMICOLON info RPAR
 	( 
 		LexArgSimple.addRestriction(
 			lexArg, Absyn.identName ident,
@@ -398,7 +405,7 @@ relbind
 			Cache.PROTECTED					
 			);
 	
-		Absyn.RELBIND(ident, relbind_ty_opt, clause_plus, local_vars, info) 
+		Absyn.RELBIND(ident, relbind_ty_opt, clause_plus, local_vars, matchexps_opt, info) 
 	)
 
 relbind_ty_opt
