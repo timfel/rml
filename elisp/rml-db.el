@@ -2236,7 +2236,7 @@ Obeying it means displaying in another window the specified file and line."
 	 (window (and buffer (or (get-buffer-window buffer)
 				 (display-buffer buffer))))
 	 (pos))
-    (setq scolumn (1- scolumn))
+    (setq ecolumn (1+ ecolumn))
     (message "file[%s]:sline[%d].scolumn[%d].eline[%d].ecolumn[%d]" true-file sline scolumn eline ecolumn)
     (if buffer
 	(progn
@@ -2628,7 +2628,7 @@ Link exprs of the form:
   (gud-def gud-up     "bt"        "<" "Up N stack frames (numeric arg).")
   (gud-def gud-down   "bt"      ">" "Down N stack frames (numeric arg).")
 
-  (setq comint-prompt-regexp "^rmldb@>")
+  (setq comint-prompt-regexp "^rml+mmc db@>")
   (if (boundp 'comint-last-output-start)
       (set-marker comint-last-output-start (point)))
   (set (make-local-variable 'paragraph-start) comint-prompt-regexp)
