@@ -24,7 +24,7 @@ module Absyn:
 			| APPexp of exp * exp
 			| CASEexp of exp * crule list
 			| RECexp of (var * exp) list * exp
-    withtype crule	= pat * exp
+    type crule	= pat * exp
 
 end (* interface *)
 

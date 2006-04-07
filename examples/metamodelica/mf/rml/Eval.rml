@@ -9,7 +9,7 @@ datatype value	= CONSTval of Absyn.const
 		| CONSval of value * value
 		| SUSPval of env * Absyn.exp
 		| RSUSPval of env lvar * Absyn.exp	(* for RECexp *)
-withtype env	= (Absyn.var * value) list
+type env	= (Absyn.var * value) list
 
 (* Apply a unary strict primop. The argument must be a constant. *)
 
@@ -158,7 +158,7 @@ relation match: (env, value, Absyn.pat) => match_result =
 	axiom	match(_, CONSval(_,_), Absyn.CONSTpat _) => MNO
 end
 
-and match_cdr: (match_result, value, Absyn.pat) => match_result =
+relation match_cdr: (match_result, value, Absyn.pat) => match_result =
 
 	rule	match(rho, v2, p2) => res
 		----------------
@@ -185,7 +185,7 @@ relation eval_case: (env, value, Absyn.crule list) => value =
 		eval_case(rho, v, (pat,exp)::rules) => v'
 end
 
-and case_choose: (match_result, Absyn.exp, env, value, Absyn.crule list) => value =
+relation case_choose: (match_result, Absyn.exp, env, value, Absyn.crule list) => value =
 
 	rule	eval(rho', exp) => v'
 		----------------
@@ -198,7 +198,7 @@ end
 
 (* Compute the whnf of an expression in an environment *)
 
-and eval: (env, Absyn.exp) => value =
+relation eval: (env, Absyn.exp) => value =
 
 	axiom	eval(_, Absyn.CONSTexp c) => CONSTval c
 
@@ -244,7 +244,7 @@ end
 
 (* Force a value to be in whnf *)
 
-and force: value => value =
+relation force: value => value =
 
 	axiom	force(v as CONSTval _) => v
 	axiom	force(v as CLOval(_,_,_)) => v

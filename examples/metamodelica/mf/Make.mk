@@ -3,14 +3,14 @@
 #
 GOROOT=../../..
 
-SRCRML=	absyn.mo eval.mo main.mo test.mo
+SRCRML=	Absyn.mo Eval.mo Main.mo Test.mo
 SRCC=	$(SRCRML:.mo=.c)
 SRCH=	$(SRCRML:.mo=.h)
 SRCO=	$(SRCRML:.mo=.o)
 
 BINARIES=mf mf.exe
 CLEAN=	$(SRCO) $(BINARIES) $(SRCC) $(SRCH) *~
-RMLCFLAGS=-g -Wr,-East
+RMLCFLAGS=-Wr,-East
 
 # default target
 mf:	$(SRCO)
