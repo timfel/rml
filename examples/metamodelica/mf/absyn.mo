@@ -1,4 +1,4 @@
-package Absyn
+package Absyn "absyn.rml -- Mini-Freja Abstract Syntax"
 
 public 
 type var = String;
@@ -73,12 +73,6 @@ uniontype pat
 end pat;
 
 public 
-type cruleLst = list<crule>;
-
-type Tplvarexp = tuple<var,exp>;
-
-type TplvarexpLst = list<Tplvarexp>;
-
 uniontype exp
   record CONSTexp
     const const;
@@ -122,14 +116,17 @@ uniontype exp
 
   record CASEexp
     exp exp;
-    cruleLst cruleLst;
+    list<crule> cruleLst;
   end CASEexp;
 
   record RECexp
-    TplvarexpLst tplvarexpLst;
+    list<tuple<var, exp>> tplvarexpLst;
     exp exp;
   end RECexp;
 
 end exp;
+
+public 
+type crule = tuple<pat, exp>;
 end Absyn;
 

@@ -1,6 +1,6 @@
-package Test
+package Test "test.rml -- contains Mini-Freja test cases"
 
-public import Absyn.*;
+public import OpenModelica.Compiler.Absyn;
 
 protected function sieve
   input Integer inInteger;
@@ -68,7 +68,7 @@ algorithm
           Absyn.APPexp(Absyn.VARexp("sieve"),
           Absyn.APPexp(Absyn.VARexp("from"),Absyn.CONSTexp(Absyn.INTcnst(2)))))},
           Absyn.APPexp(
-          Absyn.APPexp(Absyn.VARexp("take"),Absyn.CONSTexp(Absyn.INTcnst(NTH))),Absyn.VARexp("primes")));  "<<<<<<<<<<<<<<<< <<<<<<<<<<<<<<<< <<<<<<<<<<<<<<<< <<<<<<<<<<<<<<<< <<<<<<<<<<<<<<<< <<<<<<<<<<<<<<<< <<<<<<<<<<<<<<<< <<<<<<<<<<<<<<<<"
+          Absyn.APPexp(Absyn.VARexp("take"),Absyn.CONSTexp(Absyn.INTcnst(NTH))),Absyn.VARexp("primes")));  /* <<<<<<<<<<<<<<<< <<<<<<<<<<<<<<<< <<<<<<<<<<<<<<<< <<<<<<<<<<<<<<<< <<<<<<<<<<<<<<<< <<<<<<<<<<<<<<<< <<<<<<<<<<<<<<<< <<<<<<<<<<<<<<<< XXX */ 
   end matchcontinue;
 end sieve;
 
@@ -82,11 +82,11 @@ algorithm
       Integer n_1,n;
       Absyn.exp e;
     case 0 then Absyn.PRIM2exp(Absyn.ADD(),Absyn.CONSTexp(Absyn.INTcnst(2)),
-          Absyn.CONSTexp(Absyn.INTcnst(40))); 
+          Absyn.CONSTexp(Absyn.INTcnst(40)));  /* 42 */ 
     case 1 then Absyn.RECexp(
           {
           ("main",
-          Absyn.CONSexp(Absyn.CONSTexp(Absyn.INTcnst(20)),Absyn.VARexp("a"))),("a",Absyn.CONSTexp(Absyn.INTcnst(27)))},Absyn.VARexp("main")); 
+          Absyn.CONSexp(Absyn.CONSTexp(Absyn.INTcnst(20)),Absyn.VARexp("a"))),("a",Absyn.CONSTexp(Absyn.INTcnst(27)))},Absyn.VARexp("main"));  /* cons(20,27) */ 
     case 2 then Absyn.RECexp(
           {
           ("main",
@@ -97,7 +97,7 @@ algorithm
           Absyn.PRIM2exp(Absyn.ADD(),
           Absyn.PRIM2exp(Absyn.MUL(),Absyn.CONSTexp(Absyn.INTcnst(2)),
           Absyn.CONSTexp(Absyn.INTcnst(3))),Absyn.VARexp("b"))),("a",Absyn.CONSTexp(Absyn.INTcnst(1)))},Absyn.PRIM2exp(Absyn.MUL(),Absyn.VARexp("c"),Absyn.VARexp("a"))))),("a",Absyn.CONSTexp(Absyn.INTcnst(40))),
-          ("b",Absyn.CONSTexp(Absyn.INTcnst(42)))},Absyn.VARexp("main")); 
+          ("b",Absyn.CONSTexp(Absyn.INTcnst(42)))},Absyn.VARexp("main"));  /* 88 */ 
     case 3 then Absyn.RECexp(
           {
           ("foo",
@@ -110,14 +110,14 @@ algorithm
           Absyn.PRIM2exp(Absyn.ADD(),Absyn.VARexp("y"),
           Absyn.CONSTexp(Absyn.INTcnst(1))))}))),
           ("main",
-          Absyn.APPexp(Absyn.VARexp("foo"),Absyn.CONSTexp(Absyn.INTcnst(5))))},Absyn.VARexp("main")); 
+          Absyn.APPexp(Absyn.VARexp("foo"),Absyn.CONSTexp(Absyn.INTcnst(5))))},Absyn.VARexp("main"));  /* 6 */ 
     case 4 then Absyn.RECexp(
           {("x",Absyn.CONSTexp(Absyn.INTcnst(17))),
           ("foo",
           Absyn.LAMexp("y",
           Absyn.RECexp({("x",Absyn.CONSTexp(Absyn.INTcnst(99)))},
           Absyn.PRIM2exp(Absyn.ADD(),Absyn.VARexp("y"),
-          Absyn.CONSTexp(Absyn.INTcnst(1)))))),("main",Absyn.APPexp(Absyn.VARexp("foo"),Absyn.VARexp("x")))},Absyn.VARexp("main")); 
+          Absyn.CONSTexp(Absyn.INTcnst(1)))))),("main",Absyn.APPexp(Absyn.VARexp("foo"),Absyn.VARexp("x")))},Absyn.VARexp("main"));  /* 18 */ 
     case 5 then Absyn.RECexp(
           {
           ("fac",
@@ -128,7 +128,7 @@ algorithm
           Absyn.PRIM2exp(Absyn.MUL(),Absyn.VARexp("n"),
           Absyn.APPexp(Absyn.VARexp("fac"),
           Absyn.PRIM2exp(Absyn.SUB(),Absyn.VARexp("n"),
-          Absyn.CONSTexp(Absyn.INTcnst(1))))))))},Absyn.APPexp(Absyn.VARexp("fac"),Absyn.CONSTexp(Absyn.INTcnst(5)))); 
+          Absyn.CONSTexp(Absyn.INTcnst(1))))))))},Absyn.APPexp(Absyn.VARexp("fac"),Absyn.CONSTexp(Absyn.INTcnst(5))));  /* 120 */ 
     case 6 then Absyn.RECexp(
           {
           ("iff",
@@ -148,12 +148,14 @@ algorithm
           Absyn.PRIM2exp(Absyn.MUL(),Absyn.VARexp("n"),
           Absyn.APPexp(Absyn.VARexp("fac"),
           Absyn.PRIM2exp(Absyn.SUB(),Absyn.VARexp("n"),
-          Absyn.CONSTexp(Absyn.INTcnst(1))))))))},Absyn.APPexp(Absyn.VARexp("fac"),Absyn.CONSTexp(Absyn.INTcnst(5)))); 
-    case n "<<<<<<<<<<<<<<<< <<<<<<<<<<<<<<<< <<<<<<<<<<<<<<<<"
+          Absyn.CONSTexp(Absyn.INTcnst(1))))))))},Absyn.APPexp(Absyn.VARexp("fac"),Absyn.CONSTexp(Absyn.INTcnst(5))));  /* <<<<<<<<<<<<<<<< <<<<<<<<<<<<<<<< 120 */ 
+    case n /* <<<<<<<<<<<<<<<< <<<<<<<<<<<<<<<< <<<<<<<<<<<<<<<< <<<<<<<<<<<<<<<< */ 
       equation 
         (n > 10) = true;
-        n_1 = n - 10;
-        e = sieve(n_1); then e;
+        n_1 = n - 10 "test n+10 is sieve n" ;
+        e = sieve(n_1);
+      then
+        e;
   end matchcontinue;
 end test;
 end Test;
