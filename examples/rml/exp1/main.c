@@ -47,5 +47,7 @@ main()
 
   res=RML_UNTAGFIXNUM(rml_state_ARGS[0]);
   printf("Result: %d\n", res);
+
+  exit(0);
 }
 
