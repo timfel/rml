@@ -10,10 +10,7 @@ with "test.rml"
 relation main =
 	axiom	main []
 
-	rule	let x = 1.0 &
-                     print "Input:" & print arg &
-                     print "\n" & RML.debug_print("args",arg::argv) &
-                     string_int arg => k &
+	rule	string_int arg => k &
 		Test.test k => prog &
 		Eval.exec prog &
 		main argv

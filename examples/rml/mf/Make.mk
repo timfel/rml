@@ -7,6 +7,7 @@ SRCRML=	absyn.rml eval.rml main.rml test.rml
 SRCC=	$(SRCRML:.rml=.c)
 SRCH=	$(SRCRML:.rml=.h)
 SRCO=	$(SRCRML:.rml=.o)
+#RMLCFLAGS=-g
 
 BINARIES=mf mf.exe
 CLEAN=	$(SRCO) $(BINARIES) $(SRCC) $(SRCH) *~

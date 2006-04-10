@@ -365,6 +365,6 @@ expLAM("n",
 % main
 
 main :-
-	sieve(18, EXP),
-	exec(EXP),
-	halt.
+	sieve(1, EXP),
+	exec(EXP).
+	%halt.
