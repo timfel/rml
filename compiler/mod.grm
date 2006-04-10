@@ -27,25 +27,47 @@ fun makeInfo lexArg (left as (x,_,_), right as (y,_,_)) =
 		Absyn.INFO(fileName, x, y, loc)
 	end
 
-fun printErrInfo lexArg (left as (x,_,_), right as (y,_,_)) =
-	let val {fileName, sline, scolumn, eline, ecolumn} = LexArg.getLoc lexArg (left, right)
+fun getInfoAsString(fileName, sline, scolumn, eline, ecolumn) = 
+	let
 	in
-	  sayErr(
-		 fileName^":"^
-		(Int.toString sline)^"."^
-		(Int.toString scolumn)^"-"^
-		(Int.toString eline)^":"^
-		(Int.toString ecolumn)^" ")
+	 fileName^":"^
+	 (Int.toString sline)^"."^(Int.toString scolumn)^"-"^
+	 (Int.toString eline)^"."^(Int.toString ecolumn)^" "
 	end
 
-fun printInfo lexArg (left as (x,_,_), right as (y,_,_)) =
+fun splitInfo(Absyn.INFO(f, sp,ep, Absyn.LOC(sl, sc, el, ec))) = (f, sl, sc, el, ec)
+
+fun getErrInfoAsString lexArg (left, right) =
 	let val {fileName, sline, scolumn, eline, ecolumn} = LexArg.getLoc lexArg (left, right)
 	in
-	  print (fileName);print ":";
-	  print(Int.toString sline);print ".";
-	  print(Int.toString scolumn);print "-";
-	  print(Int.toString eline);print ":";
-	  print(Int.toString ecolumn);print "\n"
+		getInfoAsString(fileName, sline, scolumn, eline, ecolumn)
+	end
+
+fun printErrInfo lexArg (left, right) =
+	let val strErr = getErrInfoAsString lexArg(left, right) 
+	in
+	  sayErr(strErr)
+	end
+
+fun warnDifferentIdents (ident1, ident2) =
+	let val strErr1 = getInfoAsString(splitInfo(Absyn.identCtxInfo(ident1)))
+		val strErr2 = getInfoAsString(splitInfo(Absyn.identCtxInfo(ident2)))
+	in
+		if (Absyn.identName ident1 = Absyn.identName ident2) then ()
+		else
+		(
+		 sayErr (strErr2);
+		 sayErr("Warning: the identifier from: 'end "^Absyn.identName(ident2)^
+				"' does not match identfier: '"^Absyn.identName(ident1)^"' given here: "^
+				strErr1^"\n") 
+		)
+	end
+
+fun printInfo lexArg (left, right) =
+	let val strErr = getErrInfoAsString lexArg (left, right) 
+	in
+	  print strErr; 
+	  print "\n"
 	end
 
 fun modidRML(info)= Absyn.IDENT("RML", info)
@@ -382,7 +404,7 @@ fun makeELEMENT(isFinal,
 	| class_definition of Absyn.Class
 	| class_type of Absyn.Restriction
 	| base_prefix of Absyn.ElementAttributes
-	| class_specifier of Absyn.ClassDef option
+	| class_specifier of (Absyn.ClassDef option * Absyn.ident option)
 	| enumeration of Absyn.ClassDef
 	| enum_list of Absyn.EnumLiteral list
 	| enumeration_literal of Absyn.EnumLiteral 	
@@ -728,8 +750,10 @@ ident
 (*-----------------------------------------------------------------*)
 (* modelica+ grammar is a very strip-down modelica grammar + new constructs *)
 stored_definition (* only one class which corresponds with module ident in RML *)
-   : class_type ident opt_string_comment composition END IDENT SEMICOLON
+   : class_type ident opt_string_comment composition END ident SEMICOLON
 	 (
+	  warnDifferentIdents (ident1, ident2);
+	  
 	  Absyn.PROGRAM(
 		[Absyn.CLASS(ident,false,false, false,
 				class_type,
@@ -746,29 +770,31 @@ stored_definition (* only one class which corresponds with module ident in RML *
 		makeInfo lexArg (class_typeleft, SEMICOLONright)
 	  )
     )
-
-(*			
-optPARTIAL:
-		PARTIAL (true)
-	|	(* empty *) (false)
-*)
 	
 (* we don't care about final here! *)
 class_definition:
 	class_type ident class_specifier 
 	(		
 		case class_specifier of 
-			SOME(class_specifier)
-			=> Absyn.CLASS(ident,
-				case class_type of 
-					Absyn.R_FUNCTION_TYPE(_) => true
-				|	_ => false,
-				false,  
-				false,
-				class_type,
-				class_specifier,
-				makeInfo lexArg (class_typeleft, class_specifierright))
-		|	NONE
+			(SOME(class_specifier), ident_opt)
+			=> let 
+			   in
+				  case ident_opt of
+					SOME(ident2) => warnDifferentIdents (ident, ident2)
+				  |	NONE => ();
+				    			   
+			      Absyn.CLASS(
+					ident,
+					case class_type of 
+						Absyn.R_FUNCTION_TYPE(_) => true
+					|	_ => false,
+					false,  
+					false,
+					class_type,
+					class_specifier,
+					makeInfo lexArg (class_typeleft, class_specifierright))
+			   end
+		|	(NONE, ident_opt)
 			=> Absyn.CLASS(ident,
 				false,
 				false,  
@@ -789,20 +815,24 @@ class_type:
 	
 
 class_specifier:
-	opt_string_comment composition END IDENT 
+	opt_string_comment composition END ident 
 	(
+	  (
 	  SOME(
 	  Absyn.PARTS(
 		composition, 
 		opt_string_comment,
-		makeInfo lexArg (compositionleft, IDENTright)))
+		makeInfo lexArg (compositionleft, identright))),
+	  SOME(ident)
+	  )
 	)
 	| opt_string_comment 
 	(
-		NONE	
+		(NONE, NONE)	
 	)	
 	| EQ type_specifier comment 
 	(
+		(
 		SOME(
 		Absyn.DERIVED(
 			type_specifier, 
@@ -812,9 +842,11 @@ class_specifier:
 			  makeInfo lexArg (EQleft, EQright)), 
 			[], 
 			comment,
-			makeInfo lexArg (EQleft, type_specifierright))) 
-		)
-	| EQ enumeration ( SOME(enumeration) )
+			makeInfo lexArg (EQleft, type_specifierright))),
+		NONE
+		)	 
+	)
+	| EQ enumeration ( (SOME(enumeration), NONE) )
 
 enumeration:
 	ENUMERATION LPAREN enum_list RPAREN comment
@@ -836,17 +868,7 @@ enumeration_literal:
 			NONE, 
 			makeInfo lexArg (identleft, identright)))
 
-(*	
-base_prefix:
-	variability_prefix direction_prefix
-		( Absyn.ATTR(
-			variability_prefix, 
-			direction_prefix, 
-			makeInfo lexArg (variability_prefixleft, direction_prefixright)) )
-*)
-
-(* TODO, FIXME, unite all prefixes into ONE *)
- 
+(* TODO, FIXME, unite all prefixes into ONE *) 
 variability_prefix:
 	PARAMETER	( Absyn.PARAM(makeInfo lexArg (PARAMETERleft, PARAMETERright)) )
 |	CONSTANT	( Absyn.CONST(makeInfo lexArg (CONSTANTleft, CONSTANTright)) )
