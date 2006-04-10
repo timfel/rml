@@ -47,7 +47,12 @@ end
 
 relation main: string list => () =
 
-   rule print arg &
+   rule let x = [1,2,3,4,5] &
+        list_get(x, 2) => z &
+        debug_print("list_nth([1,2,3,4,5], 2)", z) &
+        list_delete(x, 2) => newX &
+        debug_print("list_delete([1,2,3,4,5], 2)", newX) &      
+        print arg &
         print "\n" &
 	let str1="1.1e-005" &
 	real_string(1.1e-005) => str &
