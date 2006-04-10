@@ -1,10 +1,10 @@
 package Test "test.rml -- contains Mini-Freja test cases"
 
-public import OpenModelica.Compiler.Absyn;
+public import Absyn;
 
 protected function sieve
   input Integer inInteger;
-  output Absyn.exp outexp;
+  output Absyn.Exp outexp;
 algorithm 
   outexp:=
   matchcontinue (inInteger)
@@ -74,13 +74,13 @@ end sieve;
 
 public function test
   input Integer inInteger;
-  output Absyn.exp outexp;
+  output Absyn.Exp outexp;
 algorithm 
   outexp:=
   matchcontinue (inInteger)
     local
       Integer n_1,n;
-      Absyn.exp e;
+      Absyn.Exp e;
     case 0 then Absyn.PRIM2exp(Absyn.ADD(),Absyn.CONSTexp(Absyn.INTcnst(2)),
           Absyn.CONSTexp(Absyn.INTcnst(40)));  /* 42 */ 
     case 1 then Absyn.RECexp(

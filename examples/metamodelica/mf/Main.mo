@@ -1,10 +1,8 @@
 package Main "main.rml -- Mini-Freja test driver"
 
-protected import OpenModelica.Compiler.Absyn;
-
-protected import OpenModelica.Compiler.Eval;
-
-protected import OpenModelica.Compiler.Test;
+protected import Absyn;
+protected import Eval;
+protected import Test;
 
 public function main
   input list<String> inStringLst;
@@ -13,7 +11,7 @@ algorithm
   matchcontinue (inStringLst)
     local
       Integer k;
-      Absyn.exp prog;
+      Absyn.Exp prog;
       String arg;
       list<String> argv;
     case {} then (); 

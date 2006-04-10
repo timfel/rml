@@ -1,132 +1,95 @@
 package Absyn "absyn.rml -- Mini-Freja Abstract Syntax"
 
-public 
-type var = String;
+public type Var = String;
 
-public 
-uniontype prim1
+public uniontype Prim1
   record NOT end NOT;
-
   record NEG end NEG;
+end Prim1;
 
-end prim1;
-
-public 
-uniontype prim2
+public uniontype Prim2
   record LT end LT;
-
   record LE end LE;
-
   record EQ end EQ;
-
   record NE end NE;
-
   record GE end GE;
-
   record GT end GT;
-
   record AND end AND;
-
   record OR end OR;
-
   record ADD end ADD;
-
   record SUB end SUB;
-
   record MUL end MUL;
-
   record DIV end DIV;
-
   record MOD end MOD;
+end Prim2;
 
-end prim2;
-
-public 
-uniontype const
+public uniontype Const
   record INTcnst
     Integer integer;
   end INTcnst;
-
   record BOOLcnst
     Boolean boolean;
   end BOOLcnst;
-
   record NILcnst end NILcnst;
+end Const;
 
-end const;
-
-public 
-uniontype pat
-  record CONSTpat
-    const const;
+public uniontype Pat
+  record CONSTpat 
+    Const const; 
   end CONSTpat;
-
   record VARpat
-    var var;
+    Var var;
   end VARpat;
-
   record CONSpat
-    pat pat1;
-    pat pat2;
+    Pat pat1;
+    Pat pat2;
   end CONSpat;
+end Pat;
 
-end pat;
-
-public 
-uniontype exp
+public uniontype Exp
   record CONSTexp
-    const const;
+    Const const;
   end CONSTexp;
-
   record VARexp
-    var var;
+    Var var;
   end VARexp;
-
   record CONSexp
-    exp exp1;
-    exp exp2;
+    Exp exp1;
+    Exp exp2;
   end CONSexp;
-
   record LAMexp
-    var var;
-    exp exp;
+    Var var;
+    Exp exp;
   end LAMexp;
-
   record PRIM1exp
-    prim1 prim1;
-    exp exp;
+    Prim1 Prim1;
+    Exp exp;
   end PRIM1exp;
-
   record PRIM2exp
-    prim2 prim21;
-    exp exp2;
-    exp exp3;
+    Prim2 Prim21;
+    Exp exp2;
+    Exp exp3;
   end PRIM2exp;
-
   record IFexp
-    exp exp1;
-    exp exp2;
-    exp exp3;
+    Exp exp1;
+    Exp exp2;
+    Exp exp3;
   end IFexp;
-
   record APPexp
-    exp exp1;
-    exp exp2;
+    Exp exp1;
+    Exp exp2;
   end APPexp;
-
   record CASEexp
-    exp exp;
-    list<crule> cruleLst;
+    Exp exp;
+    list<CRule> cruleLst;
   end CASEexp;
-
   record RECexp
-    list<tuple<var, exp>> tplvarexpLst;
-    exp exp;
+    list<tuple<Var, Exp>> tplvarexpLst;
+    Exp exp;
   end RECexp;
+end Exp;
 
-end exp;
+public type CRule = tuple<Pat, Exp>;
 
-public 
-type crule = tuple<pat, exp>;
 end Absyn;
 

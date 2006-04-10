@@ -50,7 +50,7 @@ bool_or(true, _, true).
 int_lt(X, Y, Z) :- ('<'(X, Y) -> Z=true ; Z=false).
 int_le(X, Y, Z) :- ('=<'(X, Y) -> Z=true ; Z=false).
 int_eq(X, Y, Z) :- ('=:='(X, Y) -> Z=true ; Z=false).
-int_ne(X, Y, Z) :- ('=\='(X, Y) -> Z=true ; Z=false).
+int_ne(X, Y, Z) :- ('=\='(X, Y) -> Z=false ; Z=true).
 int_ge(X, Y, Z) :- ('>='(X, Y) -> Z=true ; Z=false).
 int_gt(X, Y, Z) :- ('>'(X, Y) -> Z=true ; Z=false).
 
@@ -365,6 +365,6 @@ expLAM("n",
 % main
 
 main :-
-	sieve(18, EXP),
-	exec(EXP),
-	halt.
+	sieve(40, EXP),
+	exec(EXP).
+%	halt.
