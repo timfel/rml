@@ -49,20 +49,25 @@ functor MaskToCFn(structure Code : SWITCH
        output(os, "label__");
        CodeToC.prLabel os label;
        output(os, ": {");
-       if nalloc > 0 then
-	 (output(os, "\n\tvoid *");
-	  CodeToC.prLVar os varHP;
-	  output(os, ";\n\tRML_ALLOC(");
-	  CodeToC.prLVar os varHP;
-	  output(os, ",");
-	  CodeToC.prInt os nalloc;
-	  output(os, ",");
-	  CodeToC.prInt os nargs;
-	  output(os, ",TAG(");
-	  CodeToC.prInt os tagno;
-	  output(os, "));"))
+       if nalloc > 0 
+       then
+		 (output(os, "\n\tvoid *");
+		  CodeToC.prLVar os varHP;
+		  output(os, ";\n\tRML_ALLOC(");
+		  CodeToC.prLVar os varHP;
+		  output(os, ",");
+		  CodeToC.prInt os nalloc;
+		  output(os, ",");
+		  CodeToC.prInt os nargs;
+		  output(os, ",TAG(");
+		  CodeToC.prInt os tagno;
+		  output(os, "));");
+		  output(os, "\n\t{\n\t"))
        else ();
        CodeToC.prCode os code;
+       if nalloc > 0 
+       then output(os, "\n\t}\n")
+       else ();       
        output(os, "}\n");
        tagno+1)
 
