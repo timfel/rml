@@ -11,7 +11,7 @@ CSRC=	bool-and.c bool-not.c bool-or.c\
 	list-nth.c list-reverse.c list-str.c list-vec.c list-arr.c\
 	lvar-get.c lvar-new.c lvar-set.c\
 	misc-clock.c misc-print.c misc-tick.c\
-	p-atoi.c p-clock.c p-equal.c p-gccore.c p-gcuser-plain.c\
+	p-atoi.c p-clock.c p-equal.c p-gccore.c p-gcuser-block.c\
 	p-get-real.c p-init.c p-mkreal.c p-mkstring.c p-motor.c p-nil.c\
 	p-once.c p-set-real.c p-stringeq.c p-unwind.c p-usergc.c\
 	real-abs.c real-add.c real-atan.c real-cos.c real-div.c\
