@@ -2149,30 +2149,14 @@ functor MOToRMLFn(
 		    | Absyn.EQ_NORETCALL(ComponentRef,  
 								 FunctionArgs as Absyn.FUNCTIONARGS(Exps, infoFArgs),
 								 infoEq) => 
-				let val goal = 
-					case ComponentRef of
-					  Absyn.CREF_IDENT(ident1, _, infoId1) => 
-							Absyn.CALLgoal(
-								Absyn.LONGID(NONE, ident1, infoId1),
-								map getExp (map translateExpFuncArg Exps),
-								[],
-								ref [],
-								infoEq)
-					| Absyn.CREF_QUAL(ident1, _ (* arraydim *), 
-							Absyn.CREF_IDENT(ident2, _, infoId2), infoId1) =>
-								Absyn.CALLgoal(
-									Absyn.LONGID(SOME(ident1), ident2, infoId1),
-									map getExp (map translateExpFuncArg Exps),
-									[],
-									ref [],
-									infoEq)
-					| _ => 					
-					errorAtFunction(
-						infoEq,
-						"unexpected identifier",
-						"buildGoalz")
+				let val exp1 = 
+						Absyn.MSTRUCTexp(
+							NONE,   
+							Absyn.FUNCTIONARGS([], infoEq), 				
+							infoEq)
+					val exp2 = Absyn.CALL(ComponentRef, FunctionArgs, infoEq)				
 				in
-					(goal, infoEq)
+			      translateEqualsEquation(exp1, exp2, infoEq)				
 				end									   
 		    | Absyn.EQ_FAILURE(eq, info) =>
 				let val (goal, infoEq) = buildGoalz(Absyn.EQUATIONITEM(eq, NONE, info))
