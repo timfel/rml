@@ -1852,6 +1852,15 @@ functor MOToRMLFn(
 					case goal of 
 						SOME(Absyn.CALLgoal(lid, exps, pats, _, infoEq)) 
 						=> (Absyn.CALLgoal(lid, exps, [translateExpToPat exp1], ref [], infoEq), infoEq)
+					|	SOME(g) => 
+							(Absyn.ANDgoal(g, 
+								Absyn.LETgoal(
+									translateExpToPat exp1, 
+									getExp((result, goal, info)),
+									ref (NONE),
+									infoBin),
+							infoEq),
+							infoEq)
 					|	_ => bug("translateEqualsEquation: BINARY, expected SOME(goal) from translateExp")
 				end			
 		|	(_,
@@ -1862,6 +1871,15 @@ functor MOToRMLFn(
 					case goal of 
 						SOME(Absyn.CALLgoal(lid, exps, pats, _, infoEq)) 
 						=> (Absyn.CALLgoal(lid, exps, [translateExpToPat exp1], ref [], infoEq), infoEq)
+					|	SOME(g) => 
+							(Absyn.ANDgoal(g, 
+								Absyn.LETgoal(
+									translateExpToPat exp1, 
+									getExp((result, goal, info)),
+									ref (NONE),
+									infoUnary),
+							infoEq),
+							infoEq)
 					|	_ => bug("translateEqualsEquation: UNARY, expected SOME(goal) from translateExp")
 				end			
 
@@ -1895,6 +1913,14 @@ functor MOToRMLFn(
 					(case goal of
 						SOME(Absyn.CALLgoal(id, exps, pats, ref_pat, info)) =>
 							Absyn.CALLgoal(id, exps, [pat], ref_pat, info)
+					|	SOME(g) => 
+							Absyn.ANDgoal(g, 
+								Absyn.LETgoal(
+									translateExpToPat exp2, 
+									getExp((result, goal, info)),
+									ref (NONE),
+									infoEq),
+							infoEq)
 					|	_ => 
 					errorAtFunction(
 						infoEq,
@@ -1911,6 +1937,14 @@ functor MOToRMLFn(
 					(case goal of
 						SOME(Absyn.CALLgoal(id, exps, pats, ref_pat, info)) =>
 							Absyn.CALLgoal(id, exps, [pat], ref_pat, info)
+					|	SOME(g) => 
+							Absyn.ANDgoal(g, 
+								Absyn.LETgoal(
+									translateExpToPat exp2, 
+									getExp((result, goal, info)),
+									ref (NONE),
+									infoEq),
+							infoEq)
 					|	_ => 
 					errorAtFunction(
 						infoEq,
@@ -1932,6 +1966,14 @@ functor MOToRMLFn(
 					(case goal of
 						SOME(Absyn.CALLgoal(id, exps, pats, ref_pat, info)) =>
 							Absyn.CALLgoal(id, exps, [pat], ref_pat, info)
+					|	SOME(g) => 
+							Absyn.ANDgoal(g, 
+								Absyn.LETgoal(
+									translateExpToPat exp1, 
+									getExp((result, goal, info)),
+									ref (NONE),
+									infoEq),
+							infoEq)
 					|	_ => 
 					errorAtFunction(
 						infoEq,
@@ -1948,6 +1990,14 @@ functor MOToRMLFn(
 					(case goal of
 						SOME(Absyn.CALLgoal(id, exps, pats, ref_pat, info)) =>
 							Absyn.CALLgoal(id, exps, [pat], ref_pat, info)
+					|	SOME(g) => 
+							Absyn.ANDgoal(g, 
+								Absyn.LETgoal(
+									translateExpToPat exp1, 
+									getExp((result, goal, info)),
+									ref (NONE),
+									infoEq),
+							infoEq)
 					|	_ => 
 					errorAtFunction(
 						infoEq,
