@@ -40,6 +40,7 @@ USE OR PERFORMANCE OF THIS SOFTWARE.
 /**************************************************/
 
 #include <stdio.h>
+#include <string.h>
 #if defined(__MINGW32__) || defined(_MSC_VER)
 
 #if defined(__MINGW32__) /* ********** MINGW32 stuff ******/
