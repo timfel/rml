@@ -124,7 +124,10 @@ functor AbsynFn(structure MakeString : MAKESTRING
   (* -- start Modelica+ AST *)
   datatype Path = QUALIFIED of ident * Path * info
 	      	| PATHIDENT of ident * info
+	      	(*
 	      	| TYPEVARIABLE of ident * info	      	
+	      	*)
+	      	
   (** A component reference is the fully or partially qualified name of *)
   (** a component.  It is represented as a list of *)
   (** identifier--subscript pairs.  The type `Path', on the other hand, *)
@@ -563,14 +566,18 @@ functor AbsynFn(structure MakeString : MAKESTRING
             
   fun getLastPathAsString(QUALIFIED(_, x, _)) = getLastPathAsString(x)
   |   getLastPathAsString(PATHIDENT(IDENT(id,_), _)) = id
+  (*
   |   getLastPathAsString(TYPEVARIABLE(IDENT(id,_), _)) = id
+  *)
 
   fun getCrefAsString(CREF_QUAL(IDENT(s,_), _, cr, _)) = s^"."^getCrefAsString(cr)
   |   getCrefAsString(CREF_IDENT(IDENT(s,_), _, _)) = s
 
   fun getPathAsString(QUALIFIED(IDENT(s,_), p, _)) = s^"."^getPathAsString(p)
   |   getPathAsString(PATHIDENT(IDENT(s,_), _)) = s
+  (*
   |   getPathAsString(TYPEVARIABLE(IDENT(s,_), _)) = s
+  *)
 
   fun getPozFromInfo(INFO(_, sp,ep, LOC(sl,sc,el,ec))) =
 		((sp,sl,sc),(ep,el,ec))

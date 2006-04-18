@@ -286,8 +286,10 @@ functor MOToRMLFn(
 	
 	fun getPathLastIdent(Absyn.QUALIFIED(_, x, _)) = getPathLastIdent(x)
 	|	getPathLastIdent(Absyn.PATHIDENT(id, _)) = id
+	(*
 	|	getPathLastIdent(Absyn.TYPEVARIABLE(id, info)) = 
 			errorAtFunction(info, "unexpected type variable", "getPathLastIdent")	
+	*)
 
     (* what can we find in a package/uniontype/function/functiontype/record *) 
     (* TODO LATER! collect all this info!
@@ -678,8 +680,10 @@ functor MOToRMLFn(
 		Absyn.LONGID(SOME(ident1), ident2, info)
 	| path2Ident(Absyn.PATHIDENT(ident, info)) = 
 		Absyn.LONGID(NONE, ident, info)
+	(*
 	| path2Ident(Absyn.TYPEVARIABLE(ident, info)) =
 		Absyn.LONGID(NONE, ident, info)
+	*)
 	| path2Ident(Absyn.QUALIFIED(_, _, info)) = 
 		errorAtFunction(info, "only one DOT in path is allowed","path2Ident")
 			
@@ -734,8 +738,10 @@ functor MOToRMLFn(
 		Absyn.CONSty([], Absyn.LONGID(SOME(caseType(ident1)), caseType(ident2), info), info)
 	| getTypeFromPath(Absyn.PATHIDENT(ident as Absyn.IDENT(_, info), _)) = 
 		Absyn.CONSty([], Absyn.LONGID(NONE, caseType(ident), info), info)
+	(*
 	| getTypeFromPath(Absyn.TYPEVARIABLE(ident as Absyn.IDENT(_, info), _)) = 
 		Absyn.VARty(caseType(ident), info)
+	*)
 	| getTypeFromPath(Absyn.QUALIFIED(_, _, info)) = 
 		errorAtFunction(info, "only one DOT in path is allowed","getTypeFromPath")
 	  
@@ -1316,20 +1322,27 @@ functor MOToRMLFn(
 								ref(Absyn.STRUCTexp(NONE,[], Absyn.dummyInfo)),
 								info)], 
 							info)
+	       val (result1, goal1, info1) = translateExp(Exp1)
+	       val (result2, goal2, info2) = translateExp(Exp2)
+		   val exp1 = getExp(result1, goal1, info1)
+		   val exp2 = getExp(result2, goal2, info2)
+		   val lastGoal = 
+				  SOME(Absyn.CALLgoal(
+						Absyn.LONGID(NONE,
+							Absyn.makeIdent(idop, info), 
+							info),
+						[exp1, exp2],
+						[Absyn.IDENTpat(Absyn.makeIdent(resstr, info), 
+										ref(Absyn.WILDpat(info)), 
+										info)],
+						ref [],
+						info))		   
+		   val goals = getSomeGoals([(goal1,info1),(goal2,info2),(lastGoal,info)])
+		   val joinedGoals = constructGoals(goals)
+		   val g = SOME(joinedGoals)
 		in
 		 debug("translateExp-Binary: "^idop^"() => "^resstr^"\n");
-		 (result, 
-		  SOME(Absyn.CALLgoal(
-				Absyn.LONGID(NONE,
-					Absyn.makeIdent(idop, info), 
-					info),
-				map getExp ([translateExp(Exp1), translateExp(Exp2)]),
-				[Absyn.IDENTpat(Absyn.makeIdent(resstr, info), 
-								ref(Absyn.WILDpat(info)), 
-								info)],
-				ref [],
-				info)),
-		  info)
+		 (result, g, info)
 		end
 	| translateExp(Absyn.UNARY(Operator, Exp, info)) = 
 		let val idop = 
@@ -1348,22 +1361,27 @@ functor MOToRMLFn(
 					ref(Absyn.STRUCTexp(NONE,[], Absyn.dummyInfo)),
 					info)], 
 				info)
+	       val (result1, goal1, info1) = translateExp(Exp)
+		   val exp1 = getExp(result1, goal1, info1)
+		   val lastGoal = 
+				  SOME(
+				  Absyn.CALLgoal(
+						Absyn.LONGID(NONE,
+							Absyn.makeIdent(idop, info),
+							info),
+							[exp1],
+						[Absyn.IDENTpat(Absyn.makeIdent(resstr, info), 
+										ref(Absyn.WILDpat(info)), 
+										info)],
+						ref [],
+						info)
+				 )		   
+		   val goals = getSomeGoals([(goal1,info1),(lastGoal,info)])
+		   val joinedGoals = constructGoals(goals)
+		   val g = SOME(joinedGoals)
 		in
 		 debug("translateExp-Unary\n");		 		
-		 (result, 
-		  SOME(
-		  Absyn.CALLgoal(
-				Absyn.LONGID(NONE,
-					Absyn.makeIdent(idop, info),
-					info),
-					map getExp [translateExp(Exp)],
-				[Absyn.IDENTpat(Absyn.makeIdent(resstr, info), 
-								ref(Absyn.WILDpat(info)), 
-								info)],
-				ref [],
-				info)
-		 ),
-		 info)
+		 (result, g, info)
 		end
 	| translateExp(Absyn.RELATION(Exp1,Operator,Exp2, info)) =
 		let val idop = 
@@ -1391,23 +1409,28 @@ functor MOToRMLFn(
 								ref(Absyn.STRUCTexp(NONE,[], Absyn.dummyInfo)),
 								info)], 
 							info)
+	       val (result1, goal1, info1) = translateExp(Exp1)
+	       val (result2, goal2, info2) = translateExp(Exp2)
+		   val exp1 = getExp(result1, goal1, info1)
+		   val exp2 = getExp(result2, goal2, info2)
+		   val lastGoal = 
+				  SOME(
+				  Absyn.CALLgoal(
+						Absyn.LONGID(NONE,
+							Absyn.makeIdent(idop, info), 
+							info),
+							[exp1, exp2],
+						[Absyn.IDENTpat(Absyn.makeIdent(resstr, info), 
+										ref(Absyn.WILDpat(info)), 
+										info)],
+						ref [],
+						info))		   
+		   val goals = getSomeGoals([(goal1,info1),(goal2,info2),(lastGoal,info)])
+		   val joinedGoals = constructGoals(goals)
+		   val g = SOME(joinedGoals)
 		in
 		 debug("translateExp-RelationalBinary\n");
-		 (result, 
-		  SOME(
-		  Absyn.CALLgoal(
-				Absyn.LONGID(NONE,
-					Absyn.makeIdent(idop, info), 
-					info),
-					map getExp ([translateExp(Exp1), translateExp(Exp2)]),
-					(* [translateExpIdent(Exp1,info), translateExpIdent(Exp2,info)], *)
-				[Absyn.IDENTpat(Absyn.makeIdent(resstr, info), 
-								ref(Absyn.WILDpat(info)), 
-								info)],
-				ref [],
-				info)
-		  ),
-		  info)
+		 (result, g, info)
 		end	
 	| translateExp(Absyn.LUNARY(Operator, Exp, info)) =
 		let val idop = 
@@ -1422,23 +1445,26 @@ functor MOToRMLFn(
 					ref(Absyn.STRUCTexp(NONE,[], Absyn.dummyInfo)),
 					info)], 
 				info)
+	       val (result1, goal1, info1) = translateExp(Exp)
+		   val exp1 = getExp(result1, goal1, info1)
+		   val lastGoal = 
+					  SOME(
+					  Absyn.CALLgoal(
+							Absyn.LONGID(NONE,
+								Absyn.makeIdent(idop, info),
+								info),
+								[exp1],
+							[Absyn.IDENTpat(Absyn.makeIdent(resstr, info), 
+											ref(Absyn.WILDpat(info)), 
+											info)],
+							ref [],
+							info))		   
+		   val goals = getSomeGoals([(goal1,info1),(lastGoal,info)])
+		   val joinedGoals = constructGoals(goals)
+		   val g = SOME(joinedGoals)
 		in
 		 debug("translateExp-LogicalUnary\n");		 		
-		 (result, 
-		  SOME(
-		  Absyn.CALLgoal(
-				Absyn.LONGID(NONE,
-					Absyn.makeIdent(idop, info),
-					info),
-					map getExp [translateExp(Exp)],
-					(* [translateExpIdent(Exp, info)], *)
-				[Absyn.IDENTpat(Absyn.makeIdent(resstr, info), 
-								ref(Absyn.WILDpat(info)), 
-								info)],
-				ref [],
-				info)
-		 ),
-		 info)
+		 (result, g, info)
 		end
 	| translateExp(Absyn.LBINARY(Exp1, Operator,Exp2, info)) = 
 		let val idop = 
@@ -1453,23 +1479,29 @@ functor MOToRMLFn(
 								ref(Absyn.STRUCTexp(NONE,[], Absyn.dummyInfo)),
 								info)], 
 							info)
+	       val (result1, goal1, info1) = translateExp(Exp1)
+	       val (result2, goal2, info2) = translateExp(Exp2)
+		   val exp1 = getExp(result1, goal1, info1)
+		   val exp2 = getExp(result2, goal2, info2)
+		   val lastGoal = 
+				  SOME(
+				  Absyn.CALLgoal(
+						Absyn.LONGID(NONE,
+							Absyn.makeIdent(idop, info), 
+							info),
+						[exp1, exp2],
+						[Absyn.IDENTpat(Absyn.makeIdent(resstr, info), 
+										ref(Absyn.WILDpat(info)), 
+										info)],
+						ref [],
+						info)
+				  )		   
+		   val goals = getSomeGoals([(goal1,info1),(goal2,info2),(lastGoal,info)])
+		   val joinedGoals = constructGoals(goals)
+		   val g = SOME(joinedGoals)							
 		in
 		 debug("translateExp-LogicalBinary\n");
-		 (result, 
-		  SOME(
-		  Absyn.CALLgoal(
-				Absyn.LONGID(NONE,
-					Absyn.makeIdent(idop, info), 
-					info),
-				map getExp ([translateExp(Exp1), translateExp(Exp2)]),
-				(* [translateExpIdent(Exp1, info), translateExpIdent(Exp2, info)], *)
-				[Absyn.IDENTpat(Absyn.makeIdent(resstr, info), 
-								ref(Absyn.WILDpat(info)), 
-								info)],
-				ref [],
-				info)
-		  ),
-		  info)
+		 (result, g, info)
 		end
 	(* Not used in MetaModelica
 	| translateExp(c as Absyn.CHAR(x, info)) = 

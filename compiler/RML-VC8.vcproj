@@ -951,6 +951,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\resources\c.grm"
+				>
+			</File>
+			<File
+				RelativePath=".\resources\c.lex"
+				>
+			</File>
+			<File
 				RelativePath=".\call-main.sml"
 				>
 			</File>
@@ -972,6 +980,14 @@
 			</File>
 			<File
 				RelativePath=".\mlton_make_lex_grm.bat"
+				>
+			</File>
+			<File
+				RelativePath=".\resources\oo\Oolex.lex"
+				>
+			</File>
+			<File
+				RelativePath=".\resources\oo\Oopar.grm"
 				>
 			</File>
 			<File

@@ -201,9 +201,9 @@ eol="\010";
 tab=\t;
 
 ddigit=[0-9];
-decint=[-~]?{ddigit}+;
+decint={ddigit}+;
 xdigit=[0-9a-fA-F];
-hexint=[-~]?"0x"{xdigit}+;
+hexint="0x"{xdigit}+;
 
 fraction="."{ddigit}+;
 exponent=[eE][+-]?{decint};
@@ -216,7 +216,7 @@ pchar=[\ -!#-[^-~\128-\255]|"]";
 cdesc={pchar}|\\{escseq}|"\\";
 
 alpha=[A-Za-z];
-alnum={alpha}|[_'0-9];
+alnum={alpha}|[_0-9];
 id={alpha}{alnum}*;
 
 %%

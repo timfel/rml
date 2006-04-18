@@ -123,7 +123,9 @@ signature ABSYN =
   (* -- start Modelica+ AST *)  
   datatype Path = QUALIFIED of ident * Path * info
 	      	| PATHIDENT of ident * info
+	      	(*
 	      	| TYPEVARIABLE of ident * info
+	      	*)
 	      		      		      	 
   (** A component reference is the fully or partially qualified name of *)
   (** a component.  It is represented as a list of *)

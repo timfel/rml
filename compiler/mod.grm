@@ -380,6 +380,7 @@ fun makeELEMENT(isFinal,
 	
 
 %nonterm modelica of Absyn.modelica
+	| ident of Absyn.ident
 	| pat of Absyn.Pattern
 	| pat_a of Absyn.Pattern
 	| pat_b of Absyn.Pattern
@@ -390,8 +391,6 @@ fun makeELEMENT(isFinal,
 	| pat_star of Absyn.Pattern list
 	| pat_comma_star of Absyn.Pattern list
 	| pat_comma_plus of Absyn.Pattern list
-	| ident of Absyn.ident
-	| tyvar of Absyn.ident
 	(* Modelica+ constructs *)
     | stored_definition of Absyn.modelica
 	| optENCAPSULATED of bool
@@ -486,6 +485,7 @@ fun makeELEMENT(isFinal,
 	| rel_op of Absyn.Operator
 	| pow_op of Absyn.Operator
 	| addsub_op of Absyn.Operator
+	| arithmetic_expression2 of Absyn.Exp
 	| muldiv_op of Absyn.Operator
 	| arithmetic_expression of Absyn.Exp
 	| unary_arithmetic_expression of Absyn.Exp
@@ -520,26 +520,36 @@ fun makeELEMENT(isFinal,
 %eop EOF_HARD EOF_SOFT   
 %noshift EOF_HARD
 
-(* adrpo -- start *)			     
-%left ADD_INT SUB_INT ADD_STRING ADD_LIST
-%left STAR DIV_INT
+(* lowest precendence *)
+%right ASSIGN EQ 
 
+%left OR 
+%left AND
+
+%left EQEQ NE_INT 
+%left EQEQ_REAL NE_REAL
+%left EQEQ_STRING
+
+%left ADD_INT SUB_INT 
 %left ADD_REAL SUB_REAL
-%left MUL_REAL DIV_REAL
+%left ADD_STRING ADD_LIST
 
+%left STAR DIV_INT MOD_INT 
+%left MUL_REAL DIV_REAL MOD_REAL
 %right POW_REAL POWER
 
 %left COMMA
-%left OR AND
-%left EQEQ NE_INT LT_INT GT_INT LE_INT GE_INT MOD_INT
-%right UNARY
-%left LBRACE LPAREN DOT
-(* %left SEMICOLON *)
-%left ELSE
+%nonassoc LT_INT GT_INT LE_INT GE_INT 
+%nonassoc LT_REAL GT_REAL LE_REAL GE_REAL
+%nonassoc NOT
 
+%left ELSE
 %left COLONCOLON
-%right ASSIGN EQ 
-(* adrpo -- end *)	     
+
+%right UNARY
+
+%left DOT
+(* highest precedence *)	     
 
 %pos Cache.poz
 %arg (lexArg) : LexArg.lexarg
@@ -553,53 +563,54 @@ fun makeELEMENT(isFinal,
 
 %%
 
+
 modelica
-	: START_MODELICA stored_definition 
+	: START_MODELICA stored_definition                 (* 001 *)
 		( stored_definition )
 
 (* PATTERNS *)
 pat	(* patterns possibly starting with LPAREN *)
-	: ident EQ pat
+	: ident EQ pat                                     (* 002 *)
 		( Absyn.MNAMEDARGpat(ident, pat,
 			makeInfo lexArg (identleft, patright)))
-	| ident AS pat
+	| ident AS pat                                     (* 003 *)
 		( Absyn.MBINDpat(ident, pat,
 			makeInfo lexArg (identleft, patright)))
-	| pat_a
+	| pat_a                                            (* 004 *)
 		( pat_a )
 
 pat_a
-	: pat_b COLONCOLON pat_a
+	: pat_b COLONCOLON pat_a                           (* 005 *)
 		( Absyn.MSTRUCTpat(
 			ctor_cons (makeInfo lexArg (COLONCOLONleft, COLONCOLONright)), 
 			[pat_b, pat_a], 
 			makeInfo lexArg (pat_bleft, pat_aright)) )
-	| pat_b
+	| pat_b                                            (* 006 *)
 		( pat_b )
 
 pat_b	(* simple patterns possibly starting with LPAREN *)
-	: LPAREN RPAREN
+	: LPAREN RPAREN                                    (* 007 *)
 		( Absyn.MSTRUCTpat(NONE, [],
 			makeInfo lexArg (LPARENleft, RPARENright)) )
-	| LPAREN pat RPAREN
+	| LPAREN pat RPAREN                                (* 008 *)
 		( pat )
-	| LPAREN pat COMMA pat_comma_plus RPAREN
+	| LPAREN pat COMMA pat_comma_plus RPAREN           (* 009 *)
 		( Absyn.MSTRUCTpat(NONE, pat :: pat_comma_plus,
 			makeInfo lexArg (LPARENleft, RPARENright)) )
-	| pat_d
+	| pat_d                                            (* 010 *)
 		( pat_d )
 
 pat_c	(* patterns not starting with LPAREN *)
-	: pat_d COLONCOLON pat_c
+	: pat_d COLONCOLON pat_c                           (* 011 *)
 		( Absyn.MSTRUCTpat(
 			ctor_cons (makeInfo lexArg (COLONCOLONleft, COLONCOLONright)), 
 			[pat_d, pat_c],
 			makeInfo lexArg (pat_dleft, pat_cright)) )
-	| pat_d
+	| pat_d                                            (* 012 *)
 		( pat_d )
 
 pat_d	(* simple patterns not starting with LPAREN *)
-	: name_path pat_star
+	: name_path pat_star                               (* 013 *)
 		( 
 		case name_path of 
 			Absyn.QUALIFIED(_) => 	
@@ -618,7 +629,7 @@ pat_d	(* simple patterns not starting with LPAREN *)
 			name_path,
 			makeInfo lexArg (name_pathleft, name_pathright))		   
 		)
-	| name_path pat_e
+	| name_path pat_e                                  (* 014 *)
 	( 
 		case name_path of 
 			Absyn.QUALIFIED(_) => 	
@@ -631,40 +642,55 @@ pat_d	(* simple patterns not starting with LPAREN *)
 		Absyn.MSTRUCTpat(SOME name_path, [pat_e],
 			makeInfo lexArg (name_pathleft, pat_eright)) 
 	)
-	| pat_e
+	| pat_e                                            (* 015 *)
 		( pat_e )
 
 pat_e	(* atomic patterns not starting with LPAREN *)
-	: WILD
+	: WILD                                             (* 016 *)
 		( Absyn.MWILDpat(makeInfo lexArg (WILDleft, WILDright)) )
-	(* Not used in MetaModelica
-	| CCON 
-	( 
-		Absyn.MLITpat(
-			Absyn.CHAR(CCON,
-				makeInfo lexArg (CCONleft, CCONright)),
-			makeInfo lexArg (CCONleft, CCONright))
-	)
-	*)		
-	| ICON
+	| SUB_INT ICON %prec UNARY                         (* 017 *)
+		( Absyn.MLITpat(
+			Absyn.INTEGER(
+				~ICON,
+				makeInfo lexArg (ICONleft, ICONright)), 
+			makeInfo lexArg (ICONleft, ICONright)) )
+	| SUB_REAL RCON %prec UNARY                        (* 018 *)
+		( Absyn.MLITpat(
+			Absyn.REAL(
+				~RCON,
+				makeInfo lexArg (RCONleft, RCONright)), 
+			makeInfo lexArg (RCONleft, RCONright)) )
+	| ADD_INT ICON %prec UNARY                         (* 017 *)
 		( Absyn.MLITpat(
 			Absyn.INTEGER(
 				ICON,
 				makeInfo lexArg (ICONleft, ICONright)), 
 			makeInfo lexArg (ICONleft, ICONright)) )
-	| RCON 
+	| ADD_REAL RCON %prec UNARY                        (* 018 *)
 		( Absyn.MLITpat(
 			Absyn.REAL(
 				RCON,
 				makeInfo lexArg (RCONleft, RCONright)), 
 			makeInfo lexArg (RCONleft, RCONright)) )
-	| SCON
+	| ICON                                             (* 019 *)
+		( Absyn.MLITpat(
+			Absyn.INTEGER(
+				ICON,
+				makeInfo lexArg (ICONleft, ICONright)), 
+			makeInfo lexArg (ICONleft, ICONright)) )
+	| RCON                                             (* 0 *)
+		( Absyn.MLITpat(
+			Absyn.REAL(
+				RCON,
+				makeInfo lexArg (RCONleft, RCONright)), 
+			makeInfo lexArg (RCONleft, RCONright)) )
+	| SCON                                             (* 019 *)
 		( Absyn.MLITpat(
 			Absyn.STRING(
 				SCON,
 				makeInfo lexArg (SCONleft, SCONright)), 
 			makeInfo lexArg (SCONleft, SCONright)) )
-	| name_path
+	| name_path                                        (* 020 *)
 	( 
 		case name_path of 
 			Absyn.QUALIFIED(_) => 	
@@ -674,15 +700,17 @@ pat_e	(* atomic patterns not starting with LPAREN *)
 				name_pathleft,name_pathright)
 		|	_ => ();
 	
+	case name_path of 
+		Absyn.PATHIDENT(ident, info) =>
+			Absyn.MIDENTpat(
+			ident, ref(Absyn.MWILDpat(makeInfo lexArg (name_pathleft, name_pathright))),
+			makeInfo lexArg (name_pathleft, name_pathright))			
+	|	Absyn.QUALIFIED(_) =>
 		Absyn.MCONpat(
 			name_path,
 			makeInfo lexArg (name_pathleft, name_pathright)) 
 	)
-	| ident
-		( Absyn.MIDENTpat(
-			ident, ref(Absyn.MWILDpat(makeInfo lexArg (identleft, identright))),
-			makeInfo lexArg (identleft, identright)) )
-	| FALSE 
+	| FALSE                                            (* 021 *)
 	( 
 		Absyn.MIDENTpat(
 			Absyn.makeIdent("false", 
@@ -690,7 +718,7 @@ pat_e	(* atomic patterns not starting with LPAREN *)
 			ref(Absyn.MWILDpat(makeInfo lexArg (FALSEleft, FALSEright))),
 			makeInfo lexArg (FALSEleft, FALSEright)) 
 	)
-	| TRUE 
+	| TRUE                                             (* 022 *)
 	( 
 		Absyn.MIDENTpat(
 			Absyn.makeIdent("true", 
@@ -698,48 +726,47 @@ pat_e	(* atomic patterns not starting with LPAREN *)
 			ref(Absyn.MWILDpat(makeInfo lexArg (TRUEleft, TRUEright))),
 			makeInfo lexArg (TRUEleft, TRUEright)) 
 	)			
-	| LBRACK pat_comma_star RBRACK
+	| LBRACK pat_comma_star RBRACK                     (* 023 *)
 		( mkpatlst(
 			pat_comma_star,
 			makeInfo lexArg (LBRACKleft, RBRACKright)) )
-	| LBRACE pat_comma_star RBRACE
+	| LBRACE pat_comma_star RBRACE                     (* 024 *)
 		( mkpatlst(pat_comma_star,
 			makeInfo lexArg (LBRACEleft, RBRACEright)) )
 
 seq_pat
-	: (*empty*)
+	: (*empty*)                                        (* 025 *)
 		( [] )
-	| pat_c		(* cannot start with LPAREN *)
+	| pat_c		(* cannot start with LPAREN *)         (* 026 *)
 		( [pat_c] )
-	| pat_star
+	| pat_star                                         (* 027 *)
 		( pat_star )
-	| ident AS pat
+	| ident AS pat                                     (* 028 *)
 		( [Absyn.MBINDpat(ident, pat,
 			makeInfo lexArg (identleft, patright))])
-	| ident EQ pat
+	| ident EQ pat                                     (* 029 *)
 		( [Absyn.MNAMEDARGpat(ident, pat,
 			makeInfo lexArg (identleft, patright))])			
 
 pat_star
-	: LPAREN pat_comma_star RPAREN
+	: LPAREN pat_comma_star RPAREN                     (* 030 *)
 		( pat_comma_star )
 
 pat_comma_star
-	: (*empty*)
+	: (*empty*)                                        (* 031 *)
 		( [] )
-	| pat_comma_plus
+	| pat_comma_plus                                   (* 032 *)
 		( pat_comma_plus )
 
 pat_comma_plus
-	: pat
+	: pat                                              (* 033 *)
 		( [pat] )
-	| pat COMMA pat_comma_plus
+	| pat COMMA pat_comma_plus                         (* 034 *)
 		( pat :: pat_comma_plus )
 
 (* SHORT IDENTIFIERS *)
-
 ident
-	: IDENT
+	: IDENT                                            (* 035 *)
 		( Absyn.makeIdent(IDENT, 
 			makeInfo lexArg (IDENTleft, IDENTright)) )
 
@@ -750,6 +777,7 @@ ident
 (*-----------------------------------------------------------------*)
 (* modelica+ grammar is a very strip-down modelica grammar + new constructs *)
 stored_definition (* only one class which corresponds with module ident in RML *)
+                                                       (* 037 *)
    : class_type ident opt_string_comment composition END ident SEMICOLON
 	 (
 	  warnDifferentIdents (ident1, ident2);
@@ -773,7 +801,7 @@ stored_definition (* only one class which corresponds with module ident in RML *
 	
 (* we don't care about final here! *)
 class_definition:
-	class_type ident class_specifier 
+	class_type ident class_specifier                   (* 038 *)
 	(		
 		case class_specifier of 
 			(SOME(class_specifier), ident_opt)
@@ -806,16 +834,22 @@ class_definition:
 
 (* we only support these! *)
 class_type:
-	RECORD    ( Absyn.R_RECORD(makeInfo lexArg (RECORDleft, RECORDright)) )
-|	TYPE      ( Absyn.R_TYPE(makeInfo lexArg (TYPEleft, TYPEright)) )
-|	PACKAGE   ( Absyn.R_PACKAGE(makeInfo lexArg (PACKAGEleft, PACKAGEright)) )
-|	PARTIAL FUNCTION ( Absyn.R_FUNCTION_TYPE(makeInfo lexArg (PARTIALleft, FUNCTIONright)) )
-|	FUNCTION  ( Absyn.R_FUNCTION(makeInfo lexArg (FUNCTIONleft, FUNCTIONright)) )
-|   UNIONTYPE ( Absyn.R_UNIONTYPE(makeInfo lexArg (UNIONTYPEleft, UNIONTYPEright)) )
+	RECORD                                             (* 039 *)
+		( Absyn.R_RECORD(makeInfo lexArg (RECORDleft, RECORDright)) )
+|	TYPE                                               (* 040 *)      
+		( Absyn.R_TYPE(makeInfo lexArg (TYPEleft, TYPEright)) )
+|	PACKAGE                                            (* 041 *)
+		( Absyn.R_PACKAGE(makeInfo lexArg (PACKAGEleft, PACKAGEright)) )
+|	PARTIAL FUNCTION                                   (* 042 *)
+		( Absyn.R_FUNCTION_TYPE(makeInfo lexArg (PARTIALleft, FUNCTIONright)) )
+|	FUNCTION                                           (* 043 *)
+		( Absyn.R_FUNCTION(makeInfo lexArg (FUNCTIONleft, FUNCTIONright)) )
+|   UNIONTYPE                                          (* 044 *)
+		( Absyn.R_UNIONTYPE(makeInfo lexArg (UNIONTYPEleft, UNIONTYPEright)) )
 	
 
 class_specifier:
-	opt_string_comment composition END ident 
+	opt_string_comment composition END ident           (* 045 *)
 	(
 	  (
 	  SOME(
@@ -826,11 +860,11 @@ class_specifier:
 	  SOME(ident)
 	  )
 	)
-	| opt_string_comment 
+	| opt_string_comment                               (* 046 *)
 	(
 		(NONE, NONE)	
 	)	
-	| EQ type_specifier comment 
+	| EQ type_specifier comment                        (* 047 *)
 	(
 		(
 		SOME(
@@ -846,23 +880,24 @@ class_specifier:
 		NONE
 		)	 
 	)
-	| EQ enumeration ( (SOME(enumeration), NONE) )
+	| EQ enumeration                                   (* 048 *)
+		( (SOME(enumeration), NONE) )
 
 enumeration:
-	ENUMERATION LPAREN enum_list RPAREN comment
+	ENUMERATION LPAREN enum_list RPAREN comment        (* 049 *)
 		( Absyn.ENUMERATION(
 			enum_list, 
 			comment, 
 			makeInfo lexArg (ENUMERATIONleft, RPARENright)))	
 	
 enum_list:
-	enumeration_literal COMMA enum_list
+	enumeration_literal COMMA enum_list                (* 050 *)
 		( enumeration_literal::enum_list )
-	| enumeration_literal
+	| enumeration_literal                              (* 051 *)
 		( [enumeration_literal] )
 	
 enumeration_literal:
-	ident 
+	ident                                              (* 052 *)
 		( Absyn.ENUMLITERAL(
 			ident, 
 			NONE, 
@@ -870,19 +905,26 @@ enumeration_literal:
 
 (* TODO, FIXME, unite all prefixes into ONE *) 
 variability_prefix:
-	PARAMETER	( Absyn.PARAM(makeInfo lexArg (PARAMETERleft, PARAMETERright)) )
-|	CONSTANT	( Absyn.CONST(makeInfo lexArg (CONSTANTleft, CONSTANTright)) )
-|	(* empty *)	( Absyn.VAR )
+	PARAMETER	                                       (* 053 *)
+		( Absyn.PARAM(makeInfo lexArg (PARAMETERleft, PARAMETERright)) )
+|	CONSTANT	                                       (* 054 *)
+		( Absyn.CONST(makeInfo lexArg (CONSTANTleft, CONSTANTright)) )
+|	(* empty *)	                                       (* 055 *)
+		( Absyn.VAR )
 
 
 direction_prefix:
-	INPUT		( Absyn.INPUT(makeInfo lexArg (INPUTleft, INPUTright)) )
-|	OUTPUT		( Absyn.OUTPUT(makeInfo lexArg (OUTPUTleft, OUTPUTright)) )
-|	(* empty *)	( Absyn.BIDIR(makeInfo lexArg (defaultPos,defaultPos)) )
+	INPUT		                                       (* 056 *)
+		( Absyn.INPUT(makeInfo lexArg (INPUTleft, INPUTright)) )
+|	OUTPUT		                                       (* 057 *)
+		( Absyn.OUTPUT(makeInfo lexArg (OUTPUTleft, OUTPUTright)) )
+|	(* empty *)	                                       (* 058 *)
+		( Absyn.BIDIR(makeInfo lexArg (defaultPos,defaultPos)) )
 
 
 component_clause:
-	direction_prefix type_specifier component_list
+                                                       (* 059 *)
+	direction_prefix type_specifier component_list     
 	(
 	Absyn.COMPONENTS(
 		Absyn.ATTR(
@@ -893,6 +935,7 @@ component_clause:
 		 component_list,
 		 makeInfo lexArg (direction_prefixleft, component_listright))
 	)	
+	                                                   (* 060 *)
 	| CONSTANT direction_prefix type_specifier component_list
 	(
 	Absyn.COMPONENTS(
@@ -905,6 +948,7 @@ component_clause:
 		 makeInfo lexArg (direction_prefixleft, component_listright))
 	)	
 	(* input function Functype func; *)
+	                                                   (* 061 *)
 	| direction_prefix FUNCTION type_specifier component_list
 	(
 		Absyn.COMPONENTS(
@@ -917,6 +961,7 @@ component_clause:
 		 makeInfo lexArg (direction_prefixleft, component_listright))
 	)
 	(* input replaceable function func extends Functype; *)
+	                                                   (* 062 *)
 	| direction_prefix REPLACEABLE FUNCTION component_list EXTENDS type_specifier
 	(
 		Absyn.COMPONENTS(
@@ -932,7 +977,7 @@ component_clause:
 	
 component_clause1:
 	variability_prefix direction_prefix
-	type_specifier component_declaration
+	type_specifier component_declaration               (* 063 *)
 	(
 		Absyn.COMPONENTS(
 			Absyn.ATTR(
@@ -945,19 +990,19 @@ component_clause1:
 	)
 
 import_clause:
-	IMPORT explicit_import_name comment 
+	IMPORT explicit_import_name comment                (* 064 *)
 		( Absyn.IMPORT(
 			explicit_import_name, 
 			comment, 
 			makeInfo lexArg (IMPORTleft, explicit_import_nameright)) )
-	| IMPORT implicit_import_name comment
+	| IMPORT implicit_import_name comment              (* 065 *)
 		( Absyn.IMPORT(
 			implicit_import_name, 
 			comment,
 			makeInfo lexArg (IMPORTleft, implicit_import_nameright)) )
 	
 explicit_import_name:
-	ident EQ name_path
+	ident EQ name_path                                 (* 066 *)
 	( 
 		case name_path of 
 			Absyn.QUALIFIED(_) => 	
@@ -975,20 +1020,19 @@ explicit_import_name:
 	
 
 implicit_import_name:
-	name_path DOTSTAR
+	name_path DOTSTAR                                  (* 067 *)
 		( 
-		
 		  Absyn.UNQUAL_IMPORT(
 			name_path,
 			makeInfo lexArg (name_pathleft, DOTSTARright)))
-	| name_path
+	| name_path                                        (* 068 *)
 		( 
 		  Absyn.QUAL_IMPORT(
 			name_path,
 			makeInfo lexArg (name_pathleft, name_pathright)))
 	
 composition:
-	element_list 
+	element_list                                       (* 069 *)
 	(	
 		addImportsAndRestrictions(element_list, Cache.PUBLIC, lexArg);
 		
@@ -996,7 +1040,7 @@ composition:
 			element_list,
 			makeInfo lexArg (element_listleft, element_listright)) ]
 	)
-	| element_list composition_sublist
+	| element_list composition_sublist                 (* 070 *)
 	(	
 		addImportsAndRestrictions(element_list, Cache.PUBLIC, lexArg);
 		Absyn.PUBLIC(
@@ -1005,21 +1049,21 @@ composition:
 	)
 	
 composition_sublist:
-	  PUBLIC element_list composition_sublist 
+	  PUBLIC element_list composition_sublist          (* 071 *)
 	(	
 		addImportsAndRestrictions(element_list, Cache.PUBLIC, lexArg);
 			
 		Absyn.PUBLIC(
 			element_list,
 			makeInfo lexArg (PUBLICleft, element_listright))::composition_sublist )
-	| PROTECTED element_list composition_sublist 
+	| PROTECTED element_list composition_sublist       (* 072 *)
 	( 		
 		addImportsAndRestrictions(element_list, Cache.PROTECTED, lexArg);
 	
 		Absyn.PROTECTED(
 			element_list,
 			makeInfo lexArg (PROTECTEDleft, element_listright))::composition_sublist )
-	| LOCAL PROTECTED element_list composition_sublist 
+	| LOCAL PROTECTED element_list composition_sublist (* 073 *)
 	( 
 		addImportsAndRestrictions(element_list, Cache.PROTECTED, lexArg);
 	
@@ -1027,17 +1071,17 @@ composition_sublist:
 			element_list,
 			makeInfo lexArg (LOCALleft, element_listright))::composition_sublist 
 	)					
-	| algorithm_clause composition_sublist 
+	| algorithm_clause composition_sublist             (* 074 *)
 		( algorithm_clause::composition_sublist  )
-	| equation_clause composition_sublist 
+	| equation_clause composition_sublist              (* 075 *)
 		( equation_clause::composition_sublist )
-	| external_clause SEMICOLON
+	| external_clause SEMICOLON                        (* 076 *)
 		( [external_clause]	)
-	| (* empty *)
+	| (* empty *)                                      (* 077 *)
 		( [] )
 
 external_clause:
-	EXTERNAL external_function_call
+	EXTERNAL external_function_call                    (* 078 *)
 	(
 		Absyn.EXTERNAL(
 			external_function_call, 
@@ -1047,11 +1091,11 @@ external_clause:
 	)
 	
 language_specification:
-	SCON
+	SCON                                               (* 079 *)
 		( SCON )
 
 external_function_call:
-	language_specification 
+	language_specification                             (* 080 *)
 	(  
 		Absyn.EXTERNALDECL(
 			NONE,
@@ -1060,6 +1104,7 @@ external_function_call:
 			[],
 			makeInfo lexArg (language_specificationleft, language_specificationright))
 	)
+	                                                   (* 081 *)
 	| language_specification component_reference EQ ident LPAREN opt_expression_list RPAREN
 	(  
 		Absyn.EXTERNALDECL(
@@ -1071,20 +1116,21 @@ external_function_call:
 	)
 	
 opt_expression_list:
-	expression_list ( expression_list )
-	| (* empty *)
+	expression_list                                    (* 082 *)
+		( expression_list )
+	| (* empty *)                                      (* 083 *)
 		( [] )
 	
 element_list:
-	element SEMICOLON element_list
+	element SEMICOLON element_list                     (* 084 *)
 		( Absyn.ELEMENTITEM(
 				element,
 				makeInfo lexArg (elementleft, SEMICOLONright))::element_list ) 		
-	| (* empty *)
+	| (* empty *)                                      (* 085 *)
 		( [] )
 	
 element:
-	component_clause
+	component_clause                                   (* 086 *)
 		( makeELEMENT(
 			false, 
 			Absyn.UNSPECIFIED,  
@@ -1093,7 +1139,7 @@ element:
 			SOME(component_clause),  
 			NONE, 
 			NONE))
-	| REPLACEABLE class_or_component
+	| REPLACEABLE class_or_component                   (* 087 *)
 		( 
 		  case class_or_component of
 		       (SOME(class_definition), NONE) => 
@@ -1115,7 +1161,7 @@ element:
 					NONE, 
 					NONE)
 		)
-	| import_clause
+	| import_clause                                    (* 088 *)
 	(
 	  Absyn.ELEMENT(
 		false, 
@@ -1128,7 +1174,7 @@ element:
 		makeInfo lexArg (import_clauseleft, import_clauseright),
 		NONE)
 	)
-	| extends_clause
+	| extends_clause                                   (* 089 *)
 	(
 	  Absyn.ELEMENT(
 		false,
@@ -1141,7 +1187,7 @@ element:
 		makeInfo lexArg (extends_clauseleft, extends_clauseright),
 		NONE)
 	)
-	| class_definition
+	| class_definition                                 (* 090 *)
 	( 
 		makeELEMENT(
 			false, 
@@ -1168,40 +1214,40 @@ element:
 	*)
 	
 class_or_component:
-		component_clause 
+		component_clause                               (* 091 *)
 		( (NONE,  SOME(component_clause)) )
-	| class_definition 
+	| class_definition                                 (* 092 *)
 		( (SOME(class_definition), NONE) )
 	
 
 subscript:
-	expression
+	expression                                         (* 093 *)
 	( 
 		Absyn.SUBSCRIPT(
 			expression,
 			makeInfo lexArg (expressionleft, expressionright)) 
 	)
-	| COLON
+	| COLON                                            (* 094 *)
 	( 
 		Absyn.NOSUB(
 			makeInfo lexArg (COLONleft, COLONright)) 
 	)	
 
 array_subscripts:
-	LBRACK subscript RBRACK
+	LBRACK subscript RBRACK                            (* 095 *)
 		( [subscript] )
-	| (* empty *)
+	| (* empty *)                                      (* 096 *)
 		( [] )	
 
 type_specifier_list:
-	  type_specifier
+	  type_specifier                                   (* 097 *)
 		( [type_specifier] )
-	| type_specifier COMMA type_specifier_list
+	| type_specifier COMMA type_specifier_list         (* 098 *)
 		( type_specifier::type_specifier_list )
 
 
 type_specifier:
-	 name_path
+	 name_path                                         (* 099 *)
 	(
 		case name_path of 
 			Absyn.QUALIFIED(_) => 	
@@ -1214,7 +1260,7 @@ type_specifier:
 		Absyn.TPATH(name_path,  
 	                makeInfo lexArg (name_pathleft, name_pathright))
 	)
-   | name_path LT_INT type_specifier_list GT_INT
+   | name_path LT_INT type_specifier_list GT_INT       (* 100 *)
 	( 
 		case name_path of 
 			Absyn.QUALIFIED(_) => 	
@@ -1228,7 +1274,7 @@ type_specifier:
 	                makeInfo lexArg (name_pathleft, GT_INTright))
 	)
    (* MetaModelica arrays *)   
-   | type_specifier LBRACK COLON RBRACK
+   | type_specifier LBRACK COLON RBRACK                (* 101 *)
 	  ( Absyn.TCOMPLEX(
 			Absyn.PATHIDENT(
 				Absyn.IDENT("ARRAY",makeInfo lexArg (type_specifierleft, RBRACKright)),
@@ -1238,20 +1284,20 @@ type_specifier:
 
 	
 component_list:
-	  component_declaration
+	  component_declaration                            (* 102 *)
 		( [ component_declaration] )
-	| component_declaration COMMA component_list
+	| component_declaration COMMA component_list       (* 103 *)
 		( component_declaration::component_list )
 
 component_declaration:
-	declaration comment
+	declaration comment                                (* 104 *)
 		( Absyn.COMPONENTITEM(
 			declaration, 
 			comment,
 			makeInfo lexArg (declarationleft, commentright)))	
 
 declaration:
-	ident opt_modification
+	ident opt_modification                             (* 105 *)
 	( 
 	  Absyn.COMPONENT(
 		ident, 
@@ -1260,24 +1306,24 @@ declaration:
 	)
 		
 modification:
-	class_modification EQ expression
+	class_modification EQ expression                   (* 106 *)
 		( 
 			Absyn.CLASSMOD(
 				class_modification, 
 				SOME(expression),
 				makeInfo lexArg (class_modificationleft, expressionright)) 
 		)
-	| class_modification
+	| class_modification                               (* 107 *)
 		( Absyn.CLASSMOD(
 			class_modification, 
 			NONE,
 			makeInfo lexArg (class_modificationleft, class_modificationright)) )
-	| EQ expression
+	| EQ expression                                    (* 108 *)
 		( Absyn.CLASSMOD(
 			[], 
 			SOME(expression),
 			makeInfo lexArg (EQleft, expressionright)) )
-	| ASSIGN expression
+	| ASSIGN expression                                (* 109 *)
 		( Absyn.CLASSMOD(
 			[], 
 			SOME(expression),
@@ -1285,36 +1331,27 @@ modification:
 	
 
 opt_modification:
-	modification
+	modification                                       (* 110 *)
 		( SOME(modification) )
-	|
+	| (* empty *)                                      (* 111 *)
 		( NONE )
 	
 
 class_modification:
-	LPAREN argument_list RPAREN
+	LPAREN argument_list RPAREN                        (* 112 *)
 		( argument_list )
-	| LPAREN RPAREN
+	| LPAREN RPAREN                                    (* 113 *)
 		( [] )
 	
-
-(*
-opt_class_modification:
-	class_modification
-		( SOME(class_modification) )
-	|
-		( NONE )
-*)	
-
 argument_list:
-	argument COMMA argument_list
+	  argument COMMA argument_list                     (* 114 *)
 		( argument::argument_list )
-	|
-	argument
+	| argument                                         (* 115 *)
 		( [ argument ] )
 	
 
 argument:
+                                                       (* 116 *)
 	optEACH optFINAL component_reference opt_modification opt_string_comment
 	(
 	  Absyn.MODIFICATION(
@@ -1325,6 +1362,7 @@ argument:
 		opt_string_comment,
 		makeInfo lexArg (optEACHleft, opt_string_commentright))
 	)
+	                                                   (* 117 *)
 	| optEACH optFINAL component_reference opt_modification 
 	(
 	  Absyn.MODIFICATION(
@@ -1335,6 +1373,7 @@ argument:
 		NONE,
 		makeInfo lexArg (optEACHleft, opt_modificationright))
 	)	
+	                                                   (* 118 *)
 	| REDECLARE optEACH optFINAL REPLACEABLE class_definition opt_constraining_clause
 	(
 	  Absyn.REDECLARATION(
@@ -1347,6 +1386,7 @@ argument:
 			opt_constraining_clause,
 			makeInfo lexArg (REDECLAREleft, opt_constraining_clauseright))
 	)
+	                                                   (* 119 *)
 	| REDECLARE optEACH optFINAL REPLACEABLE component_clause1 opt_constraining_clause
 	(
 	  Absyn.REDECLARATION(
@@ -1356,7 +1396,7 @@ argument:
 		opt_constraining_clause,
 		makeInfo lexArg (REDECLAREleft, opt_constraining_clauseright))
 	)
-	| REDECLARE optEACH optFINAL class_definition
+	| REDECLARE optEACH optFINAL class_definition      (* 120 *)
 	(
 	  Absyn.REDECLARATION(
 		optFINAL, 
@@ -1368,7 +1408,7 @@ argument:
 		NONE,
 		makeInfo lexArg (REDECLAREleft, class_definitionright))
 	)
-	| REDECLARE optEACH optFINAL component_clause1
+	| REDECLARE optEACH optFINAL component_clause1     (* 121 *)
 	(
 	  Absyn.REDECLARATION(
 		optFINAL, 
@@ -1379,7 +1419,7 @@ argument:
 	)
 		
 equation_clause:
-	EQUATION equation_annotation_list
+	EQUATION equation_annotation_list                  (* 122 *)
 	( 
 		Absyn.EQUATIONS(
 			equation_annotation_list,
@@ -1388,31 +1428,24 @@ equation_clause:
 	
 
 equation_annotation_list:
-	 equation SEMICOLON equation_annotation_list
+	 equation SEMICOLON equation_annotation_list       (* 123 *)
 		( equation::equation_annotation_list )		
-	(*
-	| annotation SEMICOLON equation_annotation_list
-	( 
-		Absyn.EQUATIONITEMANN(
-			annotation,
-			makeInfo lexArg (annotationleft, annotationright))::equation_annotation_list )
-	*)
-	| (* empty *)
+	| (* empty *)                                      (* 124 *)
 		( [] )
 	
 constraining_clause:
-	extends_clause
+	extends_clause                                     (* 125 *)
 		( extends_clause )
 	
 
 opt_constraining_clause:
-	constraining_clause
+	constraining_clause                                (* 126 *)
 		( SOME(constraining_clause) )
-	|
+	| (* empty *)                                      (* 127 *)
 		( NONE )
 	
 extends_clause:
-	EXTENDS name_path class_modification
+	EXTENDS name_path class_modification               (* 128 *)
 	(
 		case name_path of 
 			Absyn.QUALIFIED(_) => 	
@@ -1430,7 +1463,7 @@ extends_clause:
 	
 
 algorithm_clause:
-	ALGORITHM algorithm_annotation_list
+	ALGORITHM algorithm_annotation_list                (* 129 *)
 	( 
 		Absyn.ALGORITHMS(
 			algorithm_annotation_list,
@@ -1438,21 +1471,14 @@ algorithm_clause:
 	)	
 
 algorithm_annotation_list:
-	algorithm SEMICOLON algorithm_annotation_list 
+	algorithm SEMICOLON algorithm_annotation_list      (* 130 *)
 		( algorithm::algorithm_annotation_list )
-	(* 
-	| annotation SEMICOLON algorithm_annotation_list
-	( 
-		Absyn.ALGORITHMITEMANN(
-			annotation,
-			makeInfo lexArg (annotationleft, annotationright))::algorithm_annotation_list ) 
-	*)
-	| (* empty *)
+	| (* empty *)                                      (* 131 *)
 		( [] )
 	
 
 equation:
-	simple_expression eq_equals 
+	simple_expression eq_equals                        (* 132 *)
 	(
 	 case eq_equals of
 		(NONE, comment) =>
@@ -1484,35 +1510,35 @@ equation:
 				makeInfo lexArg (simple_expressionleft, eq_equalsright))
 		)
 	)
-	| conditional_equation_e comment
+	| conditional_equation_e comment                   (* 133 *)
 	( 
 		Absyn.EQUATIONITEM(
 			conditional_equation_e, 
 			comment,
 			makeInfo lexArg (conditional_equation_eleft, conditional_equation_eright))
 	)
-	| for_clause_e comment
+	| for_clause_e comment                             (* 134 *)
 	( 
 		Absyn.EQUATIONITEM(
 			for_clause_e, 
 			comment,
 			makeInfo lexArg (for_clause_eleft, for_clause_eright))
 	)
-	| connect_clause comment
+	| connect_clause comment                           (* 135 *)
 	( 
 		Absyn.EQUATIONITEM(
 			connect_clause, 
 			comment,
 			makeInfo lexArg (connect_clauseleft, connect_clauseright))
 	)
-	| when_clause_e comment 
+	| when_clause_e comment                            (* 136 *)
 	( 
 		Absyn.EQUATIONITEM(
 			when_clause_e, 
 			comment,
 			makeInfo lexArg (when_clause_eleft, when_clause_eright))
 	)
-	| FAILURE LPAREN equation RPAREN comment
+	| FAILURE LPAREN equation RPAREN comment           (* 137 *)
 	(
 		case equation of 
 			Absyn.EQUATIONITEM(equation, _, _) =>
@@ -1522,7 +1548,7 @@ equation:
 					makeInfo lexArg (FAILUREleft, RPARENright))
 			| _ => equation
 	)
-	| EQUALITY LPAREN equation RPAREN comment
+	| EQUALITY LPAREN equation RPAREN comment          (* 138 *)
 	(
 		case equation of 
 			Absyn.EQUATIONITEM(equation, _, _) =>
@@ -1535,15 +1561,15 @@ equation:
 	
 
 eq_equals:
-	EQ expression comment 
+	EQ expression comment                              (* 139 *)
 		( (SOME(expression), comment) )		
-  | comment
+  | comment                                            (* 140 *)
 		( (NONE, comment) )
 
 alg_assign:
-	 ASSIGN expression comment 
+	 ASSIGN expression comment                         (* 141 *)
 		( (SOME(expression), comment) )		
-  | comment
+  | comment                                            (* 142 *)
 		( (NONE, comment) )	
 
 
@@ -1555,7 +1581,7 @@ algorithm:
 	 | component_reference ASSIGN expression comment
      | LPAREN expression_list RPAREN ASSIGN expression comment 
     *)
-	simple_expression alg_assign
+	simple_expression alg_assign                       (* 143 *)
 	(
 	 case (simple_expression, alg_assign) of
 	    (Absyn.CALL(component_reference, function_call, ctxInfo), (NONE, comment)) =>
@@ -1605,35 +1631,35 @@ algorithm:
 					 raise SyntaxErrorParse 
 				    end 
 	)
-	| conditional_equation_a comment 
+	| conditional_equation_a comment                   (* 144 *)
 	( 
 		Absyn.ALGORITHMITEM(
 			conditional_equation_a, 
 			comment,
 			makeInfo lexArg (conditional_equation_aleft, conditional_equation_aright)) 
 	)
-	| for_clause_a comment
+	| for_clause_a comment                             (* 145 *)
 	( 
 		Absyn.ALGORITHMITEM(
 			for_clause_a, 
 			comment,
 			makeInfo lexArg (for_clause_aleft, for_clause_aright)) 
 	)
-	| while_clause comment
+	| while_clause comment                             (* 146 *)
 	( 
 		Absyn.ALGORITHMITEM(
 			while_clause, 
 			comment,
 			makeInfo lexArg (while_clauseleft, while_clauseright)) 
 	)
-	| when_clause_a comment 
+	| when_clause_a comment                            (* 147 *)
 	( 
 		Absyn.ALGORITHMITEM(
 			when_clause_a, 
 			comment,
 			makeInfo lexArg (when_clause_aleft, when_clause_aright)) 
 	)
-	| FAILURE LPAREN algorithm RPAREN comment
+	| FAILURE LPAREN algorithm RPAREN comment          (* 148 *)
 	(
 		case algorithm of 
 			Absyn.ALGORITHMITEM(algorithm, _, _) =>
@@ -1643,7 +1669,7 @@ algorithm:
 					makeInfo lexArg (FAILUREleft, RPARENright))
 			| _ => algorithm
 	)
-	| EQUALITY LPAREN algorithm RPAREN comment
+	| EQUALITY LPAREN algorithm RPAREN comment         (* 149 *)
 	(
 		case algorithm of 
 			Absyn.ALGORITHMITEM(algorithm, _, _) =>
@@ -1655,34 +1681,37 @@ algorithm:
 	)
 
 equation_elseif:
+                                                       (* 150 *)
 	ELSEIF expression THEN equation_list equation_elseif
 		( (expression, equation_list)::equation_elseif )
-	|
+	| (* empty *)                                      (* 151 *)
 		( [] )
 	
 
 algorithm_elseif:
+                                                       (* 152 *)
 	ELSEIF expression THEN algorithm_list algorithm_elseif
 		( (expression, algorithm_list)::algorithm_elseif )
-	|
+	| (* empty *)                                      (* 153 *)
 		( [] )
 	
 
 opt_equation_else:
-	ELSE equation_list
+	ELSE equation_list                                 (* 154 *)
 		( equation_list )
-	|
+	| (* empty *)                                      (* 155 *)
 		( [] )
 	
 
 opt_algorithm_else:
-	ELSE algorithm_list
+	ELSE algorithm_list                                (* 156 *)
 		( algorithm_list )
-	|
+	| (* empty *)                                      (* 157 *)
 		( [] )
 	
 
 conditional_equation_e:
+                                                       (* 158 *)
 	IF expression THEN equation_list equation_elseif opt_equation_else END IF
 	( 
 		Absyn.EQ_IF(
@@ -1695,6 +1724,7 @@ conditional_equation_e:
 	
 
 conditional_equation_a:
+                                                       (* 159 *)
 	IF expression THEN algorithm_list algorithm_elseif opt_algorithm_else END IF
 	( 
 		Absyn.ALG_IF(
@@ -1706,20 +1736,20 @@ conditional_equation_a:
 	)
 	
 for_indices:
-	for_indice COMMA for_indices
+	for_indice COMMA for_indices                       (* 160 *)
 		( for_indice::for_indices )
-	| for_indice
+	| for_indice                                       (* 161 *)
 		( [for_indice] )
 	
 for_indice:
-	ident
+	ident                                              (* 162 *)
 	( 
 		Absyn.FORINDICE(
 			ident, 
 			NONE,
 			makeInfo lexArg (identleft, identright)) 
 	)
-	| ident IN expression
+	| ident IN expression                              (* 163 *)
 	( 
 		Absyn.FORINDICE(
 			ident, 
@@ -1728,7 +1758,7 @@ for_indice:
 	)
 
 for_clause_e:
-	FOR for_indices LOOP equation_list END FOR
+	FOR for_indices LOOP equation_list END FOR         (* 164 *)
 	( 
 		Absyn.EQ_FOR(
 			for_indices, 
@@ -1737,7 +1767,7 @@ for_clause_e:
 	)	
 
 for_clause_a:
-	FOR for_indices LOOP algorithm_list END FOR
+	FOR for_indices LOOP algorithm_list END FOR        (* 165 *)
 	( 
 		Absyn.ALG_FOR(
 			for_indices, 
@@ -1747,7 +1777,7 @@ for_clause_a:
 	
 
 while_clause:
-	WHILE expression LOOP algorithm_list END WHILE
+	WHILE expression LOOP algorithm_list END WHILE     (* 166 *)
 	( 
 		Absyn.ALG_WHILE(
 			expression, 
@@ -1757,6 +1787,7 @@ while_clause:
 	
 
 when_clause_e:
+                                                       (* 167 *)
 	WHEN expression THEN equation_list else_when_e END WHEN
 	( 
 		Absyn.EQ_WHEN_E(
@@ -1768,13 +1799,14 @@ when_clause_e:
 	
 
 else_when_e:
-	ELSEWHEN expression THEN equation_list else_when_e
+	ELSEWHEN expression THEN equation_list else_when_e (* 168 *)
 		( (expression, equation_list)::else_when_e )
-	|
+	| (* empty *)                                      (* 169 *)
 		( [] )
 	
 
 when_clause_a:
+                                                       (* 170 *)
 	WHEN expression THEN algorithm_list else_when_a END WHEN
 	( 
 		Absyn.ALG_WHEN_A(
@@ -1786,27 +1818,28 @@ when_clause_a:
 	
 
 else_when_a:
-	ELSEWHEN expression THEN algorithm_list else_when_a
+	ELSEWHEN expression THEN algorithm_list else_when_a(* 171 *)
 		( (expression, algorithm_list)::else_when_a )
-	|
+	| (* empty *)                                      (* 172 *)
 		( [] )
 	
 
 equation_list:
-	equation SEMICOLON equation_list
+	equation SEMICOLON equation_list                   (* 173 *)
 		( equation::equation_list )
-	|
+	| (* empty *)                                      (* 174 *)
 		( [] )
 	
 
 algorithm_list:
-	algorithm SEMICOLON algorithm_list
+	algorithm SEMICOLON algorithm_list                 (* 175 *)
 		( algorithm::algorithm_list )
-	|
+	| (* empty *)                                      (* 176 *)
 		( [] )
 	
 
 connect_clause:
+                                                       (* 177 *)
 	CONNECT LPAREN component_reference COMMA component_reference RPAREN
 	( 
 		Absyn.EQ_CONNECT(
@@ -1816,21 +1849,23 @@ connect_clause:
 	)
 
 local_element_list:
-	LOCAL element_list
+	LOCAL element_list                                 (* 178 *)
 		(element_list)
-	| (* empty *)
+	| (* empty *)                                      (* 179 *)
 		( [] )
 	
 match:
-	  MATCH         (Absyn.MATCH)
-	| MATCHCONTINUE (Absyn.MATCHCONTINUE)
+	  MATCH                                            (* 180 *)
+		(Absyn.MATCH)
+	| MATCHCONTINUE                                    (* 181 *)
+		(Absyn.MATCHCONTINUE)
 	
 match_expression:
   match expression opt_string_comment 
 	local_element_list 
 	case_list
 	case_else 
-  END match 
+  END match                                            (* 182 *)
   ( 
 	Absyn.MATCHexp(
 				match1,
@@ -1842,25 +1877,26 @@ match_expression:
   )
 
 case_list:
-	 case_stmt case_list 
+	 case_stmt case_list                               (* 183 *)
 		( case_stmt::case_list )
-	| case_stmt	
+	| case_stmt	                                       (* 184 *)
 		( [case_stmt] )
 
 equation_clause_case:
-	EQUATION equation_annotation_list
+	EQUATION equation_annotation_list                  (* 185 *)
 	( 
 		Absyn.EQUATIONS(
 			equation_annotation_list,
 			makeInfo lexArg (EQUATIONleft, equation_annotation_listright)) 
 	)
-	| (* empty *)
+	| (* empty *)                                      (* 186 *)
 	( Absyn.EQUATIONS(
 			[],
 			makeInfo lexArg (defaultPos, defaultPos))  
 	)
 
 case_stmt:
+                                                       (* 187 *)
 	 CASE seq_pat opt_string_comment local_element_list equation_clause_case THEN expression SEMICOLON 
 	( 
 		Absyn.CASE(
@@ -1873,8 +1909,9 @@ case_stmt:
 	)
 	
 case_else:
-  (* empty *)
+  (* empty *)                                          (* 188 *)
   ( [] )  
+                                                       (* 189 *)
 | ELSE opt_string_comment local_element_list equation_clause_case THEN expression SEMICOLON
   ( 
 	[Absyn.ELSE( 
@@ -1887,28 +1924,29 @@ case_else:
 
 
 expression:
-      ident AS expression
+      ident AS expression                              (* 190 *)
 		(
 		  Absyn.MBINDexp(
 			ident, 
 			expression, 
 			makeInfo lexArg(identleft, expressionright))
 		)
-	|   LPAREN ident AS expression RPAREN
+	|   LPAREN ident AS expression RPAREN              (* 191 *)
 		(
 		  Absyn.MBINDexp(
 			ident, 
 			expression, 
 			makeInfo lexArg(identleft, expressionright))
 		)
-    | if_expression
+    | if_expression                                    (* 192 *)
 		( if_expression )
-	| simple_expression
+	| simple_expression                                (* 193 *)
 		( simple_expression )
-	| match_expression
+	| match_expression                                 (* 194 *)
 		( match_expression )
 
 if_expression:
+                                                       (* 195 *)
 	IF expression THEN expression elseif_expression_list ELSE expression
 	( 
 		Absyn.IFEXP(
@@ -1920,16 +1958,17 @@ if_expression:
 	)
 
 elseif_expression_list:
+                                                       (* 196 *)
 	ELSEIF expression THEN expression elseif_expression_list
 		( (expression, expression)::elseif_expression_list )
-	|
+	| (* empty *)                                      (* 197 *)
 		( [] )
 	
 
 simple_expression:
-	logical_expression
+	logical_expression                                 (* 198 *)
 		( logical_expression )
-	| logical_expression COLONCOLON simple_expression
+	| logical_expression COLONCOLON simple_expression  (* 199 *)
 	( 
 		Absyn.MSTRUCTexp(
 			SOME(
@@ -1947,7 +1986,7 @@ simple_expression:
 					makeInfo lexArg (logical_expressionleft, simple_expressionright)),
 			makeInfo lexArg (logical_expressionleft, simple_expressionright)) 
 	)
-	| logical_expression COLON logical_expression
+	| logical_expression COLON logical_expression      (* 200 *)
 	( 
 		Absyn.RANGE(
 			logical_expression1, 
@@ -1955,6 +1994,7 @@ simple_expression:
 			logical_expression2,
 			makeInfo lexArg (logical_expression1left, logical_expression2right))
 	)
+	                                                   (* 201 *)
 	| logical_expression COLON logical_expression COLON logical_expression
 	( 
 		Absyn.RANGE(
@@ -1965,9 +2005,9 @@ simple_expression:
 	)
 
 logical_expression:
-	  logical_term
+	  logical_term                                     (* 202 *)
 		( logical_term )
-	| logical_term OR logical_expression
+	| logical_term OR logical_expression               (* 203 *)
 	( 
 		Absyn.LBINARY(
 			logical_term, 
@@ -1978,9 +2018,9 @@ logical_expression:
 	
 
 logical_term:
-	logical_factor
+	logical_factor                                     (* 204 *)
 		( logical_factor )
-	| logical_factor AND logical_term
+	| logical_factor AND logical_term                  (* 205 *)
 	( 
 		Absyn.LBINARY(
 			logical_factor, 
@@ -1990,9 +2030,9 @@ logical_term:
 	)
 	
 logical_factor:
-	relation
+	relation                                           (* 206 *)
 		( relation )
-	| NOT relation %prec UNARY
+	| NOT relation %prec UNARY                         (* 207 *)
 	( 
 		Absyn.LUNARY(
 			Absyn.NOT(makeInfo lexArg (NOTleft, NOTright)), 
@@ -2002,8 +2042,9 @@ logical_factor:
 	
 
 relation:
-	arithmetic_expression 
+	arithmetic_expression                              (* 208 *)
 		( arithmetic_expression )
+		                                               (* 209 *)
 	| arithmetic_expression rel_op arithmetic_expression
 	( 
 		Absyn.RELATION(
@@ -2012,6 +2053,7 @@ relation:
 			arithmetic_expression2,
 			makeInfo lexArg (arithmetic_expression1left, arithmetic_expression2right)) 
 	)
+	                                                   (* 210 *)
 	| LPAREN arithmetic_expression rel_op arithmetic_expression RPAREN
 	( 
 		Absyn.RELATION(
@@ -2024,67 +2066,119 @@ relation:
 	
 rel_op:
 (* integer operators *)
-	LT_INT		( Absyn.LESS      (makeInfo lexArg (LT_INTleft, LT_INTright)) )
-|	LE_INT		( Absyn.LESSEQ    (makeInfo lexArg (LE_INTleft, LE_INTright)) )
-|	GT_INT		( Absyn.GREATER   (makeInfo lexArg (GT_INTleft, GT_INTright)) )
-|	GE_INT  	( Absyn.GREATEREQ (makeInfo lexArg (GE_INTleft, GE_INTright)) )
-|	EQEQ_INT	( Absyn.EQUAL     (makeInfo lexArg (EQEQ_INTleft, EQEQ_INTright)) )
-|	NE_INT		( Absyn.NEQUAL    (makeInfo lexArg (NE_INTleft, NE_INTright)) )
+	LT_INT		                                       (* 211 *)
+		( Absyn.LESS      (makeInfo lexArg (LT_INTleft, LT_INTright)) )
+|	LE_INT		                                       (* 212 *)
+		( Absyn.LESSEQ    (makeInfo lexArg (LE_INTleft, LE_INTright)) )
+|	GT_INT		                                       (* 213 *)
+		( Absyn.GREATER   (makeInfo lexArg (GT_INTleft, GT_INTright)) )
+|	GE_INT  	                                       (* 214 *)
+		( Absyn.GREATEREQ (makeInfo lexArg (GE_INTleft, GE_INTright)) )
+|	EQEQ_INT	                                       (* 215 *)
+		( Absyn.EQUAL     (makeInfo lexArg (EQEQ_INTleft, EQEQ_INTright)) )
+|	NE_INT		                                       (* 216 *)
+		( Absyn.NEQUAL    (makeInfo lexArg (NE_INTleft, NE_INTright)) )
 (* real operators *)
-|	LT_REAL		( Absyn.LESS_REAL      (makeInfo lexArg (LT_REALleft, LT_REALright)) )
-|	LE_REAL		( Absyn.LESSEQ_REAL    (makeInfo lexArg (LE_REALleft, LE_REALright)) )
-|	GT_REAL		( Absyn.GREATER_REAL   (makeInfo lexArg (GT_REALleft, GT_REALright)) )
-|	GE_REAL  	( Absyn.GREATEREQ_REAL (makeInfo lexArg (GE_REALleft, GE_REALright)) )
-|	EQEQ_REAL	( Absyn.EQUAL_REAL     (makeInfo lexArg (EQEQ_REALleft, EQEQ_REALright)) )
-|	NE_REAL		( Absyn.NEQUAL_REAL    (makeInfo lexArg (NE_REALleft, NE_REALright)) )
+|	LT_REAL		                                       (* 217 *)
+		( Absyn.LESS_REAL      (makeInfo lexArg (LT_REALleft, LT_REALright)) )
+|	LE_REAL		                                       (* 218 *)
+		( Absyn.LESSEQ_REAL    (makeInfo lexArg (LE_REALleft, LE_REALright)) )
+|	GT_REAL		                                       (* 219 *)
+		( Absyn.GREATER_REAL   (makeInfo lexArg (GT_REALleft, GT_REALright)) )
+|	GE_REAL  	                                       (* 220 *)
+		( Absyn.GREATEREQ_REAL (makeInfo lexArg (GE_REALleft, GE_REALright)) )
+|	EQEQ_REAL	                                       (* 221 *)
+		( Absyn.EQUAL_REAL     (makeInfo lexArg (EQEQ_REALleft, EQEQ_REALright)) )
+|	NE_REAL		                                       (* 222 *)
+		( Absyn.NEQUAL_REAL    (makeInfo lexArg (NE_REALleft, NE_REALright)) )
 (* string operators *)
-|   EQEQ_STRING ( Absyn.EQEQ_STRING    (makeInfo lexArg (EQEQ_STRINGleft, EQEQ_STRINGright)) )
+|   EQEQ_STRING                                        (* 223 *)
+		( Absyn.EQEQ_STRING    (makeInfo lexArg (EQEQ_STRINGleft, EQEQ_STRINGright)) )
 
 addsub_op:
-	ADD_INT    ( Absyn.ADD(makeInfo lexArg (ADD_INTleft, ADD_INTright)) )
-|	ADD_REAL   ( Absyn.ADD_REAL(makeInfo lexArg (ADD_REALleft, ADD_REALright)) )
-|	SUB_INT    ( Absyn.SUB(makeInfo lexArg (SUB_INTleft, SUB_INTright)) )
-|	SUB_REAL   ( Absyn.SUB_REAL(makeInfo lexArg (SUB_REALleft, SUB_REALright)) )
-|	ADD_STRING ( Absyn.ADD_STRING(makeInfo lexArg (ADD_STRINGleft, ADD_STRINGright)) )
-|	ADD_LIST   ( Absyn.ADD_LIST(makeInfo lexArg (ADD_LISTleft, ADD_LISTright)) )
+	ADD_INT                                            (* 224 *)
+		( Absyn.ADD(makeInfo lexArg (ADD_INTleft, ADD_INTright)) )
+|	ADD_REAL                                           (* 225 *)
+		( Absyn.ADD_REAL(makeInfo lexArg (ADD_REALleft, ADD_REALright)) )
+|	SUB_INT                                            (* 226 *)
+		( Absyn.SUB(makeInfo lexArg (SUB_INTleft, SUB_INTright)) )
+|	SUB_REAL                                           (* 227 *)
+		( Absyn.SUB_REAL(makeInfo lexArg (SUB_REALleft, SUB_REALright)) )
+|	ADD_STRING                                         (* 228 *)
+		( Absyn.ADD_STRING(makeInfo lexArg (ADD_STRINGleft, ADD_STRINGright)) )
+|	ADD_LIST                                           (* 229 *)
+		( Absyn.ADD_LIST(makeInfo lexArg (ADD_LISTleft, ADD_LISTright)) )
+
+arithmetic_expression2:
+		term addsub_op arithmetic_expression2 (* 230 *)
+		( 
+			Absyn.BINARY(
+				term, 
+				addsub_op, 
+				arithmetic_expression2,
+				makeInfo lexArg (termleft, arithmetic_expression2right))
+		 )
+	|   term
+		( term ) 
 
 arithmetic_expression:
-	unary_arithmetic_expression
-	 ( unary_arithmetic_expression )
-	| unary_arithmetic_expression addsub_op arithmetic_expression
+	                                                   (* 232 *)
+	unary_arithmetic_expression 
+		( unary_arithmetic_expression ) 
+	| unary_arithmetic_expression addsub_op arithmetic_expression2
 	( 
-		Absyn.BINARY(
-			unary_arithmetic_expression, 
-			addsub_op, 
-			arithmetic_expression,
-			makeInfo lexArg (unary_arithmetic_expressionleft, arithmetic_expressionright)) 
+			Absyn.BINARY(
+				unary_arithmetic_expression, 
+				addsub_op, 
+				arithmetic_expression2,
+				makeInfo lexArg (unary_arithmetic_expressionleft, arithmetic_expression2right))
 	)	
 
 unary_arithmetic_expression:
-	term ( term )
-	| ADD_INT term %prec UNARY 
+	  term                                             (* 233 *)
+		( term )
+	| ADD_INT term %prec UNARY                         (* 234 *)
 	( 
+		case term of
+			Absyn.INTEGER(_) => term
+		|	Absyn.REAL(_) => term
+		|	_ => 
 		Absyn.UNARY(
 			Absyn.UPLUS(makeInfo lexArg (ADD_INTleft, ADD_INTright)), 
 			term,
 			makeInfo lexArg (ADD_INTleft, termright))
 	)
-	| ADD_REAL term %prec UNARY 
+	| ADD_REAL term %prec UNARY                        (* 235 *)
 	( 
+		case term of
+			Absyn.REAL(_) => term
+		|	_ => 	
 		Absyn.UNARY(
 			Absyn.UPLUS_REAL(makeInfo lexArg (ADD_REALleft, ADD_REALright)), 
 			term,
 			makeInfo lexArg (ADD_REALleft, termright))
 	)	
-	| SUB_INT term %prec UNARY
+	| SUB_INT term %prec UNARY                         (* 236 *)
 	( 
+		case term of
+			Absyn.INTEGER(unsigned, info) => 
+				Absyn.INTEGER(~unsigned, info)
+		|	Absyn.REAL(unsigned, info) => 
+				Absyn.REAL(~unsigned, info)
+		|	_ => 	
 		Absyn.UNARY(
 			Absyn.UMINUS(makeInfo lexArg (SUB_INTleft, SUB_INTright)), 
 			term,
 			makeInfo lexArg (SUB_INTleft, termright))
 	)
-	| SUB_REAL term %prec UNARY
+	| SUB_REAL term %prec UNARY                        (* 237 *)
 	( 
+		case term of
+			Absyn.INTEGER(unsigned, info) => 
+				Absyn.INTEGER(~unsigned, info)
+		|	Absyn.REAL(unsigned, info) => 
+				Absyn.REAL(~unsigned, info)
+		|	_ => 	
 		Absyn.UNARY(
 			Absyn.UMINUS_REAL(makeInfo lexArg (SUB_REALleft, SUB_REALright)), 
 			term,
@@ -2092,15 +2186,20 @@ unary_arithmetic_expression:
 	)
 
 muldiv_op:
-	STAR     ( Absyn.MUL      (makeInfo lexArg (STARleft, STARright)) ) 
-|   MUL_REAL ( Absyn.MUL_REAL (makeInfo lexArg (MUL_REALleft, MUL_REALright)) )
-|	DIV_INT  ( Absyn.DIV      (makeInfo lexArg (DIV_INTleft, DIV_INTright)) ) 
-|   DIV_REAL ( Absyn.DIV_REAL (makeInfo lexArg (DIV_REALleft, DIV_REALright)) )
+	STAR                                               (* 238 *)     
+		( Absyn.MUL      (makeInfo lexArg (STARleft, STARright)) ) 
+|   MUL_REAL                                           (* 239 *)
+		( Absyn.MUL_REAL (makeInfo lexArg (MUL_REALleft, MUL_REALright)) )
+|	DIV_INT                                            (* 240 *)
+		( Absyn.DIV      (makeInfo lexArg (DIV_INTleft, DIV_INTright)) ) 
+|   DIV_REAL                                           (* 241 *)
+		( Absyn.DIV_REAL (makeInfo lexArg (DIV_REALleft, DIV_REALright)) )
 
 	
 term:
-	factor ( factor )
-	| factor muldiv_op term 
+	factor                                             (* 242 *)
+		( factor )
+	| factor muldiv_op term                            (* 243 *)
 	( 
 		Absyn.BINARY(
 			factor, 
@@ -2110,11 +2209,13 @@ term:
 	)	
 
 pow_op:
-	POW_REAL (Absyn.POW_REAL (makeInfo lexArg (POW_REALleft, POW_REALright)))
+	POW_REAL                                           (* 244 *)
+		(Absyn.POW_REAL (makeInfo lexArg (POW_REALleft, POW_REALright)))
 
 factor:
-	primary ( primary )
-	| primary pow_op primary 
+	primary                                            (* 245 *)
+		( primary )
+	| primary pow_op primary                           (* 246 *)
 	( 
 		Absyn.BINARY(
 			primary1, 
@@ -2124,14 +2225,14 @@ factor:
 	)
 	
 expression_matrix_list:
-	expression_list SEMICOLON expression_matrix_list
+	expression_list SEMICOLON expression_matrix_list   (* 247 *)
 		( expression_list::expression_matrix_list )
-	| expression_list
+	| expression_list                                  (* 248 *)
 		( [ expression_list ] )
 	
 
 expression_matrix:
-	expression_matrix_list
+	expression_matrix_list                             (* 249 *)
 	( 
 		Absyn.MATRIX(
 			expression_matrix_list,
@@ -2139,49 +2240,41 @@ expression_matrix:
 	)
 	
 primary:
-	(* 	Not used in MetaModelica
-	CCON 
-	( 
-		Absyn.CHAR(
-			CCON,
-			makeInfo lexArg (CCONleft, CCONright)) 
-	)
-	| 
-	*)
-	ICON 
+	ICON                                               (* 250 *)
 	( 
 		Absyn.INTEGER(
 			ICON,
 			makeInfo lexArg (ICONleft, ICONright)) 
 	)
-	| RCON 
+	| RCON                                             (* 251 *)
 	( 
 		Absyn.REAL(
 			RCON,
 			makeInfo lexArg (RCONleft, RCONright)) 
 	)
-	| SCON 
+	| SCON                                             (* 252 *)
 	( 
 		Absyn.STRING(
 			SCON,
 			makeInfo lexArg (SCONleft, SCONright))
 	)
-	| FALSE 
+	| FALSE                                            (* 253 *)
 	( 
 		Absyn.BOOL(
 			false,
 			makeInfo lexArg (FALSEleft, FALSEright)) 
 	)
-	| TRUE 
+	| TRUE                                             (* 254 *)
 	( 
 		Absyn.BOOL(
 			true,
 			makeInfo lexArg (TRUEleft, TRUEright))
 	)
-	| WILD
+	| WILD                                             (* 255 *)
 	(
 		( Absyn.MWILDexp(makeInfo lexArg (WILDleft, WILDright)) )
 	)
+	                                                   (* 256 *)
 	| component_reference LPAREN function_arguments RPAREN	
 	( 
 		Absyn.CALL(
@@ -2189,34 +2282,20 @@ primary:
 			function_arguments,
 			makeInfo lexArg (component_referenceleft, RPARENright)) 
 	)
-	(*	
-	| LIST LPAREN function_arguments RPAREN	
-	( 
-		Absyn.CALL(
-			Absyn.CREF_IDENT(
-				Absyn.IDENT(
-					"list", 
-					makeInfo lexArg (LISTleft, LISTright)), 
-				[],
-				makeInfo lexArg (LISTleft, LISTright)), 
-				function_arguments,
-			makeInfo lexArg (LISTleft, RPARENright)) 
-	)
-	*)	
 	(* lists *)
-	| LIST LPAREN function_arguments RPAREN	
+	| LIST LPAREN function_arguments RPAREN	           (* 257 *)
 	( 
 		Absyn.ARRAY(
 			function_arguments,
 			makeInfo lexArg (LISTleft, RPARENright)) 
 	)	
-	| LBRACE function_arguments RBRACE 
+	| LBRACE function_arguments RBRACE                 (* 258 *)
 	( 
 		Absyn.ARRAY(
 			function_arguments,
 			makeInfo lexArg (LBRACEleft, RBRACEright)) 
 	)
-	| LBRACE RBRACE 
+	| LBRACE RBRACE                                    (* 259 *)
 	( 
 		Absyn.ARRAY(
 			Absyn.FUNCTIONARGS(
@@ -2224,7 +2303,7 @@ primary:
 				makeInfo lexArg (LBRACEleft, RBRACEright)),
 				makeInfo lexArg (LBRACEleft, RBRACEright)) 
 	)		
-	| FAIL LPAREN RPAREN	
+	| FAIL LPAREN RPAREN	                           (* 260 *)
 	( 
 		Absyn.CALL(
 			Absyn.CREF_IDENT(
@@ -2238,14 +2317,14 @@ primary:
 				makeInfo lexArg (LPARENleft, RPARENright)),
 			makeInfo lexArg (FAILleft, RPARENright)) 
 	)	
-	| LPAREN RPAREN	
+	| LPAREN RPAREN	                                   (* 261 *)
 	( 
 		Absyn.MSTRUCTexp(
 			NONE,   
 			Absyn.FUNCTIONARGS([], makeInfo lexArg (LPARENleft, RPARENright)), 				
 			makeInfo lexArg (LPARENleft, RPARENright)) 
 	)		
-	| component_reference LPAREN RPAREN	
+	| component_reference LPAREN RPAREN	               (* 262 *)
 	( 
 		Absyn.CALL(
 			component_reference, 
@@ -2254,7 +2333,7 @@ primary:
 				makeInfo lexArg (LPARENleft, RPARENright)),
 			makeInfo lexArg (component_referenceleft, RPARENright)) 
 	)		
-	| component_reference 
+	| component_reference                              (* 263 *)
 	( 
 	case component_reference of 
 		Absyn.CREF_IDENT(ident, arrdim, info) =>
@@ -2320,7 +2399,7 @@ primary:
 			makeInfo lexArg (component_referenceleft, component_referenceright)) 
 
 	)
-	| LPAREN function_arguments RPAREN 
+	| LPAREN function_arguments RPAREN                 (* 264 *)
 	( 
 		case function_arguments of
 			Absyn.FUNCTIONARGS([Absyn.NAMEDARG(NONE, exp as Absyn.MSTRUCTexp(_), info)], infoFargs) 
@@ -2329,53 +2408,36 @@ primary:
 						function_arguments,
 						makeInfo lexArg (LPARENleft, RPARENright)) 
 	)
-	| LBRACK expression_matrix RBRACK ( expression_matrix )
-	(*
-	| LBRACE function_arguments RBRACE 
-	(  
-		Absyn.CALL(
-			Absyn.CREF_IDENT(
-				Absyn.IDENT(
-					"array",
-					makeInfo lexArg (LBRACEleft, RBRACEright)), 
-				[],
-				makeInfo lexArg (LBRACEleft, RBRACEright)), 
-			function_arguments,
-			makeInfo lexArg (LBRACEleft, RBRACEright)) 
-	)
-	*)
+	| LBRACK expression_matrix RBRACK                  (* 265 *)
+		( expression_matrix )
 	
 dot_name_path:
-	  DOT name_path
+	  DOT name_path                                    (* 266 *)
 		( SOME(name_path) )
-	| (* Empty *)
+	| (* empty *)                                      (* 267 *)
 		(NONE)
 
 name_path:
-	IDENT dot_name_path 
+	ident dot_name_path                                (* 268 *)
 	(
 		case dot_name_path of
 		SOME(name_path) =>
 			Absyn.QUALIFIED(
-				Absyn.IDENT(
-					IDENT, 
-					makeInfo lexArg (IDENTleft, IDENTright) ), 
+				ident,
 				name_path,
-				makeInfo lexArg (IDENTleft, dot_name_pathright))
+				makeInfo lexArg (identleft, dot_name_pathright))
 	   | NONE =>	
 			Absyn.PATHIDENT(		
-				Absyn.IDENT(
-					IDENT, 
-					makeInfo lexArg (IDENTleft, IDENTright)),
-				makeInfo lexArg (IDENTleft, IDENTright)) 
+				ident,
+				makeInfo lexArg (identleft, identright)) 
 	)
-	| TUPLE 
+	| TUPLE                                            (* 269 *)
 	( Absyn.PATHIDENT(		
 		Absyn.IDENT(
 			"TUPLE", 
 			makeInfo lexArg (TUPLEleft, TUPLEright)),
 		 makeInfo lexArg (TUPLEleft, TUPLEright)) )
-	| LIST 
+	| LIST                                             (* 270 *)
 	( Absyn.PATHIDENT(		
 		Absyn.IDENT(
 			"LIST", 
@@ -2383,14 +2445,14 @@ name_path:
 		 makeInfo lexArg (LISTleft, LISTright)) )
 
 component_reference:
-	  ident 
-	(
-			Absyn.CREF_IDENT(
-				ident, 
-				[],
-				makeInfo lexArg (identleft, identright))
+	  ident array_subscripts                           (* 271 *)
+	( 
+		Absyn.CREF_IDENT(
+			ident, 
+			array_subscripts,
+			makeInfo lexArg (identleft, array_subscriptsright)) 
 	)
-	| ident DOT component_reference
+	| ident DOT component_reference                    (* 272 *)
 	( 
 		let val cref = 		  
 		Absyn.CREF_QUAL(
@@ -2407,136 +2469,78 @@ component_reference:
 				cref 
 			end
 	)
-	| ident array_subscripts
-	( 
-		Absyn.CREF_IDENT(
-			ident, 
-			array_subscripts,
-			makeInfo lexArg (identleft, array_subscriptsright)) 
-	)
-
-(*
-function_call:
-	LPAREN function_arguments RPAREN
-		( function_arguments )
-*)	
 
 function_arguments:
-	(*
-	  expression_list FOR for_indices
-		( Absyn.FOR_ITER_FARG(
-			expression_list, 
-			for_indices,
-			makeInfo lexArg (expression_listleft, for_indicesright)) )
-	|
-	*)
-	named_arguments
+	named_arguments                                    (* 273 *)
 		( Absyn.FUNCTIONARGS(
 			named_arguments,
 			makeInfo lexArg (named_argumentsleft, named_argumentsright)) )		
 
 named_arguments:
-	named_argument COMMA named_arguments
+	named_argument COMMA named_arguments               (* 274 *)
 		( named_argument::named_arguments )
-	| named_argument
+	| named_argument                                   (* 275 *)
 		( [ named_argument] )
 
 named_argument:
-	(*
-	LPAREN ident AS expression RPAREN
-		( Absyn.NAMEDARG(
-			SOME(ident), 
-			expression,
-			makeInfo lexArg (identleft, expressionright)))
-	|
-	*) 
-	  ident EQ expression
+	  ident EQ expression                              (* 276 *)
 		( Absyn.NAMEDARG(
 			SOME(ident), 
 			expression,
 			makeInfo lexArg (identleft, expressionright)))			
-	| expression
+	| expression                                       (* 277 *)
 		( Absyn.NAMEDARG(
 			NONE, 
 			expression,
 			makeInfo lexArg (expressionleft, expressionright)))
 
 expression_list:
-	expression 
+	expression                                         (* 278 *)
 		( [expression] )
-	| expression_list COMMA expression
+	| expression_list COMMA expression                 (* 279 *)
 		( expression_list @ [expression])
 	
 comment:
-	string_comment annotation
+	string_comment annotation                          (* 280 *)
 		( SOME(
 			Absyn.COMMENT(
 				SOME(annotation), 
 				SOME(string_comment),
 				makeInfo lexArg (string_commentleft, annotationright))))
-	| string_comment 
+	| string_comment                                   (* 281 *)
 		( SOME(
 			Absyn.COMMENT(
 				NONE, 
 				SOME(string_comment),
 				makeInfo lexArg (string_commentleft, string_commentright))))			
-	| annotation 
+	| annotation                                       (* 282 *)
 		( SOME(
 			Absyn.COMMENT(
 				SOME(annotation), 
 				NONE,
 				makeInfo lexArg (annotationleft, annotationright))))			
-	| (* EMPTY *) 
+	| (* empty *)                                      (* 283 *)
 		( NONE )			
 
 string_comment_add:
-	ADD_INT string_comment
+	ADD_INT string_comment                             (* 284 *)
 		( string_comment )
 		
 string_comment:
-	SCON
+	SCON                                               (* 285 *)
 		( SCON )
-	| SCON string_comment_add
+	| SCON string_comment_add                          (* 286 *)
 		( SCON^string_comment_add )
 
 opt_string_comment:
-	string_comment
+	string_comment                                     (* 287 *)
 		( SOME(string_comment) )
-	| (* Empty *)
+	| (* empty *)                                      (* 288 *)
 		( NONE )
 		    
 annotation:
-	ANNOTATION class_modification
+	ANNOTATION class_modification                      (* 289 *)
 		( Absyn.ANNOTATION(
 			class_modification,
 			makeInfo lexArg (ANNOTATIONleft, class_modificationright)) )
-	
-	
-(* saved
-case class_type of
-	Absyn.R_RECORD(_)   =>
-		LexArg.addRestriction(
-			lexArg, Absyn.identName ident,
-			Cache.REC,
-			!(LexArg.currVisibility lexArg)					
-			)
-|	Absyn.R_FUNCTION(_) =>
-		 LexArg.addRestriction(
-			lexArg, Absyn.identName ident,
-			Cache.FUN,
-			!(LexArg.currVisibility lexArg))
-|	_ => ();
-*)
-(*
-  LexArg.addImport(
-	lexArg, 
-	(Absyn.getLastPathAsString name_path)^".mo",
-	name_pathleft, DOTSTARright, !(LexArg.currVisibility lexArg));
-*)
-(*		  
-  LexArg.addImport 
-	(lexArg, 
-	 (Absyn.getLastPathAsString name_path)^".mo", 
-	 name_pathleft, name_pathright, !(LexArg.currVisibility lexArg));
-*)
 			
