@@ -1,6 +1,6 @@
 package Parse
 
-public import pam.*;
+public import Pam;
 
 public function parse
   output Pam.Stmt outStmt;

@@ -69,6 +69,7 @@ type VarBnd = tuple<Ident,Value> "Bindings and environments";
 public 
 type Env = list<VarBnd>;
 
+/*
 protected function lookup
   input Env inEnv;
   input Ident inIdent;
@@ -90,6 +91,21 @@ algorithm
         value = lookup(rest, id); then value;
   end matchcontinue;
 end lookup;
+*/
+
+function lookup
+  input Env inEnv;
+  input Ident inIdent;
+  output Value outInteger;
+algorithm
+ outInteger:=
+  matchcontinue (inEnv,inIdent)
+    local  Ident id2,id;  Value value;  Env rest;
+    case ( (id2,value) :: rest, id)
+      then  if id ==& id2 then value else lookup(rest,id);
+  end matchcontinue;
+end lookup;
+
 
 protected function lookupextend
   input Env inEnv;

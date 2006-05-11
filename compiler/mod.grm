@@ -1921,6 +1921,17 @@ case_else:
 		opt_string_comment,
 		makeInfo lexArg (ELSEleft, SEMICOLONright))] 
   )
+| ELSE expression SEMICOLON
+  ( 
+	[Absyn.ELSE( 
+		[], 
+	    Absyn.EQUATIONS(
+			[],
+			makeInfo lexArg (ELSEleft, expressionright)), 
+		expression,
+		NONE,
+		makeInfo lexArg (ELSEleft, SEMICOLONright))] 
+  )
 
 
 expression:

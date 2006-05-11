@@ -1,7 +1,10 @@
 module Main:
+  with "hash.rml"
   datatype tmp   =  V of real list array
                  |  Vec of real list array * real list array  
   relation main: string list => ()
+
+  type intHash = (int, string) Hash.hash
 end
  
 (* our AST *)
@@ -47,25 +50,54 @@ end
 
 relation main: string list => () =
 
-   rule let x = [1,2,3,4,5] &
-        list_get(x, 2) => z &
-        debug_print("list_nth([1,2,3,4,5], 2)", z) &
-        list_delete(x, 2) => newX &
-        debug_print("list_delete([1,2,3,4,5], 2)", newX) &      
-        print arg &
-        print "\n" &
-	let str1="1.1e-005" &
-	real_string(1.1e-005) => str &
-  	print str1 & 
-	print " -> " & 
-	print str & print "\n"
-        (* 
-        string_list_string_char(arg) => clst &
-        listDelete(clst, 0) => clst_1  &
-        string_char_list_string(clst_1) => str_1 & print "\n" &
-        print str_1
-        *)       
+(*
+   rule int_div(4, 3) => res1 &
+        int_div(-4,3) => res2 &
+        int_string(res1) => s1 &
+        int_string(res2) => s2 &
+        print "\ndiv(4,3)=" & print s1 &
+        print "\ndiv(-4,3)=" & print s2 &
+        print "\n"
         ---------------------------------------
-        main (arg::argv)
+        main (_)
+*)
+
+   rule let v = 1 & 
+        let v1 = v &
+        let v = 2 &
+        let v2 = v & 
+        let v = 3 &
+        v = 3 &
+        int_add(v, 1) => v &
+        let x = 2 &
+        int_mod(7, 5) => res1 &
+        int_mod(13,5) => res2 &
+        int_mod(10,5) => res3 &
+        int_mod(-7,5) => res4 &
+        int_mod(7,-5) => res5 &
+        real_mod(2.0,0.9) => res6 &
+        real_mod(-2.0,0.9) => res7 &
+        real_mod(2.0,-0.9) => res8 &
+        int_string(res1) => s1 &
+        int_string(res2) => s2 &
+        int_string(res3) => s3 &
+        int_string(res4) => s4 &
+        int_string(res5) => s5 &
+        real_string(res6) => s6 &
+        real_string(res7) => s7 &
+        real_string(res8) => s8 &
+        print "\nmod(7,5)=" & print s1 &
+        print "\nmod(13,5)=" & print s2 &
+        print "\nmod(10,5)=" & print s3 &
+        print "\nmod(-7,5)=" & print s4 &
+        print "\nmod(7,-5)=" & print s5 &
+        print "\nmod(2,0.9)=" & print s6 &
+        print "\nmod(-2,0.9)=" & print s7 &
+        print "\nmod(2,-0.9)=" & print s8 &
+        print "\n"
+        ---------------------------------------
+        main (_)
+
+
 
 end

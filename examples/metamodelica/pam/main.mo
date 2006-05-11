@@ -1,8 +1,7 @@
 package Main
 
-protected import Parse.*;
-
-protected import Pam.*;
+protected import Parse;
+protected import Pam;
 
 public function main "Parse and translate a PAM program into MCode,
   then emit it as textual assembly code.

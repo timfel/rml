@@ -4,7 +4,7 @@ GOROOT=../../..
 LDLIBS=-lfl
 CLEAN=main main.exe $(CALCOBJS) Main.c Main.h *~ *.rdb *.fol *.ast *.cps *.exe *.stackdump 
 #uncomment this to have debugging
-#RMLCFLAGS=-g -Wr,-East
+RMLCFLAGS=-Wr,-East
 
 # EVERYTHING
 all:	main

@@ -1493,26 +1493,21 @@ functor StatElabFn(structure Util : UTIL
 						(Ty.unify(tLocal, tau)) 
 						handle exn =>
 						(
-						case exn of Ty.TypeError explain => 
-						(   
-							sayIdError(
-								"the declared variable type does not match the use context: ", 
-								Absyn.identName var,
-								Absyn.identCtxInfo var );
-							sayErr("It's declared "); 
-							sayTyErrExplain(explain); sayErr("\n");
-							raise StaticElaborationError
-							(* 
-							sayTyErr(explain,"variable usage:", 
-								(Absyn.identName var)^" It's "^explain^" expected!" 
-								Absyn.identCtxInfo var)
-							*)
-						)
-						|	StaticElaborationError => (raise StaticElaborationError) (* already explained *)
+						case exn of 
+							Ty.TypeError explain => 
+							(   
+								sayIdError(
+									"the declared variable type does not match the use context: ", 
+									Absyn.identName var,
+									Absyn.identCtxInfo var );
+								sayErr("It's declared "); 
+								sayTyErrExplain(explain); sayErr("\n")
+							)
+						|	StaticElaborationError => () (* already explained *)
 						|	_ => 
-							(strayExnBug(exn, Absyn.identName var, ctxInfo); 
-							 raise StaticElaborationError)
-						)						
+							strayExnBug(exn, Absyn.identName var, ctxInfo);
+						raise StaticElaborationError
+						)
 						)
 					|	_ => ()
 				end

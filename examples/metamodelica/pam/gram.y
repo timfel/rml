@@ -4,6 +4,7 @@
 #include "rml.h"
 #include "Pam.h"
 
+void yyerror(char *str);
 typedef void *rml_t;
 #define YYSTYPE rml_t
 extern rml_t absyntree;

@@ -10,7 +10,7 @@ struct
 		Main.main argz handle 
 			exn => 
 				print ("\nException raised during compilation :" ^ 
-				exnMessage exn; OS.Process.exit OS.Process.success)
+				exnMessage exn; OS.Process.exit OS.Process.failure)
     end
 end
 

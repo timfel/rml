@@ -14,11 +14,11 @@ functor StartFn(structure SysDep  : SYSDEP) : START =
 	  print "\n---- Timing report end   ----\n"; 
 	  *)
       SysDep.handleInterrupt(main, argv);	  
-      OS.Process.success
+      OS.Process.exit OS.Process.success
       )
       handle 
-			SysDep.Interrupt => (sayErr "Interrupt\n"; OS.Process.failure)
+			SysDep.Interrupt => (sayErr "Interrupt\n"; OS.Process.exit OS.Process.failure)
 	   |	exn => (sayErr "Error: "; sayErr(General.exnMessage exn);
-		     sayErr "\n"; OS.Process.failure)
+		     sayErr "\n"; OS.Process.exit OS.Process.failure)
   end (* functor StartFn *)
 

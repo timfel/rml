@@ -2442,7 +2442,9 @@ functor MOToRMLFn(
 				_,
 				infoElse)::nil, elems, infoMatch) =
 		let val (goal, result, info) = buildGoal(equations, exp, infoElse)
+			(*
 			val _ = print("Case locals:"^L(localdecls)^" at "^(getStringLoc(infoElse))^"\n")
+			*)
 			val localMatchVars = getLocalVars(elems, false)
 			val localCaseVars = getLocalVars(localdecls, false)
 		in 

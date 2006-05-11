@@ -122,7 +122,7 @@ end Value;
 public 
 type State = Env;
 
-protected import Input.*;
+protected import Input;
 
 protected function repeatEval "Auxiliary utility functions"
   input State inState;
@@ -228,10 +228,10 @@ algorithm
   outInteger:=
   matchcontinue (inBinOp1,inInteger2,inInteger3)
     local Integer x,y;
-    case (ADD(),x,y) then x + y;  "Apply a binary arithmetic operator to constant integer arguments x+y"
-    case (SUB(),x,y) then x - y;  "x-y"
-    case (MUL(),x,y) then x*y;  "xy"
-    case (DIV(),x,y) then x/y;  "x/y"
+    case (ADD(),x,y) then x + y;  /* Apply a binary arithmetic operator to constant integer arguments x+y*/
+    case (SUB(),x,y) then x - y;  /* x-y */
+    case (MUL(),x,y) then x*y;    /* xy */
+    case (DIV(),x,y) then x/y;    /* x/y */
   end matchcontinue;
 end applyBinop;
 
@@ -244,12 +244,12 @@ algorithm
   outBoolean:=
   matchcontinue (inRelOp1,inInteger2,inInteger3)
     local Integer x,y;
-    case (LT(),x,y) then (x < y);  "Apply a function operator, returning a boolean value x<y"
-    case (LE(),x,y) then (x <= y);  "x<=y"
-    case (EQ(),x,y) then (x == y);  "x=y"
-    case (NE(),x,y) then (x <> y);  "x<>y"
-    case (GE(),x,y) then (x >= y);  "x>=y"
-    case (GT(),x,y) then (x > y);  "x>y"
+    case (LT(),x,y) then (x < y);  /*Apply a function operator, returning a boolean value x<y*/
+    case (LE(),x,y) then (x <= y);  /* x<=y */
+    case (EQ(),x,y) then (x == y);  /* x=y */
+    case (NE(),x,y) then (x <> y);  /* x<>y */
+    case (GE(),x,y) then (x >= y);  /* x>=y */
+    case (GT(),x,y) then (x > y);  /* x>y */
   end matchcontinue;
 end applyRelop;
 
@@ -267,7 +267,7 @@ algorithm
       Exp e1,e2;
       BinOp binop;
       RelOp relop;
-    case (_,INT(integer = v)) then INTval(v);  "integer constant"
+    case (_,INT(integer = v)) then INTval(v);   /* integer constant */
     case (env,IDENT(ident = id)) "identifier id"
       local Value v;
       equation 
@@ -324,13 +324,13 @@ algorithm
       equation 
         INTval(integer = n1) = eval(env, e1);
         state2 = repeatEval(state, n1, s1); then state2;
-    case (state,READ(read = {})) then state;  "READ {}"
+    case (state,READ(read = {})) then state;  /* READ {} */
     case (env,READ(read = id :: rest)) "READ id1,.."
       equation 
         v2 = inputItem();
         env2 = update(env, id, INTval(v2));
         state2 = evalStmt(env2, READ(rest)); then state2;
-    case (state,WRITE(write = {})) then state;  "WRITE {}"
+    case (state,WRITE(write = {})) then state;  /* WRITE {} */
     case (env,WRITE(write = id :: rest)) "WRITE id1,."
       equation 
         INTval(integer = v2) = lookup(env, id);
@@ -340,7 +340,7 @@ algorithm
       equation 
         state2 = evalStmt(state, stmt1);
         state3 = evalStmt(state2, stmt2); then state3;
-    case (state,SKIP()) then state;  "; empty statement"
+    case (state,SKIP()) then state;  /* ; empty statement */
   end matchcontinue;
 end evalStmt;
 end Pam;

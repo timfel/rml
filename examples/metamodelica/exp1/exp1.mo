@@ -42,7 +42,7 @@ algorithm
     local
       Integer ival,v1,v2;
       Exp e1,e2,e;
-    case (INTconst(integer = ival)) then ival;  "eval of an integer node is the integer itself"
+    case (INTconst(integer = ival)) "eval of an integer node is the integer itself" then ival;
     case (ADDop(exp1 = e1,exp2 = e2)) "Evaluation of an addition node PLUSop is v3, if v3 is the result of
     adding the evaluated results of its children e1 and e2 
     Subtraction, multiplication, division operators have similar specs.
