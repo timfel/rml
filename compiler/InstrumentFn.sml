@@ -264,6 +264,12 @@ functor InstrumentFn(structure Absyn : ABSYN
 					
     fun printPats(foo, direction) = printVars(getExpsFromPatStar foo, direction)
     	
+    fun getAllResultExps(Absyn.RETURN(exps, _)) = ( exps )
+      | getAllResultExps(Absyn.FAIL (_)) = 
+			[Absyn.LITexp(
+				Absyn.SCONlit("fail", Absyn.dummyInfo),
+				Absyn.dummyInfo)]
+				
     fun getResultExps(Absyn.RETURN(exps, _)) = ( getExpsFromExpStar exps )
       | getResultExps(Absyn.FAIL (_)) = 
 			[Absyn.LITexp(
@@ -563,7 +569,7 @@ functor InstrumentFn(structure Absyn : ABSYN
 							 stringIdent^
 							 print_parens_comma(pat_star, getPatAsString)^
 							 Control.selectCompilerMessage(" => "," then ")^
-							 print_parens_comma(getResultExps result, getExpAsString)), 
+							 print_parens_comma(getAllResultExps result, getExpAsString)), 
 						[],
 						ref [],
 						Absyn.dummyInfo),
@@ -576,7 +582,7 @@ functor InstrumentFn(structure Absyn : ABSYN
 							 stringIdent^
 							 print_parens_comma(pat_star, getPatAsString)^
 							 Control.selectCompilerMessage(" => "," then ")^
-							 print_parens_comma(resultExps, getExpAsString)), 
+							 print_parens_comma(getAllResultExps result, getExpAsString)), 
 						[],
 						ref [], 
 						Absyn.dummyInfo),
@@ -594,7 +600,7 @@ functor InstrumentFn(structure Absyn : ABSYN
 							 stringIdent^
 							 print_parens_comma(pat_star, getPatAsString)^
 							 Control.selectCompilerMessage(" => "," then ")^
-							 print_parens_comma(getResultExps result, getExpAsString)), 
+							 print_parens_comma(getAllResultExps result, getExpAsString)), 
 						[],
 						ref [], 
 						Absyn.dummyInfo),
@@ -607,7 +613,7 @@ functor InstrumentFn(structure Absyn : ABSYN
 							 stringIdent^
 							 print_parens_comma(pat_star, getPatAsString)^
 							 Control.selectCompilerMessage(" => "," then ")^
-							 print_parens_comma(resultExps, getExpAsString)), 
+							 print_parens_comma(getAllResultExps result, getExpAsString)), 
 						[],
 						ref [], 
 						Absyn.dummyInfo)
