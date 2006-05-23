@@ -1,6 +1,13 @@
-RML SYSTEM RELEASE HISTORY
-==========================
+RML-MMC SYSTEM RELEASE HISTORY
+==============================
 Adrian Pop, adrpo@ida.liu.se, http://www.ida.liu.se/~adrpo
+
+Source Release 2.3.6 2006-05-23
+------------------------------------------------------
+- rml-mmc compiler process exits with failure on error
+- svn co svn://mir20.ida.liu.se/rml/tags/2.3.6
+
+
 
 Source Release 2.3.4 2006-03-08
 -----------------------------------------------------------------
