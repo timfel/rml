@@ -283,8 +283,8 @@ functor TransEnvFn(structure Util : UTIL
 	  val te = extern(te, "stringSetNthStringChar") (* string index string char => new str *)	  
 	  val te = extern(te, "stringUpdate")
 	  val te = extern(te, "stringUpdateStringChar") (* string index string char => new str *)
-	  val te = extern(te, "string_equal")
-	  val te = extern(te, "string_compare")	  	  
+	  val te = extern(te, "stringEqual")
+	  val te = extern(te, "stringCompare")	  	  
 	  	  	  
 	  (* immutable vectors *)
 	  val te = extern(te, "vectorLength")
