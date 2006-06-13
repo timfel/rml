@@ -27,6 +27,7 @@ unsigned long rml_prim_clock(void)
 #include <sys/times.h>
 #include <limits.h>
 #include <time.h>	/* for glibc2 */
+#include <unistd.h> /* for sysconf */
 extern clock_t times(struct tms*);
 
 unsigned long rml_prim_clock(void)
@@ -35,7 +36,11 @@ unsigned long rml_prim_clock(void)
     double scale;
 
     (void)times(&tms);
+#ifdef CLK_TCK
     scale = (double)RML_CLOCKS_PER_SEC / (double)CLK_TCK;
+#else /* use new sysconf(_SC_CLK_TCK) */
+    scale = (double)RML_CLOCKS_PER_SEC / (double)sysconf(_SC_CLK_TCK);
+#endif
     return (unsigned long)((double)(tms.tms_utime + tms.tms_stime) * scale);
 }
 #endif
