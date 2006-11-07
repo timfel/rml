@@ -2616,8 +2616,7 @@ functor MOToRMLFn(
 				constructClauses(ident, rest, infoAlgItems)
 			)					
 		)
-
-	
+		
 	(* 
 	this function splits elements into:
 	input, output, type, functype, replaceable types,
@@ -2740,29 +2739,23 @@ functor MOToRMLFn(
 			output Path component;
 			Path component;  
 			*)
-			(
+			let 
+				fun createTypeFromComponents(_, []) = []
+				|	createTypeFromComponents(0, Absyn.COMPONENTITEM(Absyn.COMPONENT(ident, _, _), _, _)::rest) =
+					OUTTy(getType(path), ident, transformAttr(attr, visibility))::createTypeFromComponents(0, rest)
+				|   createTypeFromComponents(1, Absyn.COMPONENTITEM(Absyn.COMPONENT(ident, _, _), _, _)::rest) = 
+					INTy(getType(path), ident, transformAttr(attr, visibility))::createTypeFromComponents(1, rest)
+			in
 				case direction of
 					Absyn.INPUT(infoInput)  => 
-					(
-					case components of 
-						[Absyn.COMPONENTITEM(Absyn.COMPONENT(ident, _, _), _, _)]
-						=> INTy(getType(path), ident, transformAttr(attr, visibility))::
-						   splitElements(f_ident, rest, visibility) 
-					| _ => errorAtFunction(info, "only one component must appear in input declarations", "splitElements")
-					)
+						createTypeFromComponents(1, components) @ splitElements(f_ident, rest, visibility) 
 				|	Absyn.OUTPUT(infoInput) => 
-					(
-					case components of 
-						[Absyn.COMPONENTITEM(Absyn.COMPONENT(ident, _, _), _, _)] 
-						=> OUTTy(getType(path), ident, transformAttr(attr, visibility))::
-						   splitElements(f_ident, rest, visibility)
-					| _ => errorAtFunction(info, "only one component must appear in output declarations", "splitElements")
-					)
+						createTypeFromComponents(0, components) @ splitElements(f_ident, rest, visibility)
 				(* other components we don't care about it now! *)
 				|   Absyn.BIDIR(infoBidir) => (* TODO! COLLECT THESE! *)
 						makeVarList(components, attr, path, visibility, SOME(f_ident)) @ 
 						splitElements(f_ident, rest, visibility)
-			)
+			end
 		| _ => splitElements(f_ident, rest, visibility)
 		)
 		
