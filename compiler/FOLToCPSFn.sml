@@ -224,7 +224,7 @@ functor FOLToCPSFn(structure Util : UTIL
     datatype GCont = GC of tenv -> CPS.trivexp -> CPS.exp
     fun app_gc (GC gc) tenv t_fc = gc tenv t_fc
 
-    fun C conj menv tenv t_fc gc =
+    fun C conj menv tenv t_fc gc id =
       case conj
 	of FOL.CALL(q, exps, vars)	=>
 	    eval_star exps menv tenv
@@ -236,7 +236,7 @@ functor FOLToCPSFn(structure Util : UTIL
 					      tenv
 					      (ListPair.zip(vars, vars'))
 		       val lam_sc = CPS.newLam(CPS.SClk{v_tvs=vars'},
-						app_gc gc tenv' t_fc)
+						app_gc gc tenv' t_fc, id)
 		   in
 		     CPS.mkLETe(v_sc, lam_sc,
 		     CPS.mkAppPVe{pv=Q q menv tenv, args=t_star, fc=t_fc, sc=t_sc})
@@ -247,7 +247,7 @@ functor FOLToCPSFn(structure Util : UTIL
 		val (pats,tenv) = trans_pats menv tenv (map #2 mrules)
 	    in
 	      PMC.pmc(vars, [(pats, app_gc gc tenv)], t_fc,
-		      !Control.warnNonExhaustive)
+		      !Control.warnNonExhaustive, !Control.printDFAStatistics, id)
 	    end
 	 | FOL.EQUAL(var, exp)		=>
 	    eval exp menv tenv
@@ -275,17 +275,17 @@ functor FOLToCPSFn(structure Util : UTIL
 		and lam_fc' =
 		  CPS.newLam(CPS.FClk,
 			      CPS.mkRESTOREe(CPS.mkVARte v_tp,
-					     app_gc gc tenv t_fc))
+					     app_gc gc tenv t_fc), id)
 	    in
 	      CPS.mkPRIMe(v_tp, CPS.MARKERp,
-	      CPS.mkLETe(v_fc', lam_fc',
-	      C conj menv tenv (CPS.mkVARte v_fc') gc'))
+			CPS.mkLETe(v_fc', lam_fc',
+			C conj menv tenv (CPS.mkVARte v_fc') gc' id)) 
 	    end
 	 | FOL.AND(conj1, conj2)	=>
 	    C conj1 menv tenv t_fc
-	      (GC(fn tenv' => fn t_fc' => C conj2 menv tenv' t_fc' gc))
+	      (GC(fn tenv' => fn t_fc' => C conj2 menv tenv' t_fc' gc id)) id
 
-    fun D disj menv tenv t_fc t_sc =
+    fun D disj menv tenv t_fc t_sc id =
       case disj
 	of FOL.RETURN(exps)		=>
 	    eval_star exps menv tenv
@@ -296,26 +296,26 @@ functor FOLToCPSFn(structure Util : UTIL
 		and v_fc' = CPS.newVar()
 		val lam_fc' = CPS.newLam(CPS.FClk,
 					  CPS.mkRESTOREe(CPS.mkVARte v_tp,
-					  D disj2 menv tenv t_fc t_sc))
+					  D disj2 menv tenv t_fc t_sc id), id)
 	    in
 	      CPS.mkPRIMe(v_tp, CPS.MARKERp,
 	      CPS.mkLETe(v_fc', lam_fc',
-	      D disj1 menv tenv (CPS.mkVARte v_fc') t_sc))
+	      D disj1 menv tenv (CPS.mkVARte v_fc') t_sc id))
 	    end
 	 | FOL.ANDTHEN(conj1, disj2)	=>
 	    C conj1 menv tenv t_fc
-	      (GC(fn tenv' => fn t_fc' => D disj2 menv tenv' t_fc' t_sc))
+	      (GC(fn tenv' => fn t_fc' => D disj2 menv tenv' t_fc' t_sc id)) id
 	 | FOL.COND(conj1, disj2, disj3)=>
 	    let val v_tp = CPS.newVar()
 		and v_fc' = CPS.newVar()
 		val lam_fc' = CPS.newLam(CPS.FClk,
 					  CPS.mkRESTOREe(CPS.mkVARte v_tp,
-					  D disj3 menv tenv t_fc t_sc))
+					  D disj3 menv tenv t_fc t_sc id), id)
 	    in
 	      CPS.mkPRIMe(v_tp, CPS.MARKERp,
 	      CPS.mkLETe(v_fc', lam_fc',
 	      C conj1 menv tenv (CPS.mkVARte v_fc')
-		(GC(fn tenv' => fn _ => D disj2 menv tenv' t_fc t_sc))))
+		(GC(fn tenv' => fn _ => D disj2 menv tenv' t_fc t_sc id)) id))
 	    end
 	 | FOL.CASE(vars, cases)	=>
 	    let val vars = map (fn var => get_var(lookupVar(tenv, var_name var)))
@@ -323,11 +323,11 @@ functor FOLToCPSFn(structure Util : UTIL
 		val mrules = map (fn(pats,disj) =>
 				    let val (pats,tenv) = trans_pats menv tenv pats
 				    in
-				      (pats, fn t_fc' => D disj menv tenv t_fc' t_sc)
+				      (pats, fn t_fc' => D disj menv tenv t_fc' t_sc id)
 				    end)
 				 cases
 	    in
-	      PMC.pmc(vars, mrules, t_fc, !Control.warnNonExhaustive)
+	      PMC.pmc(vars, mrules, t_fc, !Control.warnNonExhaustive, !Control.printDFAStatistics, id)
 	    end
 
     (* determine representation stategy for a list of conbinds *)
@@ -458,7 +458,7 @@ functor FOLToCPSFn(structure Util : UTIL
 		      let val tenv' = List.foldl (fn((var,var'),tenv) => bind_var(tenv,var,CPS.mkVARte var'))
 						 (!final_tenv)
 						 (ListPair.zip(formals,v_star))
-			  val body = D disj menv tenv' t_fc t_sc
+			  val body = D disj menv tenv' t_fc t_sc id
 		      in
 			rBody := CPS.getExp body
 		      end

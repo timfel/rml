@@ -42,13 +42,15 @@ functor CPSFn(structure Util : UTIL
 					uses	: int ref,
 					fvars	: var list ref,
 					bvars	: var list,
-					body	: exp	}
+					body	: exp,
+					partOf	: string }
 
     and trivexp'	= VARte of var
 			| LAMte of {	tag	: int,
 					fvars	: var list ref,
 					kind	: lamkind,
-					body	: exp	}
+					body	: exp,
+					partOf	: string	}
 			| QUOTEte of literal
 
     and trivexp		= TE of trivexp' ref
@@ -120,11 +122,11 @@ functor CPSFn(structure Util : UTIL
     fun newVar() =
       VAR{tag=Util.tick(), uses=ref 0, subst=ref NONE}
 
-    fun newLam(kind, body) =
-      TE(ref(LAMte{tag=Util.tick(), fvars=ref[], kind=kind, body=body}))
+    fun newLam(kind, body, partOf) =
+      TE(ref(LAMte{tag=Util.tick(), fvars=ref[], kind=kind, body=body, partOf=partOf}))
 
-    fun newLab(bvars, body) =
-      LAB{tag=Util.tick(), uses=ref 0, fvars=ref [], bvars=bvars, body=body}
+    fun newLab(bvars, body, partOf) =
+      LAB{tag=Util.tick(), uses=ref 0, fvars=ref [], bvars=bvars, body=body, partOf=partOf}
 
     fun mkVARte(v) = TE(ref(VARte v))
     fun mkQUOTEte(lit) = TE(ref(QUOTEte lit))

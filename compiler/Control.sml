@@ -50,7 +50,8 @@ structure Control: CONTROL =
     val allowImplicitLet = ref false
 
     (* options for FOLToCPS *)
-    val warnNonExhaustive = ref false
+    val warnNonExhaustive  = ref false
+    val printDFAStatistics = ref false   
 
     (* options for CodeToC *)
     val switchRewriteThreshold = ref 3

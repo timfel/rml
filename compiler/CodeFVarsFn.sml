@@ -37,7 +37,7 @@ functor CodeFVarsFn(structure Util : UTIL
 	    | scan(Code.TAGPTR(v)) = scan v
 	    | scan(Code.CALL(_,vs)) = List.app scan vs
       in
-	scan
+	   scan
       end
 
     fun bind(Code.GLOvar _, stack)	= stack

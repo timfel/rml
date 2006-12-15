@@ -46,6 +46,7 @@ signature CONTROL =
 
     (* options for FOLToCPS *)
     val warnNonExhaustive: bool ref
+    val printDFAStatistics: bool ref    
 
     (* options for CodeToC *)
     val switchRewriteThreshold: int ref

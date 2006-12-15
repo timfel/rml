@@ -20,6 +20,9 @@ functor PMCFn(structure Util : UTIL
       | WILDpat
       | BINDpat of CPS.var * pat
 
+
+   fun pmc(roots, mrules, fail, warnNonExhaustive, printDFAStatistics, id) =
+   let 
     (*
      * Utilities
      *)
@@ -51,7 +54,7 @@ functor PMCFn(structure Util : UTIL
 	    | insert(x, ys as (y::ys')) =
 		if lt(x,y) then x::ys else y::insert(x,ys')
       in
-	List.foldl insert [] xs
+		List.foldl insert [] xs
       end
 
     fun push(x, rxs) = rxs := x :: !rxs
@@ -124,7 +127,7 @@ functor PMCFn(structure Util : UTIL
       val dummyBody = CPS.mkAppFCe(CPS.mkQUOTEte(CPS.CONSTlit(CPS.STRINGcon "PMC BUG!")))
     in
       fun newState(defn, fvs) =
-	let val q = STATE{label=ref(CPS.newLab([],dummyBody)),
+	let val q = STATE{label=ref(CPS.newLab([], dummyBody, id)),
 			  fvs=fvs, uses=ref 0, defn=defn}
 	    val _ = push(q, allStates)
 	in
@@ -142,7 +145,7 @@ functor PMCFn(structure Util : UTIL
 	    | stateNumArcs(CASEq(_,arcs,default)) =
 		length arcs + defaultNumArcs default
 	  fun count([], nstates, narcs, nshared) =
-	       (print "(*dfa statistics: nstates="; print(Int.toString nstates);
+	       (print ("(*dfa statistics for: "^id^" -> nstates="); print(Int.toString nstates);
 		print " (nshared="; print(Int.toString nshared);
 		print "), narcs="; print(Int.toString narcs); print "*)\n")
 	    | count((STATE{uses,defn,...})::states, nstates, narcs, nshared) =
@@ -279,8 +282,9 @@ functor PMCFn(structure Util : UTIL
       | cnvDefn t_fc (ORELSEq(q1,q2)) =
 	  let val var = CPS.newVar()
 	  in
-	    CPS.mkLETe(var, CPS.newLam(CPS.FClk, cnvState t_fc q2),
-		       cnvState (CPS.mkVARte var) q1)
+	    CPS.mkLETe(
+			var, CPS.newLam(CPS.FClk, cnvState t_fc q2, id), 
+			cnvState (CPS.mkVARte var) q1)
 	  end
       | cnvDefn t_fc (FETCHq(occ,bnds,body)) =
 	  let val node = occTE occ
@@ -311,7 +315,7 @@ functor PMCFn(structure Util : UTIL
 	    let val v_fc = CPS.newVar()
 		val trail = map mktrail fvs
 		val vars = map mungeOcc fvs
-		val lab = CPS.newLab(v_fc::vars, cnvDefn (CPS.mkVARte v_fc) defn)
+		val lab = CPS.newLab(v_fc::vars, cnvDefn (CPS.mkVARte v_fc) defn, id)
 		val _ = List.app (op :=) trail
 		val _ = label := lab
 	    in
@@ -561,17 +565,18 @@ functor PMCFn(structure Util : UTIL
       if !uses = 0 then ()
       else (if warn then sayErr "warning: match not exhaustive\n" else (); uses := 1)
 
-    fun pmc(roots, mrules, fail, warnNonExhaustive) =
+  in
       let val _ = allStates := []
 	  val qfail = mkFAIL fail
 	  val (columns,finals) = preProcessMatchRules(roots, mrules)
 	  val q0 = match(columns, finals, qfail)
       in
 		stateIncRef q0;
-		(* dfaStatistics(); *)
+		if (printDFAStatistics) then dfaStatistics() else ();
 		checkIrredundancy finals;
 		checkExhaustiveness(warnNonExhaustive, qfail);
 		dfaToExp fail q0 (!allStates)
       end
+  end
 
   end (* functor PMCFn *)

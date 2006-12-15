@@ -176,6 +176,7 @@ functor MainFn(
        sayErr "-f{no-}debug\n  generate debugging code\n";
        sayErr "-f{no-}qualified-rdb\n  do {not} dump the qualified program database representation to file.rdb; default to 'no'\n";
        sayErr "-f{no-}rdb-only\n  just dump the program database to file.rdb; also -fqualified-rdb and -ftypecheck-only are activated; default to 'no'\n";
+       sayErr "-f{no-}dfa-statistics\n  print the pattern-match generated DFA statistics; default to 'no'\n";
        sayErr "-W{no-}non-exhaustive\n  warn of non-exhaustive pattern matching; default to 'no'\n";
        sayErr "-fdump-interface\n  dump the interface to the standard output\n";
        sayErr "-fdump-depends\n  dump the dependencies to the standard output\n";
@@ -255,6 +256,8 @@ functor MainFn(
 	 | "-fno-rdb-only" => ()	 
 	 | "-Wnon-exhaustive"    => Control.warnNonExhaustive := true
 	 | "-Wno-non-exhaustive" => Control.warnNonExhaustive := false
+	 | "-fdfa-statistics"    => Control.printDFAStatistics := true
+	 | "-fno-dfa-statistics" => Control.printDFAStatistics := false	 
 	 | "-ffix-java-names" => 
 		(
 		  Control.fixJavaNames := true;

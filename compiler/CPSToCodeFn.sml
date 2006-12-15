@@ -63,10 +63,11 @@ functor CPSToCodeFn(structure MakeString : MAKESTRING
 
     (* generate names for non-qualified labels in the current module
      * local names must never collide with global ones; we handle this by
-     * mangling in a dash instead of a dot in the name (see trans_longid)
+     * mangling in a "." instead in the name (see trans_longid). 
+     * we guarantee that label name used here is unique!
      *)
     val code_modname = ref ""
-    fun mkShortLabel name = Code.mklab(!code_modname ^ "-" ^ name)
+    fun mkShortLabel name = Code.mklab(!code_modname ^ "." ^ name)
 
     (* manage the set of literals to be constructed for the current module *)
 
@@ -168,7 +169,7 @@ functor CPSToCodeFn(structure MakeString : MAKESTRING
 				 Code.FETCH(Code.OFFSET(Code.VAR varPtr, off)),
 				 code))
       in
-	loop(fvars, off, code)
+		loop(fvars, off, code)
       end
 
     (* pop the activation record and bind sp *)
@@ -205,8 +206,8 @@ functor CPSToCodeFn(structure MakeString : MAKESTRING
     fun lk2formals(CPS.FClk) = []
       | lk2formals(CPS.SClk{v_tvs,...}) = v_tvs
 
-    fun lk2name(CPS.FClk) = "fclam"
-      | lk2name(CPS.SClk _) = "sclam"
+    fun lk2name(CPS.FClk,   partOf) = partOf^"_fclam"
+      | lk2name(CPS.SClk _, partOf) = partOf^"_sclam"
 
     (* compute the heap allocation needs of an expression *)
 
@@ -284,8 +285,8 @@ functor CPSToCodeFn(structure MakeString : MAKESTRING
       case te'
 	of CPS.VARte(var)	=> cont(Code.VAR(trans_var var), offSP)
 	 | CPS.QUOTEte(lit)	=> cont(Code.LITERAL(trans_lit lit), offSP)
-	 | CPS.LAMte{tag,fvars,kind,body}	=>
-	      let val lab = mkShortLabel((lk2name kind) ^ (MakeString.icvt tag))
+	 | CPS.LAMte{tag,fvars,kind,body,partOf}	=>
+	      let val lab = mkShortLabel((lk2name(kind,partOf)) ^ (MakeString.icvt tag))
 		  and nfvars = length (!fvars)
 		  and formals = lk2formals kind
 		  and varHP = new_lvar()
@@ -388,11 +389,11 @@ functor CPSToCodeFn(structure MakeString : MAKESTRING
 		  Code.mkBIND(SOME Code.intraSP, mkOFFSET(valSP, offSP),
 		  Code.mkGOTO(Code.VALUEg val_pv', List.length val_args'))))))
 		  )))
-	 | CPS.LetLABe(CPS.LAB{tag, fvars, bvars, body, ...}, exp)	=>
+	 | CPS.LetLABe(CPS.LAB{tag, fvars, bvars, body,partOf,...}, exp)	=>
 	    let val varHP = new_lvar()
 		and varSP = trans_var(CPS.newVar())
 		and formals = !fvars @ bvars
-		and lab = mkShortLabel("lab"^(MakeString.icvt tag))
+		and lab = mkShortLabel(partOf^"_lab"^(MakeString.icvt tag))
 	    in
 	      push_labdef(false, lab, varHP, size_exp body, length formals,
 			  Code.mkBIND(SOME varSP, Code.VAR Code.intraSP,
@@ -402,9 +403,9 @@ functor CPSToCodeFn(structure MakeString : MAKESTRING
 				    Code.VAR(Code.LOCvar varHP), 0))));
 	      trans_exp(exp, valSP, offSP, valHP, offHP)
 	    end
-	 | CPS.AppLABe(CPS.LAB{tag, fvars, ...}, t_star)		=>
+	 | CPS.AppLABe(CPS.LAB{tag, fvars, partOf, ...}, t_star)		=>
 	    let val t_star = (map CPS.mkVARte (!fvars)) @ t_star
-		and lab = mkShortLabel("lab"^(MakeString.icvt tag))
+		and lab = mkShortLabel(partOf^"_lab"^(MakeString.icvt tag))
 	    in
 	      trans_args(t_star, valSP, offSP, fn(val_args', offSP) =>
 	      bind_args(Code.intraArgs, val_args',

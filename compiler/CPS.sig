@@ -40,13 +40,15 @@ signature CPS =
 					uses	: int ref,
 					fvars	: var list ref,
 					bvars	: var list,
-					body	: exp	}
+					body	: exp,
+					partOf	: string	}
 
     and trivexp'	= VARte of var
 			| LAMte of {	tag	: int,
 					fvars	: var list ref,
 					kind	: lamkind,
-					body	: exp	}
+					body	: exp,
+					partOf	: string	}
 			| QUOTEte of literal
 
     and trivexp		= TE of trivexp' ref
@@ -90,8 +92,8 @@ signature CPS =
 
     val newDef		: {name:longid, args:var list, fc:var, sc:var, body:exp} -> def
     val newVar		: unit -> var
-    val newLam		: lamkind * exp -> trivexp
-    val newLab		: var list * exp -> label
+    val newLam		: lamkind * exp * string -> trivexp
+    val newLab		: var list * exp * string -> label
 
     val mkVARte		: var -> trivexp
     val mkQUOTEte	: literal -> trivexp

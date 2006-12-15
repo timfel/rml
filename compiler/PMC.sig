@@ -15,7 +15,9 @@ signature PMC =
     val pmc		: (  CPS.var list
 			   * (pat list * (CPS.trivexp -> CPS.exp)) list
 			   * CPS.trivexp
-			   * bool)
+			   * bool
+			   * bool
+			   * string)
 			  -> CPS.exp
 
   end (* signature PMC *)
