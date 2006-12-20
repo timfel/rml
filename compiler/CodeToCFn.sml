@@ -23,6 +23,7 @@ functor CodeToCFn(structure MakeString : MAKESTRING
       | prVar os (Code.LOCvar lvar) = prLVar os lvar
 
     fun prLabel os (Code.LABEL(Code.Mangle.NAME str)) = output(os, str)
+    fun prLabelUnmangled os (Code.LABEL(Code.Mangle.NAME str)) = output(os, Code.Mangle.decode str)    
 
     fun mangle name =
       let val (Code.Mangle.NAME name) = Code.Mangle.encode name

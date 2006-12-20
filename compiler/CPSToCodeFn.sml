@@ -206,8 +206,8 @@ functor CPSToCodeFn(structure MakeString : MAKESTRING
     fun lk2formals(CPS.FClk) = []
       | lk2formals(CPS.SClk{v_tvs,...}) = v_tvs
 
-    fun lk2name(CPS.FClk,   partOf) = partOf^"_fclam"
-      | lk2name(CPS.SClk _, partOf) = partOf^"_sclam"
+    fun lk2name(CPS.FClk,   partOf) = partOf^"_failureContLam"
+      | lk2name(CPS.SClk _, partOf) = partOf^"_successContLam"
 
     (* compute the heap allocation needs of an expression *)
 
@@ -393,7 +393,7 @@ functor CPSToCodeFn(structure MakeString : MAKESTRING
 	    let val varHP = new_lvar()
 		and varSP = trans_var(CPS.newVar())
 		and formals = !fvars @ bvars
-		and lab = mkShortLabel(partOf^"_lab"^(MakeString.icvt tag))
+		and lab = mkShortLabel(partOf^"_label"^(MakeString.icvt tag))
 	    in
 	      push_labdef(false, lab, varHP, size_exp body, length formals,
 			  Code.mkBIND(SOME varSP, Code.VAR Code.intraSP,
@@ -405,7 +405,7 @@ functor CPSToCodeFn(structure MakeString : MAKESTRING
 	    end
 	 | CPS.AppLABe(CPS.LAB{tag, fvars, partOf, ...}, t_star)		=>
 	    let val t_star = (map CPS.mkVARte (!fvars)) @ t_star
-		and lab = mkShortLabel(partOf^"_lab"^(MakeString.icvt tag))
+		and lab = mkShortLabel(partOf^"_label"^(MakeString.icvt tag))
 	    in
 	      trans_args(t_star, valSP, offSP, fn(val_args', offSP) =>
 	      bind_args(Code.intraArgs, val_args',

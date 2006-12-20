@@ -65,7 +65,7 @@ functor PlainToCFn(structure Util : UTIL
 		then
 		(
 			output(os, "\n\tfprintf(stderr, \"");
-			CodeToC.prLabel os label; output(os, "\\n\"); fflush(stderr);\n")
+			CodeToC.prLabelUnmangled os label; output(os, "\\n\"); fflush(stderr);\n")
 		)
 		else
 			()
@@ -76,7 +76,7 @@ functor PlainToCFn(structure Util : UTIL
 		then
 		(      
 			output(os, "\n\tfprintf(stderr, \"");
-			CodeToC.prLabel os label; output(os, "\\n\"); fflush(stderr);\n")
+			CodeToC.prLabelUnmangled os label; output(os, "\\n\"); fflush(stderr);\n")
 		)
 		else
 			()
