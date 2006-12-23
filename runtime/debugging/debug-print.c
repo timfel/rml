@@ -10,6 +10,7 @@ RML_BEGIN_LABEL(RML__debug_5fprint)
 		rmldb_sprintf ("%s=[", RML_STRINGDATA(str));
 		rmldb_var_print(rmlA1);
 		rmldb_sprintf ("]\n");
+		fflush(stdout);
 	}
 	RML_TAILCALLK(rmlSC);
 }

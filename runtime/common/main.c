@@ -7,21 +7,28 @@
 #include <stdlib.h>
 #include "rml.h"
 
+char rml_trace_enabled = 0;
+
 void rml_show_help(char *program, FILE* file)
 {
 	fprintf(file, "Usage: %s [runtime_options] program_options\n", program);
 	fprintf(file, "where [runtime_options] are:\n");
-	fprintf(file, "-log               prints runtime log information at the program exit\n");
-	fprintf(file, "-gcag              prints garbage collector log information at the program exit\n");
-	fprintf(file, "-bench             prints running time and other log information at the program exit\n");
-	fprintf(file, "-no-stack-check    instructs the runtime no to check for stack overflow\n");
-	fprintf(file, "-stack-size <size> instructs the runtime to alloc a stack of specified size\n");
-	fprintf(file, "-young-size <size> instructs the runtime to alloc a young size of specified size\n");
-	fprintf(file, "-debugrun          do not ask for commands when the program starts; sets the execution type to 'run'\n");
-	fprintf(file, "-debugfast         do not ask for commands when the program starts; sets the execution type to 'fast'\n");
-	fprintf(file, "-debugcalls        dumps all the calls to standard output; NOTE: can be very large\n");
-	fprintf(file, "-debugall          dumps all the calls and the values of variables to standard output; NOTE: can be extremly large\n");
-	fprintf(file, "-help              prints the help and exits\n");
+	fprintf(file, "-log                   prints runtime log information at the program exit\n");
+	fprintf(file, "-gcag                  prints garbage collector log information at the program exit\n");
+	fprintf(file, "-bench                 prints running time and other log information at the program exit\n");
+	fprintf(file, "-no-stack-check        instructs the runtime no to check for stack overflow\n");
+	fprintf(file, "-stack-size=<size>     instructs the runtime to alloc a stack of specified size\n");
+	fprintf(file, "-young-size=<size>     instructs the runtime to alloc a young size of specified size\n");
+  fprintf(file, "-trace                 prints all the function names during execution; default to 'no'; NOTE: compiled with -ftrace\n");
+  fprintf(file, "-no-trace              prints all the function names during execution; default to 'yes'; NOTE: compiled with -ftrace\n");
+	fprintf(file, "-debugrun              do not ask for commands when the program starts; sets the execution type to 'run'\n");
+	fprintf(file, "-debugfast             do not ask for commands when the program starts; sets the execution type to 'fast'\n");
+	fprintf(file, "-debugcalls            dumps all the calls to standard output; NOTE: can be very large\n");
+	fprintf(file, "-debugall              dumps all the calls and the values of variables to standard output; NOTE: can be extremly large\n");
+	fprintf(file, "-dbgterminal=<string>  the type of the terminal (readline|socket).\n");
+	fprintf(file, "-dbgcmdport=<port>     connect on localhost:port and listen for commands\n");
+	fprintf(file, "-dbgeventport=<port>   send async events to localhost:port\n");
+	fprintf(file, "-help                  prints the help and exits\n");
 }
 
 static void rml_prim_argv(int argc, char **argv)
@@ -110,24 +117,86 @@ int main(int argc, char **argv)
 		continue;
 	    }
 	    continue;
-	} else if( strcmp(arg, "debugrun") == 0 ) {
+	}  else if( strncmp(arg, "dbgterminal=", 12) == 0 ) {
+        #ifdef RML_DEBUG
+	    if( strcmp(arg+12, "readline") == 0) 
+		{
+			rmldb_terminal = RMLDB_TERMINAL_READLINE;
+		}
+		else if ( strcmp(arg+12, "socket") == 0)
+		{
+			rmldb_terminal = RMLDB_TERMINAL_SOCKET;
+		}
+		else
+		{
+		fprintf(stderr, "Illegal argument: -dbgterminal=%s\n", arg);
+				rml_show_help(program, stderr);
+		fprintf(stderr, "Exiting");
+		rml_exit(2);
+		}
+        #else
+		fprintf(stderr, "You have to compile your program in debug mode for this flag.");
+        #endif /* RML_DEBUG */
+		continue;
+	}  else if( strncmp(arg, "dbgcmdport=", 11) == 0 ) {
+        #ifdef RML_DEBUG
+	    if( (rmldb_cmd_port = my_atoul(arg+11)) == ULONG_MAX ) 
+		{
+		fprintf(stderr, "Illegal argument: -%s\n", arg);
+		fprintf(stderr, "Exiting");
+		rml_show_help(program, stderr);
+		rml_exit(2);
+	    }
+        #endif /* RML_DEBUG */
+		continue;
+	}  else if( strncmp(arg, "dbgeventport=", 13) == 0 ) {
+        #ifdef RML_DEBUG
+	    if( (rmldb_event_port = my_atoul(arg+13)) == ULONG_MAX ) 
+		{
+		fprintf(stderr, "Illegal argument: -%s\n", arg);
+		fprintf(stderr, "Exiting");
+		rml_show_help(program, stderr);
+		rml_exit(2);
+	    }
+        #endif /* RML_DEBUG */
+		continue;
+	} else if( strcmp(arg, "dbgsocket") == 0 ) {
+        #ifdef RML_DEBUG
+		rmldb_sock_debug = 1;
+        #endif /* RML_DEBUG */
+	    continue;
+	} else if( strcmp(arg, "trace") == 0 ) {
+	    rml_trace_enabled = 1;
+	    continue;
+	} else if( strcmp(arg, "no-trace") == 0 ) {
+	    rml_trace_enabled = 0;
+	    continue;
+  } else if( strcmp(arg, "debugrun") == 0 ) {
         #ifdef RML_DEBUG
 	    rmldb_execution_startup_type = RMLDB_RUN;
+        #else
+		fprintf(stderr, "You have to compile your program in debug mode for this flag.\n");
         #endif /* RML_DEBUG */
 	    continue;
 	} else if( strcmp(arg, "debugfast") == 0 ) {
         #ifdef RML_DEBUG
 	    rmldb_execution_startup_type = RMLDB_FAST;
+        #else
+		fprintf(stderr, "You have to compile your program in debug mode for this flag.\n");
         #endif /* RML_DEBUG */
 	    continue;
 	} else if( strcmp(arg, "debugcalls") == 0 ) {
         #ifdef RML_DEBUG
 	    rmldb_execution_startup_type = RMLDB_TRACE_CALLS;
+        #else
+		fprintf(stderr, "You have to compile your program in debug mode for this flag.\n");
         #endif /* RML_DEBUG */
 	    continue;
 	} else if( strcmp(arg, "debugall") == 0 ) {
         #ifdef RML_DEBUG
 	    rmldb_execution_startup_type = RMLDB_TRACE_ALL;
+        #else
+		fprintf(stderr, "You have to compile your program in debug mode for this flag.\n");
         #endif /* RML_DEBUG */
 	    continue;
 	} else if( strcmp(arg, "help") == 0 ) {

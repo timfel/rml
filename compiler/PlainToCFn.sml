@@ -64,8 +64,8 @@ functor PlainToCFn(structure Util : UTIL
 		if !Control.doTrace
 		then
 		(
-			output(os, "\n\tfprintf(stderr, \"");
-			CodeToC.prLabelUnmangled os label; output(os, "\\n\"); fflush(stderr);\n")
+			output(os, "\n\tif (rml_trace_enabled)\n\t{fprintf(stderr, \"");
+			CodeToC.prLabelUnmangled os label; output(os, "\\n\"); fflush(stderr); \n\t}\n")
 		)
 		else
 			()
@@ -75,8 +75,8 @@ functor PlainToCFn(structure Util : UTIL
 		if !Control.doTrace
 		then
 		(      
-			output(os, "\n\tfprintf(stderr, \"");
-			CodeToC.prLabelUnmangled os label; output(os, "\\n\"); fflush(stderr);\n")
+			output(os, "if (rml_trace_enabled)\n\t{\n\tfprintf(stderr, \"");
+			CodeToC.prLabelUnmangled os label; output(os, "\\n\"); fflush(stderr);\n\t}\n")
 		)
 		else
 			()

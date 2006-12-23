@@ -1,106 +1,170 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.10"
+	Version="8,00"
 	Name="RMLruntime"
 	ProjectGUID="{04C021D6-B5F4-421B-B99E-69545E43B5D3}"
 	RootNamespace="RMLruntime"
-	Keyword="ManagedCProj">
+	Keyword="ManagedCProj"
+	>
 	<Platforms>
 		<Platform
-			Name="Win32"/>
+			Name="Win32"
+		/>
 	</Platforms>
+	<ToolFiles>
+	</ToolFiles>
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			CharacterSet="2"
-			ManagedExtensions="TRUE">
+			ManagedExtensions="4"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="c:\bin\cygwin\home\adrpo\rml-2.1.11\x86-cygwin-gcc\include\plain; c:\bin\cygwin\home\adrpo\rml-2.1.11\examples\etc\;c:\bin\cygwin\home\adrpo\rml-2.1.11\examples\petro\"
 				PreprocessorDefinitions="WIN32;_DEBUG"
-				MinimalRebuild="FALSE"
+				MinimalRebuild="false"
 				BasicRuntimeChecks="0"
-				RuntimeLibrary="1"
+				RuntimeLibrary="3"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				DebugInformationFormat="3"/>
+				DebugInformationFormat="3"
+			/>
 			<Tool
-				Name="VCCustomBuildTool"/>
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
 			<Tool
 				Name="VCLinkerTool"
 				OutputFile="$(OutDir)\$(ProjectName).exe"
 				LinkIncremental="2"
-				GenerateDebugInformation="TRUE"
-				AssemblyDebug="1"/>
+				GenerateDebugInformation="true"
+				AssemblyDebug="1"
+			/>
 			<Tool
-				Name="VCMIDLTool"/>
+				Name="VCALinkTool"
+			/>
 			<Tool
-				Name="VCPostBuildEventTool"/>
+				Name="VCManifestTool"
+			/>
 			<Tool
-				Name="VCPreBuildEventTool"/>
+				Name="VCXDCMakeTool"
+			/>
 			<Tool
-				Name="VCPreLinkEventTool"/>
+				Name="VCBscMakeTool"
+			/>
 			<Tool
-				Name="VCResourceCompilerTool"/>
+				Name="VCFxCopTool"
+			/>
 			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
+				Name="VCAppVerifierTool"
+			/>
 			<Tool
-				Name="VCXMLDataGeneratorTool"/>
+				Name="VCWebDeploymentTool"
+			/>
 			<Tool
-				Name="VCWebDeploymentTool"/>
-			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
-			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+				Name="VCPostBuildEventTool"
+			/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			CharacterSet="2"
-			ManagedExtensions="TRUE">
+			ManagedExtensions="4"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories="c:\bin\cygwin\home\adrpo\rml-2.1.11\x86-cygwin-gcc\include\plain; c:\bin\cygwin\home\adrpo\rml-2.1.11\examples\etc\;c:\bin\cygwin\home\adrpo\rml-2.1.11\examples\petro\"
 				PreprocessorDefinitions="WIN32;NDEBUG"
-				MinimalRebuild="FALSE"
-				RuntimeLibrary="0"
+				MinimalRebuild="false"
+				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				DebugInformationFormat="3"/>
+				DebugInformationFormat="3"
+			/>
 			<Tool
-				Name="VCCustomBuildTool"/>
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
 			<Tool
 				Name="VCLinkerTool"
 				OutputFile="$(OutDir)\$(ProjectName).exe"
 				LinkIncremental="1"
-				GenerateDebugInformation="TRUE"/>
+				GenerateDebugInformation="true"
+			/>
 			<Tool
-				Name="VCMIDLTool"/>
+				Name="VCALinkTool"
+			/>
 			<Tool
-				Name="VCPostBuildEventTool"/>
+				Name="VCManifestTool"
+			/>
 			<Tool
-				Name="VCPreBuildEventTool"/>
+				Name="VCXDCMakeTool"
+			/>
 			<Tool
-				Name="VCPreLinkEventTool"/>
+				Name="VCBscMakeTool"
+			/>
 			<Tool
-				Name="VCResourceCompilerTool"/>
+				Name="VCFxCopTool"
+			/>
 			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
+				Name="VCAppVerifierTool"
+			/>
 			<Tool
-				Name="VCXMLDataGeneratorTool"/>
+				Name="VCWebDeploymentTool"
+			/>
 			<Tool
-				Name="VCWebDeploymentTool"/>
-			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
-			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+				Name="VCPostBuildEventTool"
+			/>
 		</Configuration>
 	</Configurations>
 	<References>
@@ -109,614 +173,805 @@
 		<Filter
 			Name="Source Files"
 			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
-			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}">
+			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
+			>
 			<Filter
 				Name="common"
-				Filter="">
+				>
 				<File
-					RelativePath=".\common\arr-add.c">
+					RelativePath=".\common\arr-add.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\arr-create.c">
+					RelativePath=".\common\arr-create.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\arr-length.c">
+					RelativePath=".\common\arr-length.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\arr-list.c">
+					RelativePath=".\common\arr-list.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\arr-nth.c">
+					RelativePath=".\common\arr-nth.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\arr-setnth.c">
+					RelativePath=".\common\arr-setnth.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\arr-update.c">
+					RelativePath=".\common\arr-update.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\arr-vec.c">
+					RelativePath=".\common\arr-vec.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\bool-and.c">
+					RelativePath=".\common\bool-and.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\bool-not.c">
+					RelativePath=".\common\bool-not.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\bool-or.c">
+					RelativePath=".\common\bool-or.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\external-rml.c">
+					RelativePath=".\common\external-rml.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\int-abs.c">
+					RelativePath=".\common\int-abs.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\int-add.c">
+					RelativePath=".\common\int-add.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\int-div.c">
+					RelativePath=".\common\int-div.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\int-eq.c">
+					RelativePath=".\common\int-eq.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\int-ge.c">
+					RelativePath=".\common\int-ge.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\int-gt.c">
+					RelativePath=".\common\int-gt.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\int-int.c">
+					RelativePath=".\common\int-int.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\int-le.c">
+					RelativePath=".\common\int-le.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\int-lt.c">
+					RelativePath=".\common\int-lt.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\int-max.c">
+					RelativePath=".\common\int-max.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\int-min.c">
+					RelativePath=".\common\int-min.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\int-mod.c">
+					RelativePath=".\common\int-mod.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\int-mul.c">
+					RelativePath=".\common\int-mul.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\int-ne.c">
+					RelativePath=".\common\int-ne.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\int-neg.c">
+					RelativePath=".\common\int-neg.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\int-real.c">
+					RelativePath=".\common\int-real.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\int-str.c">
+					RelativePath=".\common\int-str.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\int-sub.c">
+					RelativePath=".\common\int-sub.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\list-append.c">
+					RelativePath=".\common\list-append.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\list-arr.c">
+					RelativePath=".\common\list-arr.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\list-delete.c">
+					RelativePath=".\common\list-delete.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\list-length.c">
+					RelativePath=".\common\list-length.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\list-member.c">
+					RelativePath=".\common\list-member.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\list-nth.c">
+					RelativePath=".\common\list-nth.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\list-reverse.c">
+					RelativePath=".\common\list-reverse.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\list-str.c">
+					RelativePath=".\common\list-str.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\list-vec.c">
+					RelativePath=".\common\list-vec.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\lvar-get.c">
+					RelativePath=".\common\lvar-get.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\lvar-new.c">
+					RelativePath=".\common\lvar-new.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\lvar-set.c">
+					RelativePath=".\common\lvar-set.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\main.c">
+					RelativePath=".\common\main.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\misc-clock.c">
+					RelativePath=".\common\misc-clock.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\misc-print.c">
+					RelativePath=".\common\misc-print.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\misc-tick.c">
+					RelativePath=".\common\misc-tick.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\p-atoi.c">
+					RelativePath=".\common\p-atoi.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\p-clock.c">
+					RelativePath=".\common\p-clock.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\p-equal.c">
+					RelativePath=".\common\p-equal.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\p-gccore.c">
+					RelativePath=".\common\p-gccore.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\p-gcuser-block.c">
+					RelativePath=".\common\p-gcuser-block.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\p-gcuser-plain.c">
+					RelativePath=".\common\p-gcuser-plain.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\p-get-real.c">
+					RelativePath=".\common\p-get-real.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\p-init.c">
+					RelativePath=".\common\p-init.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\p-mkreal.c">
+					RelativePath=".\common\p-mkreal.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\p-mkstring.c">
+					RelativePath=".\common\p-mkstring.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\p-motor.c">
+					RelativePath=".\common\p-motor.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\p-nil.c">
+					RelativePath=".\common\p-nil.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\p-once.c">
+					RelativePath=".\common\p-once.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\p-set-real.c">
+					RelativePath=".\common\p-set-real.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\p-stringeq.c">
+					RelativePath=".\common\p-stringeq.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\p-unwind.c">
+					RelativePath=".\common\p-unwind.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\p-usergc.c">
+					RelativePath=".\common\p-usergc.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\real-abs.c">
+					RelativePath=".\common\real-abs.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\real-add.c">
+					RelativePath=".\common\real-add.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\real-atan.c">
+					RelativePath=".\common\real-atan.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\real-cos.c">
+					RelativePath=".\common\real-cos.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\real-div.c">
+					RelativePath=".\common\real-div.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\real-eq.c">
+					RelativePath=".\common\real-eq.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\real-exp.c">
+					RelativePath=".\common\real-exp.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\real-floor.c">
+					RelativePath=".\common\real-floor.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\real-ge.c">
+					RelativePath=".\common\real-ge.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\real-gt.c">
+					RelativePath=".\common\real-gt.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\real-int.c">
+					RelativePath=".\common\real-int.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\real-le.c">
+					RelativePath=".\common\real-le.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\real-ln.c">
+					RelativePath=".\common\real-ln.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\real-lt.c">
+					RelativePath=".\common\real-lt.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\real-max.c">
+					RelativePath=".\common\real-max.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\real-min.c">
+					RelativePath=".\common\real-min.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\real-mod.c">
+					RelativePath=".\common\real-mod.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\real-mul.c">
+					RelativePath=".\common\real-mul.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\real-ne.c">
+					RelativePath=".\common\real-ne.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\real-neg.c">
+					RelativePath=".\common\real-neg.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\real-pow.c">
+					RelativePath=".\common\real-pow.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\real-sin.c">
+					RelativePath=".\common\real-sin.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\real-sqrt.c">
+					RelativePath=".\common\real-sqrt.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\real-str.c">
+					RelativePath=".\common\real-str.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\real-sub.c">
+					RelativePath=".\common\real-sub.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\str-append.c">
+					RelativePath=".\common\str-append.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\str-int.c">
+					RelativePath=".\common\str-int.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\str-length.c">
+					RelativePath=".\common\str-length.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\str-list.c">
+					RelativePath=".\common\str-list.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\str-nth.c">
+					RelativePath=".\common\str-nth.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\str-setnth.c">
+					RelativePath=".\common\str-setnth.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\vec-add.c">
+					RelativePath=".\common\vec-add.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\vec-arr.c">
+					RelativePath=".\common\vec-arr.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\vec-create.c">
+					RelativePath=".\common\vec-create.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\vec-length.c">
+					RelativePath=".\common\vec-length.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\vec-list.c">
+					RelativePath=".\common\vec-list.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\vec-nth.c">
+					RelativePath=".\common\vec-nth.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\vec-setnth.c">
+					RelativePath=".\common\vec-setnth.c"
+					>
 				</File>
 				<File
-					RelativePath=".\common\vec-update.c">
+					RelativePath=".\common\vec-update.c"
+					>
 				</File>
 			</Filter>
 			<Filter
 				Name="plain"
-				Filter="">
+				>
 				<File
-					RelativePath=".\plain\Make.mk">
+					RelativePath=".\plain\Make.mk"
+					>
 				</File>
 				<File
-					RelativePath=".\plain\Makefile">
+					RelativePath=".\plain\Makefile"
+					>
 				</File>
 			</Filter>
 			<Filter
 				Name="diff"
-				Filter="">
+				>
 				<File
-					RelativePath=".\diff\Make.mk">
+					RelativePath=".\diff\Make.mk"
+					>
 				</File>
 				<File
-					RelativePath=".\diff\Makefile">
+					RelativePath=".\diff\Makefile"
+					>
 				</File>
 			</Filter>
 			<Filter
 				Name="mask"
-				Filter="">
+				>
 				<File
-					RelativePath=".\mask\Make.mk">
+					RelativePath=".\mask\Make.mk"
+					>
 				</File>
 				<File
-					RelativePath=".\mask\Makefile">
+					RelativePath=".\mask\Makefile"
+					>
 				</File>
 				<File
-					RelativePath=".\mask\p-mask.c">
+					RelativePath=".\mask\p-mask.c"
+					>
 				</File>
 			</Filter>
 			<Filter
 				Name="debugging"
-				Filter="">
+				>
 				<File
-					RelativePath=".\debugging\debug-debug.c">
+					RelativePath=".\debugging\debug-debug.c"
+					>
 				</File>
 				<File
-					RelativePath=".\debugging\debug-print.c">
+					RelativePath=".\debugging\debug-print.c"
+					>
 				</File>
 				<File
-					RelativePath=".\debugging\debug-push-vars.c">
+					RelativePath=".\debugging\debug-push-vars.c"
+					>
 				</File>
 				<File
-					RelativePath=".\debugging\Make.mk">
+					RelativePath=".\debugging\Make.mk"
+					>
 				</File>
 				<File
-					RelativePath=".\debugging\Makefile">
+					RelativePath=".\debugging\Makefile"
+					>
 				</File>
 				<File
-					RelativePath=".\debugging\rml-db-load.c">
+					RelativePath=".\debugging\rml-db-load.c"
+					>
 				</File>
 				<File
-					RelativePath=".\debugging\rml-db-load.h">
+					RelativePath=".\debugging\rml-db-load.h"
+					>
 				</File>
 				<File
-					RelativePath=".\debugging\rml-db-parse.c">
+					RelativePath=".\debugging\rml-db-parse.c"
+					>
 				</File>
 				<File
-					RelativePath=".\debugging\rml-db-parse.h">
+					RelativePath=".\debugging\rml-db-parse.h"
+					>
 				</File>
 				<File
-					RelativePath=".\debugging\rml-db-parse.y">
+					RelativePath=".\debugging\rml-db-parse.y"
+					>
 				</File>
 				<File
-					RelativePath=".\debugging\rml-db-scan.c">
+					RelativePath=".\debugging\rml-db-scan.c"
+					>
 				</File>
 				<File
-					RelativePath=".\debugging\rml-db-scan.l">
+					RelativePath=".\debugging\rml-db-scan.l"
+					>
 				</File>
 				<File
-					RelativePath=".\debugging\rml-debug.c">
+					RelativePath=".\debugging\rml-debug.c"
+					>
 				</File>
 				<File
-					RelativePath=".\debugging\rml-debug.h">
+					RelativePath=".\debugging\rml-debug.h"
+					>
 				</File>
 				<File
-					RelativePath=".\debugging\rmldb-parse.c">
+					RelativePath=".\debugging\rmldb-parse.c"
+					>
 				</File>
 				<File
-					RelativePath=".\debugging\rmldb-parse.h">
+					RelativePath=".\debugging\rmldb-parse.h"
+					>
 				</File>
 				<File
-					RelativePath=".\debugging\rmldb-parse.y">
+					RelativePath=".\debugging\rmldb-parse.y"
+					>
 				</File>
 				<File
-					RelativePath=".\debugging\rmldb-scan.c">
+					RelativePath=".\debugging\rmldb-scan.c"
+					>
 				</File>
 				<File
-					RelativePath=".\debugging\rmldb-scan.l">
+					RelativePath=".\debugging\rmldb-scan.l"
+					>
 				</File>
 			</Filter>
 			<Filter
 				Name="petrol"
-				Filter="">
+				>
 				<Filter
 					Name="rml_files"
-					Filter="">
+					>
 					<File
-						RelativePath="..\examples\petrol\absyn.rml">
+						RelativePath="..\examples\petrol\absyn.rml"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\fcemit.rml">
+						RelativePath="..\examples\petrol\fcemit.rml"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\fcode.rml">
+						RelativePath="..\examples\petrol\fcode.rml"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\flatten.rml">
+						RelativePath="..\examples\petrol\flatten.rml"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\main.rml">
+						RelativePath="..\examples\petrol\main.rml"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\main.save.rml">
+						RelativePath="..\examples\petrol\main.save.rml"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\parse.rml">
+						RelativePath="..\examples\petrol\parse.rml"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\static.rml">
+						RelativePath="..\examples\petrol\static.rml"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\tcode.rml">
+						RelativePath="..\examples\petrol\tcode.rml"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\types.rml">
+						RelativePath="..\examples\petrol\types.rml"
+						>
 					</File>
 				</Filter>
 				<Filter
 					Name="files"
-					Filter="">
+					>
 					<File
-						RelativePath="..\examples\petrol\absyn.c">
+						RelativePath="..\examples\petrol\absyn.c"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\absyn.h">
+						RelativePath="..\examples\petrol\absyn.h"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\fcemit.c">
+						RelativePath="..\examples\petrol\fcemit.c"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\fcemit.h">
+						RelativePath="..\examples\petrol\fcemit.h"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\fcode.c">
+						RelativePath="..\examples\petrol\fcode.c"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\fcode.h">
+						RelativePath="..\examples\petrol\fcode.h"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\flatten.c">
+						RelativePath="..\examples\petrol\flatten.c"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\flatten.h">
+						RelativePath="..\examples\petrol\flatten.h"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\lexer.c">
+						RelativePath="..\examples\petrol\lexer.c"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\lexer.h">
+						RelativePath="..\examples\petrol\lexer.h"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\log.txt">
+						RelativePath="..\examples\petrol\log.txt"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\main.c">
+						RelativePath="..\examples\petrol\main.c"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\main.h">
+						RelativePath="..\examples\petrol\main.h"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\Make.mk">
+						RelativePath="..\examples\petrol\Make.mk"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\Makefile">
+						RelativePath="..\examples\petrol\Makefile"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\parser.c">
+						RelativePath="..\examples\petrol\parser.c"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\parser.h">
+						RelativePath="..\examples\petrol\parser.h"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\parser.y">
+						RelativePath="..\examples\petrol\parser.y"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\parsutil.c">
+						RelativePath="..\examples\petrol\parsutil.c"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\parsutil.h">
+						RelativePath="..\examples\petrol\parsutil.h"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\petrol.h">
+						RelativePath="..\examples\petrol\petrol.h"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\static.c">
+						RelativePath="..\examples\petrol\static.c"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\static.h">
+						RelativePath="..\examples\petrol\static.h"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\tcode.c">
+						RelativePath="..\examples\petrol\tcode.c"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\tcode.h">
+						RelativePath="..\examples\petrol\tcode.h"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\types.c">
+						RelativePath="..\examples\petrol\types.c"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\types.h">
+						RelativePath="..\examples\petrol\types.h"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\y.tab.c">
+						RelativePath="..\examples\petrol\y.tab.c"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\y.tab.h">
+						RelativePath="..\examples\petrol\y.tab.h"
+						>
 					</File>
 				</Filter>
 				<Filter
 					Name="etc"
-					Filter="">
+					>
 					<File
-						RelativePath="..\examples\etc\ccall.c">
+						RelativePath="..\examples\etc\ccall.c"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\etc\yacclib.c">
+						RelativePath="..\examples\etc\yacclib.c"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\etc\yacclib.h">
+						RelativePath="..\examples\etc\yacclib.h"
+						>
 					</File>
 				</Filter>
 				<Filter
 					Name="testp"
-					Filter="">
+					>
 					<File
-						RelativePath="..\examples\petrol\testd\8q.d">
+						RelativePath="..\examples\petrol\testd\8q.d"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\testd\8q.out">
+						RelativePath="..\examples\petrol\testd\8q.out"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\testp\a.d">
+						RelativePath="..\examples\petrol\testp\a.d"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\testp\b.d">
+						RelativePath="..\examples\petrol\testp\b.d"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\testd\big.d">
+						RelativePath="..\examples\petrol\testd\big.d"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\testd\cirkel.d">
+						RelativePath="..\examples\petrol\testd\cirkel.d"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\testd\codtest.d">
+						RelativePath="..\examples\petrol\testd\codtest.d"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\testd\factorial.d">
+						RelativePath="..\examples\petrol\testd\factorial.d"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\testd\fib.d">
+						RelativePath="..\examples\petrol\testd\fib.d"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\testd\lib\math.d">
+						RelativePath="..\examples\petrol\testd\lib\math.d"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\testd\params.d">
+						RelativePath="..\examples\petrol\testd\params.d"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\testd\parstest1.d">
+						RelativePath="..\examples\petrol\testd\parstest1.d"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\testd\qsort.d">
+						RelativePath="..\examples\petrol\testd\qsort.d"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\testd\quadtest.d">
+						RelativePath="..\examples\petrol\testd\quadtest.d"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\testd\return.d">
+						RelativePath="..\examples\petrol\testd\return.d"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\testd\semtest1.d">
+						RelativePath="..\examples\petrol\testd\semtest1.d"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\testd\sieve.d">
+						RelativePath="..\examples\petrol\testd\sieve.d"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\testd\lib\stdio.d">
+						RelativePath="..\examples\petrol\testd\lib\stdio.d"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\testd\stone.d">
+						RelativePath="..\examples\petrol\testd\stone.d"
+						>
 					</File>
 					<File
-						RelativePath="..\examples\petrol\testd\testmath.d">
+						RelativePath="..\examples\petrol\testd\testmath.d"
+						>
 					</File>
 				</Filter>
 			</Filter>
@@ -724,134 +979,170 @@
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
-			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}">
+			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
+			>
 			<Filter
 				Name="common"
-				Filter="">
+				>
 				<File
-					RelativePath=".\common\p-gccore.h">
+					RelativePath=".\common\p-gccore.h"
+					>
 				</File>
 				<File
-					RelativePath=".\common\rml-core.h">
+					RelativePath=".\common\rml-core.h"
+					>
 				</File>
 				<File
-					RelativePath=".\common\rml-predef.h">
+					RelativePath=".\common\rml-predef.h"
+					>
 				</File>
 				<File
-					RelativePath=".\common\rml-state.h">
+					RelativePath=".\common\rml-state.h"
+					>
 				</File>
 				<File
-					RelativePath=".\common\z-agptr.h">
+					RelativePath=".\common\z-agptr.h"
+					>
 				</File>
 				<File
-					RelativePath=".\common\z-joing.h">
+					RelativePath=".\common\z-joing.h"
+					>
 				</File>
 				<File
-					RelativePath=".\common\z-lgptr.h">
+					RelativePath=".\common\z-lgptr.h"
+					>
 				</File>
 				<File
-					RelativePath=".\common\z-split.h">
+					RelativePath=".\common\z-split.h"
+					>
 				</File>
 			</Filter>
 			<Filter
 				Name="plain"
-				Filter="">
+				>
 				<File
-					RelativePath=".\plain\rml-labels.h">
+					RelativePath=".\plain\rml-labels.h"
+					>
 				</File>
 				<File
-					RelativePath=".\plain\rml-select.h">
+					RelativePath=".\plain\rml-select.h"
+					>
 				</File>
 			</Filter>
 			<Filter
 				Name="diff"
-				Filter="">
+				>
 				<File
-					RelativePath=".\diff\rml-labels.h">
+					RelativePath=".\diff\rml-labels.h"
+					>
 				</File>
 				<File
-					RelativePath=".\diff\rml-select.h">
+					RelativePath=".\diff\rml-select.h"
+					>
 				</File>
 			</Filter>
 			<Filter
 				Name="mask"
-				Filter="">
+				>
 				<File
-					RelativePath=".\mask\rml-labels.h">
+					RelativePath=".\mask\rml-labels.h"
+					>
 				</File>
 				<File
-					RelativePath=".\mask\rml-select.h">
+					RelativePath=".\mask\rml-select.h"
+					>
 				</File>
 			</Filter>
 		</Filter>
 		<Filter
 			Name="Additional Files"
-			Filter="">
+			>
 			<File
-				RelativePath="..\config\x86-cygwin-gcc\config.h">
+				RelativePath="..\config\x86-cygwin-gcc\config.h"
+				>
 			</File>
 			<File
-				RelativePath="..\Copyright">
+				RelativePath="..\Copyright"
+				>
 			</File>
 			<File
-				RelativePath="..\config\x86-cygwin-gcc\labtab.h">
+				RelativePath="..\config\x86-cygwin-gcc\labtab.h"
+				>
 			</File>
 			<File
-				RelativePath="..\x86-cygwin-gcc\include\plain\rml.h">
+				RelativePath="..\x86-cygwin-gcc\include\plain\rml.h"
+				>
 			</File>
 			<File
-				RelativePath="..\x86-cygwin-gcc\bin\rmlc">
+				RelativePath="..\x86-cygwin-gcc\bin\rmlc"
+				>
 			</File>
 			<File
-				RelativePath="..\config\x86-cygwin-gcc\variables.mk">
+				RelativePath="..\config\x86-cygwin-gcc\variables.mk"
+				>
 			</File>
 			<Filter
 				Name="etc"
-				Filter="">
+				>
 				<File
-					RelativePath="..\etc\client.mk">
+					RelativePath="..\etc\client.mk"
+					>
 				</File>
 				<File
-					RelativePath="..\etc\config.guess">
+					RelativePath="..\etc\config.guess"
+					>
 				</File>
 				<File
-					RelativePath="..\etc\cp-if-change">
+					RelativePath="..\etc\cp-if-change"
+					>
 				</File>
 				<File
-					RelativePath="..\etc\dispatch.mk">
+					RelativePath="..\etc\dispatch.mk"
+					>
 				</File>
 				<File
-					RelativePath="..\etc\fakevpath">
+					RelativePath="..\etc\fakevpath"
+					>
 				</File>
 				<File
-					RelativePath="..\etc\fixlex">
+					RelativePath="..\etc\fixlex"
+					>
 				</File>
 				<File
-					RelativePath="..\etc\fixyacc">
+					RelativePath="..\etc\fixyacc"
+					>
 				</File>
 				<File
-					RelativePath="..\etc\install-sml">
+					RelativePath="..\etc\install-sml"
+					>
 				</File>
 				<File
-					RelativePath="..\etc\Make.mk">
+					RelativePath="..\etc\Make.mk"
+					>
 				</File>
 				<File
-					RelativePath="..\etc\Makefile">
+					RelativePath="..\etc\Makefile"
+					>
 				</File>
 				<File
-					RelativePath="..\etc\mkdirhier">
+					RelativePath="..\etc\mkdirhier"
+					>
 				</File>
 				<File
-					RelativePath="..\etc\mktosh">
+					RelativePath="..\etc\mktosh"
+					>
 				</File>
 				<File
-					RelativePath="..\etc\runtime.mk">
+					RelativePath="..\etc\runtime.mk"
+					>
 				</File>
 				<File
-					RelativePath="..\etc\skel.rmlc">
+					RelativePath="..\etc\skel.rmlc"
+					>
 				</File>
 				<File
-					RelativePath="..\etc\which">
+					RelativePath="..\etc\which"
+					>
 				</File>
 			</Filter>
 		</Filter>
