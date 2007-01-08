@@ -44,7 +44,7 @@ _PROTOTYPE(int aawrap, (void));
 #define YY_INPUT(buf,result,max_size) \
 		rl_input((char *)buf, &result, max_size)
 
-/* Variables to help interface readline with bc. */
+/* Variables to help interface readline with rml debugger */
 static char *rl_line = (char *)NULL;
 static char *rl_start = (char *)NULL;
 static int   rl_len = 0;
@@ -63,7 +63,27 @@ rl_input (buf, result, max)
 	char *buf;
 	int  *result;
 	int   max;
-{	 
+{	
+
+    /* see if we are using the debugger over sockets */
+	if (rmldb_terminal == RMLDB_TERMINAL_SOCKET)
+	{
+		size_t nb_bytes;                                                 
+		nb_bytes = rmldb_recv_sock(rmldb_cmd_sock, (void*)buf, (size_t)max);           
+		if ((nb_bytes == 0) || (nb_bytes == -1)) 
+		{ 
+			*result = YY_NULL;
+			/* exit if the other part closed the socket */
+			if (nb_bytes == -1 ) exit (1); 
+		}   
+		else 
+		{ 
+			*result = nb_bytes; 
+		}
+		return ;
+	}
+    
+    /* here we use the readline interface */
     if (aain != rl_instream)
     {
       while ( (*result = read( fileno(aain), buf, max )) < 0 )
@@ -77,38 +97,38 @@ rl_input (buf, result, max)
   
   /* Do we need a new string? */
   if (rl_len == 0)
+  {
+	if (rl_start)
+		free(rl_start);
+    rl_start = readline (RMLDB_PROMPT);
+    if (rl_start == NULL) 
     {
-      if (rl_start)
-	free(rl_start);
-      rl_start = readline (RMLDB_PROMPT);
-      if (rl_start == NULL) 
-      {
-	/* end of file */
-	*result = 0;
-	rl_len = 0;
-	return;
-      }
-      rl_line = rl_start;
-      rl_len = strlen (rl_line)+1;
-      if (rl_len != 1)
-	add_history (rl_line); 
-      rl_line[rl_len-1] = '\n';
-      fflush (stdout);
-    }
+		/* end of file */
+		*result = 0;
+		rl_len = 0;
+		return;
+	}
+    rl_line = rl_start;
+    rl_len = strlen (rl_line)+1;
+    if (rl_len != 1)
+		add_history (rl_line); 
+    rl_line[rl_len-1] = '\n';
+    fflush (stdout);
+  }
 
   if (rl_len <= max)
-    {
+  {
       strncpy (buf, rl_line, rl_len);
       *result = rl_len;
       rl_len = 0;
-    }
+  }
   else
-    {
+  {
       strncpy (buf, rl_line, max);
       *result = max;
       rl_line += max;
       rl_len -= max;
-    }
+  }
 }
 
 /* --- readline end */
@@ -258,9 +278,15 @@ if (aadebug) printf("FLEX:bad character %s:\n", aatext);
 /* This is the way to get multiple files input into lex. */
 int aawrap()
 { 
-  fprintf(stdout, "reopening stdin on tty: %s...\n", rmldb_ttyname);
-  if (!rmldb_open_new_file ()) return (1); /* EOF on standard in. */
-  return (0);				         /* We have more input. */
+	if (rmldb_terminal == RMLDB_TERMINAL_READLINE)
+	{
+		fprintf(stdout, "reopening stdin on tty: %s...\n", rmldb_ttyname);
+		if (!rmldb_open_new_file ()) return (1); /* EOF on standard in. */
+		return (0);				         /* We have more input. */
+	}
+	
+	/* if we are within a socket terminal */
+	return 1; 
 }
 
 #endif /* RML_DEBUG */

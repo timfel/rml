@@ -1,24 +1,38 @@
-/*
-Copyright (c) 2002-2006 by Adrian Pop
-
-Permission to use, copy, modify, and distribute this software and
-its documentation for NON-COMMERCIAL purposes and without fee is hereby 
-granted, provided that this copyright notice appear in all copies and 
-that both the copyright notice and this permission notice and warranty
-disclaimer appear in supporting documentation, and that the name of
-The Author not be used in advertising or publicity pertaining to
-distribution of the software without specific, written prior permission.
-For COMMERCIAL uses of versions above rml-2.1.8 please contact 
-Adrian Pop, adrpo@ida.liu.se. 
-
-THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
-INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS.
-IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, INDIRECT OR
-CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
-OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
-OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE
-USE OR PERFORMANCE OF THIS SOFTWARE.
-*/
+/******************************************************************************
+ * @author Adrian Pop [adrpo@ida.liu.se, http://www.ida.liu.se/~adrpo]
+ * Copyright (c) 2002-2007, Adrian Pop [adrpo@ida.liu.se],
+ * Programming Environments Laboratory (PELAB),
+ * Department of Computer and Information Science (IDA), 
+ * Linköpings University (LiU). 
+ * All rights reserved.
+ *
+ * http://www.ida.liu.se/~adrpo/license/
+ *
+ * NON-COMMERCIAL terms and conditions [NON-COMMERCIAL setting]:
+ * Permission to use, copy, modify, and distribute this software and
+ * its documentation in source or binary form (including products 
+ * developed or generated using this software) for NON-COMMERCIAL 
+ * purposes and without fee is hereby granted, provided that this 
+ * copyright notice appear in all copies and that both the copyright 
+ * notice and this permission notice and warranty disclaimer appear 
+ * in supporting documentation, and that the name of The Author is not 
+ * to be used in advertising or publicity pertaining to distribution 
+ * of the software without specific, prior written permission.
+ * 
+ * COMMERCIAL terms and conditions [COMMERCIAL setting]:
+ * COMMERCIAL use, copy, modification and distribution in source 
+ * or binary form (including products developed or generated using
+ * this software) is NOT permitted without prior written agreement 
+ * from Adrian Pop [adrpo@ida.liu.se].
+ * 
+ * THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+ * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS.
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
+ * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+ * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE
+ * USE OR PERFORMANCE OF THIS SOFTWARE.
+ *****************************************************************************/
 /***********************************************************
 [ rml-debug.c ] 
 - Adrian Pop, adrpo@ida.liu.se, http://www.ida.liu.se/~adrpo 
@@ -34,52 +48,11 @@ USE OR PERFORMANCE OF THIS SOFTWARE.
 - last modified: 2005-12-27
 ************************************************************/
 
+/************************************************************/
 /* all these functions depends on RML_DEBUG macro */
 /**************************************************/
 #ifdef RML_DEBUG
 /**************************************************/
-
-#include <stdio.h>
-#include <string.h>
-#if defined(__MINGW32__) || defined(_MSC_VER)
-
-#if defined(__MINGW32__) /* ********** MINGW32 stuff ******/
-/* we have readline */
-#include <readline/readline.h>
-#include <readline/history.h>
-/* do we have signal in ming32?? */
-#include <signal.h>
-
-#endif
-/*********** MING32 && MSVC stuff **********/
-
-#include <WinSock2.h>
-
-#define rmldb_send_sock(x,y,z) send(x,y,z,0)
-#define rmldb_recv_sock(x,y,z) recv(x,y,z,0)
-#define rmldb_close_sock closesocket
-#define rmldb_sock_errorno WSAGetLastError()
-
-#else /***************** unix stuff ***************/
-
-#include <readline/readline.h>
-#include <readline/history.h>
-#include <signal.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/unistd.h>
-#include <sys/stat.h>
-#include <netinet/in.h>
-#include <netdb.h>
-
-#define rmldb_send_sock(x,y,z) write(x,y,z)
-#define rmldb_recv_sock(x,y,z) read(x,y,z)
-#define rmldb_close_sock close
-#define rmldb_sock_errorno errno
-#define SOCKET_ERROR (-1)
-#define INVALID_SOCKET (-1)
-
-#endif
 
 #include <stdarg.h>
 #include <errno.h>
@@ -98,6 +71,12 @@ USE OR PERFORMANCE OF THIS SOFTWARE.
 #define RMLDB_TYPE_SUFFIX_LVAR   3
 #define RMLDB_TYPE_SUFFIX_VECTOR 4
 #define RMLDB_TYPE_SUFFIX_ARRAY  5
+
+/* adrpo - debugger global variables */
+int   rmldb_terminal = RMLDB_TERMINAL_READLINE;    /* terminal type (readline|socket) */
+int   rmldb_event_port = -1;  /* listen for commands on this port */
+
+int   rmldb_event_sock = -1;  /* listen for commands on this socket */
 
 int rmldb_sock_debug = 0; /* make it 1 to debug the socket messages */
 char* rmldb_command;
@@ -219,42 +198,61 @@ int rmldb_init(void)
 #if defined(__MINGW32__)
 	signal (SIGINT, rmldb_use_quit);
 #endif
+
+#else
 	/* nothing to do on UNIX */
+	signal (SIGINT, rmldb_use_quit);
 #endif
+
 	char process_id[20];
 	snprintf(process_id, 20, "%d", getpid());
 	/* debug the damn parsers/lexers */
 	/* aadebug = 1; */
 	/* aarmldbdebug = 1; */
-	if (rmldb_execution_startup_type == RMLDB_STEP)
+	if (rmldb_execution_startup_type == RMLDB_STEP &&
+		rmldb_terminal == RMLDB_TERMINAL_READLINE)
 	{
 		printf("%s - Relational Meta-Language (RML) and MetaModelica (MMC) debugger\n", RMLDB_PROMPT);
 		printf("%s - Copyright 2002-2006, Adrian Pop [adrpo@ida.liu.se], PELAB/IDA/LiU\n", RMLDB_PROMPT);  
 		printf("%s - debugging process %s \n", RMLDB_PROMPT, process_id);
 	}
-	/* Readline support.  Set both application name and input file. */ 
-	rl_readline_name = RMLDB_PROMPT;
-	rl_instream = stdin;
-	if (!isatty(STDIN_FILENO)) /* returns 1 on success */
+
+	if (rmldb_terminal == RMLDB_TERMINAL_READLINE)
 	{
-		fprintf(stderr, "RML debugger: isatty(fileno(stdin)) failed: %s\n",
-			strerror(errno));
-		/* rmldb_exit(0); */
+		rmldb_event_port   = -1;  /* listen for commands on this port */
+		rmldb_event_port = -1;  /* listen for events on this port */
+
+		/* Readline support.  Set both application name and input file. */ 
+		rl_readline_name = RMLDB_PROMPT;
+		rl_instream = stdin;
+		if (!isatty(STDIN_FILENO)) /* returns 1 on success */
+		{
+			fprintf(stderr, "RML debugger: isatty(fileno(stdin)) failed: %s\n",
+				strerror(errno));
+			/* rmldb_exit(0); */
+		}
+		if (!(rmldb_ttyname = ttyname(STDIN_FILENO)))
+		{
+			fprintf(stderr, "RML debugger init ttyname(0) failed: %s\n",
+				strerror(errno));
+			/*rmldb_exit(0);*/
+		}
+		else
+		{
+			if (rmldb_execution_startup_type == RMLDB_STEP)
+				printf("%s - on tty:%s \n", RMLDB_PROMPT, rmldb_ttyname);
+		}
+		
+		using_history ();
 	}
-	if (!(rmldb_ttyname = ttyname(STDIN_FILENO)))
+	else /* using the socket communication */
 	{
-		fprintf(stderr, "RML debugger init ttyname(0) failed: %s\n",
-			strerror(errno));
-		/*rmldb_exit(0);*/
-	}
-	else
-	{
-		if (rmldb_execution_startup_type == RMLDB_STEP)
-			printf("%s - on tty:%s \n", RMLDB_PROMPT, rmldb_ttyname);
+		/* open the command socket and listen for commands on it */
+		rmldb_open_cmd_socket();
+		/* open the event socket and listen for events on it */
+		rmldb_open_event_socket();
 	}
 
-
-	using_history ();
 
 	/* initalize stuff */
 	rmldb_var_in_start = NULL;
@@ -2362,6 +2360,155 @@ void rmldb_init_sockaddr (struct sockaddr_in *name, const char *hostname, int po
   }
   name->sin_addr = *(struct in_addr *) hostinfo->h_addr;
 }
+
+void rmldb_open_event_socket(void)
+{
+	char* hostname ="localhost";
+	struct sockaddr_in server_address;
+	struct sockaddr_in client_address;
+	int rmldb_event_server_sock = -1;
+	int size = -1;
+
+	if (rmldb_sock_debug) 
+		fprintf(stderr, "%s Server should listen on eventport: %d\n", 
+			RMLDB_PROMPT, 
+			rmldb_event_port);
+
+	rmldb_event_server_sock = socket (PF_INET, SOCK_STREAM, 0);
+	if (rmldb_event_server_sock == INVALID_SOCKET)
+	{
+		if (rmldb_sock_debug) 
+			fprintf(stderr, "%s Error! socket opening failed: %s\n", 
+				RMLDB_PROMPT, 
+				strerror(rmldb_sock_errorno));
+		return;
+	}
+	rmldb_init_sockaddr(&server_address, hostname, rmldb_event_port);
+	/* bind */
+	if (SOCKET_ERROR == bind (rmldb_event_server_sock, (struct sockaddr *) &server_address, sizeof (server_address)))
+	{
+		if (rmldb_sock_debug) 
+			fprintf(stderr, "%s Error! socket bind failed: %s. Is the bind port already taken?\n", 
+				RMLDB_PROMPT, 
+				strerror(rmldb_sock_errorno));
+		return;
+	}
+	/* listen */
+	if (SOCKET_ERROR == listen (rmldb_event_server_sock, 50))
+	{
+		if (rmldb_sock_debug) 
+			fprintf(stderr, "%s Error! socket listen failed: %s.\n", 
+				RMLDB_PROMPT, 
+				strerror(rmldb_sock_errorno));
+		return;
+	}
+	/* ----------------------------------------------------------- */
+	/* now wait for connexions */
+	/* ----------------------------------------------------------- */
+	size = sizeof(struct sockaddr);
+	if (rmldb_event_sock = accept (rmldb_event_server_sock, (struct sockaddr*)&client_address, &size) == INVALID_SOCKET)
+	{
+		if (rmldb_sock_debug) 
+			fprintf(stderr, "%s Error! socket accept failed: %s.\n", 
+				RMLDB_PROMPT, 
+				strerror(rmldb_sock_errorno));
+		return;
+	}
+	if (rmldb_sock_debug) 
+		fprintf(stderr, "%s Info! socket opened and connected\n", 
+			RMLDB_PROMPT);
+}
+
+void rmldb_open_cmd_socket(void)
+{
+	char* hostname ="localhost";
+	struct sockaddr_in server_address;
+	struct sockaddr_in client_address;
+	int rmldb_event_server_sock = -1;
+	int size = -1;
+
+	if (rmldb_sock_debug) 
+		fprintf(stderr, "%s Server should listen on eventport: %d\n", 
+			RMLDB_PROMPT, 
+			rmldb_event_port);
+
+	rmldb_event_server_sock = socket (PF_INET, SOCK_STREAM, 0);
+	if (rmldb_event_server_sock == INVALID_SOCKET)
+	{
+		if (rmldb_sock_debug) 
+			fprintf(stderr, "%s Error! socket opening failed: %s\n", 
+				RMLDB_PROMPT, 
+				strerror(rmldb_sock_errorno));
+		return;
+	}
+	rmldb_init_sockaddr(&server_address, hostname, rmldb_event_port);
+	/* bind */
+	if (SOCKET_ERROR == bind (rmldb_event_server_sock, (struct sockaddr *) &server_address, sizeof (server_address)))
+	{
+		if (rmldb_sock_debug) 
+			fprintf(stderr, "%s Error! socket bind failed: %s. Is the bind port already taken?\n", 
+				RMLDB_PROMPT, 
+				strerror(rmldb_sock_errorno));
+		return;
+	}
+	/* listen */
+	if (SOCKET_ERROR == listen (rmldb_event_server_sock, 50))
+	{
+		if (rmldb_sock_debug) 
+			fprintf(stderr, "%s Error! socket listen failed: %s.\n", 
+				RMLDB_PROMPT, 
+				strerror(rmldb_sock_errorno));
+		return;
+	}
+	/* ----------------------------------------------------------- */
+	/* now wait for connexions */
+	/* ----------------------------------------------------------- */
+	size = sizeof(struct sockaddr);
+	if (rmldb_event_sock = accept (rmldb_event_server_sock, (struct sockaddr*)&client_address, &size) == INVALID_SOCKET)
+	{
+		if (rmldb_sock_debug) 
+			fprintf(stderr, "%s Error! socket accept failed: %s.\n", 
+				RMLDB_PROMPT, 
+				strerror(rmldb_sock_errorno));
+		return;
+	}
+	if (rmldb_sock_debug) 
+		fprintf(stderr, "%s Info! socket opened and connected\n", 
+			RMLDB_PROMPT);
+}
+
+void rmldb_close_event_socket(void)
+{
+	int result;
+	result = rmldb_close_sock(rmldb_event_sock);
+	if (result == SOCKET_ERROR)
+	{
+		if (rmldb_sock_debug) 
+			fprintf(stderr, "%s Error! socket closing failed: %s.\n", 
+				RMLDB_PROMPT, 
+				strerror(rmldb_sock_errorno));
+	}
+	if (rmldb_sock_debug) 
+		fprintf(stderr, "%s Info! socket closed.\n", 
+			RMLDB_PROMPT);
+}
+
+void rmldb_close_cmd_socket(void)
+{
+	int result;
+	result = rmldb_close_sock(rmldb_event_sock);
+	if (result == SOCKET_ERROR)
+	{
+		if (rmldb_sock_debug) 
+			fprintf(stderr, "%s Error! socket closing failed: %s.\n", 
+				RMLDB_PROMPT, 
+				strerror(rmldb_sock_errorno));
+	}
+	if (rmldb_sock_debug) 
+		fprintf(stderr, "%s Info! socket closed.\n", 
+			RMLDB_PROMPT);
+}
+
 
 void rmldb_open_socket(void)
 {

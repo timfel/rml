@@ -1,3 +1,13 @@
+/******************************************************************************
+ * @author Adrian Pop [adrpo@ida.liu.se, http://www.ida.liu.se/~adrpo]
+ * Copyright (c) 2002-2007, Adrian Pop [adrpo@ida.liu.se],
+ * Programming Environments Laboratory (PELAB),
+ * Department of Computer and Information Science (IDA), 
+ * Linköpings University (LiU). 
+ * All rights reserved.
+ *
+ * http://www.ida.liu.se/~adrpo/license/
+ */
 /***********************************************************
  [ rml-debug.h ] 
   - Adrian Pop, adrpo@ida.liu.se, http://www.ida.liu.se/~adrpo
@@ -13,7 +23,49 @@
 /* all these functions depends on RML_DEBUG macro */
 /************************************************************/
 #ifdef RML_DEBUG
-/************************************************************/
+
+#include <stdio.h>
+#include <string.h>
+#if defined(__MINGW32__) || defined(_MSC_VER)
+
+#if defined(__MINGW32__) /* ********** MINGW32 stuff ******/
+/* we have readline */
+#include <readline/readline.h>
+#include <readline/history.h>
+/* do we have signal in ming32?? */
+#include <signal.h>
+
+#endif
+/*********** MING32 && MSVC stuff **********/
+
+#include <WinSock2.h>
+
+#define rmldb_send_sock(x,y,z) send(x,y,z,0)
+#define rmldb_recv_sock(x,y,z) recv(x,y,z,0)
+#define rmldb_close_sock closesocket
+#define rmldb_sock_errorno WSAGetLastError()
+
+#else /***************** unix stuff ***************/
+
+#include <readline/readline.h>
+#include <readline/history.h>
+#include <signal.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/unistd.h>
+#include <sys/stat.h>
+#include <netinet/in.h>
+#include <netdb.h>
+
+#define rmldb_send_sock(x,y,z) write(x,y,z)
+#define rmldb_recv_sock(x,y,z) read(x,y,z)
+#define rmldb_close_sock close
+#define rmldb_sock_errorno errno
+#define SOCKET_ERROR (-1)
+#define INVALID_SOCKET (-1)
+
+#endif /* unix vs windows stuff */
+
 /* this file will be included in the generated rml.h */
 /* adrpo some useful defines. */
 #define RMLDB_PROMPT "rml+mmc db@>"
@@ -40,8 +92,21 @@
 
 #define RMLDB_MAX_DISPLAY_VARS 100
 
-/* adrpo - debugger global variables */ 
-extern int rmldb_sock_debug;
+#define RMLDB_TERMINAL_READLINE 0 
+#define RMLDB_TERMINAL_SOCKET   1
+/* adrpo - debugger global variables */
+extern int   rmldb_terminal;    /* terminal type (readline|socket) */
+extern int   rmldb_cmd_port;    /* listen for commands on this port */
+extern int   rmldb_event_port;  /* listen for events on this port */
+extern int   rmldb_cmd_sock;    /* listen for commands on this socket */
+extern int   rmldb_event_sock;  /* listen for events on this socket */
+extern void rmldb_open_cmd_socket(void);  /* open the command socket  */
+extern void rmldb_close_cmd_socket(void); /* close the command socket */
+extern void rmldb_open_event_socket(void);  /* open the command socket  */
+extern void rmldb_close_event_socket(void); /* close the command socket */
+
+
+extern int   rmldb_sock_debug;
 extern int   rmldb_execution_type;
 extern int   rmldb_execution_startup_type;
 extern int   rmldb_show;
