@@ -23,7 +23,7 @@
   tags, then the standard procedure for equality testing will not work.
 
 * The current backends and runtime systems limit the number of
-  procedure and continuation parameters to 16.
+  procedure and continuation parameters to 32.
 
 * The gc does not inspect the contents of RML values allocated outside
   of the RML heap, nor does it track external references into the RML
