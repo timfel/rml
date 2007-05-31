@@ -24,12 +24,6 @@ typedef unsigned int rml_uint_t;
 #ifdef	RML_SWITCH
 #define RML_YOUNG_SIZE	(32*1024)
 #endif
-#ifdef	RML_PUSHY
-#define RML_YOUNG_SIZE	(12*1024)
-#endif
-#ifdef	RML_WARPED
-#define RML_YOUNG_SIZE	(32*1024)
-#endif
 
 #ifdef	RML_PLAIN
 #define RML_STATE_JOIN
