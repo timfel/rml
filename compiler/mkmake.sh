@@ -9,7 +9,8 @@ echo 'let val _ = CM.autoload "$smlnj/cm/full.cm" in OS.Process.exit OS.Process.
     CMINIT='Control.shareDefError := false'
     CMMAKE='CM.make("sources.cm")'
 
-echo "val _ = ${CMINIT};"
+# uncomment this if you have problems with the compilation
+# echo "val _ = ${CMINIT};"
 echo "val _ = ${CMMAKE};"
 echo 'val _ = SMLofNJ.exportFn("rml", Start.start Main.main);'
 
