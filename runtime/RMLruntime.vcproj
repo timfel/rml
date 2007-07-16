@@ -179,200 +179,54 @@
 				Name="common"
 				>
 				<File
-					RelativePath=".\common\arr-add.c"
+					RelativePath=".\common\array.c"
 					>
 				</File>
 				<File
-					RelativePath=".\common\arr-create.c"
+					RelativePath=".\common\boolean.c"
 					>
 				</File>
 				<File
-					RelativePath=".\common\arr-length.c"
+					RelativePath=".\common\controlflow.c"
 					>
 				</File>
 				<File
-					RelativePath=".\common\arr-list.c"
+					RelativePath=".\common\integer.c"
 					>
 				</File>
 				<File
-					RelativePath=".\common\arr-nth.c"
+					RelativePath=".\common\internal.c"
 					>
 				</File>
 				<File
-					RelativePath=".\common\arr-setnth.c"
+					RelativePath=".\common\list.c"
 					>
 				</File>
 				<File
-					RelativePath=".\common\arr-update.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\arr-vec.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\bool-and.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\bool-not.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\bool-or.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\external-rml.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\int-abs.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\int-add.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\int-div.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\int-eq.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\int-ge.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\int-gt.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\int-int.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\int-le.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\int-lt.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\int-max.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\int-min.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\int-mod.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\int-mul.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\int-ne.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\int-neg.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\int-real.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\int-str.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\int-sub.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\list-append.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\list-arr.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\list-delete.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\list-length.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\list-member.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\list-nth.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\list-reverse.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\list-str.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\list-vec.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\lvar-get.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\lvar-new.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\lvar-set.c"
+					RelativePath=".\common\logicalvar.c"
 					>
 				</File>
 				<File
 					RelativePath=".\common\main.c"
 					>
-				</File>
-				<File
-					RelativePath=".\common\misc-clock.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\misc-print.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\misc-tick.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\p-atoi.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\p-clock.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\p-equal.c"
-					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\$(InputName)1.obj"
+							XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\$(InputName)1.obj"
+							XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath=".\common\p-gccore.c"
@@ -387,203 +241,19 @@
 					>
 				</File>
 				<File
-					RelativePath=".\common\p-get-real.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\p-init.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\p-mkreal.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\p-mkstring.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\p-motor.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\p-nil.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\p-once.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\p-set-real.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\p-stringeq.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\p-unwind.c"
-					>
-				</File>
-				<File
 					RelativePath=".\common\p-usergc.c"
 					>
 				</File>
 				<File
-					RelativePath=".\common\real-abs.c"
+					RelativePath=".\common\real.c"
 					>
 				</File>
 				<File
-					RelativePath=".\common\real-add.c"
+					RelativePath=".\common\string.c"
 					>
 				</File>
 				<File
-					RelativePath=".\common\real-atan.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\real-cos.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\real-div.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\real-eq.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\real-exp.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\real-floor.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\real-ge.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\real-gt.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\real-int.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\real-le.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\real-ln.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\real-lt.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\real-max.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\real-min.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\real-mod.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\real-mul.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\real-ne.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\real-neg.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\real-pow.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\real-sin.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\real-sqrt.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\real-str.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\real-sub.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\str-append.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\str-int.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\str-length.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\str-list.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\str-nth.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\str-setnth.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\vec-add.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\vec-arr.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\vec-create.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\vec-length.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\vec-list.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\vec-nth.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\vec-setnth.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\vec-update.c"
+					RelativePath=".\common\vector.c"
 					>
 				</File>
 			</Filter>
@@ -631,15 +301,7 @@
 				Name="debugging"
 				>
 				<File
-					RelativePath=".\debugging\debug-debug.c"
-					>
-				</File>
-				<File
-					RelativePath=".\debugging\debug-print.c"
-					>
-				</File>
-				<File
-					RelativePath=".\debugging\debug-push-vars.c"
+					RelativePath=".\debugging\debug.c"
 					>
 				</File>
 				<File
@@ -684,6 +346,14 @@
 				</File>
 				<File
 					RelativePath=".\debugging\rml-debug.h"
+					>
+				</File>
+				<File
+					RelativePath=".\debugging\rml-socket.c"
+					>
+				</File>
+				<File
+					RelativePath=".\debugging\rml-socket.h"
 					>
 				</File>
 				<File
@@ -1070,6 +740,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\Makefile"
+				>
+			</File>
+			<File
 				RelativePath="..\x86-cygwin-gcc\include\plain\rml.h"
 				>
 			</File>
@@ -1142,6 +816,50 @@
 				</File>
 				<File
 					RelativePath="..\etc\which"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="tools"
+				>
+				<File
+					RelativePath="..\config\tools\gcc.2722.x86.c"
+					>
+				</File>
+				<File
+					RelativePath="..\config\tools\goto.c"
+					>
+				</File>
+				<File
+					RelativePath="..\config\tools\mingw-config.h"
+					>
+				</File>
+				<File
+					RelativePath="..\config\tools\pushy.c"
+					>
+				</File>
+				<File
+					RelativePath="..\config\tools\repchk-mingw.c"
+					>
+				</File>
+				<File
+					RelativePath="..\config\tools\repchk-vc.c"
+					>
+				</File>
+				<File
+					RelativePath="..\config\tools\repchk.c"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="runtime"
+				>
+				<File
+					RelativePath=".\Make.mk"
+					>
+				</File>
+				<File
+					RelativePath=".\Makefile"
 					>
 				</File>
 			</Filter>

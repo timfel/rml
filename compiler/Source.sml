@@ -28,28 +28,7 @@ structure Source : SOURCE =
     in
       {line=line+1,column=column}
     end
-    
-    (*	
-    fun lookup(newLines, pos) =
-      let fun loop([], _, x) = {line = 1, column = pos - startPos, nr_calls = x}
-	    | loop(newLine::newLines, line, x) =
-		if pos > newLine then {line = line, column = pos - newLine, nr_calls = x}
-		else loop(newLines, line - 1, x + 1)
-      in
-		(* prDebugLines(newLines, pos); *)
-		case loop(newLines, 1 + List.length newLines, 0) of
-		   {line, column, nr_calls} => 
-			(
-				debug ("lookup: nr_calls:"
-				       ^Int.toString(nr_calls)
-				       ^" line: "^Int.toString(line)
-				       ^" column: "^Int.toString(column)
-				       ^"\n");
-				{line=line, column=column}
-			)
-      end	
-	*)
-	
+    	
     fun sayErr s = TextIO.output(TextIO.stdErr, s)
     fun sayErr1 c = TextIO.output1(TextIO.stdErr, c)
 
@@ -85,7 +64,7 @@ structure Source : SOURCE =
 	ecolumn = ecolumn
 	}
 	end
-		
+	
     fun getFileName (SOURCE(ref(sourcemap))) = 
 			ArraySourceMap.getFileName(sourcemap)		    
     fun getSerializationDate (SOURCE(ref(sourcemap))) = 

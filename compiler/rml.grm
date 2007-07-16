@@ -25,15 +25,19 @@ fun warn s =
     (sayErr "Warning: "; sayErr s; sayErr "\n")      
 
 fun makeInfo lexArg (left as (x,_,_), right as (y,_,_)) =
-	let val {fileName, sline, scolumn, eline, ecolumn} = LexArg.getLoc lexArg (left, right)
-		val loc = Absyn.LOC(sline, scolumn, eline, ecolumn)
+	let val {fileName, sline, scolumn, eline, ecolumn} = LexArg.getLoc lexArg (x, y)
 	in
-		Absyn.INFO(fileName, x, y, loc)
+		Absyn.INFO(x, y)
 	end
 
+fun getInfo lexArg (left as (x,_,_), right as (y,_,_)) =
+	let val {fileName, sline, scolumn, eline, ecolumn} = LexArg.getLoc lexArg (x, y)
+	in
+		(fileName, sline, scolumn, eline, ecolumn)
+	end
 
 fun printErrInfo lexArg (left as (x,_,_), right as (y,_,_)) =
-	let val {fileName, sline, scolumn, eline, ecolumn} = LexArg.getLoc lexArg (left, right)
+	let val {fileName, sline, scolumn, eline, ecolumn} = LexArg.getLoc lexArg (x, y)
 	in
 	  sayErr(
 		 fileName^":"^
@@ -44,7 +48,7 @@ fun printErrInfo lexArg (left as (x,_,_), right as (y,_,_)) =
 	end
 
 fun printInfo lexArg (left as (x,_,_), right as (y,_,_)) =
-	let val {fileName, sline, scolumn, eline, ecolumn} = LexArg.getLoc lexArg (left, right)
+	let val {fileName, sline, scolumn, eline, ecolumn} = LexArg.getLoc lexArg (x, y)
 	in
 	  print (fileName);print ":";
 	  print(Int.toString sline);print ".";
@@ -105,9 +109,7 @@ fun mkpatlst(lst,info) = mklst(lst, pat_nil, pat_cons, info)
 fun mktuplety([ty], _) = ty
   | mktuplety(tyseq, info) = Absyn.TUPLEty(tyseq, info)
 
-fun mkCtxInfo(Absyn.INFO(file1,loc1,loc2,Absyn.LOC(sl1,sc1,el1,ec1)),
-              Absyn.INFO(file2,loc3,loc4,Absyn.LOC(sl2,sc2,el2,ec2))) =
-				Absyn.INFO(file1,loc1,loc4,Absyn.LOC(sl1,sc1,el2,ec2))
+fun mkCtxInfo(Absyn.INFO(loc1,loc2),Absyn.INFO(loc3,loc4)) = Absyn.INFO(loc1,loc4)
 
 fun join_default(c1, NONE) = c1
   | join_default(c1, SOME(c2 as Absyn.CLAUSE1(_,_,_,_,_,_,infoC2))) =
@@ -560,20 +562,20 @@ conjunctive_goal
 			makeInfo lexArg (atomic_goalleft, conjunctive_goalright)) )
 	| atomic_goal AMPERSAND (* god damn the ampersant *)
 		( 
-			let val Absyn.INFO(file,_,_,Absyn.LOC(sl,sc,el,ec)) = 
-					makeInfo lexArg (AMPERSANDleft, AMPERSANDright)
+			let val (fileName, sline, scolumn, eline, ecolumn) = 
+					getInfo lexArg (AMPERSANDleft, AMPERSANDright)
 				fun sayErr s = TextIO.output(TextIO.stdErr, s)
 				fun sayErr1 c = TextIO.output1(TextIO.stdErr, c)					
 			in
 			(    
-			sayErr(file^":");
-			sayErr(Int.toString sl);
+			sayErr(fileName^":");
+			sayErr(Int.toString sline);
 			sayErr1 #".";
-			sayErr(Int.toString sc);
+			sayErr(Int.toString scolumn);
 			sayErr1 #"-";
-			sayErr(Int.toString el);
+			sayErr(Int.toString eline);
 			sayErr1 #".";
-			sayErr(Int.toString ec);
+			sayErr(Int.toString ecolumn);
 			sayErr1 #" ";
 			sayErr "Warning: AMPERSAND (&) before dashes ignored! THIS CODE IS NOT BACKWARDS COMPATIBLE!\n";
 			atomic_goal 
@@ -737,7 +739,7 @@ atomic_goal
 		( Absyn.EQUALgoal(ident, exp,
 			makeInfo lexArg (identleft, expright)) )
 	| LET pat EQ exp
-		( Absyn.LETgoal(pat, exp,  ref (NONE),
+		( Absyn.LETgoal(pat, exp,
 			makeInfo lexArg (LETleft, expright)) )
 	| NOT atomic_goal
 		( Absyn.NOTgoal(atomic_goal,

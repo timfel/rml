@@ -55,13 +55,13 @@ relation trans_ty =
   axiom	trans_ty(TCode.UNFOLD stamp) => FCode.UNFOLD stamp
 end
 
-and trans_rec =
+relation trans_rec =
   rule	map(trans_var, bnds) => bnds'
 	----------------
 	trans_rec(TCode.RECORD(stamp,bnds)) => FCode.RECORD(stamp,bnds')
 end
 
-and trans_var =
+relation trans_var =
   rule	trans_ty ty => ty'
 	----------------
 	trans_var(TCode.VAR(id,ty)) => FCode.VAR(id,ty')
@@ -174,7 +174,7 @@ relation trans_exp =
 	trans_exp(env, TCode.FCALL(id,args)) => FCode.FCALL(id',args')
 end
 
-and trans_args =
+relation trans_args =
   rule	list_reverse args' => args''
 	----------------
 	trans_args(_, [], args') => args''
@@ -262,7 +262,7 @@ relation flatten_proc =
 	=> (env1, FCode.PROC(id',formals',tyopt',SOME(FCode.BLOCK(level1,r,stmt')))::procs1)
 end
 
-and flatten_procs =
+relation flatten_procs =
   axiom	flatten_procs(_, env0, [], procs0) => (env0,procs0)
 
   rule	flatten_proc(scope, env0, proc, procs0) => (env1,procs1) &

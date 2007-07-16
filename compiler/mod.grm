@@ -56,11 +56,7 @@ fun warn s =
   
 
 fun makeInfo lexArg (left as (x,_,_), right as (y,_,_)) =
-	let val {fileName, sline, scolumn, eline, ecolumn} = LexArg.getLoc lexArg (left, right)
-		val loc = Absyn.LOC(sline, scolumn, eline, ecolumn)
-	in
-		Absyn.INFO(fileName, x, y, loc)
-	end
+	Absyn.INFO(x, y)
 
 fun getInfoAsString(fileName, sline, scolumn, eline, ecolumn) = 
 	let
@@ -70,23 +66,27 @@ fun getInfoAsString(fileName, sline, scolumn, eline, ecolumn) =
 	 (Int.toString eline)^"."^(Int.toString ecolumn)^" "
 	end
 
-fun splitInfo(Absyn.INFO(f, sp,ep, Absyn.LOC(sl, sc, el, ec))) = (f, sl, sc, el, ec)
+fun splitInfo lexArg (Absyn.INFO(left, right)) = 
+	let val {fileName, sline, scolumn, eline, ecolumn} = LexArg.getLoc lexArg (left, right)
+	in
+		(fileName, sline, scolumn, eline, ecolumn)
+	end
 
-fun getErrInfoAsString lexArg (left, right) =
+fun getErrInfoAsString lexArg ((left,_,_), (right,_,_)) =
 	let val {fileName, sline, scolumn, eline, ecolumn} = LexArg.getLoc lexArg (left, right)
 	in
 		getInfoAsString(fileName, sline, scolumn, eline, ecolumn)
 	end
 
 fun printErrInfo lexArg (left, right) =
-	let val strErr = getErrInfoAsString lexArg(left, right) 
+	let val strErr = getErrInfoAsString lexArg (left, right) 
 	in
 	  sayErr(strErr)
 	end
 
-fun warnDifferentIdents (ident1, ident2) =
-	let val strErr1 = getInfoAsString(splitInfo(Absyn.identCtxInfo(ident1)))
-		val strErr2 = getInfoAsString(splitInfo(Absyn.identCtxInfo(ident2)))
+fun warnDifferentIdents lexArg (ident1, ident2) =
+	let val strErr1 = getInfoAsString(splitInfo lexArg (Absyn.identCtxInfo(ident1)))
+		val strErr2 = getInfoAsString(splitInfo lexArg (Absyn.identCtxInfo(ident2)))
 	in
 		if (Absyn.identName ident1 = Absyn.identName ident2) then ()
 		else
@@ -167,10 +167,11 @@ fun makeELEMENT(isFinal,
 
 	fun addImports ([], _, lexArg) = ()
 	|	addImports ((imp, (x as (sp,sl,sc), y as (ep,el,ec)))::rest, v, lexArg) =
-	(
-		LexArg.addImport(lexArg, imp, x, y, v);
+	let val {fileName, sline, scolumn, eline, ecolumn} = LexArg.getLoc lexArg (sp, ep)
+	in
+		LexArg.addImport(lexArg, imp, (sp,sline,scolumn), (ep, eline, ecolumn), v);
 		addImports(rest, v, lexArg)
-	)
+	end
 	
 	fun addRestrictions ([], _, lexArg) = ()
 	|	addRestrictions ((restr, r)::rest, v, lexArg) =
@@ -816,7 +817,7 @@ stored_definition (* only one class which corresponds with module ident in RML *
                                                        (* 037 *)
    : class_type ident opt_string_comment composition END ident SEMICOLON
 	 (
-	  warnDifferentIdents (ident1, ident2);
+	  warnDifferentIdents lexArg (ident1, ident2);
 	  
 	  Absyn.PROGRAM(
 		[Absyn.CLASS(ident,false,false, false,
@@ -844,7 +845,7 @@ class_definition:
 			=> let 
 			   in
 				  case ident_opt of
-					SOME(ident2) => warnDifferentIdents (ident, ident2)
+					SOME(ident2) => warnDifferentIdents lexArg (ident, ident2)
 				  |	NONE => ();
 				    			   
 			      Absyn.CLASS(
@@ -1513,7 +1514,7 @@ equation:
 						function_call,
 						ctxInfo), 
 					comment,
-					makeInfo lexArg (simple_expressionleft, eq_equalsright))
+					makeInfo lexArg (simple_expressionleft, simple_expressionright))
 			| _ => let exception SyntaxErrorParse
 					in 
 					 printErrInfo lexArg(simple_expressionleft, eq_equalsright);

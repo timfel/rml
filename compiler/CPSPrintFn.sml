@@ -8,18 +8,19 @@ functor CPSPrintFn(structure MakeString : MAKESTRING
   struct
 
     structure CPS = CPS
+    structure ConRep = CPS.ConRep
 
     fun prStr(pp, str) = PP.emit(pp, PP.STRING str)
     fun prBlank(pp) = PP.emit(pp, PP.BREAK{blankSpace=1, offset=0})
     fun prNewLine(pp) = PP.emit(pp, PP.lineBreak)
     fun prInt(pp, i) = prStr(pp, MakeString.icvt i)
 
-    fun pr_var(pp, CPS.VAR{tag,uses,...}) =
-      prStr(pp, "v" ^ (MakeString.icvt tag) ^ ":" ^ (MakeString.icvt(!uses)))
+    fun pr_var(pp, CPS.VAR{tag,uses,name,...}) =
+      prStr(pp, "v" ^ (MakeString.icvt tag) ^ ":" ^(CPS.longIdentName name)^":"^(MakeString.icvt(!uses)))
 
     fun pr_space_var pp var = (prBlank(pp); pr_var(pp, var))
 
-    fun pr_longid(pp, CPS.LONGID{module,name}) = prStr(pp, module^"."^name)
+    fun pr_longid(pp, x as ConRep.LONGID{module,name}) = prStr(pp, CPS.longIdentName x)
 
     fun pr_proc(pp, CPS.EXTERN_REL(longid,_)) = pr_longid(pp, longid)
       | pr_proc(pp, CPS.LOCAL_REL(CPS.DEF{name,...})) = pr_longid(pp, name)
@@ -34,7 +35,7 @@ functor CPSPrintFn(structure MakeString : MAKESTRING
       | pr_constant(pp, CPS.STRINGcon s) = pr_string(pp, s)
 
     fun pr_literal(pp, CPS.CONSTlit c)	= pr_constant(pp, c)
-      | pr_literal(pp, CPS.STRUCTlit(con, lits)) =
+      | pr_literal(pp, CPS.STRUCTlit(con, lits, name)) =
 	  (PP.emit(pp, PP.BEGIN{breakType=PP.INCONSISTENT, offset=2});
 	   prStr(pp, "#(");
 	   prInt(pp, con);
@@ -115,20 +116,20 @@ functor CPSPrintFn(structure MakeString : MAKESTRING
        prStr(pp, ")");
        PP.emit(pp, PP.END))
 
-    and pr_exp'(pp, CPS.AppFCe(t_fc)) =
+    and pr_exp'(pp, CPS.AppFCe{fc=t_fc,name=name,pos=pos}) =
 	  (PP.emit(pp, PP.BEGIN{breakType=PP.INCONSISTENT, offset=5});
 	   prStr(pp, "(@fc ");
 	   pr_te(pp, t_fc);
 	   prStr(pp, ")");
 	   PP.emit(pp, PP.END))
-      | pr_exp'(pp, CPS.AppSCe{sc,args}) =
+      | pr_exp'(pp, CPS.AppSCe{sc,args,name,pos}) =
 	  (PP.emit(pp, PP.BEGIN{breakType=PP.INCONSISTENT, offset=5});
 	   prStr(pp, "(@sc ");
 	   pr_te(pp, sc);
 	   List.app (pr_blank_te pp) args;
 	   prStr(pp, ")");
 	   PP.emit(pp, PP.END))
-      | pr_exp'(pp, CPS.AppPVe{pv,args,fc,sc}) =
+      | pr_exp'(pp, CPS.AppPVe{pv,args,fc,sc,name,pos}) =
 	  (PP.emit(pp, PP.BEGIN{breakType=PP.INCONSISTENT, offset=5});
 	   prStr(pp, "(@pv ");
 	   pr_te(pp, pv);

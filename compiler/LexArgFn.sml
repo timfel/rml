@@ -97,8 +97,7 @@ functor LexArgFn(
     fun currVisibility(A{currVisibility,...}) = currVisibility    
     fun getPos(A{thisLine,readPos,currLine,...}, poz) = (!currLine, poz - !thisLine)
 
-    fun source(A{sourcemap,...}) =
-      Source.SOURCE(sourcemap)
+    fun source(A{sourcemap,...}) = Source.SOURCE(sourcemap)
 
 	exception ParseError
 	
@@ -110,7 +109,8 @@ functor LexArgFn(
     fun warn (lexarg as A{errFlag,...}) (msg,(left,_,_),(right,_,_)) =
       (Source.sayMsg (source lexarg) ("Warning: "^msg, left, right))
        
-    fun getLoc lexarg  ((left,sl,sc), (right,el,ec)) =
+    fun getLoc lexarg (left, right) = Source.getLoc(source lexarg, left, right)
+    (* was before:
 	  let val fileName = Source.getFileName(source lexarg)
 	  in
 		{
@@ -121,19 +121,11 @@ functor LexArgFn(
 			ecolumn  = ec
 		}
 	  end
-	  (* was before
-      (Source.getLoc(source lexarg, left, right))
-      *)
+	*)
 
     fun addImport (lexarg as A{imports,...}, import, left, right, visibility) =
     let val there = StrDict.find(!imports, import)
-    in
-		(*
-		case (visibility) of 
-			Cache.PROTECTED => print ("["^import^"]-PROTECTED\n")
-		|	_ => print ("["^import^"]-PUBLIC\n");
-		*)
-    
+    in    
 		case there of
 			NONE => imports := StrDict.insert(!imports, import, (left, right, visibility)) 
 		|	SOME((_,_,x)) =>
@@ -144,7 +136,7 @@ functor LexArgFn(
 					=> imports := StrDict.insert(!imports, import, (left, right, Cache.BOTH)) 
 				|	(_,_) (* leave it like it is *)  => ()
 				(*	=> imports := StrDict.insert(!imports, import, (left, right, visibility))*) 
-	end   
+		end   
 
     fun addExternal (lexarg as A{externals,...}, external, left, right) =
       ( externals := StrDict.insert(!externals, external, (left, right)) )
@@ -171,23 +163,21 @@ functor LexArgFn(
 	end   
 
     fun addUndefImport(lexarg as A{i_queue,...}, str, left, right) = 
-		i_queue := (left,right,str)::(!i_queue)
+			i_queue := (left,right,str)::(!i_queue)
     
     fun addUndefRestriction(lexarg as A{r_queue,...},str,restriction) =
-		r_queue := (restriction,str)::(!r_queue)
+			r_queue := (restriction,str)::(!r_queue)
     
     fun fixUndefImports(lexarg as A{i_queue,...}, visibility) =
     let fun fixImport(left,right,str) = addImport(lexarg, str, left, right, visibility) 
     in
-		map fixImport (!i_queue);
-		i_queue := []
+			map fixImport (!i_queue); i_queue := []
     end
     
     fun fixUndefRestrictions(lexarg as A{r_queue,...},visibility) =
     let fun fixRestriction(restr,str) = addRestriction(lexarg, str, restr, visibility) 
     in
-		map fixRestriction (!r_queue);
-		r_queue := []
+			map fixRestriction (!r_queue); r_queue := []
     end
 
     fun getImports      (lexarg as A{imports,...})      = !imports 

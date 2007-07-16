@@ -1,5 +1,6 @@
 package Main
 
+import Global;
 
 function Z
   input Real x;
@@ -85,6 +86,7 @@ algorithm
     String n_str;
     Boolean z;
    equation
+    Global.cache = Global.createCache(10, "");
     n = stringInt(n_str)+2*4/2-1;
     print (intString(n+3) +& "\n" +& "\t" +& intString(10));
     print(if 1+3 > 1*4 then "true\n" else "false\n");

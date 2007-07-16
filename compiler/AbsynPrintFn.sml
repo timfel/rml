@@ -94,13 +94,18 @@ functor AbsynPrintFn(structure MakeString : MAKESTRING
 	   prStr(os, " => "); print_parens_comma(os, pat_star, print_pat))
       | print_goal(os, Absyn.EQUALgoal(var1, exp2, _)) =
 	  (print_ident(os, var1); prStr(os, " = "); print_exp(os, exp2))
-      | print_goal(os, Absyn.LETgoal(pat, exp, _, _)) =
+      | print_goal(os, Absyn.LETgoal(pat, exp, _)) =
 	  (prStr(os, "let "); print_pat(os, pat);
 	   prStr(os, " = "); print_exp(os, exp))
       | print_goal(os, Absyn.NOTgoal(g, _)) =
 	  (prStr(os, "not "); print_atomic_goal(os, g))
       | print_goal(os, Absyn.ANDgoal(g1, g2, _)) =
 	  (print_goal(os, g1); prStr(os, " &\n       "); print_goal(os, g2))
+      | print_goal(os, Absyn.CONDgoal(g1, g2, g3, _)) =
+	  (prStr(os, " if "); print_goal(os, g1); 
+	   prStr(os, " then "); print_goal(os, g2); 
+	   prStr(os, " else "); print_goal(os, g3);
+	   prStr(os, " &\n       "))
 
     and print_atomic_goal(os, Absyn.ANDgoal(g1, g2, _)) =
 	  (prStr(os, "("); print_goal(os, g1); prStr(os, " & ");

@@ -8,7 +8,11 @@ functor CodeToCFn(structure MakeString : MAKESTRING
   struct
 
     structure Code = Code
+    
+    val currentSource: Code.Source.source ref = ref Code.Source.dummy
 
+	fun setCurrentSource(source) = currentSource := source
+	
     fun bug s = Util.bug("CodeToC."^s)
 
     val output = TextIO.output
@@ -21,15 +25,70 @@ functor CodeToCFn(structure MakeString : MAKESTRING
     fun prLVar os lvar = output(os, Code.lvarString lvar)
     fun prVar os (Code.GLOvar gvar) = prGVar os gvar
       | prVar os (Code.LOCvar lvar) = prLVar os lvar
-
-    fun prLabel os (Code.LABEL(Code.Mangle.NAME str)) = output(os, str)
-    fun prLabelUnmangled os (Code.LABEL(Code.Mangle.NAME str)) = output(os, Code.Mangle.decode str)    
+		
+    fun prLabel os (Code.LABEL(Code.Mangle.NAME str, lid, position)) = output(os, str) 
+    fun prLabelUnmangled os (Code.LABEL(Code.Mangle.NAME str, lid, _)) = output(os, Code.Mangle.decode str)    
 
     fun mangle name =
       let val (Code.Mangle.NAME name) = Code.Mangle.encode name
       in
 		name
       end
+
+	fun getNameFromId(lid) =
+		case lid of
+			Code.ConRep.LONGID{module=SOME(Code.ConRep.IDENT(modname, _)), name=Code.ConRep.IDENT(name, _)}
+			=> (modname^"."^name)
+		|	Code.ConRep.LONGID{module=NONE, name=Code.ConRep.IDENT(name, _)}
+			=> (name)
+	
+	fun	getLabelName label =
+		let val Code.LABEL(_, lid, _) = label
+		in
+			getNameFromId(lid)
+		end
+
+	fun getInfo(Code.ConRep.INFO(sp, ep)) = 
+	let val {fileName, sline, scolumn, eline, ecolumn} = Code.Source.getLoc(!currentSource, sp, ep)
+	in
+		(* print ("CodeToC.getInfo:"^Code.Source.getFileName(!currentSource)^"\n"); *)
+		(fileName, sp, ep, sline, scolumn, eline, ecolumn)
+	end 
+
+	fun	instrumentCont os (kind, position, funcName, goal) =
+		let val Code.POSITION(pos) = position
+			val (f, sp, ep, sl, sc, el, ec) = getInfo(pos)
+		in
+			output(os, "\n\tRML__call_debug(\"");
+			output(os, f); output(os, "\","); 
+			prInt os sp; output(os, ","); prInt os ep; output(os, ","); 			
+			prInt os sl; output(os, ","); prInt os sc; output(os, ","); prInt os el; output(os, ","); prInt os ec;
+			output(os, ",\""); output(os, funcName); output(os, "\",\""); output(os, goal); output(os, "\");\n")
+		end
+      
+	fun	instrumentLabel os label =
+		let val Code.LABEL(_, lid, position) = label
+			val (f, sp, ep, sl, sc, el, ec, r, c) = 
+				case lid of
+					Code.ConRep.LONGID{module=SOME(Code.ConRep.IDENT(modname, info1)), name=Code.ConRep.IDENT(name, info2)}
+					=> let val (f1, sp1, ep1, sl1, sc1, el1, ec1) = getInfo(info1)
+						   val (f2, sp2, ep2, sl2, sc2, el2, ec2) = getInfo(info2)
+					   in
+							(f1, sp2, ep2, sl2, sc2, el2, ec2, modname^"."^name, "")
+					   end	
+						
+				|	Code.ConRep.LONGID{module=NONE, name=Code.ConRep.IDENT(name, info2)}
+					=> let val (f, sp, ep, sl, sc, el, ec) = getInfo(info2)
+					   in
+							(f, sp, ep, sl, sc, el, ec, name, "")
+					   end  
+		in
+			output(os, "\n\tRML__call_debug(\"");
+			output(os, f); output(os, "\","); 
+			prInt os sp; output(os, ","); prInt os ep; output(os, ","); 
+			prInt os sl; output(os, ","); prInt os sc; output(os, ","); prInt os el; output(os, ","); prInt os ec;
+			output(os, ",\""); output(os, r); output(os, "\",\""); output(os, c); output(os, "\");\n")
+		end      
 
     fun prLitName os (Code.LITNAME name) = (output(os, "lit"); prInt os name)
 
@@ -45,19 +104,19 @@ functor CodeToCFn(structure MakeString : MAKESTRING
 
     fun prLitRef os lr =
     case lr
-	of Code.INTlr i =>
-	    (output(os, "RML_IMMEDIATE("); prFixNum(os, i); output(os, ")"))
-	 | Code.HDRlr{len,con} =>
-	    (output(os, "RML_IMMEDIATE("); prStructHdr(os,len,con); output(os, ")"))
-	 | Code.LABELlr lab =>
-	    (output(os, "RML_LABVAL("); prLabel os lab; output(os, ")"))
-	 | Code.EXTERNlr lab => prEXTERNlr(os, lab)
-	 | Code.REALlr name =>
-	    (output(os, "RML_REFREALLIT("); prLitName os name; output(os, ")"))
-	 | Code.STRINGlr name =>
-	    (output(os, "RML_REFSTRINGLIT("); prLitName os name; output(os, ")"))
-	 | Code.STRUCTlr name =>
-	    (output(os, "RML_REFSTRUCTLIT("); prLitName os name; output(os, ")"))
+		of Code.INTlr i =>
+		    (output(os, "RML_IMMEDIATE("); prFixNum(os, i); output(os, ")"))
+		 | Code.HDRlr{len,con} =>
+		    (output(os, "RML_IMMEDIATE("); prStructHdr(os,len,con); output(os, ")"))
+		 | Code.LABELlr lab =>
+		    (output(os, "RML_LABVAL("); prLabel os lab; output(os, ")"))
+		 | Code.EXTERNlr lab => prEXTERNlr(os, lab)
+		 | Code.REALlr name =>
+		    (output(os, "RML_REFREALLIT("); prLitName os name; output(os, ")"))
+		 | Code.STRINGlr name =>
+		    (output(os, "RML_REFSTRINGLIT("); prLitName os name; output(os, ")"))
+		 | Code.STRUCTlr name =>
+		    (output(os, "RML_REFSTRUCTLIT("); prLitName os name; output(os, ")"))
 
     fun prLitRefInit os (Code.EXTERNlr _) = output(os, "0")
       | prLitRefInit os lr = prLitRef os lr
@@ -75,19 +134,19 @@ functor CodeToCFn(structure MakeString : MAKESTRING
 	    | pVal(Code.UNTAGPTR v) = (output(os,"RML_UNTAGPTR("); pVal v; output(os,")"))
 	    | pVal(Code.TAGPTR v) = (output(os,"RML_TAGPTR("); pVal v; output(os,")"))
 	    | pVal(Code.CALL(lab,args)) =
-		let fun loop([]) = ()
-		      | loop(arg::args) = (output(os,", "); pVal arg; loop args)
-		in
-		  prLabel os lab;
-		  output(os, "(");
-		  (case args
-		     of []		=> ()
-		      | (arg::args)	=> (pVal arg; loop args));
-		     output(os, ")")
-		end
-      in
-		pVal
-      end
+				let fun loop([]) = ()
+				      | loop(arg::args) = (output(os,", "); pVal arg; loop args)
+						in
+						  prLabel os lab;
+						  output(os, "(");
+						  (case args
+						     of []		=> ()
+						      | (arg::args)	=> (pVal arg; loop args));
+						     output(os, ")")
+						end
+	      in
+					pVal
+	      end
 
     fun prNaiveIntCt(os, Code.INTct i) = prFixNum(os, i)
       | prNaiveIntCt _ = bug "prNaiveIntCt"
@@ -99,16 +158,81 @@ functor CodeToCFn(structure MakeString : MAKESTRING
     fun prHdrCt(os, Code.HDRct{con,...}) = prInt os con
       | prHdrCt _ = bug "prHdrCt"
 
+	fun isNameOk(name) =
+		if (name <> "$" andalso 
+		    name <> "_" andalso 
+		    name <> "true" andalso 
+		    name <> "false" andalso 
+		    name <> "RML.cons" andalso
+		    String.sub(name, 0) <> #"\"" andalso
+		    String.sub(name, 0) <> #"0"  andalso
+		    String.sub(name, 0) <> #"1"  andalso
+		    String.sub(name, 0) <> #"2"  andalso
+		    String.sub(name, 0) <> #"3"  andalso
+		    String.sub(name, 0) <> #"4"  andalso
+		    String.sub(name, 0) <> #"5"  andalso
+		    String.sub(name, 0) <> #"6"  andalso
+		    String.sub(name, 0) <> #"7"  andalso
+		    String.sub(name, 0) <> #"8"  andalso
+		    String.sub(name, 0) <> #"9"  andalso
+		    String.sub(name, 0) <> #".") 
+		then true
+		else false
+
     fun prCode os (Code.CODE{code,...}) = prCode' os code
 
-    and prCode' os (Code.GOTO(target, nargs)) =
-	  Code.prGoto(os, prLabel, prVal, target, nargs)
+    and prCode' os (Code.GOTO(target, nargs, name, pos, gototy)) =
+      ( 
+        if !Control.doDebug 
+				then
+				let fun loop(~1) = ()
+				    |	loop(n) = 
+						(output(
+							os, 
+							"\n\trmldb_add_active_var(0, \"rmlA"^MakeString.icvt(n)^"\", rmlA"^MakeString.icvt(n)^");");
+							loop(n-1))
+				    
+				    val (f, sp, ep, sl, sc, el, ec) = getInfo(pos)
+					val funcName = getNameFromId name
+					val (additionalCode, gotoType) = 
+						 case gototy of
+							Code.FClk => ("\n\trmldb_pop_stack_frame('f');", "f")
+						  |	Code.SClk => ("\n\trmldb_pop_stack_frame('s');", "s")
+						  | Code.NClk => ("\n\trmldb_pop_stack_frame('n');", "n")
+						  | Code.LClk => ("\n\trmldb_pop_stack_frame('h');", "h")
+						  |	Code.EClk => ("\n\trmldb_pop_stack_frame('e');", "e")
+				in
+				  (* loop(nargs-1); *)
+				  output(os, "\n\tRML__call_debug(\"");
+				  output(os, f); output(os, "\","); 
+				  prInt os sp; output(os, ","); prInt os ep; output(os, ","); 			
+				  prInt os sl; output(os, ","); prInt os sc; output(os, ","); prInt os el; output(os, ","); prInt os ec;
+				  output(os, ",\""); output(os, funcName); output(os, "\",\"");
+				  output(os, gotoType); 
+				  output(os, "\");");
+				  output(os, additionalCode)
+				end
+				else ();
+				Code.prGoto(os, prLabel, prVal, target, nargs))
       | prCode' os (Code.STORE(dst,src,code)) =
-	  (output(os, "\n\tRML_STORE("); prVal os dst; output(os, ", ");
-	  (* adrpo 2005-12-29 changed this to the one below! 
-	   prVal os src; output(os, ");"); prCode os code)
-	   *)
-	   prVal os src; output(os, ");"); 
+			  (output(os, "\n\tRML_STORE("); prVal os dst; output(os, ", ");
+			   prVal os src; output(os, ");");
+		       if !Control.doDebug 
+		       then case (dst) of Code.VAR(Code.LOCvar(Code.LVAR{tag, name})) =>
+							if isNameOk(Code.ConRep.longIdentName(name))
+							then (output(os, "\n\trmldb_add_active_var(0, \""^
+								  String.toCString(Code.ConRep.longIdentName(name))^"\", "); prVal os dst; output(os, ");") )
+							else ()
+					| _ => ()
+				else ();	   
+        if !Control.doDebug 
+        then case (src) of Code.VAR(Code.LOCvar(Code.LVAR{tag, name})) =>
+					if isNameOk(Code.ConRep.longIdentName(name))
+					then (output(os, "\n\trmldb_add_active_var(0, \""^
+						  String.toCString(Code.ConRep.longIdentName(name))^"\", "); prVal os src; output(os, ");") )
+					else ()
+			    | _ => ()
+		   else ();	    
 	   (case code of 
 	        (* open a new sope only when a decl follows. *)
 			Code.CODE{code=Code.BIND(SOME(Code.LOCvar lvar), v, c),...} => 
@@ -116,21 +240,29 @@ functor CodeToCFn(structure MakeString : MAKESTRING
 			(* else, don't open a new scope *)
 		| _ => prCode os code)
 	  )
-      | prCode' os (Code.BIND(SOME(Code.LOCvar lvar), v, code)) =
-	  (* adrpo 2005-12-29 changed this to the one below! 
-	  (output(os, "\n\t{ void *"); prLVar os lvar; output(os, " = "); 
-	  *)
+      | prCode' os (Code.BIND(SOME(Code.LOCvar(lvar as Code.LVAR{tag, name})), v, code)) =
 	  (output(os, "\n\tvoid *"); prLVar os lvar; output(os, " = ");
-	  (* adrpo 2005-12-29 changed this to the one below!       
-	   prVal os v; output(os, ";"); prCode os code; output(os, "}"))
-	  *)
-	   prVal os v; output(os, ";"); prCode os code)	  
+	   prVal os v; output(os, ";");
+       if !Control.doDebug 
+	   then case (v) of Code.VAR(Code.GLOvar(gvar)) =>
+					if isNameOk(Code.ConRep.longIdentName(name))
+					then (output(os, "\n\trmldb_add_active_var(1, \""^
+						  String.toCString(Code.ConRep.longIdentName(name))^"\", "); prVal os v; output(os, ");") )
+					else ()
+			| _ => ()
+	   else ();
+	   prCode os code)	  
       | prCode' os (Code.BIND(SOME(Code.GLOvar gvar), v,  code)) =
 	  (output(os, "\n\t"); prGVar os gvar; output(os, " = "); prVal os v;
-	  (* adrpo 2005-12-29 changed this to the one below!       
-	   output(os, ";"); prCode os code)
-	  *)
-	   output(os, ";"); 
+	   output(os, ";");
+       if !Control.doDebug 
+       then case (v) of Code.VAR(Code.LOCvar(Code.LVAR{tag, name})) =>
+					if isNameOk(Code.ConRep.longIdentName(name))
+					then (output(os, "\n\trmldb_add_active_var(1, \""^
+						  String.toCString(Code.ConRep.longIdentName(name))^"\", "); prVal os v; output(os, ");") )
+					else ()
+			| _ => ()
+		else ();	    
 	   (case code of 
 	        (* open a new sope only when a decl follows. *)
 			Code.CODE{code=Code.BIND(SOME(Code.LOCvar lvar), v, c),...} => 
@@ -139,9 +271,6 @@ functor CodeToCFn(structure MakeString : MAKESTRING
 		| _ => prCode os code)
 	  )	  
       | prCode' os (Code.BIND(NONE, v, code)) =
-	  (* adrpo 2005-12-29 changed this to the one below!       
-	  (output(os, "\n\t"); prVal os v; output(os, ";"); prCode os code)
-	  *)
 	  (output(os, "\n\t"); prVal os v; output(os, ";");
 	   (case code of 
 	        (* open a new sope only when a decl follows. *)
@@ -180,7 +309,7 @@ functor CodeToCFn(structure MakeString : MAKESTRING
 	     prCases(prHdrCt, os, case0, cases, default);
 	     output(os, "\n\t}"))
       | prCode' os (Code.SWITCH(v, cases as ((Code.REALct _,_)::_), default)) =
-	  let val dvar = Code.LVAR(Util.tick())
+	  let val dvar = Code.LVAR{tag=Util.tick(), name=Code.ConRep.dummyLongIdent}
 	  in
 	    output(os, "\n\t{ double "); prLVar os dvar; output(os, " = ");
 	    output(os, " = rml_prim_get_real("); prVal os v; output(os, ";\n\t");
@@ -188,7 +317,7 @@ functor CodeToCFn(structure MakeString : MAKESTRING
 	    prRealDefault os default; output(os, "}}")
 	  end
       | prCode' os (Code.SWITCH(v, cases as ((Code.STRINGct _,_)::_), default)) =
-	  let val xvar = Code.LVAR(Util.tick())
+	  let val xvar = Code.LVAR{tag=Util.tick(), name=Code.ConRep.dummyLongIdent}
 	  in
 	    output(os, "\n\t{ void *"); prLVar os xvar; output(os, " = ");
 	    prVal os v; output(os, ";\n\t");
@@ -340,6 +469,32 @@ functor CodeToCFn(structure MakeString : MAKESTRING
 	      val modname = mangle modname
       in
 		output(os, "\n");
+		if !Control.doDebug 
+		then
+		let val fileName = prefix^".rdb"
+			val is = TextIO.openIn fileName
+			fun loop(s) =
+			let val result = TextIO.inputLine(s)
+			in
+				case result of
+					SOME(line) => 
+					(
+						output(os, "\""^(String.toCString line)^"\",\n");
+						loop(s)
+					)
+				|	NONE => 
+					(
+						output(os, "0\n};\n")
+					)
+			end				
+        in
+			output(os, "static char* "^modname^"_rmldb_database[]=\n{\n");
+			loop(is);
+			TextIO.closeIn is;
+			OS.FileSys.remove(fileName) handle exn => case exn of OS.SysErr _ => () | x => raise x
+        end
+        else ();
+        output(os, "\n");
 		List.app (prDecInitProc os) xmods;
 		output(os, "\nvoid "); output(os, modname);
 		output(os, mangled_init); output(os, "(void)\n{\n");
@@ -353,9 +508,9 @@ functor CodeToCFn(structure MakeString : MAKESTRING
 		if !Control.doDebug 
 		then
 		(
-		output(os, "\trmldb_load_db(\"");
-		output(os, prefix^".rdb");
-		output(os, "\");\n")	
+		output(os, "\trmldb_load_db(");
+		output(os, modname^"_rmldb_database");
+		output(os, ");\n")
 		)
 		else ();
 		output(os, "}\n")
@@ -379,7 +534,7 @@ functor CodeToCFn(structure MakeString : MAKESTRING
 		| Code.ConRep.TRANSPARENT	=>
 			(output(os, "TRANSPARENT"); output(os, "\n#define ");
 			output(os, ctor); output(os, "(X) (X)\n"))
-		| Code.ConRep.BOX{arity,tag}	=>
+		| Code.ConRep.BOX{arity,tag,name}	=>
 			let fun prActuals() =
 				let fun loop n =
 					if n > arity then ()
@@ -415,7 +570,7 @@ functor CodeToCFn(structure MakeString : MAKESTRING
 		| Code.ConRep.TRANSPARENT	=>
 			(output(os, "TRANSPARENT"); output(os, "\n#define ");
 			output(os, ctor); output(os, "(X) (X)\n"))
-		| Code.ConRep.BOX{arity,tag}	=>
+		| Code.ConRep.BOX{arity,tag,name}	=>
 			let fun prActuals() =
 				let fun loop n =
 					if n > arity then ()
@@ -440,15 +595,17 @@ functor CodeToCFn(structure MakeString : MAKESTRING
 			end
       end      
 
-    fun prInterface os (Code.MODULE{modname,ctors,values,labdefs,...}) =
-      let val modname = mangle modname
-      in
+	fun prInterface os (Code.MODULE{modname,ctors,values,labdefs,source,...}) =
+	let val modname = mangle modname
+		val _ = currentSource := source
+		(* val _ = print ("CodeToC:"^Code.Source.getFileName(source)^"\n"); *)
+	in
 		output(os, "/* interface "); output(os, modname); output(os, " */\n");
 		prDecInitProc os modname;
 		List.app (prInterfaceValDec os) values;
 		List.app (prInterfaceLabDec os) labdefs;
 		List.app (prInterfaceCtorDec os) ctors
 		(* List.app (prInterfaceCtorDecArrays os) ctors *)
-      end
+	end
 
   end (* functor CodeToCFn *)

@@ -74,15 +74,11 @@ struct
          else
             bchop(0,l)
    in
-     {line=line_no+line_offset,
-      column=(pos-last_nl)+(column_offset-1)
-      }
+     {line=line_no+line_offset, column=(pos-last_nl)+(column_offset-1)}
    end
 
    val eof_pos=
-     (case Int.maxInt of
-        SOME x => x
-     )
+     (case Int.maxInt of SOME x => x)
 
    fun eof(arr,refl as ref l,_,_)=
    let

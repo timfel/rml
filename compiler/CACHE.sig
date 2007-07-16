@@ -41,8 +41,7 @@ signature CACHE =
     (* create a new cache in the main repository *)
     val  new           : repository * string -> repository
     (* creates new entry *) 
-    val  makeEntry      : Absyn.ident * fileInfo option * fileInfo option 
-                         -> entry 
+    val  makeEntry      : Absyn.ident * fileInfo option * fileInfo option -> entry 
                          
     val  makeFileInfo : Absyn.program * 
                          (poz*poz*visibility) StrDict.dict  *  

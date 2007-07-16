@@ -15,7 +15,7 @@ functor CacheFn(
     datatype restriction = FUN | REC
     datatype ftype = RML | MOD | SRZ
     
- 	type poz = (int*int*int)
+    type poz = (int*int*int)
     
     datatype fileInfo = INFO of 
     { 

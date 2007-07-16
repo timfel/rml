@@ -4,9 +4,9 @@ signature TRANSENV =
   sig
 
     structure StrDict	: STR_DICT
-    structure ConRep	: CONREP
     structure CPS	: CPS
-    sharing ConRep	= CPS.ConRep
+    structure ConRep	: CONREP    
+    sharing ConRep	= CPS.ConRep    
 
     datatype translation= DEF of {def: CPS.def, tieknot: unit->unit}
 			| LIT of CPS.literal

@@ -12,6 +12,10 @@ functor DiffToCFn(structure Code : SWITCH
 
     val output = TextIO.output
 
+    fun emitModule(os, ((prefix, ext), module as Code.MODULE{modname, xmods, xlabs, xvals, values, litdefs, labdefs, source, ...})) =
+	let 
+	val _ = CodeToC.setCurrentSource(source)
+	
     fun prLabTabEntry os modfun (Code.LABDEF{label,...}) =
       (output(os, "RML_LABTAB_ENTRY(");
        CodeToC.prLabel os label;
@@ -182,13 +186,12 @@ functor DiffToCFn(structure Code : SWITCH
 	    output(os, "}\nRML_END_MODULE\n")
 	  end
 
-    fun emitModule(os, ((prefix, ext), module as Code.MODULE{modname, xmods, xlabs, xvals, values, litdefs, labdefs, ...})) =
-      let val (Code.Mangle.NAME modname) = Code.Mangle.encode modname
-	  fun emit_labchecks() =
-	    case labdefs
-	      of [] => ()
-	       | _ => output(os, "\tcheck_all_labels();\n")
-      in
+  val (Code.Mangle.NAME modname) = Code.Mangle.encode modname
+  fun emit_labchecks() =
+    case labdefs
+      of [] => ()
+       | _ => output(os, "\tcheck_all_labels();\n")
+  in
 	output(os, "/* module "); output(os, modname); output(os, " */\n");
 	output(os, "#include \"rml.h\"\n");
 	List.app (CodeToC.prImpLab os) xlabs;
@@ -198,7 +201,7 @@ functor DiffToCFn(structure Code : SWITCH
 	CodeToC.emitValues os values;
 	CodeToC.prInitProc (os, prefix) emit_labchecks module;
 	emit_labdefs(os, labdefs, modname)
-      end
+  end
 
     fun emitInterface(os, module) = CodeToC.prInterface os module
 

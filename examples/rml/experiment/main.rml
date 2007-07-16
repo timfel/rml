@@ -62,7 +62,9 @@ relation main: string list => () =
         main (_)
 *)
 
-   rule let v = 1 & 
+   rule 
+(*
+        let v = 1 & 
         let v1 = v &
         let v = 2 &
         let v2 = v & 
@@ -95,6 +97,20 @@ relation main: string list => () =
         print "\nmod(-2,0.9)=" & print s7 &
         print "\nmod(2,-0.9)=" & print s8 &
         print "\n"
+*)
+
+	print("1e-006:") &
+	realString(1e-006) => s1 & print(s1) &
+	print("\n") &
+	print("1.2e-006:") & 
+	realString(1.2e-006) => s2 & print(s2) & 
+	print("\n") &
+	print("1.1e+006:") & 
+	realString(1.1e-006) => s2 & print(s2) & 
+	print("\n") &
+	print("7.00008266325159e-011:") & 
+	realString(7.00008266325159e-011) => s2 & print(s2) & 
+	print("\n")
         ---------------------------------------
         main (_)
 

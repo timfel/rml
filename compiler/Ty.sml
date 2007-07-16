@@ -165,13 +165,9 @@ structure Ty : TY =
 				printTynameOs(os, modid, t))
 	    | NAMED(id_str, t) => 
 			(
-			(* - do not dump the name of the type component
 			sayOs(os, id_str); sayOs(os, ":("); 
-			*) 
-			printTypeDispatchOs(os, modid, t, needParens)
-			(*; 
+			printTypeDispatchOs(os, modid, t, needParens);
 			sayOs(os, ")")
-			*)
 			)
 
     fun printTypeOs(SOME(os), modid, ty) = (alphaCounter := ~1; printTypeNoParensOs(os, modid, ty))

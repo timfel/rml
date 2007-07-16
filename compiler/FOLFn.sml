@@ -1,28 +1,30 @@
 (* fol/fol.sml *)
 
-functor FOLFn(structure Util : UTIL) : FOL =
+functor FOLFn(
+	structure Util : UTIL
+	structure Source: SOURCE
+	) : FOL =
   struct
 
-	(*
-    (* start line, start column, end line, endcolumn *)
-	datatype loc = LOC of int * int * int * int
-
-    (* filename, pos start, pos end *)
-	datatype info = INFO of string * int * int * loc
+    structure Source	= Source
+    
+    (* pos start, pos end *)
+	datatype info = INFO of int * int
 
     datatype ident	= IDENT of string * info
-    *)
-    type ident = string
-    datatype longid	= LONGID of ident option * ident
+
+    datatype longid	= LONGID of ident option * ident * info
 
     datatype lit	= ICON of int
 			| RCON of real
 			| SCON of string
 
-    datatype var	= VAR of {name	: ident,
-				  uses	: int ref,
-				  inst	: var option ref}
-
+    datatype var	= VAR of { 
+                               name	: string, 
+                               uses	: int ref,
+				               inst	: var option ref 
+				             } * ident
+				              
     datatype pat'	= WILDpat
 			| LITpat of lit
 			| CONpat of longid
@@ -37,21 +39,22 @@ functor FOLFn(structure Util : UTIL) : FOL =
 			| VARexp of varref
 			| STRUCTexp of longid option * exp list
 
-    datatype conj	= CALL of varref * exp list * var list
-			| MATCH of (var * pat) list
-			| EQUAL of var * exp
-			| BIND of var * exp
-			| NOT of conj
-			| AND of conj * conj
+    datatype conj	= CALL of varref * exp list * var list * info
+			| MATCH of (var * pat) list * info
+			| EQUAL of var * exp * info
+			| BIND of var * exp * info
+			| NOT of conj * info
+			| AND of conj * conj * info
+			| IF of conj * conj * conj * info
 
-    datatype disj	= RETURN of exp list
-			| FAIL
-			| ORELSE of disj * disj
-			| ANDTHEN of conj * disj
-			| COND of conj * disj * disj
-			| CASE of var list * (pat list * disj) list
+    datatype disj	= RETURN of exp list * info
+			| FAIL of info
+			| ORELSE of disj * disj * info
+			| ANDTHEN of conj * disj * info
+			| COND of conj * disj * disj * info
+			| CASE of var list * (pat list * disj) list * info
 
-    datatype rel	= REL of ident * var list * disj
+    datatype rel	= REL of ident * var list * disj * info
 
     datatype condesc	= CONcd of ident
 			| CTORcd of ident * int
@@ -68,19 +71,35 @@ functor FOLFn(structure Util : UTIL) : FOL =
 			| VALdec of ident * exp
 			| RELdec of rel list
 
-    datatype module	= MODULE of interface * dec list
+    datatype module	= MODULE of interface * dec list * Source.source
+
+	val debugFlag = false
+	fun debug s = if (debugFlag) then Util.outStdErr("FOLFn."^s) else ()
+
+    val dummyInfo = INFO(~1, ~1)
+    val dummyIdent = IDENT("$", dummyInfo)    
+
+    fun makeIdent(name, info) = IDENT(name, info)
+    fun rmlIdent name = IDENT(name, dummyInfo)
+    fun identName(IDENT(name,_)) = name
+    fun identCtxInfo(IDENT(_, info)) = info
+    fun lidentName(LONGID(SOME(IDENT(name1,_)),IDENT(name2,_),_)) = name1^"."^name2
+    |	lidentName(LONGID(NONE,IDENT(name,_),_)) = name
+    fun lidentCtxInfo(LONGID(_, _, info)) = info
 
     fun litEqual(ICON i1, ICON i2) = i1=i2
       | litEqual(RCON r1, RCON r2) = Real.==(r1,r2)
       | litEqual(SCON s1, SCON s2) = s1=s2
       | litEqual(_, _) = false
 
-    fun newvar() =
-      VAR{name="$"^(Int.toString(Util.tick())), uses=ref 0, inst=ref NONE}
+    fun newvar(src) = VAR({name="$"^Int.toString(Util.tick()), uses=ref 0, inst=ref NONE}, src)
 
-    fun deref(var as VAR{inst,...}) =
+    fun deref(var as VAR({inst,name,...}, id)) =
+    (
+      debug("deref: Dereferencing: "^name^":"^identName(id)^"\n");
       case !inst
-	of SOME var	=> deref var
-	 | NONE		=> var
+		of SOME var	=> (debug("deref: -> "); deref var)
+		 | NONE		=> (debug("deref: =>| "); var)
+	)
 
   end (* functor FOLFn *)

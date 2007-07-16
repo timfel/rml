@@ -34,7 +34,7 @@ functor StatObjFn(
     (* standard type names *)
     val t_bool	= Ty.TYNAME{modid="RML",tycon="bool",eq=ref Ty.MAYBE}
     val t_char	= Ty.TYNAME{modid="RML",tycon="char",eq=ref Ty.MAYBE}
-    val t_int	= Ty.TYNAME{modid="RML",tycon="int",eq=ref Ty.MAYBE}
+    val t_int	  = Ty.TYNAME{modid="RML",tycon="int",eq=ref Ty.MAYBE}
     val t_list	= Ty.TYNAME{modid="RML",tycon="list",eq=ref Ty.MAYBE}
     val t_lvar	= Ty.TYNAME{modid="RML",tycon="lvar",eq=ref Ty.ALWAYS}
     val t_option= Ty.TYNAME{modid="RML",tycon="option",eq=ref Ty.MAYBE}
@@ -48,12 +48,15 @@ functor StatObjFn(
     val tau_char	= Ty.CONS([],t_char)
     val tau_int		= Ty.CONS([],t_int)
     val tau_real	= Ty.CONS([],t_real)
-    val tau_string	= Ty.CONS([],t_string)
+    val tau_string= Ty.CONS([],t_string)
 
     (* some standard types *)
     val alpha		= Ty.RIGID "a"
     val tau_alpha	= Ty.VAR alpha
+    val beta		= Ty.RIGID "b"
+    val tau_beta	= Ty.VAR beta
     val tau_alpha_list	= Ty.CONS([tau_alpha], t_list)
+    val tau_beta_list	= Ty.CONS([tau_beta],  t_list)    
     val tau_alpha_lvar	= Ty.CONS([tau_alpha], t_lvar)
     val tau_alpha_option= Ty.CONS([tau_alpha], t_option)
     val tau_alpha_vector= Ty.CONS([tau_alpha], t_vector)
@@ -63,43 +66,6 @@ functor StatObjFn(
     val eqalpha		= Ty.RIGID "'a"
     val tau_eqalpha	= Ty.VAR eqalpha
     val tau_eqalpha_list= Ty.CONS([tau_eqalpha], t_list)
-    (* adrpo added 2004-11-23 *)
-    val tau_debug_params = 
-			Ty.TUPLE(
-				[
-					Ty.TUPLE([Ty.VAR(Ty.RIGID("rmldb_var_001")), Ty.VAR(Ty.RIGID("rmldb_var_01"))]),
-					Ty.TUPLE([Ty.VAR(Ty.RIGID("rmldb_var_002")), Ty.VAR(Ty.RIGID("rmldb_var_02"))]),
-					Ty.TUPLE([Ty.VAR(Ty.RIGID("rmldb_var_003")), Ty.VAR(Ty.RIGID("rmldb_var_03"))]),
-					Ty.TUPLE([Ty.VAR(Ty.RIGID("rmldb_var_004")), Ty.VAR(Ty.RIGID("rmldb_var_04"))]),
-					Ty.TUPLE([Ty.VAR(Ty.RIGID("rmldb_var_005")), Ty.VAR(Ty.RIGID("rmldb_var_05"))]),
-					Ty.TUPLE([Ty.VAR(Ty.RIGID("rmldb_var_006")), Ty.VAR(Ty.RIGID("rmldb_var_06"))]),
-					Ty.TUPLE([Ty.VAR(Ty.RIGID("rmldb_var_007")), Ty.VAR(Ty.RIGID("rmldb_var_07"))]),
-					Ty.TUPLE([Ty.VAR(Ty.RIGID("rmldb_var_008")), Ty.VAR(Ty.RIGID("rmldb_var_08"))]),
-					Ty.TUPLE([Ty.VAR(Ty.RIGID("rmldb_var_009")), Ty.VAR(Ty.RIGID("rmldb_var_09"))]),
-					Ty.TUPLE([Ty.VAR(Ty.RIGID("rmldb_var_010")), Ty.VAR(Ty.RIGID("rmldb_var_10"))]),
-					Ty.TUPLE([Ty.VAR(Ty.RIGID("rmldb_var_011")), Ty.VAR(Ty.RIGID("rmldb_var_11"))]),
-					Ty.TUPLE([Ty.VAR(Ty.RIGID("rmldb_var_012")), Ty.VAR(Ty.RIGID("rmldb_var_12"))]),
-					Ty.TUPLE([Ty.VAR(Ty.RIGID("rmldb_var_013")), Ty.VAR(Ty.RIGID("rmldb_var_13"))]),
-					Ty.TUPLE([Ty.VAR(Ty.RIGID("rmldb_var_014")), Ty.VAR(Ty.RIGID("rmldb_var_14"))]),
-					Ty.TUPLE([Ty.VAR(Ty.RIGID("rmldb_var_015")), Ty.VAR(Ty.RIGID("rmldb_var_15"))]),
-					Ty.TUPLE([Ty.VAR(Ty.RIGID("rmldb_var_016")), Ty.VAR(Ty.RIGID("rmldb_var_16"))]),
-					Ty.TUPLE([Ty.VAR(Ty.RIGID("rmldb_var_017")), Ty.VAR(Ty.RIGID("rmldb_var_17"))]),
-					Ty.TUPLE([Ty.VAR(Ty.RIGID("rmldb_var_018")), Ty.VAR(Ty.RIGID("rmldb_var_18"))]),
-					Ty.TUPLE([Ty.VAR(Ty.RIGID("rmldb_var_019")), Ty.VAR(Ty.RIGID("rmldb_var_19"))]),
-					Ty.TUPLE([Ty.VAR(Ty.RIGID("rmldb_var_020")), Ty.VAR(Ty.RIGID("rmldb_var_20"))]),
-					Ty.TUPLE([Ty.VAR(Ty.RIGID("rmldb_var_021")), Ty.VAR(Ty.RIGID("rmldb_var_21"))]),
-					Ty.TUPLE([Ty.VAR(Ty.RIGID("rmldb_var_022")), Ty.VAR(Ty.RIGID("rmldb_var_22"))]),
-					Ty.TUPLE([Ty.VAR(Ty.RIGID("rmldb_var_023")), Ty.VAR(Ty.RIGID("rmldb_var_23"))]),
-					Ty.TUPLE([Ty.VAR(Ty.RIGID("rmldb_var_024")), Ty.VAR(Ty.RIGID("rmldb_var_24"))]),
-					Ty.TUPLE([Ty.VAR(Ty.RIGID("rmldb_var_025")), Ty.VAR(Ty.RIGID("rmldb_var_25"))]),
-					Ty.TUPLE([Ty.VAR(Ty.RIGID("rmldb_var_026")), Ty.VAR(Ty.RIGID("rmldb_var_26"))]),
-					Ty.TUPLE([Ty.VAR(Ty.RIGID("rmldb_var_027")), Ty.VAR(Ty.RIGID("rmldb_var_27"))]),
-					Ty.TUPLE([Ty.VAR(Ty.RIGID("rmldb_var_028")), Ty.VAR(Ty.RIGID("rmldb_var_28"))]),
-					Ty.TUPLE([Ty.VAR(Ty.RIGID("rmldb_var_029")), Ty.VAR(Ty.RIGID("rmldb_var_29"))]),
-					Ty.TUPLE([Ty.VAR(Ty.RIGID("rmldb_var_030")), Ty.VAR(Ty.RIGID("rmldb_var_30"))]),
-					Ty.TUPLE([Ty.VAR(Ty.RIGID("rmldb_var_031")), Ty.VAR(Ty.RIGID("rmldb_var_31"))]),
-					Ty.TUPLE([Ty.VAR(Ty.RIGID("rmldb_var_032")), Ty.VAR(Ty.RIGID("rmldb_var_32"))])					
-				])
 	val tau_debug_param = [tau_string, tau_alpha]
 	
 	fun getFreshTau(x) = [tau_string, Ty.VAR(Ty.RIGID("rmldb_var_x"^Int.toString(x)))]
@@ -172,6 +138,7 @@ functor StatObjFn(
 	  val VE = bindRel(VE,"string_char_list_string",[tau_string_list],[tau_string])	  
 	  val VE = bindRel(VE,"list_vector",[tau_alpha_list],[tau_alpha_vector])
 	  val VE = bindRel(VE,"list_array",[tau_alpha_list],[tau_alpha_array])	  
+	  val VE = bindRel(VE,"list_map",[tau_alpha_list,Ty.REL([tau_alpha],[tau_beta])],[tau_beta_list])	  
 	  (* logical variables *)
 	  val VE = bindRel(VE,"lvar_get",[tau_alpha_lvar],[tau_alpha_option])
 	  val VE = bindRel(VE,"lvar_new",[],[tau_alpha_lvar])
@@ -202,6 +169,14 @@ functor StatObjFn(
 	  val VE = bindRel(VE,"real_sqrt",[tau_real],[tau_real])
 	  val VE = bindRel(VE,"real_string",[tau_real],[tau_string])
 	  val VE = bindRel(VE,"real_sub",[tau_real,tau_real],[tau_real])
+	  val VE = bindRel(VE,"real_asin",[tau_real],[tau_real])
+	  val VE = bindRel(VE,"real_acos",[tau_real],[tau_real])
+	  val VE = bindRel(VE,"real_atan2",[tau_real],[tau_real])
+	  val VE = bindRel(VE,"real_cosh",[tau_real],[tau_real])
+	  val VE = bindRel(VE,"real_log",[tau_real],[tau_real])
+	  val VE = bindRel(VE,"real_log10",[tau_real],[tau_real])
+	  val VE = bindRel(VE,"real_sinh",[tau_real],[tau_real])
+	  val VE = bindRel(VE,"real_tanh",[tau_real],[tau_real])
 	  (* strings *)
 	  val VE = bindRel(VE,"string_append",[tau_string,tau_string],[tau_string])
 	  val VE = bindRel(VE,"string_int",[tau_string],[tau_int])
@@ -284,6 +259,7 @@ functor StatObjFn(
 	  val VE = bindRel(VE,"stringCharListString",[tau_string_list],[tau_string])
 	  val VE = bindRel(VE,"listVector",[tau_alpha_list],[tau_alpha_vector])
 	  val VE = bindRel(VE,"listArray",[tau_alpha_list],[tau_alpha_array])	  
+	  val VE = bindRel(VE,"listMap",[tau_alpha_list,Ty.REL([tau_alpha],[tau_beta])],[tau_beta_list])	  
 	  (* logical variables *)
 	  val VE = bindRel(VE,"lvarGet",[tau_alpha_lvar],[tau_alpha_option])
 	  val VE = bindRel(VE,"lvarNew",[],[tau_alpha_lvar])
@@ -314,6 +290,14 @@ functor StatObjFn(
 	  val VE = bindRel(VE,"realSqrt",[tau_real],[tau_real])
 	  val VE = bindRel(VE,"realString",[tau_real],[tau_string])
 	  val VE = bindRel(VE,"realSub",[tau_real,tau_real],[tau_real])
+	  val VE = bindRel(VE,"realAsin",[tau_real],[tau_real])
+	  val VE = bindRel(VE,"realAcos",[tau_real],[tau_real])
+	  val VE = bindRel(VE,"realAtan2",[tau_real],[tau_real])
+	  val VE = bindRel(VE,"realCosh",[tau_real],[tau_real])
+	  val VE = bindRel(VE,"realLog",[tau_real],[tau_real])
+	  val VE = bindRel(VE,"realLog10",[tau_real],[tau_real])
+	  val VE = bindRel(VE,"realSinh",[tau_real],[tau_real])
+	  val VE = bindRel(VE,"realTanh",[tau_real],[tau_real])
 	  (* strings *)
 	  val VE = bindRel(VE,"stringAppend",[tau_string,tau_string],[tau_string])
 	  val VE = bindRel(VE,"stringInt",[tau_string],[tau_int])
@@ -382,12 +366,9 @@ functor StatObjFn(
 	             tau_int,			(* ecolumn *)
 	             tau_string,		(* relation *)
 	             tau_string			(* goal *)
-	             (* maybe these later on *)
-	             (*tau_debug_params,*)  (* results of previous goal *)
-	             (*tau_debug_params *)   (* actual parameters to next goal *)
 	            ],[])
-	  val VE = bindRel(VE, "debug_push_vars", [tau_debug_params], [])
 	  val VE = bindRel(VE, "debug_print", tau_debug_param, [])
+	  val VE = bindRel(VE, "debug_show_depth", [tau_int], [])
 	  val VE = bindRel(VE, "debug_push_in01", makeParameterTyList([], 1), [])
 	  val VE = bindRel(VE, "debug_push_in02", makeParameterTyList([], 2), [])
 	  val VE = bindRel(VE, "debug_push_in03", makeParameterTyList([], 3), [])
@@ -420,7 +401,7 @@ functor StatObjFn(
 	  val VE = bindRel(VE, "debug_push_out13", makeParameterTyList([],13), [])
 	  val VE = bindRel(VE, "debug_push_out14", makeParameterTyList([],14), [])
 	  val VE = bindRel(VE, "debug_push_out15", makeParameterTyList([],15), [])
-	  val VE = bindRel(VE, "debug_push_out16", makeParameterTyList([],16), []) 	  
+	  val VE = bindRel(VE, "debug_push_out16", makeParameterTyList([],16), [])
 	  (* adrpo ----- *)
 	  
       in

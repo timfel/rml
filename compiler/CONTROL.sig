@@ -101,6 +101,9 @@ signature CONTROL =
     val withOutputStream: ('a * 'b -> 'c) -> 'b -> 'a -> 'c
     (* function to write files with error handling *)
     val withOut         : (TextIO.outstream * 'a -> 'b) -> 'a -> 'b
+
+    (* print import loadinging order  *)
+    val importLoadOrder : bool ref
 	
   end (* signature CONTROL *)
 

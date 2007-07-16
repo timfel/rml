@@ -2,9 +2,9 @@
 export RML
 
 source 
- c:\bin\cygwin\home\adrpo\rml\compiler\, 
- c:\bin\cygwin\home\adrpo\rml\compiler\library\common,
- c:\bin\cygwin\home\adrpo\rml\compiler\library\pickle, 
+ c:\bin\cygwin\home\adrpo\dev\rml\compiler\, 
+ c:\bin\cygwin\home\adrpo\dev\rml\compiler\library\common,
+ c:\bin\cygwin\home\adrpo\dev\rml\compiler\library\pickle, 
  c:\bin\sml.net\lib\parsing\
 
 
@@ -22,6 +22,9 @@ structure Tokens=persistent.grm.sml
 signature PERSISTENT_TOKENS=persistent.grm.sig, PERSISTENT_LRVALS=persistent.grm.sig
 functor   PERSISTENTLrValsFn=persistent.grm.sml, PERSISTENTLexFn=persistent.lex.sml
 
+on debug
+on debug*
+on debug.*
 on debug.symFromLoc
 
 

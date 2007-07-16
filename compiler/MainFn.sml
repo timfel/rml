@@ -112,7 +112,8 @@ functor MainFn(
 
     (* dump the CPS representation *)
     fun cpsPrint(cpsOs, cpsModule) =
-      if !optCps then CPSOptim.optimize(SOME cpsOs, cpsModule)
+      if !optCps 
+      then (CPSPrint.printModule(cpsOs, cpsModule);	CPSOptim.optimize(SOME cpsOs, cpsModule))
       else (CPSPrint.printModule(cpsOs, cpsModule); cpsModule)
     
     (* generate the CPS representation *)
@@ -185,6 +186,7 @@ functor MainFn(
        sayErr "-O{,no-}code\n  enable the optimization of code; default to 'yes'\n";
        sayErr "-O{,no-}cps\n  enable the optimization of cps; default to 'yes'\n";
        sayErr "-O{,no-}fol\n  enable the optimization of fol; default to 'yes'\n";
+       sayErr "-f{no-}import-load-order\n  hide/show the import load order when compiling; default to 'no'\n";
        sayErr "-i\n  generate a SML interpreter\n";
        sayErr "-v\n  print the version and exit\n";
        sayErr "-builtin\n  print the defined builtin relations/functions and exit\n";
@@ -239,7 +241,11 @@ functor MainFn(
 	 (
 		Control.doDebug := true; 
 		Control.emitRdb := true; 
-		Control.qualifiedRdb := true
+		Control.qualifiedRdb := true;
+		(* no cps optimization *)
+		optCps := false;
+		(* disable code optimization *)
+		optCode := false
 	 )
 	 | "-fno-debug"         => Control.doDebug := false
 	 | "-ftrace"            => Control.doTrace := true
@@ -274,7 +280,9 @@ functor MainFn(
 		  Control.dumpInterface := true (* do not load additional files *)	
 		  *)	  
 		)		
-	 | "-v" => version()
+     | "-fno-import-load-order" => (Util.warn("-fno-import-load-order activated."); Control.importLoadOrder := false)
+     | "-fimport-load-order" => (Util.warn("-fimport-load-order activated."); Control.importLoadOrder := true)
+     | "-v" => version()
 	 | "-builtin" => helpBuiltin()
 	 | "--help" => help()
 	 | "-help"  => help()

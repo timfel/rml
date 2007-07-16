@@ -5,11 +5,8 @@ signature ABSYN =
 
     structure Source	: SOURCE
 
-    (* start line, start column, end line, endcolumn *)
-	datatype loc = LOC of int * int * int * int
-
-    (* filename, pos start, pos end *)
-	datatype info = INFO of string * int * int * loc
+    (* pos start, pos end *)
+	datatype info = INFO of int * int
 
     (* --- start RML AST --- *)
     datatype ident	= IDENT of string * info
@@ -46,12 +43,13 @@ signature ABSYN =
 				 | STRUCTexp of longid option * exp list * info
 				 | IDENTexp of longid * exp ref * info
 
-	(* adrpo added 2005-11-08 the ref component in CALLgoal and LETgoal *) 
+	(* adrpo added 2005-11-08 the ref component in CALLgoal *) 
     datatype goal = CALLgoal of longid * exp list * pat list * pat list ref * info
 				  | EQUALgoal of var * exp * info
-				  | LETgoal of pat * exp * pat option ref * info
+				  | LETgoal of pat * exp * info
 				  | NOTgoal of goal * info
 				  | ANDgoal of goal * goal * info
+				  | CONDgoal of goal * goal * goal * info				  
 
     datatype result	= RETURN of exp list * info
 					| FAIL of info
@@ -548,7 +546,6 @@ signature ABSYN =
   val identEqual	    : ident * ident -> bool
   val litEqual	    : lit * lit -> bool
   val litString	    : lit -> string
-  val dummyLoc        : loc
   val dummyInfo       : info
   val dummyInterface	: interface	
   val getLastPathAsString : Path -> string

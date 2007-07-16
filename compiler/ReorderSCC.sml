@@ -24,8 +24,8 @@ structure ReorderSCC : REORDER_SCC =
 	    end
 	  fun update_succs(i, V{succ,...}) = List.app (pred_by i) succ
       in
-	Vector.appi update_succs (vs); (* , 0 ,NONE); *)
-	vs
+		Vector.appi update_succs (vs); (* , 0 ,NONE); *)
+		vs
       end
 
     fun postorder vs =
@@ -51,13 +51,13 @@ structure ReorderSCC : REORDER_SCC =
 	      of []	=> sccs
 	       | scc	=> scc :: sccs
       in
-	List.foldl component [] is
+		List.foldl component [] is
       end
 
     fun scc xs =
       let val vs = digraph xs
       in
-	components(vs, postorder vs)
+		components(vs, postorder vs)
       end
 
   end (* structure ReorderSCC *)

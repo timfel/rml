@@ -12,17 +12,19 @@ functor CodeFVarsFn(structure Util : UTIL
     datatype VarFrame	= FREE of Code.lvar list ref
 			| BOUND of Code.lvar
 
-    fun frame_enter(frame, var: Code.lvar) =
+	fun lvarEq(Code.LVAR{tag=tag1,...}, Code.LVAR{tag=tag2,...}) = tag1 = tag2
+
+    fun frame_enter(frame, var : Code.lvar) =
       let fun loop([]) = frame := var::(!frame)
-	    | loop(var'::vars) = if var=var' then () else loop vars
+	    | loop(var'::vars) = if lvarEq(var,var') then () else loop vars
       in
-	loop(!frame)
+		loop(!frame)
       end
 
-    fun stack_enter(stack, var: Code.lvar) =
+    fun stack_enter(stack, var as Code.LVAR{tag,...}) =
       let fun loop([]) = bug("stack_enter: "^(Code.lvarString var)^" unbound?")
 	    | loop((FREE frame)::stack) = (frame_enter(frame,var); loop stack)
-	    | loop((BOUND var')::stack) = if var=var' then () else loop stack
+	    | loop((BOUND var')::stack) = if lvarEq(var,var') then () else loop stack
       in
 	loop stack
       end
@@ -48,9 +50,9 @@ functor CodeFVarsFn(structure Util : UTIL
 	  val scanv = scan_value stack
       in
 	case code
-	  of Code.GOTO(Code.LOCALg _,_) => ()
-	   | Code.GOTO(Code.EXTERNg _,_) => ()
-	   | Code.GOTO(Code.VALUEg v,_) => scanv v
+	  of Code.GOTO(Code.LOCALg _, _, _, _, _) => ()
+	   | Code.GOTO(Code.EXTERNg _, _, _, _, _) => ()
+	   | Code.GOTO(Code.VALUEg v, _, _, _, _) => scanv v
 	   | Code.STORE(v1,v2,c)	=> (scanv v1; scanv v2; scan_code stack c)
 	   | Code.BIND(NONE,v,c)	=> (scanv v; scan_code stack c)
 	   | Code.BIND(SOME var,v,c)	=> (scanv v; scan_code (bind(var, stack)) c)

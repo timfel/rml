@@ -2,6 +2,8 @@
 
 
 structure Switch =
-  SwitchFn(structure MakeString = MakeString
-	   structure ConRep = ConRep
-	   structure Mangle = Mangle);
+	SwitchFn(
+		structure MakeString = MakeString
+		structure Source = Source
+		structure ConRep = ConRep
+		structure Mangle = Mangle);

@@ -92,6 +92,7 @@ functor InstrumentFn(structure Absyn : ABSYN
 		 else (print_ident(ident') ^ "." ^ print_ident(ident))
 	   | NONE		=> (print_ident(ident)))
 
+    (*
     fun print_longid_info(Absyn.LONGID(modname, ident, _)) = 
 		let val Absyn.INFO(file,_,_,
 						   Absyn.LOC(sline,scolumn,eline,ecolumn)) = 
@@ -106,7 +107,7 @@ functor InstrumentFn(structure Absyn : ABSYN
 				(Int.toString ecolumn))
 		)
 	  end
-
+    *)
 	   
     fun print_lit(lit) = Absyn.litString lit
 
@@ -117,7 +118,6 @@ functor InstrumentFn(structure Absyn : ABSYN
     
 	val modidRML = SOME(Absyn.rmlIdent "RML")
 	val debug = Absyn.LONGID(modidRML, Absyn.rmlIdent "debug", Absyn.dummyInfo)
-	val show = Absyn.LONGID(modidRML, Absyn.rmlIdent "debug_push_vars", Absyn.dummyInfo)
 	val id_cons = Absyn.LONGID(modidRML, Absyn.rmlIdent "cons", Absyn.dummyInfo)
 	val ctor_cons = SOME id_cons
 	val dummyDebugVar = Absyn.LITexp(Absyn.SCONlit("-", Absyn.dummyInfo), Absyn.dummyInfo)
@@ -127,9 +127,6 @@ functor InstrumentFn(structure Absyn : ABSYN
     fun getPatAsString(Absyn.WILDpat _) = ("_")
       | getPatAsString(Absyn.LITpat(lit, _)) = print_lit(lit)
       | getPatAsString(Absyn.CONpat(longcon, _)) = print_longid(longcon)
-      (*| getPatAsString(Absyn.STRUCTpat(
-				SOME(Absyn.LONGID(SOME(Absyn.IDENT("RML", _)), Absyn.IDENT("cons", _), _)), pat_star, _, _)) =
-						(print_list_comma_pat(pat_star, getPatAsString)) *)
       | getPatAsString(Absyn.STRUCTpat(ctor, pat_star, _, _)) =
 		(print_ctor_opt(ctor)^print_parens_comma(pat_star, getPatAsString))
       | getPatAsString(Absyn.BINDpat(var, pat, _)) =
@@ -151,9 +148,55 @@ functor InstrumentFn(structure Absyn : ABSYN
       | getInfoFromExp(Absyn.IDENTexp(id, _, info)) = info
       | getInfoFromExp(Absyn.VARexp(longId, info)) = info
 
+    fun getExpAsString(Absyn.LITexp(lit, _)) = (Absyn.litString lit)
+      | getExpAsString(Absyn.CONexp(longid, _)) = (print_longid(longid))
+      | getExpAsString(Absyn.VARexp(longid, _)) = (print_longid(*_info*)(longid))
+      | getExpAsString(Absyn.STRUCTexp(
+				SOME(Absyn.LONGID(SOME(Absyn.IDENT("RML", _)), Absyn.IDENT("cons", _), _)), exp_star, _)) =
+						(print_list_comma_exp(exp_star, getExpAsString))      
+      | getExpAsString(Absyn.STRUCTexp(ctor, exp_star, _)) =
+				(print_ctor_opt(ctor)^print_parens_comma(exp_star, getExpAsString))				
+      | getExpAsString(Absyn.IDENTexp(longid, _, _)) = (print_longid(*_info*)(longid))
+
+    fun getExpsFromExp(x as Absyn.VARexp(longid,info)) = [x]
+	  | getExpsFromExp(Absyn.LITexp(lit, infoLIT)) = []
+      | getExpsFromExp(Absyn.CONexp(longcon, infoCON)) = [Absyn.CONexp(longcon, infoCON)]
+      | getExpsFromExp(Absyn.STRUCTexp(ctor, exp_star, _)) = getExpsFromExpStar exp_star
+      | getExpsFromExp(id as Absyn.IDENTexp(_, _, _)) = [id]
+	and getExpsFromExpStar(foo::foo_star) = getExpsFromExp(foo) @ (getExpsFromExpStar foo_star)
+	  | getExpsFromExpStar(nil) = []
+
+    fun getExpsFromPat(Absyn.WILDpat _) = []
+      | getExpsFromPat(Absyn.LITpat(lit, infoLIT)) = []
+      | getExpsFromPat(Absyn.CONpat(longcon, infoCON)) = [Absyn.CONexp(longcon, infoCON)]
+      | getExpsFromPat(Absyn.STRUCTpat(ctor, pat_star, _, _)) = getExpsFromPatStar pat_star
+      | getExpsFromPat(Absyn.BINDpat(var, pat, infoBIND)) = 
+			Absyn.IDENTexp(Absyn.LONGID(NONE, var, Absyn.dummyInfo), 
+				ref(Absyn.STRUCTexp(NONE, [], Absyn.dummyInfo)),
+				infoBIND)::(getExpsFromPat pat)
+      | getExpsFromPat(Absyn.IDENTpat(id as Absyn.IDENT(_, infoID), _, infoIDENT)) = 
+			[Absyn.IDENTexp(Absyn.LONGID(NONE, id, infoID), 
+			 ref(Absyn.STRUCTexp(NONE, [], Absyn.dummyInfo)),
+			 infoIDENT)]
+	  | getExpsFromPat(Absyn.NAMEDpat(_, pat, _)) = getExpsFromPat(pat)
+	and getExpsFromPatStar(foo::foo_star) = getExpsFromPat(foo) @ (getExpsFromPatStar foo_star)
+	  | getExpsFromPatStar(nil) = []
+					    	
+    fun getAllResultExps(Absyn.RETURN(exps, _)) = ( exps )
+      | getAllResultExps(Absyn.FAIL (info)) = 
+			[Absyn.LITexp(
+				Absyn.SCONlit("fail", info),
+				info)]
+				
+    fun getResultExps(Absyn.RETURN(exps, _)) = ( getExpsFromExpStar exps )
+      | getResultExps(Absyn.FAIL (info)) = 
+			[Absyn.LITexp(
+				Absyn.SCONlit("fail", info),
+				info)]
+				
     (* ------------------------------------------------------ *)
     (* ------------------------------------------------------ *)
-    fun instrument(fileName, m) =
+    fun instrument(fileName, m as Absyn.MODULE(Absyn.INTERFACE({source,...}, _), _, _)) =
     (* ------------------------------------------------------ *)
     let 
 								  
@@ -188,16 +231,6 @@ functor InstrumentFn(structure Absyn : ABSYN
 			[makeSingleTuple(addDummyParams(foo, 32-llength))]
 	end      		
 
-    fun getExpAsString(Absyn.LITexp(lit, _)) = (Absyn.litString lit)
-      | getExpAsString(Absyn.CONexp(longid, _)) = (print_longid(longid))
-      | getExpAsString(Absyn.VARexp(longid, _)) = (print_longid(*_info*)(longid))
-      | getExpAsString(Absyn.STRUCTexp(
-				SOME(Absyn.LONGID(SOME(Absyn.IDENT("RML", _)), Absyn.IDENT("cons", _), _)), exp_star, _)) =
-						(print_list_comma_exp(exp_star, getExpAsString))      
-      | getExpAsString(Absyn.STRUCTexp(ctor, exp_star, _)) =
-				(print_ctor_opt(ctor)^print_parens_comma(exp_star, getExpAsString))				
-      | getExpAsString(Absyn.IDENTexp(longid, _, _)) = (print_longid(*_info*)(longid))
-
 	fun getExpAST(exp) = 
 		Absyn.LITexp(Absyn.SCONlit(getExpAsString(exp), Absyn.dummyInfo),
 			Absyn.dummyInfo)
@@ -207,21 +240,11 @@ functor InstrumentFn(structure Absyn : ABSYN
 		| makeTupleList(foo::rest, func) = 
 			[makeTuple(func(foo), [foo])] @ makeTupleList(rest, func) 						
 		
-	(*
-    fun printVars(foo) = 
-		Absyn.CALLgoal(
-			show, 
-			checkParams(makeTupleList(foo, getExpAST)), 
-			[],
-			[], 
-			Absyn.dummyInfo)
-	*)
-
 	fun makeParamList(nil, func) = []
 		| makeParamList(foo::nil, func) = [func(foo), foo]
 		| makeParamList(foo::rest, func) = 
 			[func(foo), foo] @ makeParamList(rest, func) 							
-	
+		
     fun printVars(foo, direction) =
     let val llength = List.length foo
     in
@@ -238,64 +261,31 @@ functor InstrumentFn(structure Absyn : ABSYN
 					Absyn.dummyInfo)
 	end
 
-    fun getExpsFromExp(x as Absyn.VARexp(longid,info)) = [x]
-	  | getExpsFromExp(Absyn.LITexp(lit, infoLIT)) = []
-      | getExpsFromExp(Absyn.CONexp(longcon, infoCON)) = [Absyn.CONexp(longcon, infoCON)]
-      | getExpsFromExp(Absyn.STRUCTexp(ctor, exp_star, _)) = getExpsFromExpStar exp_star
-      | getExpsFromExp(id as Absyn.IDENTexp(_, _, _)) = [id]
-	and getExpsFromExpStar(foo::foo_star) = getExpsFromExp(foo) @ (getExpsFromExpStar foo_star)
-	  | getExpsFromExpStar(nil) = []
-
-    fun getExpsFromPat(Absyn.WILDpat _) = []
-      | getExpsFromPat(Absyn.LITpat(lit, infoLIT)) = []
-      | getExpsFromPat(Absyn.CONpat(longcon, infoCON)) = [Absyn.CONexp(longcon, infoCON)]
-      | getExpsFromPat(Absyn.STRUCTpat(ctor, pat_star, _, _)) = getExpsFromPatStar pat_star
-      | getExpsFromPat(Absyn.BINDpat(var, pat, infoBIND)) = 
-			Absyn.IDENTexp(Absyn.LONGID(NONE, var, Absyn.dummyInfo), 
-				ref(Absyn.STRUCTexp(NONE, [], Absyn.dummyInfo)),
-				infoBIND)::(getExpsFromPat pat)
-      | getExpsFromPat(Absyn.IDENTpat(id as Absyn.IDENT(_, infoID), _, infoIDENT)) = 
-			[Absyn.IDENTexp(Absyn.LONGID(NONE, id, infoID), 
-			 ref(Absyn.STRUCTexp(NONE, [], Absyn.dummyInfo)),
-			 infoIDENT)]
-	  | getExpsFromPat(Absyn.NAMEDpat(_, pat, _)) = getExpsFromPat(pat)
-	and getExpsFromPatStar(foo::foo_star) = getExpsFromPat(foo) @ (getExpsFromPatStar foo_star)
-	  | getExpsFromPatStar(nil) = []
-					
     fun printPats(foo, direction) = printVars(getExpsFromPatStar foo, direction)
-    	
-    fun getAllResultExps(Absyn.RETURN(exps, _)) = ( exps )
-      | getAllResultExps(Absyn.FAIL (_)) = 
-			[Absyn.LITexp(
-				Absyn.SCONlit("fail", Absyn.dummyInfo),
-				Absyn.dummyInfo)]
-				
-    fun getResultExps(Absyn.RETURN(exps, _)) = ( getExpsFromExpStar exps )
-      | getResultExps(Absyn.FAIL (_)) = 
-			[Absyn.LITexp(
-				Absyn.SCONlit("fail", Absyn.dummyInfo),
-				Absyn.dummyInfo)]
 
-    fun getPositionFromResult(Absyn.RETURN(exps, Absyn.INFO(_, _, _, locRETURN))) = (locRETURN)
-      | getPositionFromResult(Absyn.FAIL (Absyn.INFO(_, _,_, locFAIL))) = (locFAIL)
+    fun getPositionFromResult(Absyn.RETURN(exps, locRETURN)) = (locRETURN)
+      | getPositionFromResult(Absyn.FAIL (locFAIL)) = (locFAIL)
 						
 	fun makeExp(
 			relIdent as Absyn.IDENT(stringIdent, _), 
-			Absyn.LOC(sline, scolumn, eline, ecolumn), 
+			Absyn.INFO(sp, ep), 
 			strGoal) =
-		[Absyn.LITexp(Absyn.SCONlit(fileName, Absyn.dummyInfo), Absyn.dummyInfo),
-		 Absyn.LITexp(Absyn.ICONlit(sline, Absyn.dummyInfo), Absyn.dummyInfo),
-		 Absyn.LITexp(Absyn.ICONlit(scolumn, Absyn.dummyInfo), Absyn.dummyInfo),		 
-		 Absyn.LITexp(Absyn.ICONlit(eline,Absyn.dummyInfo), Absyn.dummyInfo),
-		 Absyn.LITexp(Absyn.ICONlit(ecolumn,Absyn.dummyInfo), Absyn.dummyInfo),		 
-		 Absyn.LITexp(Absyn.SCONlit(stringIdent, Absyn.dummyInfo), Absyn.dummyInfo),
-		 Absyn.LITexp(Absyn.SCONlit(strGoal, Absyn.dummyInfo), Absyn.dummyInfo)] 
+	let val {fileName, sline, scolumn, eline, ecolumn} = Absyn.Source.getLoc(source, sp, ep)
+	in
+	[Absyn.LITexp(Absyn.SCONlit(fileName, Absyn.dummyInfo), Absyn.dummyInfo),
+	 Absyn.LITexp(Absyn.ICONlit(sline, Absyn.dummyInfo), Absyn.dummyInfo),
+	 Absyn.LITexp(Absyn.ICONlit(scolumn, Absyn.dummyInfo), Absyn.dummyInfo),		 
+	 Absyn.LITexp(Absyn.ICONlit(eline,Absyn.dummyInfo), Absyn.dummyInfo),
+	 Absyn.LITexp(Absyn.ICONlit(ecolumn,Absyn.dummyInfo), Absyn.dummyInfo),		 
+	 Absyn.LITexp(Absyn.SCONlit(stringIdent, Absyn.dummyInfo), Absyn.dummyInfo),
+	 Absyn.LITexp(Absyn.SCONlit(strGoal, Absyn.dummyInfo), Absyn.dummyInfo)]
+	end 
 		 
 	(* adrpo added 2004-11-20 *)
 	(* only instrument in front, needed for last goal in a rule
 	   instrumentation which should not be instrumented after the goal (tail recursiveness) *)
     fun instrumentGoalOnlyInFront(
-   		Absyn.CALLgoal(longid, exp_star, pat_star, pat_star_ref, infoCALL as Absyn.INFO(filename, startpos, endpos, locCALL)), 
+   		Absyn.CALLgoal(longid, exp_star, pat_star, pat_star_ref, infoCALL), 
 		relIdent, result) = 
 	    Absyn.ANDgoal(
 			if List.length exp_star > 0
@@ -306,7 +296,7 @@ functor InstrumentFn(structure Absyn : ABSYN
 					debug, 
 					makeExp(
 						relIdent, 
-						locCALL,
+						infoCALL,
 						Control.selectCompilerMessage(
 						"call:"^print_longid(longid)^
 						print_parens_comma(exp_star, getExpAsString)^" => "^
@@ -323,7 +313,7 @@ functor InstrumentFn(structure Absyn : ABSYN
 					debug, 
 					makeExp(
 						relIdent, 
-						locCALL,
+						infoCALL,
 						Control.selectCompilerMessage(
 						"call:"^
 						print_longid(longid)^
@@ -342,7 +332,7 @@ functor InstrumentFn(structure Absyn : ABSYN
       | instrumentGoalOnlyInFront(Absyn.EQUALgoal(
 								var1, 
 								exp2, 
-								infoEQUAL as Absyn.INFO(filename, startpos, endpos, locEQUAL)), 
+								infoEQUAL), 
 						relIdent, result) =
 	    Absyn.ANDgoal(
 		 Absyn.ANDgoal(
@@ -351,7 +341,7 @@ functor InstrumentFn(structure Absyn : ABSYN
 				ref(Absyn.STRUCTexp(NONE,[], Absyn.dummyInfo)), 
 			Absyn.dummyInfo), exp2], "in"),
 				Absyn.CALLgoal(debug, 
-				makeExp(relIdent, locEQUAL, 
+				makeExp(relIdent, infoEQUAL, 
 					Control.selectCompilerMessage("equal:","equality:")
 					^print_ident(var1)^" = "^getExpAsString(exp2)), 
 				[],	ref [], Absyn.dummyInfo),
@@ -361,30 +351,29 @@ functor InstrumentFn(structure Absyn : ABSYN
       | instrumentGoalOnlyInFront(
 			Absyn.LETgoal(
 				pat, 
-				exp,
-				ref_pat,  
-				infoLET as Absyn.INFO(filename, startpos, endpos, locLET)), 
+				exp,  
+				infoLET), 
 				relIdent, result) =
 	    Absyn.ANDgoal(
 			Absyn.CALLgoal(
 				debug, 
-				makeExp(relIdent, locLET, 
+				makeExp(relIdent, infoLET, 
 				Control.selectCompilerMessage("let:","assignment:")
 				^getPatAsString(pat)^" = "^getExpAsString(exp)), 
 				[],
 				ref [], 
 				Absyn.dummyInfo),
-			Absyn.LETgoal(pat, exp, ref_pat, infoLET), 
+			Absyn.LETgoal(pat, exp, infoLET), 
 			Absyn.dummyInfo )
       | instrumentGoalOnlyInFront(
 			Absyn.NOTgoal(
 				g, 
-				infoNOT as Absyn.INFO(filename, startpos, endpos, locNOT)), 
+				infoNOT), 
 				relIdent, result) =
 	    Absyn.ANDgoal(
 			Absyn.CALLgoal(
 				debug, 
-				makeExp(relIdent, locNOT, 
+				makeExp(relIdent, infoNOT, 
 				Control.selectCompilerMessage("not:","failure:")), 
 				[],
 				ref [],
@@ -402,7 +391,7 @@ functor InstrumentFn(structure Absyn : ABSYN
 			)				  		 
 
     fun instrumentGoal(
-		Absyn.CALLgoal(longid, exp_star, pat_star, pat_star_ref, infoCALL as Absyn.INFO(filename, startpos, endpos, locCALL)), 
+		Absyn.CALLgoal(longid, exp_star, pat_star, pat_star_ref, infoCALL), 
 		relIdent, result) =
 	    Absyn.ANDgoal(
 			if (List.length exp_star > 0)
@@ -413,7 +402,7 @@ functor InstrumentFn(structure Absyn : ABSYN
 					debug, 
 					makeExp(
 						relIdent, 
-						locCALL,
+						infoCALL,
 						Control.selectCompilerMessage(
 						"call:"^print_longid(longid)^
 						print_parens_comma(exp_star, getExpAsString)^" => "^
@@ -431,7 +420,7 @@ functor InstrumentFn(structure Absyn : ABSYN
 					debug, 
 					makeExp(
 						relIdent, 
-						locCALL,
+						infoCALL,
 						Control.selectCompilerMessage(
 						"call:"^print_longid(longid)^
 						print_parens_comma(exp_star, getExpAsString)^" => "^
@@ -453,7 +442,7 @@ functor InstrumentFn(structure Absyn : ABSYN
       | instrumentGoal(Absyn.EQUALgoal(
 								var1, 
 								exp2, 
-								infoEQUAL as Absyn.INFO(filename, startpos, endpos, locEQUAL)), 
+								infoEQUAL), 
 						relIdent, result) =
 	    Absyn.ANDgoal(
 		 Absyn.ANDgoal(
@@ -462,7 +451,7 @@ functor InstrumentFn(structure Absyn : ABSYN
 				ref(Absyn.STRUCTexp(NONE,[], Absyn.dummyInfo)), 
 				Absyn.dummyInfo), exp2], "in"),
 			Absyn.CALLgoal(debug, 
-				makeExp(relIdent, locEQUAL, 
+				makeExp(relIdent, infoEQUAL, 
 					Control.selectCompilerMessage("equal:","equality:")^
 					print_ident(var1)^" = "^getExpAsString(exp2)), 
 				[],	ref[], Absyn.dummyInfo),
@@ -473,20 +462,19 @@ functor InstrumentFn(structure Absyn : ABSYN
 			Absyn.LETgoal(
 				pat, 
 				exp, 
-				ref_pat,
-				infoLET as Absyn.INFO(filename, startpos, endpos, locLET)), 
+				infoLET), 
 				relIdent, result) =
 	    Absyn.ANDgoal(
 			Absyn.CALLgoal(
 				debug, 
-				makeExp(relIdent, locLET, 
+				makeExp(relIdent, infoLET, 
 				Control.selectCompilerMessage("let:","assignment:")
 				^getPatAsString(pat)^" = "^getExpAsString(exp)), 
 				[],
 				ref [],
 				Absyn.dummyInfo),
 			Absyn.ANDgoal(
-				Absyn.LETgoal(pat, exp, ref_pat, infoLET), 
+				Absyn.LETgoal(pat, exp, infoLET), 
 				Absyn.ANDgoal(
 					printPats([pat], "out"), 
 					printVars(getExpsFromExp exp, "out"), Absyn.dummyInfo),
@@ -495,12 +483,12 @@ functor InstrumentFn(structure Absyn : ABSYN
       | instrumentGoal(
 			Absyn.NOTgoal(
 				g, 
-				infoNOT as Absyn.INFO(filename, startpos, endpos, locNOT)), 
+				infoNOT), 
 				relIdent, result) =
 	    Absyn.ANDgoal(
 			Absyn.CALLgoal(
 				debug, 
-				makeExp(relIdent, locNOT, Control.selectCompilerMessage("not:","failure:")), 
+				makeExp(relIdent, infoNOT, Control.selectCompilerMessage("not:","failure:")), 
 				[],
 				ref [], 
 				Absyn.dummyInfo),
@@ -633,13 +621,13 @@ functor InstrumentFn(structure Absyn : ABSYN
 				pat_star, result,
 				ref_pat_star,
 				vars,
-				infoCLAUSE1 as Absyn.INFO(_, _, _, locCLAUSE1)), 
+				infoCLAUSE1), 
 				relIdent) =
 		Absyn.CLAUSE1(
 			instrumentGoals(
 				g_opt, 
 				relIdent, 
-				locCLAUSE1, 
+				infoCLAUSE1, 
 				pat_star, 
 				result), 
 			id, pat_star, result, ref_pat_star, vars, infoCLAUSE1)
@@ -655,13 +643,13 @@ functor InstrumentFn(structure Absyn : ABSYN
     fun instrumentDec(Absyn.RELdec(rels, infoREL)) = Absyn.RELdec(map instrumentRel rels, infoREL)
       | instrumentDec dec = dec 
 
-    fun instrumentModule(Absyn.MODULE(
-		interface, 
-		declarations, infoMODULE)) = Absyn.MODULE(interface, map instrumentDec declarations, infoMODULE)
-		in 	let val m = if !Control.dumpInterface = false orelse !Control.dumpDepends = false 
-		                then instrumentModule m else m
-			in
-				m
-			end
+    fun instrumentModule(Absyn.MODULE(interface, declarations, infoMODULE)) = 
+		Absyn.MODULE(interface, map instrumentDec declarations, infoMODULE)
+		
+ in 	let val m = if !Control.dumpInterface = false orelse !Control.dumpDepends = false 
+	                then instrumentModule m else m
+		in
+			m
+		end
  end 
 end (* functor InstrumentFn *)

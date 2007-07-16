@@ -71,7 +71,7 @@ static void rml_free_core(void **p, size_t nslots_unused)
 
 /* the roots */
 #if	!defined(RML_STACK_SIZE)
-#define RML_STACK_SIZE	(64*1024)
+#define RML_STACK_SIZE	(1024*1024)
 #endif
 unsigned long rml_stack_size;
 void **rml_stack;
@@ -100,6 +100,7 @@ struct rml_state rml_state = {
     0, /* &rml_young_region[0], */	/* young_next */
     0, /* &rml_young_region[rml_young_size], */	/* young_limit; never changes */
 	&rml_array_trail[RML_ARRAY_TRAIL_SIZE], /* ATP */
+	0 /* nrArgs */
 };
 
 #else	/*!RML_STATE_JOIN*/
@@ -112,6 +113,7 @@ void *rmlARGS[RML_NUM_ARGS];
 void **rml_young_next;  /*  = &rml_young_region[0]; */
 void **rml_young_limit; /* = &rml_young_region[rml_young_size]; */
 void **rmlATP = &rml_array_trail[RML_ARRAY_TRAIL_SIZE];
+rml_uint_t rml_nrArgs = 0; /* number of arguments passed on the stack */
 
 #endif	/*RML_STATE_JOIN*/
 

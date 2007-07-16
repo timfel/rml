@@ -11,7 +11,7 @@ functor LexArgSimpleFn(
     type restriction = Cache.restriction
     type visibility  = Cache.visibility
     
-	type poz = Cache.poz
+		type poz = Cache.poz
      
     type pos = int (* char position *)
     datatype lexarg
@@ -28,8 +28,8 @@ functor LexArgSimpleFn(
 		currLine    : int ref,
 		currVisibility : visibility ref,
 		imports     : (poz * poz * visibility) StrDict.dict ref,
-		externals   : (poz*poz) StrDict.dict ref,
-		restrictions: (restriction*visibility) StrDict.dict ref		
+		externals   : (poz * poz) StrDict.dict ref,
+		restrictions: (restriction * visibility) StrDict.dict ref		
 		}
 
     fun new(fileName, is) =
@@ -92,7 +92,7 @@ functor LexArgSimpleFn(
        Util.outStdErr (fileName^":"^(Int.toString(!currLine))^" Error: "^msg^"\n");
        raise ParseError)
        
-    fun addImport (lexarg as A{imports,...}, import, left, right, visibility) =
+    fun addImport (lexarg as A{imports,...}, import, (left, right), visibility) =
     let val there = StrDict.find(!imports, import)
     in
 		(*
@@ -114,7 +114,7 @@ functor LexArgSimpleFn(
 	end   
 
 
-    fun addExternal (lexarg as A{externals,...}, external, left, right) =
+    fun addExternal (lexarg as A{externals,...}, external, (left, right)) =
       ( externals := StrDict.insert(!externals, external, (left, right)) )
     
     fun addRestriction (lexarg as A{restrictions,...}, key, restriction, visibility) =

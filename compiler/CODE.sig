@@ -3,6 +3,7 @@
 signature CODE =
   sig
 
+	structure Source    : SOURCE
     structure ConRep	: CONREP
     structure Mangle	: MANGLE
 
@@ -14,12 +15,12 @@ signature CODE =
         
     sharing type gvar = gvar' 
     
-    datatype lvar	= LVAR of int
+    datatype lvar	= LVAR of {tag:int, name:ConRep.longid}
 
     datatype variable	= GLOvar of gvar
 			| LOCvar of lvar
 
-    datatype label	= LABEL of Mangle.name
+    datatype label	= LABEL of Mangle.name * ConRep.longid * ConRep.info
 
     datatype litname	= LITNAME of int
     datatype litref	= INTlr of int
@@ -49,20 +50,30 @@ signature CODE =
     datatype gototarget = LOCALg of label
 			| EXTERNg of label
 			| VALUEg of value
+			
+    datatype gototype =	  FClk (* failure *) 
+						| SClk (* success *)
+						| NClk (* normal *)
+						| LClk (* label to shared state *)
+						| EClk (* external *)
 
-    datatype code'	= GOTO of gototarget * int
+    datatype code'	= GOTO of gototarget * int * ConRep.longid * ConRep.info * gototype
 			| STORE of value * value * code
 			| BIND of variable option * value * code
 			| SWITCH of value * (casetag * code) list * code option
 
     and code		= CODE of {fvars: lvar list ref, code: code'}
 
-    datatype labdef	= LABDEF of {	globalP	: bool,
-					label	: label,
-					varHP	: lvar,
-					nalloc	: int,
-					nargs	: int,
-					code	: code		}
+    datatype labdef	= LABDEF of {	
+					globalP	: bool,			(* is this label global? *)
+					label	: label,		(* the label of this function *)
+					varHP	: lvar,			(* heap pointer *)
+					nalloc	: int,			(* how much to alloc for this label *)
+					nargs	: int,			(* how many arguments this label has *)
+					code	: code,			(* the code for this label *)
+					pos 	: ConRep.info } (* position in the primary file. used for debugging  *)
+					
+	datatype position = POSITION of ConRep.info
 
     datatype module	= MODULE of {	modname	: string,
 					ctors	: (string * ConRep.conrep) list,
@@ -71,7 +82,8 @@ signature CODE =
 					xvals	: label list,
 					values	: (label * litref) list,
 					litdefs	: (litname * litdef) list,
-					labdefs	: labdef list	}
+					labdefs	: labdef list,
+					source  : Source.source }
 
     val gvarString	: gvar -> string
     val lvarString	: lvar -> string
@@ -83,9 +95,9 @@ signature CODE =
 			* int
 			-> unit
 
-    val mklab		: string -> label
+    val mklab		: string * ConRep.longid * ConRep.info -> label
 
-    val mkGOTO		: gototarget * int -> code
+    val mkGOTO		: gototarget * int * ConRep.longid * ConRep.info * gototype -> code
     val mkSTORE		: value * value * code -> code
     val mkBIND		: variable option * value * code -> code
     val mkSWITCH	: value * (casetag * code) list * code option -> code
@@ -121,5 +133,5 @@ signature CODE =
     val primINT_NE	: label
     val primINT_GE	: label
     val primINT_GT	: label
-
+    
   end (* signature CODE *)

@@ -2,5 +2,7 @@
 
 
 structure PMC =
-  PMCFn(structure Util = Util
-	structure CPS = CPS);
+  PMCFn(
+    structure Util = Util
+	structure CPS = CPS
+	structure Control =  Control);

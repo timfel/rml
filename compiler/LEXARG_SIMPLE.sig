@@ -4,7 +4,7 @@ signature LEXARG_SIMPLE =
   sig
     
     structure StrDict : STR_DICT
-	type poz 
+	  type poz 
     type restriction
     type visibility
     
@@ -25,8 +25,8 @@ signature LEXARG_SIMPLE =
 
     val errorMsg    : lexarg -> string * pos * pos -> unit
 
-    val addImport      : lexarg * string * poz * poz * visibility -> unit 
-    val addExternal    : lexarg * string * poz * poz -> unit 
+    val addImport      : lexarg * string * (poz * poz) * visibility -> unit 
+    val addExternal    : lexarg * string * (poz * poz) -> unit 
     val addRestriction : lexarg * string * restriction * visibility -> unit
      
     val getImports      : lexarg -> (poz * poz * visibility) StrDict.dict

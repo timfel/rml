@@ -11,6 +11,7 @@ functor CPSToSMLFn(structure CPS : CPS) : CPSTOSML =
   struct
 
     structure CPS = CPS
+    structure ConRep = CPS.ConRep
 
     exception CPSToSML
     fun wrong msg =
@@ -40,10 +41,10 @@ functor CPSToSMLFn(structure CPS : CPS) : CPSTOSML =
     fun prIdent(os, ident) =
       (output(os, ident); if is_sml_kwd ident then output(os, "'") else ())
 
-    fun prLocalLongId(os, CPS.LONGID{name,...}) = prIdent(os, name)
+    fun prLocalLongId(os, ConRep.LONGID{name,...}) = prIdent(os, CPS.identName name)
 
-    fun prLongId(os, CPS.LONGID{module,name}) =
-      (prIdent(os, module); output(os, "."); prIdent(os, name))
+    fun prLongId(os, ConRep.LONGID{module,name}) =
+      (prIdent(os, case module of SOME(module) => (CPS.identName module)^"." | _ => ""); prIdent(os, CPS.identName name))
 
     fun prInt(os, i) = output(os, Int.toString i)
     fun prReal(os, r) = output(os, Real.toString r)
@@ -98,7 +99,7 @@ functor CPSToSMLFn(structure CPS : CPS) : CPSTOSML =
       end
 
     fun prLit(os, CPS.CONSTlit c) = prConst(os, c)
-      | prLit(os, CPS.STRUCTlit(tag, lits)) = prStruct(os, prCommaLit, tag, lits)
+      | prLit(os, CPS.STRUCTlit(tag, lits,_)) = prStruct(os, prCommaLit, tag, lits)
       | prLit(os, CPS.EXTERNlit lid) = prLongId(os, lid)
       | prLit(os, CPS.PROClit p) = wrong "prLit: CPS.PROClit"
 
@@ -154,14 +155,14 @@ functor CPSToSMLFn(structure CPS : CPS) : CPSTOSML =
 
     and prExp(os, e) =
       case CPS.getExp e
-	of CPS.AppFCe t =>
+	of CPS.AppFCe{fc=t,name=name,pos=pos} =>
 	    (output(os, "rml.prim_app_fc ");
 	     prTriv(os, t))
-	 | CPS.AppSCe{sc,args} =>
+	 | CPS.AppSCe{sc,args,name,pos} =>
 	    (output(os, "rml.prim_app_sc");
 	     output(os, Int.toString(length args));
 	     prTrivList(os, sc::args))
-	 | CPS.AppPVe{pv,args,fc,sc} =>
+	 | CPS.AppPVe{pv,args,fc,sc,name,pos} =>
 	    (case CPS.getTE pv
 	       of CPS.QUOTEte(CPS.PROClit proc)	=>
 		    (prProc(os, proc); prTrivList(os, sc::fc::args))
@@ -283,7 +284,7 @@ functor CPSToSMLFn(structure CPS : CPS) : CPSTOSML =
 	output(os, "\n")
       end
 
-    fun emitModule(os, ((prefix, ext), CPS.MODULE{name,ctors,xmods,values,defines})) =
+    fun emitModule(os, ((prefix, ext), CPS.MODULE{name,ctors,xmods,values,defines,source})) =
       (output(os, "(* module "); prIdent(os, name); output(os, " *)\n");
        output(os, "functor "); prIdent(os, name); output(os, "_fun(\n");
        app (prImpMod os) xmods;
@@ -328,7 +329,7 @@ functor CPSToSMLFn(structure CPS : CPS) : CPSTOSML =
 	output(os, "\n")
       end
 
-    fun emitInterface(os, CPS.MODULE{name,ctors,xmods,values,defines}) =
+    fun emitInterface(os, CPS.MODULE{name,ctors,xmods,values,defines,source}) =
       (output(os, "(* interface "); prIdent(os, name); output(os, " *)\n");
        output(os, "signature "); prIdent(os, name); output(os, "_sig =\n  sig\n");
        output(os, "    structure rml : rml_sig\n");

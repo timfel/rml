@@ -206,7 +206,7 @@ functor InterpFn(structure Util : UTIL
 		    if InterpCore.equal(v,v') then proceed(gc, VE, fc, s)
 		    else fail(fc, s)
 	    end
-	 | Absyn.LETgoal(pat, exp, _, _) =>
+	 | Absyn.LETgoal(pat, exp, _) =>
 	    let val v = eval(exp, ME, VE)
 	    in
 	      case match(pat, v)

@@ -2,7 +2,7 @@
 
 signature ABSYNTOFOL =
   sig
-
+  
     structure Absyn	: ABSYN
     structure FOL	: FOL
 

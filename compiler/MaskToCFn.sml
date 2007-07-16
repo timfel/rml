@@ -10,6 +10,9 @@ functor MaskToCFn(structure Code : SWITCH
 
     structure Code = Code
 
+    fun emitModule(os, ((prefix, ext), module as Code.MODULE{modname, xmods, xlabs, xvals, values, litdefs, labdefs, source, ...})) =
+	let
+	val _ = CodeToC.setCurrentSource(source)
     val output = TextIO.output
 
     fun prLabStruct os modname (Code.LABDEF{globalP,label,...}, tagno) =
@@ -160,9 +163,8 @@ functor MaskToCFn(structure Code : SWITCH
 	    output(os, "}\nRML_END_MODULE\n")
 	  end
 
-    fun emitModule(os, ((prefix, ext), module as Code.MODULE{modname, xmods, xlabs, xvals, values, litdefs, labdefs, ...})) =
-      let val (Code.Mangle.NAME modname) = Code.Mangle.encode modname
-      in
+  val (Code.Mangle.NAME modname) = Code.Mangle.encode modname
+  in
 	output(os, "/* module "); output(os, modname); output(os, " */\n");
 	output(os, "#include \"rml.h\"\n");
 	List.app (CodeToC.prImpLab os) xlabs;
@@ -172,7 +174,7 @@ functor MaskToCFn(structure Code : SWITCH
 	CodeToC.emitValues os values;
 	CodeToC.prInitProc (os,prefix) (fn () => ()) module;
 	emit_labdefs(os, labdefs, modname)
-      end
+  end
 
     fun emitInterface(os, module) = CodeToC.prInterface os module
 

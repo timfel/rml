@@ -31,9 +31,9 @@ functor SwitchIntrasFn(structure Util : UTIL
 
     fun code_intras(Code.CODE{code,...}, intras) =
       case code
-	of Code.GOTO(Code.LOCALg _,_) => intras
-	 | Code.GOTO(Code.EXTERNg _,_) => intras
-	 | Code.GOTO(Code.VALUEg v,_) => val_intras(v, intras)
+	of Code.GOTO(Code.LOCALg _,_,_,_,_) => intras
+	 | Code.GOTO(Code.EXTERNg _,_,_,_,_) => intras
+	 | Code.GOTO(Code.VALUEg v,_,_,_,_) => val_intras(v, intras)
 	 | Code.STORE(v1, v2, c)	=>
 	    code_intras(c, val_intras(v2, val_intras(v1, intras)))
 	 | Code.BIND(binding, v, c)	=>

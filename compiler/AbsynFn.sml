@@ -8,11 +8,8 @@ functor AbsynFn(structure MakeString : MAKESTRING
     structure Source	= Source
 
     (* --- start RML AST --- *)
-    (* start line, start column, end line, endcolumn *)
-	datatype loc = LOC of int * int * int * int
-
-    (* filename, pos start, pos end *)
-	datatype info = INFO of string * int * int * loc 
+    (* pos start, pos end *)
+	datatype info = INFO of int * int
 
     datatype ident	= IDENT of string * info
     type var		= ident
@@ -48,12 +45,13 @@ functor AbsynFn(structure MakeString : MAKESTRING
 				 | STRUCTexp of longid option * exp list * info
 				 | IDENTexp of longid * exp ref * info
 
-	(* adrpo added 2005-11-08 the ref component in CALLgoal and LETgoal *) 
+	(* adrpo added 2005-11-08 the ref component in CALLgoal *) 
     datatype goal = CALLgoal of longid * exp list * pat list * pat list ref * info
 				  | EQUALgoal of var * exp * info
-				  | LETgoal of pat * exp * pat option ref * info
+				  | LETgoal of pat * exp * info
 				  | NOTgoal of goal * info
 				  | ANDgoal of goal * goal * info
+				  | CONDgoal of goal * goal * goal * info
 
     datatype result	= RETURN of exp list * info
 					| FAIL of info
@@ -537,9 +535,7 @@ functor AbsynFn(structure MakeString : MAKESTRING
 		 fun compare(IDENT(s1,_), IDENT(s2,_)) = String.compare(s1, s2)
 	  end)
 
-  val dummyLoc  = LOC(0, 0, 0, 0)
-
-  val dummyInfo = INFO("RML", 0, 0, dummyLoc)
+  val dummyInfo = INFO(~1, ~1)
 
   fun makeIdent(name, info) = IDENT(name, info)
   fun rmlIdent name = IDENT(name, dummyInfo)
@@ -579,21 +575,16 @@ functor AbsynFn(structure MakeString : MAKESTRING
   |   getPathAsString(TYPEVARIABLE(IDENT(s,_), _)) = s
   *)
 
-  fun getPozFromInfo(INFO(_, sp,ep, LOC(sl,sc,el,ec))) =
-		((sp,sl,sc),(ep,el,ec))
+  fun getPozFromInfo(INFO(sp,ep)) = ((sp,~1,~1),(ep,~1,~1))
 		  
   fun filterImports([]) = []
-  |	  filterImports(
-		ELEMENTITEM(
-			ELEMENT(_,_,_,ident, IMPORT(import,_, info), _, _),_)::rest) =
+  |	  filterImports(ELEMENTITEM(ELEMENT(_,_,_,ident, IMPORT(import,_, info), _, _),_)::rest) =
 			(
 			case import of
 				QUAL_IMPORT(path, importInfo) => 
-				((getLastPathAsString path)^".mo", getPozFromInfo(importInfo))
-				::filterImports(rest)
+				((getLastPathAsString path)^".mo", getPozFromInfo(importInfo))::filterImports(rest)
 			|	UNQUAL_IMPORT(path, importInfo) => 
-				((getLastPathAsString path)^".mo", getPozFromInfo(importInfo))
-				::filterImports(rest)
+				((getLastPathAsString path)^".mo", getPozFromInfo(importInfo))::filterImports(rest)
 			|	_ => filterImports(rest)
 			)
 	|   filterImports(_::rest) = filterImports(rest)

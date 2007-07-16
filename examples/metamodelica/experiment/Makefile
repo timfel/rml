@@ -12,13 +12,17 @@ all:	main
 
 # MAIN PROGRAM
 
-CALCOBJS= Main.o  
+CALCOBJS= Main.o Global.o
 main: $(CALCOBJS)
 	$(LINK.rml) -o calc $(CALCOBJS) $(LDLIBS)
 
 Main.o:	 Main.c Main.h
 Main.c Main.h: Main.mo
 	$(COMPILE.rml) Main.mo
+
+Global.o:	 Global.c Global.h
+Global.c Global.h: Global.mo
+	$(COMPILE.rml) Global.mo
 
 include $(GOROOT)/etc/client.mk
 

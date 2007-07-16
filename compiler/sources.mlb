@@ -125,7 +125,57 @@ local
       signature gs_19 = CONREP
    end
    local
+      open l4
+   in
+      structure gs_75 = Array
+   end
+   local
+      library/common/DARRAY.sig
+   in
+      signature gs_76 = DARRAY
+   end
+   local
+      structure Array = gs_75
+      signature DARRAY = gs_76
+      structure Int = gs_15
+      library/common/DynIntArray.sml
+   in
+      structure gs_77 = DynIntArray
+   end
+   local
+      signature ARRAY_SOURCE_MAP = gs_8
+      structure DynIntArray = gs_77
+      structure Int = gs_15
+      library/common/ArraySourceMap.sml
+   in
+      structure gs_78 = ArraySourceMap
+   end
+   local
+      open l4
+   in
+      structure gs_79 = Time
+   end
+   local
+      open l4
+   in
+      structure gs_80 = Date
+   end
+   local
+      structure ArraySourceMap = gs_78
+      structure Date = gs_80
+      structure Int = gs_15
+      signature SOURCE = gs_9
+      structure TextIO = gs_5
+      structure Time = gs_79
+      structure Util = gs_12
+      Source.sml
+   in
+      structure gs_81 = Source
+   end   
+   local
       signature CONREP = gs_19
+      signature SOURCE = gs_9 
+      structure Source = gs_81
       CPS.sig
    in
       signature gs_20 = CPS
@@ -153,6 +203,7 @@ local
       signature MANGLE = gs_2
       structure TextIO = gs_5
       structure Vector = gs_23
+      signature SOURCE = gs_9      
       CODE.sig
    in
       signature gs_24 = CODE
@@ -211,6 +262,8 @@ local
       signature gs_32 = CPS_OPTIM
    end
    local
+      signature SOURCE = gs_9 
+      structure Source = gs_81   
       FOL.sig
    in
       signature gs_33 = FOL
@@ -368,6 +421,7 @@ local
       signature CODE_OPTIM = gs_29
       structure List = gs_14
       signature UTIL = gs_3
+      signature CONTROL = gs_18
       CodeOptimFn.sml
    in
       functor gs_59 = CodeOptimFn
@@ -393,6 +447,8 @@ local
       signature SWITCH = gs_25
       structure TextIO = gs_5
       structure Vector = gs_23
+      signature SOURCE = gs_9
+      structure Source = gs_81
       SwitchFn.sml
    in
       functor gs_62 = SwitchFn
@@ -416,6 +472,8 @@ local
       structure ConRep = gs_63
       structure MakeString = gs_64
       structure Mangle = gs_13
+      signature SOURCE = gs_9
+      structure Source = gs_81      
       functor SwitchFn = gs_62
       Switch.sml
    in
@@ -428,15 +486,6 @@ local
       SwitchFVars.sml
    in
       structure gs_66 = SwitchFVars
-   end
-   local
-      functor CodeOptimFn = gs_59
-      structure Switch = gs_65
-      structure SwitchFVars = gs_66
-      structure Util = gs_12
-      SwitchOptim.sml
-   in
-      structure gs_67 = SwitchOptim
    end
    local
       open l4
@@ -505,54 +554,6 @@ local
       AbsynFn.sml
    in
       functor gs_74 = AbsynFn
-   end
-   local
-      open l4
-   in
-      structure gs_75 = Array
-   end
-   local
-      library/common/DARRAY.sig
-   in
-      signature gs_76 = DARRAY
-   end
-   local
-      structure Array = gs_75
-      signature DARRAY = gs_76
-      structure Int = gs_15
-      library/common/DynIntArray.sml
-   in
-      structure gs_77 = DynIntArray
-   end
-   local
-      signature ARRAY_SOURCE_MAP = gs_8
-      structure DynIntArray = gs_77
-      structure Int = gs_15
-      library/common/ArraySourceMap.sml
-   in
-      structure gs_78 = ArraySourceMap
-   end
-   local
-      open l4
-   in
-      structure gs_79 = Time
-   end
-   local
-      open l4
-   in
-      structure gs_80 = Date
-   end
-   local
-      structure ArraySourceMap = gs_78
-      structure Date = gs_80
-      structure Int = gs_15
-      signature SOURCE = gs_9
-      structure TextIO = gs_5
-      structure Time = gs_79
-      structure Util = gs_12
-      Source.sml
-   in
-      structure gs_81 = Source
    end
    local
       functor AbsynFn = gs_74
@@ -888,6 +889,7 @@ local
       signature TOKEN = gs_52
       structure Int = gs_15
       structure CharVector = gs_1001
+      structure List = gs_14
       persistent.grm.sml
    in
       functor gs_119 = PERSISTENTLrValsFn
@@ -988,6 +990,16 @@ local
       structure gs_128 = Control
    end
    local
+      functor CodeOptimFn = gs_59
+      structure Switch = gs_65
+      structure SwitchFVars = gs_66
+      structure Util = gs_12
+      structure Control = gs_128
+      SwitchOptim.sml
+   in
+      structure gs_67 = SwitchOptim
+   end   
+   local
       signature CODE = gs_24
       signature CODETOC = gs_55
       signature CONTROL = gs_18
@@ -996,6 +1008,7 @@ local
       structure String = gs_0
       structure TextIO = gs_5
       signature UTIL = gs_3
+      structure OS = gs_16
       CodeToCFn.sml
    in
       functor gs_129 = CodeToCFn
@@ -1008,6 +1021,8 @@ local
       signature PLAIN = gs_27
       structure TextIO = gs_5
       structure Vector = gs_23
+      signature SOURCE = gs_9
+      structure Source = gs_81            
       PlainFn.sml
    in
       functor gs_130 = PlainFn
@@ -1016,6 +1031,8 @@ local
       structure ConRep = gs_63
       structure MakeString = gs_64
       structure Mangle = gs_13
+      signature SOURCE = gs_9
+      structure Source = gs_81            
       functor PlainFn = gs_130
       Plain.sml
    in
@@ -1060,6 +1077,8 @@ local
    end
    local
       signature CONREP = gs_19
+      signature SOURCE = gs_9
+      structure Source = gs_81      
       signature CPS = gs_20
       structure Real = gs_72
       signature UTIL = gs_3
@@ -1068,6 +1087,8 @@ local
       functor gs_136 = CPSFn
    end
    local
+      signature SOURCE = gs_9
+      structure Source = gs_81   
       functor CPSFn = gs_136
       structure ConRep = gs_63
       structure Util = gs_12
@@ -1377,6 +1398,33 @@ local
    end
    local
       signature ABSYN = gs_10
+      ABSYN_INSTRUMENTED.sig
+   in
+      signature gs_188 = ABSYN_INSTRUMENTED
+   end   
+   local
+      signature ABSYN = gs_10
+      signature ABSYN_INSTRUMENTED = gs_188
+      signature CONTROL = gs_18
+      structure Int = gs_15
+      structure List = gs_14
+      structure MakeString = gs_64
+      signature UTIL = gs_3
+      InstrumentFn.sml
+   in
+      functor gs_226 = InstrumentFn
+   end   
+   local
+      structure Absyn = gs_82
+      structure Control = gs_128
+      functor InstrumentFn = gs_226
+      structure Util = gs_12
+      Instrument.sml
+   in
+      structure gs_237 = Instrument
+   end   
+   local
+      signature ABSYN = gs_10
       signature ABSYNTOFOL = gs_37
       structure Char = gs_1
       signature FOL = gs_33
@@ -1384,11 +1432,14 @@ local
       structure ListPair = gs_102
       signature STR_DICT = gs_38
       signature UTIL = gs_3
+      signature ABSYN_INSTRUMENTED = gs_188
       AbsynToFOLFn.sml
    in
       functor gs_172 = AbsynToFOLFn
    end
    local
+      signature SOURCE = gs_9
+      structure Source = gs_81   
       signature FOL = gs_33
       structure Int = gs_15
       structure Real = gs_72
@@ -1398,6 +1449,8 @@ local
       functor gs_173 = FOLFn
    end
    local
+      signature SOURCE = gs_9
+      structure Source = gs_81   
       functor FOLFn = gs_173
       structure Util = gs_12
       FOL.sml
@@ -1406,6 +1459,7 @@ local
    end
    local
       structure Absyn = gs_82
+      structure Instrument = gs_237      
       functor AbsynToFOLFn = gs_172
       structure FOL = gs_174
       structure StrDict = gs_85
@@ -1521,12 +1575,6 @@ local
       structure gs_187 = Reorder
    end
    local
-      signature ABSYN = gs_10
-      ABSYN_INSTRUMENTED.sig
-   in
-      signature gs_188 = ABSYN_INSTRUMENTED
-   end
-   local
       signature ABSYN_INSTRUMENTED = gs_188
       signature ABSYN_PERSIST = gs_11
       signature ABSYN_PRINT = gs_97
@@ -1561,6 +1609,8 @@ local
       signature SOURCE = gs_9
       structure TextIO = gs_5
       signature UTIL = gs_3
+      structure String = gs_0
+      structure List = gs_14
       AbsynPersistFn.sml
    in
       functor gs_191 = AbsynPersistFn
@@ -1731,11 +1781,14 @@ local
       signature PMC = gs_203
       signature TRANSENV = gs_134
       signature UTIL = gs_3
+      structure Int = gs_15      
       FOLToCPSFn.sml
    in
       functor gs_205 = FOLToCPSFn
    end
    local
+	  signature CONTROL = gs_18   
+      structure Control = gs_128	  
       signature CPS = gs_20
       structure Int = gs_15
       structure List = gs_14
@@ -1748,6 +1801,8 @@ local
       functor gs_206 = PMCFn
    end
    local
+	  signature CONTROL = gs_18   
+      structure Control = gs_128	  
       structure CPS = gs_137
       functor PMCFn = gs_206
       structure Util = gs_12
@@ -1791,11 +1846,13 @@ local
       signature PP = gs_165
       structure String = gs_0
       signature UTIL = gs_3
+      structure Int = gs_15
       FOLPrintFn.sml
    in
       functor gs_211 = FOLPrintFn
    end
    local
+	  structure Int = gs_15
       functor FOLPrintFn = gs_211
       structure FOLUsages = gs_209
       structure MakeString = gs_64
@@ -1947,18 +2004,6 @@ local
       structure gs_225 = RMLParse
    end
    local
-      signature ABSYN = gs_10
-      signature ABSYN_INSTRUMENTED = gs_188
-      signature CONTROL = gs_18
-      structure Int = gs_15
-      structure List = gs_14
-      structure MakeString = gs_64
-      signature UTIL = gs_3
-      InstrumentFn.sml
-   in
-      functor gs_226 = InstrumentFn
-   end
-   local
       functor CodeFVarsFn = gs_60
       structure Plain = gs_131
       structure Util = gs_12
@@ -1971,6 +2016,7 @@ local
       structure Plain = gs_131
       structure PlainFVars = gs_227
       structure Util = gs_12
+      structure Control = gs_128
       PlainOptim.sml
    in
       structure gs_228 = PlainOptim
@@ -2069,15 +2115,6 @@ local
       MODParse.sml
    in
       structure gs_236 = MODParse
-   end
-   local
-      structure Absyn = gs_82
-      structure Control = gs_128
-      functor InstrumentFn = gs_226
-      structure Util = gs_12
-      Instrument.sml
-   in
-      structure gs_237 = Instrument
    end
    local
       structure AbsynPersist = gs_192

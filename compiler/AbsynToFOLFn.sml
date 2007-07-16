@@ -4,27 +4,26 @@ functor AbsynToFOLFn(structure StrDict : STR_DICT
 		     structure Util : UTIL
 		     structure Absyn : ABSYN
 		     structure FOL : FOL
+		     structure Instrument : ABSYN_INSTRUMENTED
+		     sharing type FOL.Source.source = Absyn.Source.source = Instrument.Absyn.Source.source
 		       ) : ABSYNTOFOL =
   struct
 
-    structure Absyn = Absyn
+    structure Instrument = Instrument
+    structure Absyn = Instrument.Absyn
     structure FOL = FOL
+    structure Source = Instrument.Absyn.Source
+	
+    fun cvInfo(Absyn.INFO(spos, epos)) = FOL.INFO(spos, epos)
 
-    fun newvars i =
-      let fun loop(i, vars) =
-	    if i < 1 then vars else loop(i-1, FOL.newvar() :: vars)
-      in
-		loop(i, [])
-      end
-
-    fun cnvId id = Absyn.identName id
+    fun cnvId(Absyn.IDENT(name, info)) = FOL.IDENT(name, cvInfo(info)) 
     fun cnvModidOpt(NONE) = NONE
       | cnvModidOpt(SOME modid) = SOME(cnvId modid)
-    fun cnvLongid(Absyn.LONGID(modidOpt, id, _)) =
+    fun cnvLongid(Absyn.LONGID(modidOpt, id, info)) =
       let val modidOpt = cnvModidOpt modidOpt
 	  val id = cnvId id
       in
-		FOL.LONGID(modidOpt, id)
+		FOL.LONGID(modidOpt, id, cvInfo(info))
       end
     fun cnvLongidOpt(NONE) = NONE
       | cnvLongidOpt(SOME longid) = SOME(cnvLongid longid)
@@ -34,62 +33,73 @@ functor AbsynToFOLFn(structure StrDict : STR_DICT
       | cnvLit(Absyn.RCONlit(r, _)) = FOL.RCON r
       | cnvLit(Absyn.SCONlit(s, _)) = FOL.SCON s
 
-	(* adrpo --
-    fun prVar var =
-      let val FOL.VAR{name,uses,...} = FOL.deref var
+    fun mkPatVar(x, info) = FOL.newvar(FOL.makeIdent(Instrument.getPatAsString x, cvInfo info))
+      
+    fun newvars lst = 
+      let fun loop([], vars) = vars
+	      |   loop(hd::tail, vars) = 
+		      let val var = mkPatVar(hd, Instrument.getInfoFromPat hd)
+		      in
+				loop(tail, var::vars)
+		      end
       in
-		print name
-      end
-      
-    fun prLongId(FOL.LONGID(id_opt, id)) =
-      ((case id_opt of SOME id' => (print (id'^".")) | NONE => ());
-       print (id))
-      
-    fun printIdVar(id, var) = (print (cnvId id); print "-"; prVar(var); print "\n")
-	
-	fun printIdLongId(id, longid) = (print (cnvId id); print "-"; prLongId(cnvLongid longid); print "\n")
-	adrpo -- end *)	
+		loop(lst, [])
+      end      
 	
     fun makeVRef(longid as Absyn.LONGID(modidOpt, id, _), VE) =
       case modidOpt
 		of SOME _ => FOL.GVAR(cnvLongid longid)
 		| NONE =>
-			case StrDict.find(VE, cnvId id)
-			of SOME var =>  ( (* printIdVar(id, var); *) FOL.BVAR var)
-			| NONE => ( (* printIdLongId(id, longid); *) FOL.GVAR(cnvLongid longid))
+			case StrDict.find(VE, Absyn.identName id)
+			of SOME var =>  (FOL.BVAR var)
+			| NONE => ( FOL.GVAR(cnvLongid longid))
 
     fun cnvExp(Absyn.LITexp(lit, _), _) = FOL.LITexp(cnvLit lit)
       | cnvExp(Absyn.CONexp(longcon, _), _) = FOL.CONexp(cnvLongid longcon)
       | cnvExp(Absyn.VARexp(longvar, _), VE) = FOL.VARexp(makeVRef(longvar, VE))
       | cnvExp(Absyn.STRUCTexp(longconOpt, exps, _), VE) =
-	  FOL.STRUCTexp(cnvLongidOpt longconOpt, cnvExps(exps, VE))
+		FOL.STRUCTexp(cnvLongidOpt longconOpt, cnvExps(exps, VE))
       | cnvExp(Absyn.IDENTexp(_, r, _), VE) = cnvExp(!r, VE)
 
     and cnvExps(exps, VE) = map (fn exp => cnvExp(exp, VE)) exps
-
+    
     fun cnvPat(pat, VE) =
-      let val var = FOL.newvar()
-	  val (pat', VE') = cnvPat'(pat, var, VE)
+      let val var = mkPatVar(pat, Instrument.getInfoFromPat pat)
+		  val (pat', VE', varNEW) = cnvPat'(pat, var, VE)
       in
-		(FOL.PAT(var, pat'), VE')
+		(FOL.PAT(varNEW, pat'), VE')
       end
 
-    and cnvPat'(Absyn.WILDpat _, _, VE) = (FOL.WILDpat, VE)
-      | cnvPat'(Absyn.LITpat(lit, _), _, VE) = (FOL.LITpat(cnvLit lit), VE)
-      | cnvPat'(Absyn.CONpat(longcon, _), _, VE) = (FOL.CONpat(cnvLongid longcon), VE)
-      | cnvPat'(Absyn.STRUCTpat(longconOpt, pats, ref(pats_positional), _), _, VE) =
+    and cnvPat'(Absyn.WILDpat info, x, VE) = (FOL.WILDpat, VE, x)
+      | cnvPat'(Absyn.LITpat(lit, info), x, VE) = (FOL.LITpat(cnvLit lit), VE, x)
+      | cnvPat'(Absyn.CONpat(longcon, info), x, VE) = (FOL.CONpat(cnvLongid longcon), VE, x)
+      | cnvPat'(Absyn.STRUCTpat(longconOpt, pats, ref(pats_positional), info), x, VE) =
 	  let val (pats', VE') = (* fixed the named arguments to positional *)
 			if List.length pats_positional = 0 
 			then cnvPats(pats, VE) 
 			else cnvPats(pats_positional, VE)
 	      val longconOpt = cnvLongidOpt longconOpt
 	  in
-	    (FOL.STRUCTpat(longconOpt, pats'), VE')
+	    (FOL.STRUCTpat(longconOpt, pats'), VE', x)
 	  end
-      | cnvPat'(Absyn.BINDpat(id, pat, _), var, VE) =
-		cnvPat'(pat, var, StrDict.insert(VE, cnvId id, var))
-      | cnvPat'(Absyn.IDENTpat(_, r, _), var, VE) = cnvPat'(!r, var, VE)
-      | cnvPat'(Absyn.NAMEDpat(id, pat, _), var, VE) = cnvPat'(pat, var, VE)
+      | cnvPat'(Absyn.BINDpat(id, pat, _), var,  VE) =
+		let val FOL.VAR(x, y) = var
+			val var1 = FOL.VAR(x, cnvId id) 
+		in
+			cnvPat'(pat, var1, StrDict.insert(VE, Absyn.identName id, var1)) 
+		end
+      | cnvPat'(x as Absyn.IDENTpat(id, r, _), var, VE) = 
+		let val FOL.VAR(x, y) = var
+			val var1 = FOL.VAR(x, cnvId id) 
+		in
+			cnvPat'(!r, var1, VE)
+		end
+      | cnvPat'(Absyn.NAMEDpat(id, pat, _), var, VE) = 
+		let val FOL.VAR(x, y) = var
+			val var1 = FOL.VAR(x, FOL.makeIdent(Instrument.getPatAsString pat, cvInfo(Instrument.getInfoFromPat pat)))
+		in
+			cnvPat'(pat, var1, VE)
+		end
 
     and cnvPats(pats, VE) =
       let fun loop([], pats', VE) = (List.rev pats', VE)
@@ -101,8 +111,8 @@ functor AbsynToFOLFn(structure StrDict : STR_DICT
       in
 		loop(pats, [], VE)
       end
-
-    fun cnvGoal(Absyn.CALLgoal(longvar, exps, pats, ref(pats_positional), _), VE) =
+	
+    fun cnvGoal(Absyn.CALLgoal(longvar, exps, pats, ref(pats_positional), info), VE) =
 	  let val vref = makeVRef(longvar, VE)
 	      val exps' = cnvExps(exps, VE)
 	      val (pats', VE) = (* fixed the named arguments to positional *)
@@ -111,79 +121,102 @@ functor AbsynToFOLFn(structure StrDict : STR_DICT
 			else cnvPats(pats_positional, VE)
 	      and vars = newvars(
 				if List.length pats_positional = 0 
-				then List.length pats 
-				else List.length pats_positional)
+				then pats 
+				else pats_positional)
 	  in
-	    (FOL.AND(FOL.CALL(vref, exps', vars),
-		     FOL.MATCH(ListPair.zip(vars, pats'))),
+	    (FOL.AND(
+			FOL.CALL(vref, exps', vars, cvInfo info),
+		    FOL.MATCH(ListPair.zip(vars, pats'), cvInfo info), cvInfo info),
 	     VE)
 	  end
-      | cnvGoal(Absyn.EQUALgoal(id, exp, _), VE) =
+      | cnvGoal(Absyn.EQUALgoal(id, exp, info), VE) =
 	  let val exp = cnvExp(exp, VE)
 	      val id = cnvId id
 	  in
-	    case StrDict.find(VE, id)	(*XXX: implicit let crap*)
-	      of SOME var => (FOL.EQUAL(var, exp), VE)
+	    case StrDict.find(VE, FOL.identName id)	(*XXX: implicit let crap*)
+	      of SOME var => (FOL.EQUAL(var, exp, cvInfo info), VE)
 	       | NONE =>
-		  let val var = FOL.newvar()
-		  in
-		    (FOL.BIND(var, exp), StrDict.insert(VE, id, var))
-		  end
+			  let val var = FOL.newvar(id)
+			  in
+				(FOL.BIND(var, exp, cvInfo info), StrDict.insert(VE, FOL.identName id, var))
+			  end
 	  end
-      | cnvGoal(Absyn.LETgoal(pat, exp, _, _), VE) =
+      | cnvGoal(Absyn.LETgoal(pat, exp, info), VE) =
 	  let val exp' = cnvExp(exp, VE)
 	      val (pat', VE) = cnvPat(pat, VE)
-	      val var = FOL.newvar()
+	      val var = FOL.newvar(FOL.dummyIdent)
 	  in
-	    (FOL.AND(FOL.BIND(var, exp'), FOL.MATCH([(var, pat')])), VE)
+	    (FOL.AND(FOL.BIND(var, exp', cvInfo info), FOL.MATCH([(var, pat')], cvInfo info), cvInfo info), VE)
 	  end
-      | cnvGoal(Absyn.NOTgoal(g, _), VE) =
+      | cnvGoal(Absyn.NOTgoal(g, info), VE) =
 	  let val (conj, VE) = cnvGoal(g, VE)
 	  in
-	    (FOL.NOT conj, VE)
+	    (FOL.NOT(conj, cvInfo info), VE)
 	  end
-      | cnvGoal(Absyn.ANDgoal(g1, g2, _), VE) =
+	  (*
+      | cnvGoal(Absyn.ANDgoal(Absyn.CONDgoal(g1, g2, g3, info1), g4, info2), VE) =
+		cnvGoal(Absyn.CONDgoal(g1, Absyn.ANDgoal(g2, g4, info1), Absyn.ANDgoal(g3, g4, info1), info2), VE)
+	  *)
+      | cnvGoal(Absyn.ANDgoal(g1, g2, info), VE) =
 	  let val (conj1, VE) = cnvGoal(g1, VE)
 	      val (conj2, VE) = cnvGoal(g2, VE)
 	  in
-	    (FOL.AND(conj1, conj2), VE)
+	    (FOL.AND(conj1, conj2, cvInfo info), VE)
 	  end
+      | cnvGoal(Absyn.CONDgoal(g1, g2, g3, info), VE) =
+	  let val (conj1, VE) = cnvGoal(g1, VE)
+	      val (conj2, VE) = cnvGoal(g2, VE)
+	      val (conj3, VE) = cnvGoal(g3, VE)
+	  in
+	    (FOL.IF(conj1, conj2, conj3, cvInfo info), VE)
+	  end 
 
     fun cnvClause vars =
-      let fun mkdisj(Absyn.CLAUSE1(goalOpt, _, pats, result, ref(pats_positional), _, _)) =
+      let fun mkdisj(Absyn.CLAUSE1(goalOpt, _, pats, result, ref(pats_positional), _, infoCLAUSE)) =
 		let val (pats', VE) = (* fixed the named arguments to positional *)
 			if List.length pats_positional = 0 
 			then cnvPats(pats, StrDict.empty)
 			else cnvPats(pats_positional, StrDict.empty)
 		    fun return VE =
 		      case result
-			of Absyn.RETURN(exps, _) => FOL.RETURN(cnvExps(exps, VE))
-			 | Absyn.FAIL _ => FOL.FAIL
-		    val body = case goalOpt
+				of Absyn.RETURN(exps, info) => FOL.RETURN(cnvExps(exps, VE), cvInfo info)
+				 | Absyn.FAIL info => FOL.FAIL(cvInfo info)
+			val body = case goalOpt
 				 of SOME goal =>
-				      let val (conj, VE) = cnvGoal(goal, VE)
-				      in
-					FOL.ANDTHEN(conj, return VE)
-				      end
+					  let val (conj, VE) = cnvGoal(goal, VE)
+					  in
+						FOL.ANDTHEN(conj, return VE, cvInfo infoCLAUSE)
+					  end
 				  | NONE => return VE
 		in
-		  FOL.ANDTHEN(FOL.MATCH(ListPair.zip(vars, pats')), body)
+		  FOL.ANDTHEN(FOL.MATCH(ListPair.zip(vars, pats'), cvInfo infoCLAUSE), body, cvInfo infoCLAUSE)
 		end
-	    | mkdisj(Absyn.CLAUSE2(cl1, cl2, _)) = FOL.ORELSE(mkdisj cl1, mkdisj cl2)
+	    | mkdisj(Absyn.CLAUSE2(cl1, cl2, info)) = FOL.ORELSE(mkdisj cl1, mkdisj cl2, cvInfo info)
       in
 		mkdisj
       end
 
+	(*
     fun clauseArity(Absyn.CLAUSE1(_, _, pats, _, ref(pats_positional), _, _)) = 
 			if List.length pats_positional = 0 (* fixed the named arguments to positional *)
-			then List.length pats
-			else List.length pats_positional
+			then pats
+			else pats_positional
       | clauseArity(Absyn.CLAUSE2(cl1, _, _)) = clauseArity cl1
+    *)
 
-    fun cnvRelBind (Absyn.RELBIND(var, _, cl, _, _, _)) =
-      let val vars = newvars(clauseArity cl)
+    fun cnvRelBind (Absyn.RELBIND(var, _, cl, localVars, _, info)) =
+      let (*val vars = newvars(clauseArity cl)*)
+		   fun loop([]) = []
+		   |   loop((id,_,_,attr)::tail) = 
+			   let val Absyn.ATTRIBUTES{input,...} = attr  
+			   in
+					if (!input) 
+					then FOL.newvar(cnvId id)::loop(tail) 
+					else loop(tail)
+			   end
+		   val vars = loop(localVars) 
       in
-		FOL.REL(cnvId var, vars, cnvClause vars cl)
+		FOL.REL(cnvId var, vars, cnvClause vars cl, cvInfo info)
       end
 
     fun cnvConBind(Absyn.CONcb(con, _)) = FOL.CONcd(cnvId con)
@@ -220,10 +253,13 @@ functor AbsynToFOLFn(structure StrDict : STR_DICT
 	       | Absyn.RELdec(relbinds, _) =>
 			 FOL.RELdec(map cnvRelBind relbinds)::decs
       in
-		List.rev(List.foldl cnvDec [] decs)
+				List.rev(List.foldl cnvDec [] decs)
       end
 
-    fun translate(Absyn.MODULE(interface, decs, _)) =
-      FOL.MODULE(cnvInterface interface, cnvDecs decs)
+    fun translate(Absyn.MODULE(interface as Absyn.INTERFACE({source,...}, _), decs, _)) = 
+    (
+    	(* print ("AbsynToFOL:"^Source.getFileName(source)^"\n"); *)
+		FOL.MODULE(cnvInterface interface, cnvDecs decs, source)
+	)
 
   end (* functor AbsynToFOLFn *)

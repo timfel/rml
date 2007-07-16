@@ -69,19 +69,19 @@ fun eof(lexarg) =
   
   
 fun makeDECINT(pos1, str, lexarg) =
-  let val pos2 = pos1 + String.size str - 1
+  let val pos2 = pos1 + String.size str (* - 1 *)
   in
     Tokens.ICON(LexUtil.decint str, mkPos(pos1, lexarg), mkPos(pos2, lexarg))
   end
 
 fun makeHEXINT(pos1, str, lexarg) =
-  let val pos2 = pos1 + String.size str - 1
+  let val pos2 = pos1 + String.size str (* - 1 *)
   in
     Tokens.ICON(LexUtil.hexint str, mkPos(pos1, lexarg), mkPos(pos2, lexarg))
   end
 
 fun makeRCON(pos1, str, lexarg) =
-  let val pos2 = pos1 + String.size str - 1
+  let val pos2 = pos1 + String.size str (* - 1 *)
   in
     Tokens.RCON(LexUtil.rcon str, mkPos(pos1, lexarg), mkPos(pos2, lexarg))
   end
@@ -188,11 +188,11 @@ val kwds = [
 		]
 
 fun makeIDENT(pos1, str, lexarg) =
-	let val pos2 = pos1 + String.size str - 1
+	let val pos2 = pos1 + String.size str (* - 1 *)
 		fun loop [] = Tokens.IDENT(str, mkPos(pos1, lexarg), mkPos(pos2, lexarg))
 		| loop((str',mktok)::rest) =
 			if str=str' 
-			then mktok(mkPos(pos1, lexarg),mkPos(pos1, lexarg)) 
+			then mktok(mkPos(pos1, lexarg),mkPos(pos2, lexarg)) 
 			else loop rest
 	in				
 		loop kwds
@@ -204,7 +204,7 @@ fun dec(ri) = let val j = !ri - 1 in ri := j; j end
 (* Not used in MetaModelica
 
 fun makeCCON(pos1, str, lexarg) =
-  let val pos2 = pos1 + String.size str - 1
+  let val pos2 = pos1 + String.size str (* - 1 *)
   in
     Tokens.CCON(LexUtil.ccon str, mkPos(pos1, lexarg), mkPos(pos2, lexarg))
   end

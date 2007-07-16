@@ -6,6 +6,8 @@ functor CPSUsefulFn(structure Util : UTIL
   struct
 
     structure CPS = CPS
+	structure ConRep = CPS.ConRep
+    
 
     fun zap_def(CPS.DEF{uses,...}) = if !uses > 0 then uses := 0 else ()
 
@@ -14,7 +16,7 @@ functor CPSUsefulFn(structure Util : UTIL
       | useful_proc(CPS.EXTERN_REL _) = ()
 
     fun useful_lit(CPS.CONSTlit _) = ()
-      | useful_lit(CPS.STRUCTlit(_, lit_star)) = List.app useful_lit lit_star
+      | useful_lit(CPS.STRUCTlit(_, lit_star, _)) = List.app useful_lit lit_star
       | useful_lit(CPS.PROClit(proc)) = useful_proc proc
       | useful_lit(CPS.EXTERNlit _) = ()
 
@@ -29,10 +31,10 @@ functor CPSUsefulFn(structure Util : UTIL
       | useful_prim(CPS.UNARYp(_, te)) = useful_te te
       | useful_prim(CPS.BINARYp(_, te1, te2)) = (useful_te te1; useful_te te2)
 
-    and useful_exp'(CPS.AppFCe(te_fc)) = useful_te te_fc
-      | useful_exp'(CPS.AppSCe{sc, args}) =
+    and useful_exp'(CPS.AppFCe{fc=te_fc,name=name,pos=pos}) = useful_te te_fc
+      | useful_exp'(CPS.AppSCe{sc, args, name, pos}) =
 	  (useful_te sc; List.app useful_te args)
-      | useful_exp'(CPS.AppPVe{pv, args, fc, sc}) =
+      | useful_exp'(CPS.AppPVe{pv, args, fc, sc, name, pos}) =
 	  (useful_te pv; List.app useful_te args; useful_te fc; useful_te sc)
       | useful_exp'(CPS.LetLABe(CPS.LAB{body,...},exp)) =
 	  (useful_exp body; useful_exp exp)
@@ -66,17 +68,17 @@ functor CPSUsefulFn(structure Util : UTIL
 		if !uses < 0 then init(defs, def::toscan, unknown)
 		else init(defs, toscan, def::unknown)
       in
-	init(alldefs, [], [])
+		init(alldefs, [], [])
       end
 
     fun useful_value(_, lit) = useful_lit lit
 
-    fun useful(CPS.MODULE{name,ctors,xmods,values,defines}) =
+    fun useful(CPS.MODULE{name,ctors,xmods,values,defines,source}) =
       let val _ = List.app zap_def defines
 	  val _ = List.app useful_value values
 	  val defines = useful_defs defines
       in
-	CPS.MODULE{name=name,ctors=ctors,xmods=xmods,values=values,defines=defines}
+		CPS.MODULE{name=name,ctors=ctors,xmods=xmods,values=values,defines=defines,source=source}
       end
 
   end (* functor CPSUsefulFn *)

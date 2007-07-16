@@ -1,11 +1,14 @@
 (* code/switch.sml *)
 
-functor SwitchFn(structure MakeString : MAKESTRING
-		 structure ConRep : CONREP
-		 structure Mangle : MANGLE
+functor SwitchFn(
+	structure MakeString : MAKESTRING
+	structure Source : SOURCE
+	structure ConRep : CONREP
+	structure Mangle : MANGLE
 		   ) : SWITCH =
   struct
 
+	structure Source    = Source
     structure ConRep	= ConRep
     structure Mangle	= Mangle
 
@@ -14,12 +17,13 @@ functor SwitchFn(structure MakeString : MAKESTRING
     datatype gvar'	= GVARSTR of string | GVAR of {scope: gvar_scope, name: gvar_name}
 
     type gvar		= gvar'
-    datatype lvar	= LVAR of int
+    
+    datatype lvar	= LVAR of {tag:int, name:ConRep.longid}
 
     datatype variable	= GLOvar of gvar
 			| LOCvar of lvar
 
-    datatype label	= LABEL of Mangle.name
+    datatype label	= LABEL of Mangle.name * ConRep.longid * ConRep.info
 
     datatype litname	= LITNAME of int
     datatype litref	= INTlr of int
@@ -50,19 +54,30 @@ functor SwitchFn(structure MakeString : MAKESTRING
 			| EXTERNg of label
 			| VALUEg of value
 
-    datatype code'	= GOTO of gototarget * int
+    datatype gototype =	  FClk (* failure *) 
+						| SClk (* success *)
+						| NClk (* normal *)
+						| LClk (* label to shared state *)
+						| EClk (* external *)
+						
+
+    datatype code'	= GOTO of gototarget * int * ConRep.longid * ConRep.info * gototype
 			| STORE of value * value * code
 			| BIND of variable option * value * code
 			| SWITCH of value * (casetag * code) list * code option
 
     and code		= CODE of {fvars: lvar list ref, code: code'}
 
-    datatype labdef	= LABDEF of {	globalP	: bool,
+    datatype labdef	= LABDEF of {	
+					globalP	: bool,
 					label	: label,
 					varHP	: lvar,
 					nalloc	: int,
 					nargs	: int,
-					code	: code		}
+					code	: code,
+					pos 	: ConRep.info }
+
+	datatype position = POSITION of ConRep.info
 
     datatype module	= MODULE of {	modname	: string,
 					ctors	: (string * ConRep.conrep) list,
@@ -71,7 +86,8 @@ functor SwitchFn(structure MakeString : MAKESTRING
 					xvals	: label list,
 					values	: (label * litref) list,
 					litdefs	: (litname * litdef) list,
-					labdefs	: labdef list	}
+					labdefs	: labdef list,
+					source  : Source.source }
 
     fun gvarString(GVAR{scope,name}) =
       let fun gvs2str(INTRAgvs) = "intra"
@@ -81,10 +97,10 @@ functor SwitchFn(structure MakeString : MAKESTRING
 	    | gvn2str(SCgvn) = "SC"
 	    | gvn2str(ARGgvn i) = "A" ^ MakeString.icvt i
       in
-	gvs2str scope ^ gvn2str name
+		gvs2str scope ^ gvn2str name
       end
 
-    fun lvarString(LVAR tag) = "tmp" ^ MakeString.icvt tag
+    fun lvarString(LVAR{tag,name}) = "tmp" ^ (MakeString.icvt tag) ^ " " ^ ConRep.fixName(name)
 
     fun prGoto(os, prLabel, prValue, target, _) = (* nargs ignored *)
       case target
@@ -101,10 +117,10 @@ functor SwitchFn(structure MakeString : MAKESTRING
 	     prValue os value;
 	     TextIO.output(os, ");\n\tgoto mask_dispatch;"))
 
-    fun mklab str = LABEL(Mangle.encode str)
+    fun mklab(str, name, info) = LABEL(Mangle.encode str, name, info)
 
     fun mkcode c = CODE{fvars=ref[], code=c}
-    fun mkGOTO(target, nargs) = mkcode(GOTO(target, nargs))
+    fun mkGOTO(target, nargs, name, pos, gototype) = mkcode(GOTO(target, nargs, name, pos, gototype))
     fun mkSTORE(v1,v2,c) = mkcode(STORE(v1,v2,c))
     fun mkBIND(xopt,v,c) = mkcode(BIND(xopt,v,c))
     fun mkSWITCH(v,cases,def) = mkcode(SWITCH(v,cases,def))
@@ -187,26 +203,26 @@ functor SwitchFn(structure MakeString : MAKESTRING
 
     (* These internal names are NOT mangled *)
 
-    val primMARKER	= LABEL(Mangle.NAME "rml_prim_marker")
-    val primUNWIND	= LABEL(Mangle.NAME "rml_prim_unwind")
-    val primEQUAL	= LABEL(Mangle.NAME "rml_prim_equal")
-    val primBOOL_NOT	= LABEL(Mangle.NAME "RML_PRIM_BOOL_NOT")
-    val primINT_NEG	= LABEL(Mangle.NAME "RML_PRIM_INT_NEG")
-    val primINT_ABS	= LABEL(Mangle.NAME "RML_PRIM_INT_ABS")
-    val primBOOL_AND	= LABEL(Mangle.NAME "RML_PRIM_BOOL_AND")
-    val primBOOL_OR	= LABEL(Mangle.NAME "RML_PRIM_BOOL_OR")
-    val primINT_ADD	= LABEL(Mangle.NAME "RML_PRIM_INT_ADD")
-    val primINT_SUB	= LABEL(Mangle.NAME "RML_PRIM_INT_SUB")
-    val primINT_MUL	= LABEL(Mangle.NAME "RML_PRIM_INT_MUL")
-    val primINT_DIV	= LABEL(Mangle.NAME "RML_PRIM_INT_DIV")
-    val primINT_MOD	= LABEL(Mangle.NAME "RML_PRIM_INT_MOD")
-    val primINT_MAX	= LABEL(Mangle.NAME "RML_PRIM_INT_MAX")
-    val primINT_MIN	= LABEL(Mangle.NAME "RML_PRIM_INT_MIN")
-    val primINT_LT	= LABEL(Mangle.NAME "RML_PRIM_INT_LT")
-    val primINT_LE	= LABEL(Mangle.NAME "RML_PRIM_INT_LE")
-    val primINT_EQ	= LABEL(Mangle.NAME "RML_PRIM_INT_EQ")
-    val primINT_NE	= LABEL(Mangle.NAME "RML_PRIM_INT_NE")
-    val primINT_GE	= LABEL(Mangle.NAME "RML_PRIM_INT_GE")
-    val primINT_GT	= LABEL(Mangle.NAME "RML_PRIM_INT_GT")
+    val primMARKER	= LABEL(Mangle.NAME "rml_prim_marker", ConRep.dummyLongIdent, ConRep.dummyInfo)
+    val primUNWIND	= LABEL(Mangle.NAME "rml_prim_unwind", ConRep.dummyLongIdent, ConRep.dummyInfo)
+    val primEQUAL	= LABEL(Mangle.NAME "rml_prim_equal", ConRep.dummyLongIdent, ConRep.dummyInfo)
+    val primBOOL_NOT	= LABEL(Mangle.NAME "RML_PRIM_BOOL_NOT", ConRep.dummyLongIdent, ConRep.dummyInfo)
+    val primINT_NEG	= LABEL(Mangle.NAME "RML_PRIM_INT_NEG", ConRep.dummyLongIdent, ConRep.dummyInfo)
+    val primINT_ABS	= LABEL(Mangle.NAME "RML_PRIM_INT_ABS", ConRep.dummyLongIdent, ConRep.dummyInfo)
+    val primBOOL_AND	= LABEL(Mangle.NAME "RML_PRIM_BOOL_AND", ConRep.dummyLongIdent, ConRep.dummyInfo)
+    val primBOOL_OR	= LABEL(Mangle.NAME "RML_PRIM_BOOL_OR", ConRep.dummyLongIdent, ConRep.dummyInfo)
+    val primINT_ADD	= LABEL(Mangle.NAME "RML_PRIM_INT_ADD", ConRep.dummyLongIdent, ConRep.dummyInfo)
+    val primINT_SUB	= LABEL(Mangle.NAME "RML_PRIM_INT_SUB", ConRep.dummyLongIdent, ConRep.dummyInfo)
+    val primINT_MUL	= LABEL(Mangle.NAME "RML_PRIM_INT_MUL", ConRep.dummyLongIdent, ConRep.dummyInfo)
+    val primINT_DIV	= LABEL(Mangle.NAME "RML_PRIM_INT_DIV", ConRep.dummyLongIdent, ConRep.dummyInfo)
+    val primINT_MOD	= LABEL(Mangle.NAME "RML_PRIM_INT_MOD", ConRep.dummyLongIdent, ConRep.dummyInfo)
+    val primINT_MAX	= LABEL(Mangle.NAME "RML_PRIM_INT_MAX", ConRep.dummyLongIdent, ConRep.dummyInfo)
+    val primINT_MIN	= LABEL(Mangle.NAME "RML_PRIM_INT_MIN", ConRep.dummyLongIdent, ConRep.dummyInfo)
+    val primINT_LT	= LABEL(Mangle.NAME "RML_PRIM_INT_LT", ConRep.dummyLongIdent, ConRep.dummyInfo)
+    val primINT_LE	= LABEL(Mangle.NAME "RML_PRIM_INT_LE", ConRep.dummyLongIdent, ConRep.dummyInfo)
+    val primINT_EQ	= LABEL(Mangle.NAME "RML_PRIM_INT_EQ", ConRep.dummyLongIdent, ConRep.dummyInfo)
+    val primINT_NE	= LABEL(Mangle.NAME "RML_PRIM_INT_NE", ConRep.dummyLongIdent, ConRep.dummyInfo)
+    val primINT_GE	= LABEL(Mangle.NAME "RML_PRIM_INT_GE", ConRep.dummyLongIdent, ConRep.dummyInfo)
+    val primINT_GT	= LABEL(Mangle.NAME "RML_PRIM_INT_GT", ConRep.dummyLongIdent, ConRep.dummyInfo)
 
   end (* functor SwitchFn *)

@@ -94,7 +94,7 @@ relation elab_ty =	(* env |- Absyn.Ty => Types.Ty *)
 	elab_ty(env, Absyn.REC bnds) => Types.REC(Types.RECORD(stamp, bnds'))
 end
 
-and elab_ty_bnds =
+relation elab_ty_bnds =
   rule	list_reverse bnds' => bnds''
 	----------------
 	elab_ty_bnds(env, [], bnds') => bnds''
@@ -133,7 +133,7 @@ relation check_ty =
 	check_ty(Types.PTR ty)
 end
 
-and check_bnds =
+relation check_bnds =
   axiom	check_bnds []
 
   rule	check_ty ty & check_bnds bnds
@@ -237,7 +237,7 @@ relation elab_arg =
 	elab_arg(env, exp, ty) => exp''
 end
 
-and elab_args =
+relation elab_args =
   rule	list_reverse args' => args''
 	----------------
 	elab_args(_, [], [], args') => args''
@@ -248,7 +248,7 @@ and elab_args =
 	elab_args(env, exp::exps, ty::tys, exps') => exps''
 end
 
-and elab_unary_rvalue =
+relation elab_unary_rvalue =
   rule	elab_lvalue(env, exp) => (exp', ty)
 	----------------
 	elab_unary_rvalue(env, Absyn.ADDR, exp) => (exp', Types.PTR ty)
@@ -265,7 +265,7 @@ and elab_unary_rvalue =
 	=> (TCode.BINARY(exp'', TCode.IEQ, TCode.ICON 0), Types.ARITH Types.INT)
 end
 
-and elab_rvalue =
+relation elab_rvalue =
   axiom elab_rvalue(env, Absyn.INT i) => (TCode.ICON i, Types.ARITH Types.INT)
   axiom elab_rvalue(env, Absyn.REAL r) => (TCode.RCON r, Types.ARITH Types.REAL)
 
@@ -311,7 +311,7 @@ and elab_rvalue =
 	elab_rvalue(env, Absyn.FCALL(id,args)) => (TCode.FCALL(id, args'), resty)
 end
 
-and elab_rvalue_decay =
+relation elab_rvalue_decay =
   rule	elab_rvalue(env, exp) => (exp', ty) &
 	Types.decay(exp', ty) => (exp'', ty')
 	----------------
@@ -323,7 +323,7 @@ end
  * Elaboration results in (exp,ty), where exp evaluates to
  * _a_pointer_to_ the lvalue, and ty is its type.
  *)
-and elab_lvalue =	(* env |- exp => ptr_exp,ty *)
+relation elab_lvalue =	(* env |- exp => ptr_exp,ty *)
   rule	lookup(env, id) => VARbnd ty & lvalue_id(ty, TCode.ADDR id) => exp'
 	----------------
 	elab_lvalue(env, Absyn.IDENT id) => (exp', ty)
@@ -337,7 +337,7 @@ and elab_lvalue =	(* env |- exp => ptr_exp,ty *)
 	elab_lvalue(env, Absyn.UNARY(Absyn.INDIR,exp)) => (exp', ty)
 end
 
-and elab_field =
+relation elab_field =
   rule	elab_lvalue(env, exp) => (exp', Types.REC r) &
 	Types.unfold_rec r => bnds &	(*N.B.*)
 	lookup(bnds, id) => ty &
@@ -472,7 +472,7 @@ relation elab_subbnd =
 	=> (env1, TCode.PROC(id,formals',NONE,block'))
 end
 
-and elab_subbnds =
+relation elab_subbnds =
   rule	list_reverse subbnds' => subbnds''
 	----------------
 	elab_subbnds(env, [], subbnds') => (env,subbnds'')
@@ -483,7 +483,7 @@ and elab_subbnds =
 	elab_subbnds(env, subbnd::subbnds, subbnds') => (env'',subbnds'')
 end
 
-and elab_body =
+relation elab_body =
   axiom elab_body(_, _, NONE) => NONE
 
   rule	elab_block(fty, env, block) => block'
@@ -491,7 +491,7 @@ and elab_body =
 	elab_body(fty, env, SOME block) => SOME block'
 end
 
-and elab_block =
+relation elab_block =
   rule	elab_consts(env0, consts) => env1 &
 	elab_types(env1, types) => env2 &
 	elab_vars(env2, vars, []) => pre_vars &

@@ -2,12 +2,35 @@ RML-MMC SYSTEM RELEASE HISTORY
 ==============================
 Adrian Pop, adrpo@ida.liu.se, http://www.ida.liu.se/~adrpo
 
-Source Release 2.3.6 2006-05-23
-------------------------------------------------------
+Release 2.3.8 2007-07-16
+-----------------------------------------------------------------
+- rml+mmc handles both .rml files and .mo files
+- faster .mo or .rml compilation due to smaller 
+  .srz files and less memory requirements
+- fixes of stringEqual (string_equal) function
+- rewriten the debugging part to work over sockets
+- debugging now works togheter with Modelica Development Tooling (MDT)
+- added set_debug_show_depth(int depth) to set the depth of variable showing
+- a lot of code refactoring and cleaning for faster compilation
+- dumped emacs-based debugging and readline library dependency
+- more platforms: 
+  + x86_64-darwin-gcc
+  + x86_64-linux-gcc
+  + x86-darwin-gcc 
+  + ppc-linux-gcc
+- a lot more i don't remember right now
+
+Release 2.3.6 2006-09-18
+-----------------------------------------------------------------
+- rml+mmc bug fix release
 - rml-mmc compiler process exits with failure on error
 - svn co svn://mir20.ida.liu.se/rml/tags/2.3.6
 
-
+Release 2.3.5 2006-04-10
+-----------------------------------------------------------------
+- rml+mmc release
+- MetaModelica now works better
+- tests for local variable declarations and typechecking
 
 Source Release 2.3.4 2006-03-08
 -----------------------------------------------------------------

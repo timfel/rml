@@ -11,7 +11,7 @@ module Types:
 			| ARR of int * Ty
 			| REC of Record
 			| UNFOLD of Stamp
-    and Record		= RECORD of Stamp * (Ident * Ty) list
+    datatype Record	= RECORD of Stamp * (Ident * Ty) list
     (* An lvalue type (lty) can be any type, except PTRNIL.
        PTR, ARR, and REC can only refer to lvalue types.
        UNFOLD is an internal placeholder that should never
@@ -73,7 +73,7 @@ relation unfold_ty =
 	unfold_ty(ty as UNFOLD stamp, RECORD(stamp',_)) => ty
 end
 
-and unfold_bnds =
+relation unfold_bnds =
   rule	list_reverse bnds' => bnds''
 	----------------
 	unfold_bnds(_, [], bnds') => bnds''
@@ -113,13 +113,13 @@ relation ty_cnv =
   axiom	ty_cnv(UNFOLD stamp) => TCode.UNFOLD stamp
 end
 
-and rec_cnv =
+relation rec_cnv =
   rule	bnds_cnv(bnds, []) => bnds'
 	----------------
 	rec_cnv(RECORD(stamp, bnds)) => TCode.RECORD(stamp, bnds')
 end
 
-and bnds_cnv =
+relation bnds_cnv =
   rule	list_reverse bnds' => bnds''
 	----------------
 	bnds_cnv([], bnds') => bnds''

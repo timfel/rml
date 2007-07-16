@@ -3,21 +3,21 @@
 #
 GOROOT=../..
 
-GENERATED=rmldb-parse.c rmldb-scan.c rmldb-parse.h rml-db-parse.c rml-db-scan.c rml-db-parse.h
+GENERATED=parse-rdb.c scan-rdb.c parse-command.c scan-command.c
 			
-default: rmldb-parse.c rmldb-scan.c rml-db-parse.c rml-db-scan.c
+default: parse-command.c scan-command.c parse-rdb.c scan-rdb.c
 
-rmldb-parse.c rmldb-scan.h : rmldb-parse.y
-	bison -p aa --defines --output-file=rmldb-parse.c rmldb-parse.y
+parse-command.c scan-command.h : parse-command.y
+	bison -p aa --defines --output-file=parse-command.c parse-command.y
 
-rmldb-scan.c : rmldb-scan.l rmldb-parse.h
-	flex -I -Paa rmldb-scan.l
+scan-command.c : scan-command.l parse-command.h
+	flex -I -Paa scan-command.l
 
-rml-db-parse.c rml-db-scan.h : rml-db-parse.y
-	bison -p aarmldb --defines --output-file=rml-db-parse.c rml-db-parse.y
+parse-rdb.c scan-rdb.h : parse-rdb.y
+	bison -p aarmldb --defines --output-file=parse-rdb.c parse-rdb.y
 
-rml-db-scan.c : rml-db-scan.l rml-db-parse.h
-	flex -Paarmldb rml-db-scan.l
+scan-rdb.c : scan-rdb.l parse-rdb.h
+	flex -Paarmldb scan-rdb.l
 
 install: default
 	echo "Nothing"

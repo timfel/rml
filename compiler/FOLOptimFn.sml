@@ -43,23 +43,23 @@ functor FOLOptimFn(structure Util : UTIL
      * end
      *)
 
-    fun mkNot(SOME conj) = FOL.NOT conj
-      | mkNot(NONE) = FOL.NOT(FOL.MATCH[])
+    fun mkNot(SOME conj, info) = FOL.NOT (conj, info)
+      | mkNot(NONE, info) = FOL.NOT(FOL.MATCH([], info), info)
 
     fun isWild(_, FOL.PAT(_, FOL.WILDpat)) = true
       | isWild(_, FOL.PAT(_, _)) = false
 
-    fun normNotConj(FOL.BIND(_,_)) = NONE
-      | normNotConj(conj as FOL.CALL(_,_,_)) = SOME conj
-      | normNotConj(conj as FOL.EQUAL(_,_)) = SOME conj
-      | normNotConj(conj as FOL.MATCH mrules) =
-	  if List.all isWild mrules then NONE else SOME conj
-      | normNotConj(FOL.AND(conj1,conj2)) =
-	  (case normNotConj conj2
-	     of SOME conj2' => SOME(FOL.AND(conj1,conj2'))
-	      | NONE => normNotConj conj1)
-      | normNotConj(FOL.NOT conj) = SOME(mkNot(normNotConj conj))
-
+    fun normNotConj(FOL.BIND(_,_,_)) = NONE
+      | normNotConj(conj as FOL.CALL(_,_,_,_)) = SOME conj
+      | normNotConj(conj as FOL.EQUAL(_,_,_)) = SOME conj
+      | normNotConj(conj as FOL.MATCH(mrules,_)) =
+		if List.all isWild mrules then NONE else SOME conj
+      | normNotConj(FOL.AND(conj1,conj2,info)) =
+		  (case normNotConj conj2
+			 of SOME conj2' => SOME(FOL.AND(conj1,conj2', info))
+			  | NONE => normNotConj conj1)
+      | normNotConj(FOL.NOT(conj, info)) = SOME(mkNot(normNotConj conj, info))
+      | normNotConj(conj) = SOME conj
     (*
      * Inference rules for normalizing conjunctions.
      *
@@ -88,14 +88,16 @@ functor FOLOptimFn(structure Util : UTIL
      * end
      *)
 
-    fun mkAnd(c1, c2) =
+    fun mkAnd(c1, c2, info) =
       case c1
-	of FOL.AND(c1a,c1b) => FOL.AND(c1a, mkAnd(c1b, c2))
-	 | _ => FOL.AND(c1, c2)
+		of FOL.AND(c1a,c1b,i) => FOL.AND(c1a, mkAnd(c1b, c2, i), i)
+		 | _ => FOL.AND(c1, c2, info)
 
-    fun normConj(FOL.AND(c1,c2)) = mkAnd(normConj c1, normConj c2)
-      | normConj(FOL.NOT conj) = mkNot(normNotConj(normConj conj))
+    fun normConj(FOL.AND(c1,c2, info)) = mkAnd(normConj c1, normConj c2, info)
+      | normConj(FOL.NOT(conj, info)) = mkNot(normNotConj(normConj conj), info)
+      | normConj(FOL.IF(c1, c2, c3, info)) = FOL.IF(normConj c1, normConj c2, normConj c3, info)
       | normConj conj = conj
+
 
     (*
      * Normalizing rules for disjunctive forms:
@@ -132,138 +134,106 @@ functor FOLOptimFn(structure Util : UTIL
     and similarPat'(FOL.WILDpat, _) = true
       | similarPat'(_, FOL.WILDpat) = true
       | similarPat'(FOL.LITpat l1, FOL.LITpat l2) = FOL.litEqual(l1, l2)
-      | similarPat'(FOL.CONpat c1, FOL.CONpat c2) = c1 = c2
+      | similarPat'(FOL.CONpat c1, FOL.CONpat c2) = FOLUnify.exposeNames c1 = FOLUnify.exposeNames c2
       | similarPat'(FOL.STRUCTpat(c1,ps1), FOL.STRUCTpat(c2,ps2)) =
-	  c1 = c2 andalso similarPats(ps1, ps2)
+	  		FOLUnify.exposeLongId c1 = FOLUnify.exposeLongId c2 andalso similarPats(ps1, ps2)
       | similarPat'(_, _) = false
     and similarPats([], []) = true
       | similarPats(p1::ps1, p2::ps2) =
 	  similarPat(p1,p2) andalso similarPats(ps1,ps2)
       | similarPats(_, _) = false
 
-    fun mkCond(c1, d2, d3) = FOL.COND(c1, d2, d3)
+    fun mkCond(c1, d2, d3, i) = FOL.COND(c1, d2, d3, i)
     
-    (* Adrian Pop, 
-       + adrpo@ida.liu.se, 
-       + http://www.ida.liu.se/~adrpo,
-       + date: 2005-01-19 
-       + remove the instrumented code when unifying
-         things like FOL.NOT(goals)=goals
-       + this helps turning things like below into a conditional:
-         rule x ...
-              ------
-              z(pat)
-         rule not(x) ...
-              ----------
-              z(pat)      
-     *)
-     fun isDebugCall( FOL.CALL( vref as FOL.GVAR( FOL.LONGID(SOME("RML"), debug)), _, _ ) ) =
-		   (String.isPrefix "debug" debug)
-       | isDebugCall( _ ) = false
-     
-     fun removeDebugCalls(z as FOL.AND(c1 as FOL.CALL(_,_,_),c2)) = 
-		(if isDebugCall(c1) 
-		 then removeDebugCalls(c2) 
-		 else case c2 
-		      of FOL.CALL(_,_,_) => 
-		         if isDebugCall(c2)
-				 then removeDebugCalls(c1) 
-				 else FOL.AND(removeDebugCalls(c1), removeDebugCalls(c2))
-			  | _ =>  FOL.AND(removeDebugCalls(c1), removeDebugCalls(c2)))
-        | removeDebugCalls(rest) = rest 
-
-    fun mkAndThen(c1, d2) =
+    fun mkAndThen(c1, d2, info) =
       case c1
-	of FOL.MATCH(mrules) =>
-	    mkCase(map #1 mrules, [(map #2 mrules, d2)])
-	 | FOL.AND(c1a,c1b) => mkAndThen(c1a, mkAndThen(c1b, d2))
-	 | _ => FOL.ANDTHEN(c1, d2)
+			of FOL.MATCH(mrules,i) =>
+				mkCase(map #1 mrules, [(map #2 mrules, d2)], i)
+			 | FOL.AND(c1a,c1b,i) => mkAndThen(c1a, mkAndThen(c1b, d2, i), info)
+			 | _ => FOL.ANDTHEN(c1, d2, info)
 
-    and mkCase(_, []) = bug "mkCase(_,[])"
-      | mkCase([], (_,d1)::cases) =
-	  let fun join(d1, []) = d1
-		| join(d1, (_,d2)::cases) = mkOrElse(d1, join(d2, cases))
-	  in
-	    join(d1, cases)
-	  end
-      | mkCase(vars, cases) =
+    and mkCase(_, [], _) = bug "mkCase(_,[])"
+      | mkCase([], (_,d1)::cases, info) =
+			  let fun join(d1, []) = d1
+				| join(d1, (_,d2)::cases) = mkOrElse(d1, join(d2, cases), info)
+			  in
+			    join(d1, cases)
+			  end
+      | mkCase(vars, cases, info) =
 	  let fun bubble(casej, []) = [casej]
 		| bubble(casej, abovej as (casei :: abovei)) =
 		    let val (patsj,dj) = casej
-			and (patsi,di) = casei
-		    in
-		      if FOLUnify.unifyPatLists(patsi, patsj) then
-			(patsi, mkOrElse(di,dj)) :: abovei
-		      else if similarPats(patsi, patsj) then casej :: abovej
-		      else casei :: bubble(casej, abovei)
-		    end
+						and (patsi,di) = casei
+				in
+					if FOLUnify.unifyPatLists(patsi, patsj) 
+					then (patsi, mkOrElse(di,dj, info)) :: abovei
+					else if similarPats(patsi, patsj) 
+					     then casej :: abovej
+					     else casei :: bubble(casej, abovei)
+				end
 	  in
-	    FOL.CASE(vars, List.rev(List.foldl bubble [] cases))
+	    FOL.CASE(vars, List.rev(List.foldl bubble [] cases), info)
 	  end
 
-    and mkOrElse(d1 as FOL.ANDTHEN(c1a,d1b as FOL.ANDTHEN(c1a',d1b')), d2 as FOL.ANDTHEN(c2a as FOL.NOT(c2a'),d2b)) =
-        if (isDebugCall(c1a) andalso FOLUnify.unifyConjs(c1a', c2a'))
-        then mkAndThen(c1a, mkCond(c1a', d1b', d2b))
-        else FOL.ORELSE(d1, d2)
-     | mkOrElse(d1 as FOL.ANDTHEN(c2a as FOL.NOT(c2a'),d2b), d2 as FOL.ANDTHEN(c1a,d1b as FOL.ANDTHEN(c1a',d1b'))) =
-        if (isDebugCall(c1a) andalso FOLUnify.unifyConjs(c1a', c2a'))
-        then mkAndThen(c1a, mkCond(c1a', d1b', d2b))
-        else FOL.ORELSE(d1, d2)       
-     | mkOrElse(d1,d2) = 
+    and mkOrElse(
+			d1 as FOL.ANDTHEN(c1a,d1b as FOL.ANDTHEN(c1a',d1b',infoD1B), infoD1), 
+			d2 as FOL.ANDTHEN(c2a as FOL.NOT(c2a',infoC2A), d2b, infoD2), infOrElse) =
+        if FOLUnify.unifyConjs(c1a', c2a')
+        then mkAndThen(c1a, mkCond(c1a', d1b', d2b, infoD1B), infOrElse)
+        else FOL.ORELSE(d1, d2, infOrElse)
+     | mkOrElse(
+			d1 as FOL.ANDTHEN(c2a as FOL.NOT(c2a', infoC2),d2b, infoD1), 
+			d2 as FOL.ANDTHEN(c1a,d1b as FOL.ANDTHEN(c1a',d1b', infoD1B), infoD2), infOrElse) =
+        if FOLUnify.unifyConjs(c1a', c2a')
+        then mkAndThen(c1a, mkCond(c1a', d1b', d2b, infOrElse), infOrElse)
+        else FOL.ORELSE(d1, d2, infOrElse)       
+     | mkOrElse(d1, d2, infOrElse) = 
       case d1
-		of FOL.ORELSE(d1a,d1b) => mkOrElse(d1a, mkOrElse(d1b, d2))
-		| FOL.ANDTHEN(c1a,d1b) =>
+		of FOL.ORELSE(d1a,d1b,iD1) => mkOrElse(d1a, mkOrElse(d1b, d2, iD1), iD1)
+		|  FOL.ANDTHEN(c1a,d1b,iD1) =>
+			(case d2
+			   of FOL.ANDTHEN(c2a,d2b, iD2) =>
+				(if FOLUnify.unifyConjs(c1a, c2a)
+				 then mkAndThen(c1a, mkOrElse(d1b, d2b, iD2), iD1)
+				 else
+				   case c1a
+					of FOL.NOT(c1a', iC1A') =>
+					if FOLUnify.unifyConjs(c1a', c2a) 
+					then mkCond(c1a', d2b, d1b, infOrElse)
+					else FOL.ORELSE(d1, d2, infOrElse)
+				  | _ =>
+					 case c2a
+					   of FOL.NOT(c2a', iC2A') =>
+					   if FOLUnify.unifyConjs(c2a', c1a) 
+					   then mkCond(c1a, d1b, d2b, infOrElse)
+					   else FOL.ORELSE(d1, d2, infOrElse)
+					| _ => FOL.ORELSE(d1, d2, infOrElse))
+		| _ => FOL.ORELSE(d1, d2, infOrElse))
+	 | FOL.CASE(vars1,cases1, info1) =>
 	    (case d2
-	       of FOL.ANDTHEN(c2a,d2b) =>
-		    (if FOLUnify.unifyConjs(c1a, c2a)
-		     then
-		       mkAndThen(c1a, mkOrElse(d1b, d2b))
-		     else
-		       case c1a
-				of FOL.NOT(c1a') =>
-			    if FOLUnify.unifyConjs(c1a', c2a) 
-			    then
-			      mkCond(c1a', d2b, d1b)
-			    else FOL.ORELSE(d1, d2)
-			  | _ =>
-			     case c2a
-			       of FOL.NOT(c2a') =>
-				   if FOLUnify.unifyConjs(c2a', c1a) 
-				   then
-				     mkCond(c1a, d1b, d2b)
-				   else FOL.ORELSE(d1, d2)
-				| _ => FOL.ORELSE(d1, d2))
-		| _ => FOL.ORELSE(d1, d2))
-	 | FOL.CASE(vars1,cases1) =>
-	    (case d2
-	       of FOL.CASE(vars2,cases2) =>
-		    if FOLUnify.equalVarLists(vars1,vars2) then
-		      mkCase(vars1, cases1@cases2)
-		    else FOL.ORELSE(d1, d2)
-		| _ => FOL.ORELSE(d1, d2))
-	 | _ => FOL.ORELSE(d1, d2)
+	       of FOL.CASE(vars2,cases2, info2) =>
+		    if FOLUnify.equalVarLists(vars1,vars2) 
+		    then mkCase(vars1, cases1@cases2, info1)
+		    else FOL.ORELSE(d1, d2, info1)
+		| _ => FOL.ORELSE(d1, d2, info1))
+	 | _ => FOL.ORELSE(d1, d2, infOrElse)
 
     fun normDisj(d as FOL.RETURN(_)) = d
-      | normDisj(d as FOL.FAIL) = d
-      | normDisj(FOL.ORELSE(d1,d2)) = mkOrElse(normDisj d1, normDisj d2)
-      | normDisj(FOL.ANDTHEN(c1,d2)) = mkAndThen(normConj c1, normDisj d2)
-      | normDisj(FOL.COND(c1,d2,d3)) = mkCond(normConj c1, normDisj d2, normDisj d3)
-      | normDisj(FOL.CASE(vars,cases)) = mkCase(vars, map normCase cases)
+      | normDisj(d as FOL.FAIL(_)) = d
+      | normDisj(FOL.ORELSE(d1,d2,i)) = mkOrElse(normDisj d1, normDisj d2, i)
+      | normDisj(FOL.ANDTHEN(c1,d2,i)) = mkAndThen(normConj c1, normDisj d2, i)
+      | normDisj(FOL.COND(c1,d2,d3,i)) = mkCond(normConj c1, normDisj d2, normDisj d3, i)
+      | normDisj(FOL.CASE(vars,cases,i)) = mkCase(vars, map normCase cases, i)
 
     and normCase(pats, d) = (pats, normDisj d)
-
-    fun normRel(FOL.REL(name, formals, disj)) =
-      FOL.REL(name, formals, normDisj disj)
+    
+    fun normRel(FOL.REL(name, formals, disj, info)) = FOL.REL(name, formals, normDisj disj, info)
 
     fun normDec(FOL.RELdec rels) = FOL.RELdec(map normRel rels)
-      | normDec dec = dec
+    |   normDec dec = dec
 
-    fun normModule(FOL.MODULE(exports, declarations)) =
-      FOL.MODULE(exports, map normDec declarations)
+    fun normModule(FOL.MODULE(exports, declarations, source)) = FOL.MODULE(exports, map normDec declarations, source)
  
- (* adrpo 2004-11-27 print ONLY the result after FOL optimization 
-		  val _ = FOLPrint.printModule(os, m)
- *)
     fun optimize(SOME os, m) =
 	  let val m = normModule m
 	      val _ = FOLPrint.printModule(os, m)

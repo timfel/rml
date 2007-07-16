@@ -1,9 +1,4 @@
 (* code/plaintoc.sml *)
-(* -- start adrpo 27 june *)
-(* added to Control to PlainToCFn interface to be 
-   used for Control.doDebug -- enabling/disabling the trace on stderr *)
-(* -- end adrpo 27 june *) 
-
 functor PlainToCFn(structure Util : UTIL
 		   structure Code : PLAIN
 		   structure CodeToC : CODETOC
@@ -13,7 +8,12 @@ functor PlainToCFn(structure Util : UTIL
   struct
 
     structure Code = Code
+    structure ConRep = Code.ConRep
 
+    fun emitModule(os, ((prefix, ext), module as Code.MODULE{modname, xmods, xlabs, xvals, values, litdefs, labdefs, source, ...})) =
+    let 
+	val _ = CodeToC.setCurrentSource(source)
+	
     val output = TextIO.output
     val output1 = TextIO.output1
 
@@ -23,35 +23,24 @@ functor PlainToCFn(structure Util : UTIL
        CodeToC.prLabel os label;
        output(os, ");\n"))
 
-
-(* -- start adrpo 2002-10-03 
-  fun instrumentCode adds the debbuger code in the generated code or not, 
-  depending on the first variable
-
-    fun instrumentCode os (ref false, label) = ()
-      | instrumentCode os (ref true, label) = ()
-	(output(os,"\trml_state_print(\"");
-	CodeToC.prLabel os label;
-	output(os,"\", rmlState);"))
- -- end adrpo 2002-10-03 *) 
-
-
     fun emitLabDecs(_, []) = ()
       | emitLabDecs(os, labdefs) =
 	  (output1(os, #"\n"); List.app (prLabDec os) labdefs)
 
-    fun prLabBody os (Code.LABDEF{globalP,label,varHP,nalloc,nargs,code,...}) =
-      (output1(os, #"\n");
-       if globalP then () else output(os, "static ");
-        output(os, "RML_BEGIN_LABEL(");
-       CodeToC.prLabel os label;
-       output(os, ")\n{");
+    fun prLabBody os (Code.LABDEF{globalP,label,varHP,nalloc,nargs,code,pos,...}) =
+     (output1(os, #"\n");
+      if globalP 
+      then () 
+      else output(os, "static ");
+	 	   output(os, "RML_BEGIN_LABEL(");
+		   CodeToC.prLabel os label;
+		   output(os, ")\n{");
      if nalloc > 0 
      then
 	 (
 		output(os, "\tvoid *");
 		CodeToC.prLVar os varHP;
-			output(os, ";");
+		output(os, ";");
 		output(os, "\n\tRML_ALLOC(");
 		CodeToC.prLVar os varHP;
 		output1(os, #",");
@@ -61,6 +50,11 @@ functor PlainToCFn(structure Util : UTIL
 		output1(os, #",");
 		CodeToC.prLabel os label;	(* for `new' runtime *)
 		output(os, ");");
+		(*
+		if !Control.doDebug
+		then CodeToC.instrumentCont os ("success", Code.POSITION(pos), CodeToC.getLabelName label, "goal")
+		else ();
+		*)
 		if !Control.doTrace
 		then
 		(
@@ -72,6 +66,11 @@ functor PlainToCFn(structure Util : UTIL
 	  )
       else 
       (
+		(*
+		if !Control.doDebug
+		then CodeToC.instrumentCont os ("success", Code.POSITION(pos), CodeToC.getLabelName label, "goal")
+		else ();
+		*)
 		if !Control.doTrace
 		then
 		(      
@@ -82,9 +81,6 @@ functor PlainToCFn(structure Util : UTIL
 			()
       );
             
-	  (* adrpo 2005-12-29 changed this to the one below! 
-      CodeToC.prCode os code;
-      *)
       output(os, "\n\t{");
       CodeToC.prCode os code;
       output(os, "}");      
@@ -92,9 +88,8 @@ functor PlainToCFn(structure Util : UTIL
 
     fun emitLabDefs(os, labdefs) = List.app (prLabBody os) labdefs
 
-    fun emitModule(os, ((prefix, ext), module as Code.MODULE{modname, xmods, xlabs, xvals, values, litdefs, labdefs, ...})) =
-      let val (Code.Mangle.NAME modname) = Code.Mangle.encode modname
-      in
+  val (Code.Mangle.NAME modname) = Code.Mangle.encode modname
+  in
 	output(os, "/* module "); output(os, modname); output(os, " */\n");
 	output(os, "#include \"rml.h\"\n");
 	output(os, "#include <stdlib.h>\n");
@@ -111,7 +106,7 @@ functor PlainToCFn(structure Util : UTIL
 	CodeToC.emitValues os values;
 	CodeToC.prInitProc (os,prefix) (fn () => ()) module;
 	emitLabDefs(os, labdefs)
-      end
+  end
 
     fun emitInterface(os, module) = CodeToC.prInterface os module
 

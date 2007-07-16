@@ -22,7 +22,7 @@ functor CPSUsagesFn(structure Util : UTIL
       | use_proc(CPS.EXTERN_REL _) = ()
 
     fun update_lit(CPS.PROClit(proc)) = use_proc proc
-      | update_lit(CPS.STRUCTlit(_, lit_star)) = List.app update_lit lit_star
+      | update_lit(CPS.STRUCTlit(_, lit_star, _)) = List.app update_lit lit_star
       | update_lit(_) = ()
 
     fun update_te'(CPS.VARte(var)) = use_var var
@@ -36,10 +36,10 @@ functor CPSUsagesFn(structure Util : UTIL
       | update_prim(CPS.UNARYp(_, te)) = update_te te
       | update_prim(CPS.BINARYp(_, te1, te2)) = (update_te te1; update_te te2)
 
-    and update_exp'(CPS.AppFCe(te_fc)) = update_te te_fc
-      | update_exp'(CPS.AppSCe{sc, args}) =
+    and update_exp'(CPS.AppFCe{fc=te_fc, name=name, pos=pos}) = update_te te_fc
+      | update_exp'(CPS.AppSCe{sc, args, name, pos}) =
 	  (update_te sc; List.app update_te args)
-      | update_exp'(CPS.AppPVe{pv, args, fc, sc}) =
+      | update_exp'(CPS.AppPVe{pv, args, fc, sc, name, pos}) =
 	  (update_te pv; List.app update_te args;
 	   update_te fc; update_te sc)
       | update_exp'(CPS.LetLABe(CPS.LAB{uses,bvars,body,...},exp)) =
@@ -67,9 +67,9 @@ functor CPSUsagesFn(structure Util : UTIL
     fun update module =
       let val (module as CPS.MODULE{defines,...}) = CPSUseful.useful module
       in
-	List.app zap_def defines;
-	List.app update_def defines;
-	module
+		List.app zap_def defines;
+		List.app update_def defines;
+		module
       end
 
   end (* functor CPSUsagesFn *)

@@ -24,7 +24,7 @@ functor ReorderValFn(structure Util : UTIL
 
     fun sayMsg msg = TextIO.output(TextIO.stdErr, msg)
 
-    fun sayIdError(source, msg, Absyn.IDENT(name, Absyn.INFO(filename, left, right, _))) =
+    fun sayIdError(source, msg, Absyn.IDENT(name, Absyn.INFO(left, right))) =
       Absyn.Source.sayMsg source ("Error: "^msg^name, left, right)
 
     exception ReorderValueDeclarationsError
@@ -77,9 +77,10 @@ functor ReorderValFn(structure Util : UTIL
 	    (List.foldl scanPat VE pats,
 	     List.foldl (depsOfExp VE) (depsOfLongid(VE,longid,deps)) exps)
 	 | Absyn.EQUALgoal(var, exp, _) => (VE,depsOfVar(VE,var,depsOfExp VE (exp,deps)))
-	 | Absyn.LETgoal(pat, exp, _, _) => (scanPat(pat,VE), depsOfExp VE (exp,deps))
+	 | Absyn.LETgoal(pat, exp, _) => (scanPat(pat,VE), depsOfExp VE (exp,deps))
 	 | Absyn.NOTgoal(goal, _) => (VE, #2(depsOfGoal(goal, (VE,deps))))
 	 | Absyn.ANDgoal(g1,g2, _) => depsOfGoal(g2, depsOfGoal(g1, (VE,deps)))
+	 | Absyn.CONDgoal(g1, g2, g3, _) => depsOfGoal(g3, depsOfGoal(g2, depsOfGoal(g1, (VE,deps))))
 
     fun depsOfGoalOpt(NONE, VE, deps) = (VE,deps)
       | depsOfGoalOpt(SOME goal, VE, deps) = depsOfGoal(goal, (VE,deps))

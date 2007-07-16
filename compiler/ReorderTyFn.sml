@@ -24,7 +24,7 @@ functor ReorderTyFn(structure Util : UTIL
 
     fun sayMsg msg = TextIO.output(TextIO.stdErr, msg)
 
-    fun sayIdError(source, msg, Absyn.IDENT(name, Absyn.INFO(filename, left, right, _))) =
+    fun sayIdError(source, msg, Absyn.IDENT(name, Absyn.INFO(left, right))) =
       Absyn.Source.sayMsg source ("Error: "^msg^name, left, right)
 
     exception ReorderTypeDeclarationsError
@@ -76,7 +76,7 @@ functor ReorderTyFn(structure Util : UTIL
 		    idError(source, "type alias depends on itself: ", tycon)
 		  else ()
       in
-	Array.update(depArr, i, deps)
+		Array.update(depArr, i, deps)
       end
 
     fun analyseTyBnd source TE depArr (i,TYPBND(Absyn.TYPBIND(_,tycon,ty, _))) =
@@ -119,9 +119,7 @@ functor ReorderTyFn(structure Util : UTIL
 	  val TE = Vector.foldli addIndex' IdentDict.empty (typVec) (* , 0, NONE) *)
 	  val depArr = Array.array(Vector.length typVec, []:int list)
 	  val _ = Vector.appi (analyseTyBnd' source TE depArr) (typVec) (* , 0,NONE) *)
-	  val depVec = Vector.tabulate(Vector.length typVec,
-				       fn i => (Vector.sub(typVec,i),
-						Array.sub(depArr,i)))
+	  val depVec = Vector.tabulate(Vector.length typVec, fn i => (Vector.sub(typVec,i), Array.sub(depArr,i)))
 	  val components = ReorderSCC.scc depVec
       in
 		map (checkSingleton source) components
@@ -130,8 +128,7 @@ functor ReorderTyFn(structure Util : UTIL
     fun mkTyDec source tybLst =
       let fun split([], [], []) = bug "mkTyDec([],[],[])"
 	    | split([], [], [typbnd]) = TYPDEC typbnd
-	    | split([], datbnds, typbnds) =
-		DATDEC(datbnds, mkWithBind(source, typbnds))
+	    | split([], datbnds, typbnds) = DATDEC(datbnds, mkWithBind(source, typbnds))
 	    | split(tyb::tybLst, datbnds, typbnds) =
 		(case tyb
 		   of TYPBND typbnd => split(tybLst, datbnds, typbnd::typbnds)
@@ -145,9 +142,7 @@ functor ReorderTyFn(structure Util : UTIL
 	  val TE = Vector.foldli (addIndex source) IdentDict.empty (tybVec) (* , 0, NONE) *)
 	  val depArr = Array.array(Vector.length tybVec, []:int list)
 	  val _ = Vector.appi (analyseTyBnd source TE depArr) (tybVec) (* , 0, NONE) *)
-	  val depVec = Vector.tabulate(Vector.length tybVec,
-				       fn i => (Vector.sub(tybVec,i),
-						Array.sub(depArr,i)))
+	  val depVec = Vector.tabulate(Vector.length tybVec, fn i => (Vector.sub(tybVec,i), Array.sub(depArr,i)))
 	  val components = ReorderSCC.scc depVec
       in
 		map (mkTyDec source) components

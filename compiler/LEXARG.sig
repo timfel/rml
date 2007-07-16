@@ -6,7 +6,7 @@ signature LEXARG =
     structure Source:  SOURCE    
     structure StrDict : STR_DICT
             
-    type poz		 (* char pozition + line + column *)
+    type poz		 (* char pozition + start line + end line *)
     type restriction
     type visibility
     
@@ -28,9 +28,8 @@ signature LEXARG =
     val error2	     : lexarg -> string * poz * poz -> unit
     val warn	     : lexarg -> string * poz * poz -> unit
     val source	     : lexarg -> Source.source
-    val getLoc	     : lexarg -> poz * poz -> 
-						{fileName:string, sline:int, scolumn:int, eline:int, ecolumn:int}
-	val getPos       : lexarg * int -> int * int
+    val getLoc	     : lexarg -> int * int -> {fileName:string, sline:int, scolumn:int, eline:int, ecolumn:int}
+    val getPos       : lexarg * int -> int * int
 	
     val addExternal    : lexarg * string * poz * poz -> unit 
     val addImport      : lexarg * string * poz * poz * visibility -> unit 

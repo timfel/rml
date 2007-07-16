@@ -116,7 +116,7 @@ fun makeIDENT(pos1, str, lexarg) =
   let val pos2 = pos1 + String.size str - 1
       fun loop [] = Tokens.IDENT(str, mkPos(pos1, lexarg), mkPos(pos2, lexarg))
 	| loop((str',mktok)::rest) =
-	    if str=str' then mktok(mkPos(pos1, lexarg),mkPos(pos1, lexarg)) else loop rest
+	    if str=str' then mktok(mkPos(pos1, lexarg),mkPos(pos2, lexarg)) else loop rest
   in
 	if (str = "end")    
 	then LexArg.currVisibility(lexarg) := Cache.PROTECTED

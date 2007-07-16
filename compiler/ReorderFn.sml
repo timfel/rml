@@ -26,14 +26,12 @@ functor ReorderFn(
       | typDec(ReorderTy.DATDEC(datbnds,typbnds)) = Absyn.DATAdec(datbnds,typbnds, Absyn.dummyInfo)
 
     fun reorderSpecs(source, specs) =
-      let fun split([], wsas, ts, vs) =
-		wsas @ map typSpec (ReorderTy.reorderTyBnds(source, ts)) @ vs
+      let fun split([], wsas, ts, vs) = wsas @ map typSpec (ReorderTy.reorderTyBnds(source, ts)) @ vs
 	    | split(spec::specs, wsas, ts, vs) =
 		case spec
 		  of Absyn.WITHspec _ => split(specs, spec::wsas, ts, vs)
 		   | Absyn.ABSTYPEspec _ => split(specs, spec::wsas, ts, vs)
-		   | Absyn.TYPEspec(typbnds, _) =>
-		      split(specs, wsas, List.foldl addTyp ts typbnds, vs)
+		   | Absyn.TYPEspec(typbnds, _) => split(specs, wsas, List.foldl addTyp ts typbnds, vs)
 		   | Absyn.DATAspec(datbnds, typbnds, _) =>
 		      let val ts = List.foldl addDat ts datbnds
 			  val ts = List.foldl addTyp ts typbnds

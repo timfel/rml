@@ -3,25 +3,26 @@
 signature FOL =
   sig
 
-	(*
-    (* start line, start column, end line, endcolumn *)
-	datatype loc = LOC of int * int * int * int
+    structure Source	: SOURCE
 
-    (* filename, pos start, pos end *)
-	datatype info = INFO of string * int * int * loc
+    (* pos start, pos end *)
+	datatype info = INFO of int * int
 
     datatype ident	= IDENT of string * info
-    *)
-    type ident = string
-    datatype longid	= LONGID of ident option * ident
+
+    datatype longid	= LONGID of ident option * ident * info
 
     datatype lit	= ICON of int
 			| RCON of real
 			| SCON of string
 
-    datatype var	= VAR of {name	: ident,
-				  uses	: int ref,
-				  inst	: var option ref}
+    datatype var	= VAR of { 
+                               name	: string, 
+                               uses	: int ref,
+				               inst	: var option ref 
+				             } *
+				             ident
+				               
 
     datatype pat'	= WILDpat
 			| LITpat of lit
@@ -37,21 +38,22 @@ signature FOL =
 			| VARexp of varref
 			| STRUCTexp of longid option * exp list
 
-    datatype conj	= CALL of varref * exp list * var list
-			| MATCH of (var * pat) list
-			| EQUAL of var * exp
-			| BIND of var * exp
-			| NOT of conj
-			| AND of conj * conj
+    datatype conj	= CALL of varref * exp list * var list * info
+			| MATCH of (var * pat) list * info
+			| EQUAL of var * exp * info
+			| BIND of var * exp * info
+			| NOT of conj * info
+			| AND of conj * conj * info
+			| IF of conj * conj * conj * info
 
-    datatype disj	= RETURN of exp list
-			| FAIL
-			| ORELSE of disj * disj
-			| ANDTHEN of conj * disj
-			| COND of conj * disj * disj
-			| CASE of var list * (pat list * disj) list
+    datatype disj	= RETURN of exp list * info
+			| FAIL of info
+			| ORELSE of disj * disj * info
+			| ANDTHEN of conj * disj * info
+			| COND of conj * disj * disj * info
+			| CASE of var list * (pat list * disj) list * info
 
-    datatype rel	= REL of ident * var list * disj
+    datatype rel	= REL of ident * var list * disj * info
 
     datatype condesc	= CONcd of ident
 			| CTORcd of ident * int
@@ -68,10 +70,19 @@ signature FOL =
 			| VALdec of ident * exp
 			| RELdec of rel list
 
-    datatype module	= MODULE of interface * dec list
+    datatype module	= MODULE of interface * dec list * Source.source
 
     val litEqual	: lit * lit -> bool
-    val newvar		: unit -> var
+    val newvar		: ident -> var
     val deref		: var -> var
+    
+    val makeIdent	    : string * info -> ident
+    val identName	    : ident -> string
+    val identCtxInfo	: ident -> info
+    val lidentName		: longid -> string
+    val lidentCtxInfo	: longid -> info
+    val dummyInfo       : info
+    val dummyIdent		: ident
+    
 
   end (* signature FOL *)

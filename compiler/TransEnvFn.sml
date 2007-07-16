@@ -11,22 +11,21 @@ functor TransEnvFn(structure Util : UTIL
     structure CPS		= CPS
 
     datatype translation = DEF of {def: CPS.def, tieknot: unit->unit}
-			| LIT of CPS.literal
-			| CON of {rep: ConRep.conrep, nrcons: int}
-			| VAR of CPS.trivexp
+						 | LIT of CPS.literal
+						 | CON of {rep: ConRep.conrep, nrcons: int}
+						 | VAR of CPS.trivexp
 
     fun bug s = Util.bug("TransEnv."^s)
 
     fun unary_arg [x]	= x
       | unary_arg _	= bug "unary_arg"
 
-    fun binary_args[x,y]= (x,y)
+    fun binary_args [x,y]= (x,y)
       | binary_args _	= bug "binary_args"
 
     (* This is a bloody awful hack! *)
-
     fun new_var() =
-      let val (var as CPS.VAR{uses,...}) = CPS.newVar()
+      let val (var as CPS.VAR{uses,...}) = CPS.newVar(CPS.dummyLongIdent)
       in
 		uses := 10;
 		var
@@ -34,66 +33,73 @@ functor TransEnvFn(structure Util : UTIL
 
     fun mk_unary_inliner unop =
       fn{args, fc=_, sc} =>
-	let val varx = new_var()
-	    and varz = new_var()
-	    val e = CPS.LETe(varx, unary_arg args,
-		    CPS.mkPRIMe(varz, CPS.UNARYp(unop, CPS.mkVARte varx),
-		    CPS.mkAppSCe{sc=sc,args=[CPS.mkVARte varz]}))
-	in
-	  SOME e
-	end
+		let val pos = CPS.ConRep.dummyInfo
+		    val name = CPS.ConRep.dummyLongIdent
+			val varx = new_var()
+			and varz = new_var()
+			val e = CPS.LETe(varx, unary_arg args,
+						CPS.mkPRIMe(varz, CPS.UNARYp(unop, CPS.mkVARte varx),
+						CPS.mkAppSCe{sc=sc,args=[CPS.mkVARte varz], name=name, pos=pos}))
+		in
+		  SOME e
+		end
 
     val int_int_inliner =
       fn{args, fc=_, sc} =>
-	let val varx = new_var()
-	    val e = CPS.LETe(varx, unary_arg args,
-		    CPS.mkAppSCe{sc=sc,args=[CPS.mkVARte varx]})
-	in
-	  SOME e
-	end
+		let val pos = CPS.ConRep.dummyInfo
+		    val name = CPS.ConRep.dummyLongIdent		
+			val varx = new_var()
+			val e = CPS.LETe(varx, unary_arg args,
+						CPS.mkAppSCe{sc=sc,args=[CPS.mkVARte varx], name=name, pos=pos})
+		in
+		  SOME e
+		end
 
     fun mk_binary_inliner binop =
       fn{args, fc=_, sc} =>
-	let val varx = new_var()
-	    and vary = new_var()
-	    and varz = new_var()
-	    and (arg1,arg2) = binary_args args
-	    val e = CPS.LETe(varx, arg1,
-		    CPS.mkLETe(vary, arg2,
-		    CPS.mkPRIMe(varz, CPS.BINARYp(binop,CPS.mkVARte varx,CPS.mkVARte vary),
-		    CPS.mkAppSCe{sc=sc,args=[CPS.mkVARte varz]})))
-	in
-	  SOME e
-	end
+		let val pos = CPS.ConRep.dummyInfo
+		    val name = CPS.ConRep.dummyLongIdent		
+			val varx = new_var()
+			and vary = new_var()
+			and varz = new_var()
+			and (arg1,arg2) = binary_args args
+			val e = CPS.LETe(varx, arg1,
+						CPS.mkLETe(vary, arg2,
+							CPS.mkPRIMe(varz, CPS.BINARYp(binop,CPS.mkVARte varx,CPS.mkVARte vary),
+								CPS.mkAppSCe{sc=sc,args=[CPS.mkVARte varz], name=name, pos=pos})))
+		in
+		  SOME e
+		end
 
     fun mk_divmod_inliner binop =
       fn{args, fc, sc} =>
-	let val varx = new_var()
-	    and vary = new_var()
-	    and varz = new_var()
-	    val valx = CPS.mkVARte varx
-	    and valy = CPS.mkVARte vary	
-	    and valz = CPS.mkVARte varz
-	    and (arg1,arg2) = binary_args args
-	    val e0 = CPS.mkLETe(varx, arg1,
-		     CPS.mkPRIMe(varz, CPS.BINARYp(binop,valx,valy),
-		     CPS.mkAppSCe{sc=sc,args=[valz]}))
-	    val e = CPS.LETe(vary, arg2,
-		    CPS.mkSWITCHe(valy,
-				  [(CPS.INTcon 0,
-				    CPS.mkAppFCe fc)],
-				  SOME e0))
-	in
-	  SOME e
-	end
+		let val pos = CPS.ConRep.dummyInfo
+		    val name = CPS.ConRep.dummyLongIdent		
+			val varx = new_var()
+			and vary = new_var()
+			and varz = new_var()
+			val valx = CPS.mkVARte varx
+			and valy = CPS.mkVARte vary	
+			and valz = CPS.mkVARte varz
+			and (arg1,arg2) = binary_args args
+			val e0 = CPS.mkLETe(varx, arg1,
+						 CPS.mkPRIMe(varz, CPS.BINARYp(binop,valx,valy),
+						 CPS.mkAppSCe{sc=sc,args=[valz],name=name,pos=pos}))
+			val e = CPS.LETe(vary, arg2, CPS.mkSWITCHe(valy, [(CPS.INTcon 0, CPS.mkAppFCe{fc=fc,name=name,pos=pos})], SOME e0))
+		in
+		  SOME e
+		end
+
+	fun mkId(str) = CPS.makeIdent(str, CPS.dummyInfo)
+	fun mkLongId(str1, str2) = ConRep.LONGID{module=SOME(mkId(str1)), name=mkId(str2)}
 
     val tenv0 =
       let fun bind(te, name, proc) =
 	    StrDict.insert(te, name, LIT(CPS.PROClit proc))
 	  fun extern(te, name) =
-	    bind(te, name, CPS.EXTERN_REL(CPS.LONGID{module="RML", name=name}, NONE))
+	    bind(te, name, CPS.EXTERN_REL(ConRep.LONGID{module=SOME(mkId("RML")), name=mkId(name)}, NONE))
 	  fun inline(te, name, inliner) =
-	    bind(te, name, CPS.EXTERN_REL(CPS.LONGID{module="RML", name=name}, SOME inliner))
+	    bind(te, name, CPS.EXTERN_REL(ConRep.LONGID{module=SOME(mkId("RML")), name=mkId(name)}, SOME inliner))
 	  val te = StrDict.empty
 	  (* booleans *)
 	  val te = StrDict.insert(te, "false", CON{rep=ConRep.INT 0, nrcons=2})
@@ -102,8 +108,8 @@ functor TransEnvFn(structure Util : UTIL
 	  val te = inline(te, "bool_not", mk_unary_inliner CPS.BOOL_NOT)
 	  val te = inline(te, "bool_or", mk_binary_inliner CPS.BOOL_OR)
 	  (* options *)
-	  val te = StrDict.insert(te, "NONE", CON{rep=ConRep.BOX{arity=0,tag=0}, nrcons=2})
-	  val te = StrDict.insert(te, "SOME", CON{rep=ConRep.BOX{arity=1,tag=1}, nrcons=2})
+	  val te = StrDict.insert(te, "NONE", CON{rep=ConRep.BOX{arity=0,tag=0,name=mkLongId("RML", "NONE")}, nrcons=2})
+	  val te = StrDict.insert(te, "SOME", CON{rep=ConRep.BOX{arity=1,tag=1,name=mkLongId("RML", "SOME")}, nrcons=2})
 	  (* characters *)
 	  val te = inline(te, "char_int", int_int_inliner)
 	  val te = inline(te, "int_char", int_int_inliner)
@@ -198,9 +204,18 @@ functor TransEnvFn(structure Util : UTIL
 	  val te = extern(te, "real_ge")
 	  val te = extern(te, "real_gt")
 	  val te = extern(te, "real_string")
+	  val te = extern(te, "real_asin")
+	  val te = extern(te, "real_acos")
+	  val te = extern(te, "real_atan2")
+	  val te = extern(te, "real_cosh")
+	  val te = extern(te, "real_log")
+	  val te = extern(te, "real_log10")
+	  val te = extern(te, "real_sinh")
+	  val te = extern(te, "real_tanh")
+	  
 	  (* lists *)
-	  val te = StrDict.insert(te, "nil", CON{rep=ConRep.BOX{arity=0,tag=0}, nrcons=2})
-	  val te = StrDict.insert(te, "cons", CON{rep=ConRep.BOX{arity=2,tag=1}, nrcons=2})
+	  val te = StrDict.insert(te, "nil", CON{rep=ConRep.BOX{arity=0,tag=0,name=mkLongId("RML", "nil")}, nrcons=2})
+	  val te = StrDict.insert(te, "cons", CON{rep=ConRep.BOX{arity=2,tag=1,name=mkLongId("RML", "cons")}, nrcons=2})
 	  val te = extern(te, "list_append")
 	  val te = extern(te, "list_reverse")
 	  val te = extern(te, "list_length")
@@ -221,7 +236,7 @@ functor TransEnvFn(structure Util : UTIL
 	  (* debug *)
 	  val te = extern(te, "debug")
 	  val te = extern(te, "debug_print")
-	  val te = extern(te, "debug_push_vars")
+	  val te = extern(te, "debug_show_depth")	  
 	  (* specific methods for dealing with different parameter arity *)
 	  val te = extern(te, "debug_push_in01")
 	  val te = extern(te, "debug_push_in02")
@@ -356,6 +371,14 @@ functor TransEnvFn(structure Util : UTIL
 	  val te = extern(te, "realGe")
 	  val te = extern(te, "realGt")
 	  val te = extern(te, "realString")
+	  val te = extern(te, "realAsin")
+	  val te = extern(te, "realAcos")
+	  val te = extern(te, "realAtan2")
+	  val te = extern(te, "realCosh")
+	  val te = extern(te, "realLog")
+	  val te = extern(te, "realLog10")
+	  val te = extern(te, "realSinh")
+	  val te = extern(te, "realTanh")
 	  (* lists *)
 	  val te = extern(te, "listAppend")
 	  val te = extern(te, "listReverse")

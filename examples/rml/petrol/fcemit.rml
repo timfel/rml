@@ -68,7 +68,7 @@ relation emit_invty =
 	emit_invty(FUNity(id,args))
 end
 
-and emit_args =
+relation emit_args =
   rule	print "void"
 	----------------
 	emit_args([])
@@ -78,13 +78,13 @@ and emit_args =
 	emit_args(arg::args)
 end
 
-and emit_arg =
+relation emit_arg =
   rule	emit_base base & print " " & emit_invty ity
 	----------------
 	emit_arg(ARG(base, ity))
 end
 
-and emit_comma_arg =
+relation emit_comma_arg =
   rule	print ", " & emit_arg arg
 	----------------
 	emit_comma_arg arg
@@ -235,13 +235,13 @@ relation emit_exp =
 	emit_exp(FCode.FCALL(id, exps))
 end
 
-and emit_comma_exp =
+relation emit_comma_exp =
   rule	print ", " & emit_exp exp
 	----------------
 	emit_comma_exp exp
 end
 
-and emit_exps =
+relation emit_exps =
   axiom	emit_exps []
 
   rule	emit_exp exp & foreach(emit_comma_exp, exps)
@@ -417,7 +417,7 @@ relation insert =
 	=> NODE(left', r, right')
 end
 
-and insert' =
+relation insert' =
   axiom insert'(EQ, _, left, right) => (left, right)
 
   rule	insert(r', left) => left'
@@ -458,7 +458,7 @@ relation ty_recs =
   axiom ty_recs(FCode.UNFOLD _, recs) => recs
 end
 
-and vars_recs =
+relation vars_recs =
   axiom vars_recs([], recs) => recs
 
   rule	ty_recs(ty, recs0) => recs1 &
@@ -509,7 +509,7 @@ relation exp_recs =
 	exp_recs(FCode.FCALL(_,exps), recs0) => recs1
 end
 
-and exps_recs =
+relation exps_recs =
   axiom exps_recs([], recs) => recs
 
   rule	exp_recs(exp, recs0) => recs1 &

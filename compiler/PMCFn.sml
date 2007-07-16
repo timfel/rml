@@ -1,8 +1,9 @@
 (* fol2cps/pmc.sml *)
 
-functor PMCFn(structure Util : UTIL
-	      structure CPS : CPS
-		) : PMC =
+functor PMCFn(
+	structure Util : UTIL
+	structure CPS : CPS
+	structure Control : CONTROL) : PMC =
   struct
 
     fun bug s = Util.bug("PMC."^s)
@@ -15,13 +16,13 @@ functor PMCFn(structure Util : UTIL
 
     datatype pat
       = LITpat of CPS.constant
-      | CONpat of {ncons: int, con: int}
-      | STRUCTpat of {ncons: int, con: int, pats: pat list}
+      | CONpat of {ncons: int, con: int, name: CPS.longid}
+      | STRUCTpat of {ncons: int, con: int, pats: pat list, name:CPS.longid}
       | WILDpat
       | BINDpat of CPS.var * pat
 
 
-   fun pmc(roots, mrules, fail, warnNonExhaustive, printDFAStatistics, id) =
+   fun pmc(roots, mrules, fail, warnNonExhaustive, printDFAStatistics, lid, info) =
    let 
     (*
      * Utilities
@@ -65,7 +66,7 @@ functor PMCFn(structure Util : UTIL
     fun setDiff eq xs ys =	(* return zs = xs\ys *)
       let fun filter(x, zs) = if setMember eq x ys then zs else x::zs
       in
-	List.foldl filter [] xs
+		List.foldl filter [] xs
       end
 
     fun setCons eq x xs = if setMember eq x xs then xs else x::xs
@@ -79,26 +80,26 @@ functor PMCFn(structure Util : UTIL
      * to use for an occurrence until we generate code for its binding.
      *)
     abstype occ
-      = OCC of {var: CPS.var ref,		(* for equality and naming *)
+      = OCC of {var: CPS.var ref,	(* for equality and naming *)
 		subs: (int * occ) list ref}	(* for identity of sub-occs *)
     with
       fun occEq(OCC{var=var1,...}, OCC{var=var2,...}) = var1=var2
       fun occVar(OCC{var,...}) = var
       fun varOcc var = OCC{var=ref var, subs=ref[]}
       local
-	val dummyVar = CPS.newVar()
+		val dummyVar = CPS.newVar(CPS.dummyLongIdent)
       in
-	fun occSub(OCC{subs,...}, i) =
-	  let fun look([]) =
-		    let val occ = OCC{var=ref dummyVar, subs=ref[]}
-			val _ = push((i,occ), subs)
-		    in
-		      occ
-		    end
-		| look((i',occ')::subs) = if i=i' then occ' else look subs
-	  in
-	    look(!subs)
-	  end
+		fun occSub(OCC{subs,var,...}, i) =
+		  let fun look([]) =
+				let val occ = OCC{var=ref (!var) (* dummyVar *), subs=ref[]}
+				val _ = push((i,occ), subs)
+				in
+				  occ
+				end
+			| look((i',occ')::subs) = if i=i' then occ' else look subs
+		  in
+			look(!subs)
+		  end
       end
     end
 
@@ -112,9 +113,9 @@ functor PMCFn(structure Util : UTIL
      *)
     datatype state		(* common attributes *)
       = STATE of {label: CPS.label ref,	(* for comparisons and name generation *)
-		  fvs: occ list,	(* free occurrences *)
-		  uses: int ref,	(* useless, inlined, or shared? *)
-		  defn: state'}
+				  fvs: occ list,	(* free occurrences *)
+				  uses: int ref,	(* useless, inlined, or shared? *)
+				  defn: state' }
     and state'
       = FINALq of (CPS.var * occ) list * (CPS.trivexp -> CPS.exp)
       | FAILq of CPS.trivexp
@@ -124,15 +125,15 @@ functor PMCFn(structure Util : UTIL
 
     val allStates = ref([]: state list)
     local
-      val dummyBody = CPS.mkAppFCe(CPS.mkQUOTEte(CPS.CONSTlit(CPS.STRINGcon "PMC BUG!")))
+      val dummyBody = CPS.mkAppFCe{fc=CPS.mkQUOTEte(CPS.CONSTlit(CPS.STRINGcon "PMC BUG!")), name=lid, pos=info}
     in
       fun newState(defn, fvs) =
-	let val q = STATE{label=ref(CPS.newLab([], dummyBody, id)),
-			  fvs=fvs, uses=ref 0, defn=defn}
-	    val _ = push(q, allStates)
-	in
-	  q
-	end
+			let val q = STATE{label=ref(CPS.newLab([], dummyBody, lid, info)),
+					  fvs=fvs, uses=ref 0, defn=defn}
+				val _ = push(q, allStates)
+			in
+			  q
+			end
     end
 
     fun dfaStatistics() =
@@ -145,7 +146,7 @@ functor PMCFn(structure Util : UTIL
 	    | stateNumArcs(CASEq(_,arcs,default)) =
 		length arcs + defaultNumArcs default
 	  fun count([], nstates, narcs, nshared) =
-	       (print ("(*dfa statistics for: "^id^" -> nstates="); print(Int.toString nstates);
+	       (print ("(*dfa statistics for: "^(CPS.longIdentName lid)^" -> nstates="); print(Int.toString nstates);
 		print " (nshared="; print(Int.toString nshared);
 		print "), narcs="; print(Int.toString narcs); print "*)\n")
 	    | count((STATE{uses,defn,...})::states, nstates, narcs, nshared) =
@@ -157,7 +158,10 @@ functor PMCFn(structure Util : UTIL
 
     fun stateIncRef(STATE{uses,...}) = uses := !uses + 1
     fun stateFvs(STATE{fvs,...}) = fvs
-    fun stateEq(STATE{label=lab1,...},STATE{label=lab2,...}) = lab1=lab2 (*Ref.=*)
+    fun stateEq(STATE{label=lab1,...},STATE{label=lab2,...}) = 
+    	if !Control.doDebug 
+    	then false (* do not share if in debug mode *)
+    	else lab1=lab2 (*Ref.=*)
     fun stateLt(STATE{label=ref(CPS.LAB{tag=tag1,...}),...},
 		STATE{label=ref(CPS.LAB{tag=tag2,...}),...}) = tag1 < tag2
 
@@ -192,18 +196,19 @@ functor PMCFn(structure Util : UTIL
 
     fun mkORELSE(q1, q2) =
       let fun search([]) =
-		let val fvs = occUnion (stateFvs q1) (stateFvs q2)
-		    val _ = stateIncRef q1
-		    val _ = stateIncRef q2
-		in
-		  newState(ORELSEq(q1,q2), fvs)
-		end
-	    | search((q as STATE{defn=ORELSEq(q1', q2'),...})::qs) =
-		if stateEq(q1,q1') andalso stateEq(q2,q2') then q
-		else search qs
-	    | search(_::qs) = search qs
+					let val fvs = occUnion (stateFvs q1) (stateFvs q2)
+					    val _ = stateIncRef q1
+					    val _ = stateIncRef q2
+					in
+					  newState(ORELSEq(q1,q2), fvs)
+					end
+			    | search((q as STATE{defn=ORELSEq(q1', q2'),...})::qs) =
+						if stateEq(q1,q1') andalso stateEq(q2,q2') 
+						then q (* TODO! do not share! q *)
+			 			else search qs
+			    | search(_::qs) = search qs
       in
-	search(!allStates)
+				search(!allStates)
       end
 
     fun mkFETCH(occ, bnds, body) =	(* XXX: should we sort `bnds'? *)
@@ -215,16 +220,16 @@ functor PMCFn(structure Util : UTIL
 		  newState(FETCHq(occ,bnds,body), fvs)
 		end
 	    | search((q as STATE{defn=FETCHq(occ',bnds',body'),...})::qs) =
-		if occEq(occ,occ')
-		   andalso stateEq(body,body')
-		   andalso bndsEq(bnds,bnds')
-		  then q
-		else search qs
+			if occEq(occ,occ')
+			   andalso stateEq(body,body')
+			   andalso bndsEq(bnds,bnds')
+			  then q (* TODO! do not share! q *)
+ 			else search qs
 	    | search(_::qs) = search qs
       in
-	case bnds
-	  of [] => body
-	   | _ => search(!allStates)
+		case bnds
+		  of [] => body
+		   | _ => search(!allStates)
       end
 
     fun mkCASE(occ, arcs, default) =
@@ -237,17 +242,15 @@ functor PMCFn(structure Util : UTIL
 		  newState(CASEq(occ,arcs,default), fvs)
 		end
 	    | search((q as STATE{defn=CASEq(occ',arcs',default'),...})::qs) =
-		if occEq(occ,occ')
-		   andalso defaultEq(default,default')
-		   andalso arcsEq(arcs,arcs')
-		  then q
-		else search qs
+			if occEq(occ,occ') andalso defaultEq(default,default') andalso arcsEq(arcs,arcs')
+			then q (* TODO! do not share! q *)
+			else search qs
 	    | search(_::qs) = search qs
       in
-	case (default,arcs)
-	  of (NONE,[(_,q)]) => q
-	   | (SOME q,[]) => q		(* XXX: can this happen? *)
-	   | _ => search(!allStates)
+		case (default,arcs)
+		  of (NONE,[(_,q)]) => q
+		   | (SOME q,[]) => q		(* XXX: can this happen? *)
+		   | _ => search(!allStates)
       end
 
     (*
@@ -256,10 +259,10 @@ functor PMCFn(structure Util : UTIL
     fun occTE occ = CPS.mkVARte(!(occVar occ))
 
     fun mungeOcc occ =
-      let val var = CPS.newVar()
+      let val var = CPS.newVar(CPS.dummyLongIdent)
       in
-	occVar occ := var;
-	var
+		occVar occ := var;
+		var
       end
 
     fun cnvArc t_fc (lit, q) = (lit, cnvState t_fc q)
@@ -267,11 +270,14 @@ functor PMCFn(structure Util : UTIL
     and cnvDefault t_fc (SOME q) = SOME(cnvState t_fc q)
       | cnvDefault _ NONE = NONE
 
-    and cnvState t_fc (STATE{label,uses,fvs,defn,...}) =
-      if !uses = 1 then cnvDefn t_fc defn
-      else CPS.mkAppLABe(!label, t_fc :: map occTE fvs)
+    and cnvState t_fc (STATE{label,uses,fvs,defn,...}) = 
+    if !Control.doDebug 
+    then cnvDefn t_fc defn (* do not share! inline! *)
+    else if !uses = 1 
+         then cnvDefn t_fc defn
+         else CPS.mkAppLABe(!label, t_fc :: map occTE fvs) 
 
-    and cnvDefn t_fc (FAILq t_fc') = CPS.mkAppFCe t_fc'
+    and cnvDefn t_fc (FAILq t_fc') = CPS.mkAppFCe{fc=t_fc', name=lid, pos=info}
       | cnvDefn t_fc (FINALq(subst,mkexp)) =
 	  let fun mkBnds([], e) = e
 		| mkBnds((var,occ)::subst, e) =
@@ -280,11 +286,9 @@ functor PMCFn(structure Util : UTIL
 	    mkBnds(subst, mkexp t_fc)
 	  end
       | cnvDefn t_fc (ORELSEq(q1,q2)) =
-	  let val var = CPS.newVar()
+	  let val var = CPS.newVar(CPS.dummyLongIdent) (* lid *)
 	  in
-	    CPS.mkLETe(
-			var, CPS.newLam(CPS.FClk, cnvState t_fc q2, id), 
-			cnvState (CPS.mkVARte var) q1)
+	    CPS.mkLETe(var, CPS.newLam(CPS.FClk, cnvState t_fc q2, lid, info), cnvState (CPS.mkVARte var) q1)
 	  end
       | cnvDefn t_fc (FETCHq(occ,bnds,body)) =
 	  let val node = occTE occ
@@ -292,30 +296,29 @@ functor PMCFn(structure Util : UTIL
 		| mkFetches((occ',off)::bnds) =
 		    let val var = mungeOcc occ'
 		    in
-		      CPS.mkPRIMe(var, CPS.UNARYp(CPS.FETCH off,node),
-				  mkFetches bnds)
+		      CPS.mkPRIMe(var, CPS.UNARYp(CPS.FETCH off,node), mkFetches bnds)
 		    end
 	  in
 	    mkFetches bnds
 	  end
       | cnvDefn t_fc (CASEq(occ,arcs,default)) =
-	  CPS.mkSWITCHe(occTE occ, map (cnvArc t_fc) arcs, cnvDefault t_fc default)
+		CPS.mkSWITCHe(occTE occ, map (cnvArc t_fc) arcs, cnvDefault t_fc default)
 
     fun findJoins qs =
       let fun loop([], joins) = joins
 	    | loop((q as STATE{uses,...})::qs, joins) =
-		loop(qs, if !uses > 1 then q::joins else joins)
+		  loop(qs, if !uses > 1 then q::joins else joins)
       in
-	loop(qs, [])
+		loop(qs, []) (* TODO! do not join! *)
       end
 
     fun cnvJoins qs =
       let fun mktrail occ = let val r = occVar occ in (r,!r) end
 	  fun addBnd(STATE{label,fvs,defn,...}, labels) =
-	    let val v_fc = CPS.newVar()
+	    let val v_fc = CPS.newVar(CPS.dummyLongIdent) (* (lid) *)
 		val trail = map mktrail fvs
 		val vars = map mungeOcc fvs
-		val lab = CPS.newLab(v_fc::vars, cnvDefn (CPS.mkVARte v_fc) defn, id)
+		val lab = CPS.newLab(v_fc::vars, cnvDefn (CPS.mkVARte v_fc) defn, lid, info)
 		val _ = List.app (op :=) trail
 		val _ = label := lab
 	    in
@@ -339,19 +342,19 @@ functor PMCFn(structure Util : UTIL
      *)
     datatype ppat	(* pat w/o variable bindings *)
       = LITpp of CPS.constant
-      | CONpp of {ncons: int, con: int}
-      | STRUCTpp of {ncons: int, con: int, ppats: ppat list}
+      | CONpp of {ncons: int, con: int, name: CPS.longid}
+      | STRUCTpp of {ncons: int, con: int, ppats: ppat list, name: CPS.longid}
       | WILDpp
 
     fun preProcessPats(roots, pats) =
       let fun ppPat(pat, occ, subst) =
 	    case pat
 	      of LITpat lit => (subst, LITpp lit)
-	       | CONpat{ncons,con} => (subst, CONpp{ncons=ncons,con=con})
-	       | STRUCTpat{ncons, con, pats} =>
+	       | CONpat{ncons,con,name} => (subst, CONpp{ncons=ncons,con=con,name=name})
+	       | STRUCTpat{ncons, con, pats, name} =>
 		  let val (subst,ppats) = ppStruct(pats, occ, subst)
 		  in
-		    (subst, STRUCTpp{ncons=ncons,con=con,ppats=ppats})
+		    (subst, STRUCTpp{ncons=ncons,con=con,ppats=ppats, name=name})
 		  end
 	       | WILDpat => (subst, WILDpp)
 	       | BINDpat(var,pat) => ppPat(pat, occ, (var,occ)::subst)
@@ -360,7 +363,7 @@ functor PMCFn(structure Util : UTIL
 		  | ppi(pat::pats, i, subst, ppats) =
 		      let val (subst,ppat) = ppPat(pat, occSub(occ,i), subst)
 		      in
-			ppi(pats, i+1, subst, ppat::ppats)
+				ppi(pats, i+1, subst, ppat::ppats)
 		      end
 	    in
 	      ppi(pats, 1, subst, [])
@@ -389,7 +392,7 @@ functor PMCFn(structure Util : UTIL
 	  val preColumns = transpose rows
 	  val columns = ListPair.zip(roots, preColumns)
       in
-	(columns, finals)
+		(columns, finals)
       end
 
     (*
@@ -397,8 +400,8 @@ functor PMCFn(structure Util : UTIL
      *)
     datatype rep	(* ppat w/o wildcard at top level *)
       = LITrep of CPS.constant
-      | CONrep of {ncons: int, con: int}
-      | STRUCTrep of {ncons: int, con: int, ppats: ppat list}
+      | CONrep of {ncons: int, con: int, name: CPS.longid}
+      | STRUCTrep of {ncons: int, con: int, ppats: ppat list, name: CPS.longid}
     type indices = int list
     datatype desc = DESC of rep * indices ref
 
@@ -424,12 +427,12 @@ functor PMCFn(structure Util : UTIL
 		  case ppat
 		    of WILDpp => (List.app (pushi i) descs; (i::wilds, descs))
 		     | LITpp lit => addRep(LITrep lit)
-		     | CONpp{ncons,con} => addRep(CONrep{ncons=ncons,con=con})
-		     | STRUCTpp{ncons,con,ppats} =>
-			addRep(STRUCTrep{ncons=ncons,con=con,ppats=ppats})
+		     | CONpp{ncons,con,name} => addRep(CONrep{ncons=ncons,con=con,name=name})
+		     | STRUCTpp{ncons,con,ppats,name} =>
+			addRep(STRUCTrep{ncons=ncons,con=con,ppats=ppats,name=name})
 		end
       in
-	build(col, 0)
+	    build(col, 0)
       end
 
     fun descsAreExhaustive descs =
@@ -445,13 +448,13 @@ functor PMCFn(structure Util : UTIL
 	      loop(descs, cons)
 	    end
       in
-	case descs
-	  of [] => true
-	   | (DESC(rep,_)::descs) =>
-	      case rep
-		of LITrep _ => false	(* ok, a bit sloppy *)
-		 | CONrep{ncons,con,...} => consty(conCon,ncons,[con],descs)
-		 | STRUCTrep{ncons,con,...} => consty(structCon,ncons,[con],descs)
+		case descs
+		  of [] => true
+		   | (DESC(rep,_)::descs) =>
+			  case rep
+			of LITrep _ => false	(* ok, a bit sloppy *)
+			 | CONrep{ncons,con,...} => consty(conCon,ncons,[con],descs)
+			 | STRUCTrep{ncons,con,...} => consty(structCon,ncons,[con],descs)
       end
 
     fun descsForStruct([]) = false
@@ -480,7 +483,7 @@ functor PMCFn(structure Util : UTIL
 	    | checkNew(WILDpp::ppats) = checkNew ppats
 	    | checkNew _ = []	(* no new columns *)
       in
-	checkNew ppats
+		checkNew ppats
       end
 
     fun fetchStructElts(occ, ppats, q) =
@@ -489,15 +492,15 @@ functor PMCFn(structure Util : UTIL
 	    | loop(_::ppats, i, bnds) =
 		let val occi = occSub(occ,i)
 		in
-		  loop(ppats, i+1,
-		       if occMember occi fvs then (occi,i)::bnds else bnds)
+		  loop(ppats, i+1, if occMember occi fvs then (occi,i)::bnds else bnds)
 		end
       in
-	loop(ppats, 1, [])
+		loop(ppats, 1, [])
       end
 
     fun fetchStructTag(occ, occ0, q) =
-      if occMember occ0 (stateFvs q) then mkFETCH(occ, [(occ0,0)], q)
+      if occMember occ0 (stateFvs q) 
+      then mkFETCH(occ, [(occ0,0)], q)
       else q
 
     (*
@@ -509,7 +512,7 @@ functor PMCFn(structure Util : UTIL
 	    | look((_,WILDpp::_)::cols, i) = look(cols, i+1)
 	    | look((_,_::_)::_, i) = i	(* top-most pattern isn't a wildcard *)
       in
-	look(cols, 0)
+		look(cols, 0)
       end
 
     fun subCol indices (occ,ppats) = (occ, sublist indices ppats)
@@ -517,14 +520,14 @@ functor PMCFn(structure Util : UTIL
 
     fun match(columns, finals, qfail) =
       case findColumn columns
-	of ~1	=>
-	    (case finals
-	       of []			=> qfail
-		| [final]		=> final
-		| (final::finals)	=>
-		    mkORELSE(final, match(map tlCol columns, finals, qfail)))
-	 | k	=>
-	    mixrule(List.nth(columns,k), list_delnth(columns,k), finals, qfail)
+		of ~1	=>
+			(case finals
+			   of []			=> qfail
+			| [final]			=> final
+			| (final::finals)	=>
+				mkORELSE(final, match(map tlCol columns, finals, qfail)))
+		 | k	=>
+			mixrule(List.nth(columns,k), list_delnth(columns,k), finals, qfail)
 
     and mixrule((occ,ppats), cols, finals, qfail) =
       let fun mkCont indices =
@@ -532,26 +535,29 @@ functor PMCFn(structure Util : UTIL
 		  sublist indices finals,
 		  qfail)
 	  val (wilds,descs) = describeColumn ppats
-	  val default = if descsAreExhaustive descs then NONE
+	  val default = 
+			if descsAreExhaustive descs 
+			then NONE
 			else SOME(case wilds of [] => qfail | _ => mkCont wilds)
 	  fun mkArc(DESC(rep, indices)) =
 	    let val q = mkCont(!indices)
 	    in
 	      case rep
-		of LITrep lit => (lit, q)
-		 | CONrep{con,...} => (CPS.INTcon con, q)
-		 | STRUCTrep{con,ppats,...} =>
-		    (CPS.HDRcon{len=length ppats, con=con},
-		     fetchStructElts(occ, ppats, q))
+			of LITrep lit => (lit, q)
+			 | CONrep{con,...} => (CPS.INTcon con, q)
+			 | STRUCTrep{con,ppats,...} =>
+				(CPS.HDRcon{len=length ppats, con=con},
+				 fetchStructElts(occ, ppats, q))
 	    end
 	  val arcs = map mkArc descs
       in
-	if descsForStruct descs then
-	  let val occ0 = occSub(occ,0)
-	  in
-	    fetchStructTag(occ, occ0, mkCASE(occ0, arcs, default))
-	  end
-	else mkCASE(occ, arcs, default)
+		if descsForStruct descs 
+		then
+		  let val occ0 = occSub(occ,0)
+		  in
+			fetchStructTag(occ, occ0, mkCASE(occ0, arcs, default))
+		  end
+		else mkCASE(occ, arcs, default)
       end
 
     (*

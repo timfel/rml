@@ -9,27 +9,38 @@ functor FOLPrintFn(structure MakeString : MAKESTRING
 
     structure FOL = FOLUsages.FOL
 
+fun printModule(os, module as FOL.MODULE(FOL.INTERFACE(_, _), decs, source)) =
+let
     fun prStr(pp, str) = PP.emit(pp, PP.STRING str)
     fun prBlank(pp) = PP.emit(pp, PP.BREAK{blankSpace=1, offset=0})
     fun prNewLine(pp) = PP.emit(pp, PP.lineBreak)
 
-    fun prLongId(pp, FOL.LONGID(id_opt, id)) =
-      ((case id_opt of SOME id' => (prStr(pp, id'); prStr(pp, ".")) | NONE => ());
-       prStr(pp, id))
+    fun prLongId(pp, FOL.LONGID(id_opt, id, _)) =
+      ((case id_opt of SOME id' => (prStr(pp, FOL.identName id'); prStr(pp, ".")) | NONE => ());
+       prStr(pp, FOL.identName id))
 
     fun prList pp pr xs =
       (PP.emit(pp, PP.BEGIN{breakType=PP.CONSISTENT, offset=1});
        prStr(pp, "[");
        (case xs
-	  of x::xs => (pr pp x; List.app (fn x => (prBlank(pp); pr pp x)) xs)
+		of x::xs => (pr pp x; List.app (fn x => (prBlank(pp); pr pp x)) xs)
 	   | [] => ());
        prStr(pp, "]");
        PP.emit(pp, PP.END))
 
+	fun strInfo (FOL.INFO(sp, ep)) =
+	let val {fileName, sline, scolumn, eline, ecolumn} = FOL.Source.getLoc (source, sp, ep)
+	in
+		
+		"{"^(*f^":"^Int.toString(sp)^","^Int.toString(ep)^";"^*)
+		    Int.toString(sline)^","^Int.toString(scolumn)^
+		    (*^","^Int.toString(eline)^","^Int.toString(ecolumn)*)"}"
+    end 
+
     fun prVar pp var =
-      let val FOL.VAR{name,uses,...} = FOL.deref var
+      let val FOL.VAR({name,uses,...}, src) = FOL.deref var
       in
-	prStr(pp, name^":"^MakeString.icvt(!uses))
+		prStr(pp, name^":"^(FOL.identName src)^":"^MakeString.icvt(!uses))
       end
     fun prVars pp vars = prList pp prVar vars
     fun prBlankVar pp var = (prBlank(pp); prVar pp var)
@@ -38,7 +49,7 @@ functor FOLPrintFn(structure MakeString : MAKESTRING
       | prLit(pp, FOL.RCON r) = prStr(pp, MakeString.rcvt r)
       | prLit(pp, FOL.SCON s) = prStr(pp, MakeString.scvt s)
 
-    fun prVarRef pp (FOL.GVAR lid) = prLongId(pp, lid)
+    fun prVarRef pp (FOL.GVAR lid) = (prStr(pp, "GVAR("); prLongId(pp, lid); prStr(pp, ")"))
       | prVarRef pp (FOL.BVAR var) = prVar pp var
 
     fun prExp pp =
@@ -56,7 +67,7 @@ functor FOLPrintFn(structure MakeString : MAKESTRING
 		 prStr(pp, ")");
 		 PP.emit(pp, PP.END))
       in
-	p
+		p
       end
     fun prExps pp exps = prList pp prExp exps
 
@@ -97,83 +108,94 @@ functor FOLPrintFn(structure MakeString : MAKESTRING
        PP.emit(pp, PP.END))
 
     fun prConj pp =
-      let fun p(FOL.CALL(vref, exps, vars)) =
+      let fun p(FOL.CALL(vref, exps, vars, info)) =
 		(PP.emit(pp, PP.BEGIN{breakType=PP.CONSISTENT, offset=6});
-		 prStr(pp, "(CALL ");
+		 prStr(pp, "(CALL@["^strInfo(info)^"] ");
 		 prVarRef pp vref;
 		 prBlank(pp);
 		 prExps pp exps;
 		 prBlank(pp);
+		 prStr(pp, " -> ");
 		 prVars pp vars;
 		 prStr(pp, ")");
 		 PP.emit(pp, PP.END))
-	    | p(FOL.MATCH(mrules)) =
+	    | p(FOL.MATCH(mrules, info)) =
 	        (PP.emit(pp, PP.BEGIN{breakType=PP.CONSISTENT, offset=7});
-		 prStr(pp, "(MATCH ");
+		 prStr(pp, "(MATCH@["^strInfo(info)^"] ");
 		 prList pp prMRule mrules;
 		 prStr(pp, ")");
 		 PP.emit(pp, PP.END))
-	    | p(FOL.EQUAL(var, exp)) =
+	    | p(FOL.EQUAL(var, exp, info)) =
 		(PP.emit(pp, PP.BEGIN{breakType=PP.CONSISTENT, offset=7});
-		 prStr(pp, "(EQUAL ");
+		 prStr(pp, "(EQUAL@["^strInfo(info)^"] ");
 		 prVar pp var;
 		 prBlank(pp);
 		 prExp pp exp;
 		 prStr(pp, ")");
 		 PP.emit(pp, PP.END))
-	    | p(FOL.BIND(var, exp)) =
+	    | p(FOL.BIND(var, exp, info)) =
 		(PP.emit(pp, PP.BEGIN{breakType=PP.CONSISTENT, offset=7});
-		 prStr(pp, "(BIND ");
+		 prStr(pp, "(BIND@["^strInfo(info)^"] ");
 		 prVar pp var;
 		 prBlank(pp);
 		 prExp pp exp;
 		 prStr(pp, ")");
 		 PP.emit(pp, PP.END))
-	    | p(FOL.NOT(c)) =
+	    | p(FOL.NOT(c,info)) =
 		(PP.emit(pp, PP.BEGIN{breakType=PP.CONSISTENT, offset=5});
-		 prStr(pp, "(NOT ");
+		 prStr(pp, "(NOT@["^strInfo(info)^"] ");
 		 p c;
 		 prStr(pp, ")");
 		 PP.emit(pp, PP.END))
-	    | p(FOL.AND(c1, c2)) =
+	    | p(FOL.AND(c1, c2,info)) =
 		(PP.emit(pp, PP.BEGIN{breakType=PP.CONSISTENT, offset=5});
-		 prStr(pp, "(AND ");
+		 prStr(pp, "(AND@["^strInfo(info)^"] ");
 		 p c1;
 		 prBlank(pp);
 		 p c2;
 		 prStr(pp, ")");
 		 PP.emit(pp, PP.END))
+	    | p(FOL.IF(c1, c2, c3, info)) =
+		(PP.emit(pp, PP.BEGIN{breakType=PP.CONSISTENT, offset=5});
+		 prStr(pp, "(IF@["^strInfo(info)^"] ");
+		 p c1;
+		 prBlank(pp);
+		 p c2;
+		 prBlank(pp);
+		 p c2;		 
+		 prStr(pp, ")");
+		 PP.emit(pp, PP.END))
       in
-	p
+		p
       end
 
     fun prDisj pp =
-      let fun p(FOL.RETURN(exps)) =
+      let fun p(FOL.RETURN(exps, info)) =
 		(PP.emit(pp, PP.BEGIN{breakType=PP.INCONSISTENT, offset=8});
-		 prStr(pp, "(RETURN ");
+		 prStr(pp, "(RETURN@["^strInfo(info)^"] ");
 		 prExps pp exps;
 		 prStr(pp, ")");
 		 PP.emit(pp, PP.END))
-	    | p(FOL.FAIL) = prStr(pp, "(FAIL)")
-	    | p(FOL.ORELSE(d1, d2)) =
+	    | p(FOL.FAIL(info)) = prStr(pp, "(FAIL@["^strInfo(info)^"])")
+	    | p(FOL.ORELSE(d1, d2, info)) =
 		(PP.emit(pp, PP.BEGIN{breakType=PP.CONSISTENT, offset=8});
-		 prStr(pp, "(ORELSE ");
+		 prStr(pp, "(ORELSE@["^strInfo(info)^"] ");
 		 p d1;
 		 prBlank(pp);
 		 p d2;
 		 prStr(pp, ")");
 		 PP.emit(pp, PP.END))
-	    | p(FOL.ANDTHEN(c, d)) =
+	    | p(FOL.ANDTHEN(c, d, info)) =
 		(PP.emit(pp, PP.BEGIN{breakType=PP.CONSISTENT, offset=9});
-		 prStr(pp, "(ANDTHEN ");
+		 prStr(pp, "(ANDTHEN@["^strInfo(info)^"] ");
 		 prConj pp c;
 		 prBlank(pp);
 		 p d;
 		 prStr(pp, ")");
 		 PP.emit(pp, PP.END))
-	    | p(FOL.COND(c, d1, d2)) =
+	    | p(FOL.COND(c, d1, d2, info)) =
 		(PP.emit(pp, PP.BEGIN{breakType=PP.CONSISTENT, offset=6});
-		 prStr(pp, "(COND ");
+		 prStr(pp, "(COND@["^strInfo(info)^"] ");
 		 prConj pp c;
 		 prBlank(pp);
 		 p d1;
@@ -181,9 +203,9 @@ functor FOLPrintFn(structure MakeString : MAKESTRING
 		 p d2;
 		 prStr(pp, ")");
 		 PP.emit(pp, PP.END))
-	    | p(FOL.CASE(vars, cases)) =
+	    | p(FOL.CASE(vars, cases,info)) =
 		(PP.emit(pp, PP.BEGIN{breakType=PP.CONSISTENT, offset=6});
-		 prStr(pp, "(CASE ");
+		 prStr(pp, "(CASE@["^strInfo(info)^"] ");
 		 prVars pp vars;
 		 List.app prCase cases;
 		 prStr(pp, ")");
@@ -198,14 +220,14 @@ functor FOLPrintFn(structure MakeString : MAKESTRING
 		 prStr(pp, ")");
 		 PP.emit(pp, PP.END))
       in
-	p
+		p
       end
 
-    fun prRelDef pp (FOL.REL(id, vars, disj)) =
+    fun prRelDef pp (FOL.REL(id, vars, disj, info)) =
       (prNewLine(pp);
        prStr(pp, "(define (");
        PP.emit(pp, PP.BEGIN{breakType=PP.INCONSISTENT, offset=0});
-       prStr(pp, id);
+       prStr(pp, FOL.identName id); prStr(pp, "@["^strInfo(info)^"] ");
        List.app (prBlankVar pp) vars;
        prStr(pp, ")");
        PP.emit(pp, PP.END);
@@ -218,8 +240,8 @@ functor FOLPrintFn(structure MakeString : MAKESTRING
        prNewLine(pp))
 
    (* adrpo - start *)
-    fun prCon pp (FOL.CONcd(id)) = prStr(pp, id)
-      | prCon pp (FOL.CTORcd(id, num)) = prStr(pp, id^":"^MakeString.icvt(num))
+    fun prCon pp (FOL.CONcd(id)) = prStr(pp, FOL.identName id)
+      | prCon pp (FOL.CTORcd(id, num)) = prStr(pp, (FOL.identName id)^":"^MakeString.icvt(num))
     
     fun prCons pp cons = prList pp prCon cons
     fun prConDesc pp cons = (prBlank(pp); prCons pp cons)
@@ -229,7 +251,7 @@ functor FOLPrintFn(structure MakeString : MAKESTRING
       (prNewLine(pp);
        prStr(pp, "(define (");
        PP.emit(pp, PP.BEGIN{breakType=PP.INCONSISTENT, offset=0});
-       prStr(pp, id);
+       prStr(pp, FOL.identName id);
        prConDesc pp condesc;
        prStr(pp, ")");
        PP.emit(pp, PP.END);
@@ -240,9 +262,9 @@ functor FOLPrintFn(structure MakeString : MAKESTRING
       | prDec pp (FOL.VALdec(id,exp)) =
 	  (prNewLine(pp);
 	   prStr(pp, "(define ");
-	   prStr(pp, id);
+	   prStr(pp, FOL.identName id);
 	   PP.emit(pp, PP.BEGIN{breakType=PP.INCONSISTENT,
-				offset= ~(6 + String.size id)});
+				offset= ~(6 + String.size (FOL.identName id))});
 	   prBlank(pp);
 	   prExp pp exp;
 	   prStr(pp, ")");
@@ -257,14 +279,14 @@ functor FOLPrintFn(structure MakeString : MAKESTRING
       | prSpec _ _ = ()      
 (* adrpo - end *)
 
-    fun prModule(pp, FOL.MODULE(FOL.INTERFACE(id,specs), decs)) =
-      (prStr(pp, "(MODULE "); prStr(pp, id); prStr(pp, ")"); prNewLine(pp);
+    fun prModule(pp, FOL.MODULE(FOL.INTERFACE(id,specs), decs, _)) =
+      (prStr(pp, "(MODULE "); prStr(pp, FOL.identName id); prStr(pp, ")"); prNewLine(pp);
        (* adrpo - start *) 
        List.app (prSpec pp) specs; 
        (* adrpo - end *)
        List.app (prDec pp) decs)
 
-    fun printModule(os, module) =
+in
       let val pp = PP.init(os, 80)
 	  val _ = FOLUsages.update module  
       in
@@ -273,5 +295,6 @@ functor FOLPrintFn(structure MakeString : MAKESTRING
 		PP.emit(pp, PP.END);
 		PP.close(pp)
       end
+end
 
-  end (* functor FOLPrintFn *)
+end (* functor FOLPrintFn *)

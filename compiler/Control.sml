@@ -7,7 +7,7 @@ structure Control: CONTROL =
     structure Util = Util
     
 	fun bug  s = Util.bug("Control."^s)
-    
+        
     type serializationInfo = 
              {
 				file:    string, (* which filename was serialized *)
@@ -26,7 +26,7 @@ structure Control: CONTROL =
 					  | SERIALIZATION_FILE 
 
     (* version of the serialized files. if we change their format we can discard them easy *)
-	val serializationFileVersion = 2
+	val serializationFileVersion = 4
 	fun getSerializationInfo(file) = PERSISTENTParse.parseSerializationInfo(file)
 		
     (* flag to write the symboltable or not*)
@@ -78,6 +78,9 @@ structure Control: CONTROL =
     (* should we dump the dependency? *)
     val dumpDepends = ref false
     
+	(* print import loadinging order  *)
+    val importLoadOrder = ref false
+
     (* what are we currently compiling? *)    
     val currentlyCompiling = ref UNKNOWN_FILE
     

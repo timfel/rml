@@ -3,9 +3,9 @@
 structure Util : UTIL =
   struct
 
-    fun sayErr s = TextIO.output(TextIO.stdErr, s)
+    fun sayErr s = (TextIO.output(TextIO.stdErr, s); TextIO.flushOut(TextIO.stdErr))
     
-    fun outStdErr s = TextIO.output(TextIO.stdErr, s)
+    fun outStdErr s = (TextIO.output(TextIO.stdErr, s); TextIO.flushOut(TextIO.stdErr))
 
     exception Bug
     fun bug s =
@@ -21,7 +21,7 @@ structure Util : UTIL =
     val tick =
       let val cnt = ref 99
       in
-	fn() => let val i = !cnt + 1 in cnt := i; i end
+		fn() => let val i = !cnt + 1 in cnt := i; i end
       end
 
     fun member(x, []) = false
