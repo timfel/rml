@@ -19,6 +19,7 @@
 #ifdef RML_DEBUG
 
 #include "rml.h"
+#include <errno.h>
 
 int   rmldb_socket_debug = 0;
 
@@ -126,7 +127,7 @@ int rmldb_socket_accept(int sock)
 	struct sockaddr_in client_address;
 	memset(&client_address, 0, sizeof(client_address));	
 	int server_sock = RMLDB_FAILURE;
-	int size = -1;
+	unsigned int size = 0;
 	if (rmldb_socket_debug) 
 		fprintf(stderr, "%s Info! Calling accept on socket %d\n", RMLDB_SOCKET_PROMPT, sock);
 
