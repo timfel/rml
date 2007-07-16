@@ -19,6 +19,8 @@ Release 2.3.8 2007-07-16
   + x86-darwin-gcc 
   + ppc-linux-gcc
 - a lot more i don't remember right now
+- rml -fdump-depends *.mo > file 
+  now dumps the dependency based on *.c files, not *.o
 
 Release 2.3.6 2006-09-18
 -----------------------------------------------------------------
