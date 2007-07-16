@@ -10,7 +10,10 @@ Release 2.3.8 2007-07-16
 - fixes of stringEqual (string_equal) function
 - rewriten the debugging part to work over sockets
 - debugging now works togheter with Modelica Development Tooling (MDT)
-- added set_debug_show_depth(int depth) to set the depth of variable showing
+- added debug_show_depth(int depth) to set the depth of variable showing
+  + debug_show_depth(15) is the default depth
+  + debug_show_depth(0) will display the full variable
+  
 - a lot of code refactoring and cleaning for faster compilation
 - dumped emacs-based debugging and readline library dependency
 - more platforms: 

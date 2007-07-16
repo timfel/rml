@@ -302,6 +302,6 @@ extern RML_FORWARD_LABEL(RML__debug_5fpush_5fout13);
 extern RML_FORWARD_LABEL(RML__debug_5fpush_5fout14);
 extern RML_FORWARD_LABEL(RML__debug_5fpush_5fout15);
 extern RML_FORWARD_LABEL(RML__debug_5fpush_5fout16);
-extern RML_FORWARD_LABEL(RML__set_5fdebug_5fshow_5fdepth);
+extern RML_FORWARD_LABEL(RML__debug_5fshow_5fdepth);
 
 extern void RML__call_debug(char* fileName, int sp, int ep, int sl, int sc, int el, int ec, char* relation, char* call);
