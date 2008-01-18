@@ -488,8 +488,8 @@ static void rml_major_collection(rml_uint_t nwords, rml_uint_t nliveargs)
 		rml_older_size = new_size;
 		rml_reserve_region = NULL; /* rml_alloc_core(rml_older_size); */
     }
-    else if( /* do a heap shrink if only 20% is used and it was an expansion */
-    	100*current_inuse < 20*rml_older_size && /* less than 20% used */ 
+    else if( /* do a heap shrink if only 10% is used and it was an expansion */
+    	100*current_inuse < 10*rml_older_size && /* less than 10% used */ 
     	rml_young_size * 4 < rml_older_size &&   /* an expansion was performed before */
     	rml_older_size >= rml_young_size * 8     /* half of the current heap is not less than default size */ 
     	)  

@@ -1,24 +1,38 @@
-/*
-Copyright (c) 2002-2007 by Adrian Pop
+/* 
+ * This file is part of OpenModelica.
+ * 
+ * It implements the Relational Meta-Language (RML) and MetaModelica
+ * http://www.ida.liu.se/~pelab/rml
+ * 
+ * Copyright (c) 1998-2008, Linköpings University,
+ * Department of Computer and Information Science, 
+ * SE-58183 Linköping, Sweden. 
+ * 
+ * All rights reserved.
+ * 
+ * THIS PROGRAM IS PROVIDED UNDER THE TERMS OF THIS OSMC PUBLIC 
+ * LICENSE (OSMC-PL). ANY USE, REPRODUCTION OR DISTRIBUTION OF 
+ * THIS PROGRAM CONSTITUTES RECIPIENT'S ACCEPTANCE OF THE OSMC 
+ * PUBLIC LICENSE. 
+ * 
+ * The OpenModelica software and the Open Source Modelica 
+ * Consortium (OSMC) Public License (OSMC-PL) are obtained 
+ * from Linköpings University, either from the above address, 
+ * from the URL: http://www.ida.liu.se/projects/OpenModelica
+ * and in the OpenModelica distribution.
+ * 
+ * This program is distributed  WITHOUT ANY WARRANTY; without 
+ * even the implied warranty of  MERCHANTABILITY or FITNESS 
+ * FOR A PARTICULAR PURPOSE, EXCEPT AS EXPRESSLY SET FORTH 
+ * IN THE BY RECIPIENT SELECTED SUBSIDIARY LICENSE CONDITIONS 
+ * OF OSMC-PL. 
+ * 
+ * See the full OSMC Public License conditions for more details.
+ * 
+ * @author Adrian Pop [adrpo@ida.liu.se, http://www.ida.liu.se/~adrpo]
+ * 
+ */
 
-Permission to use, copy, modify, and distribute this software and
-its documentation for NON-COMMERCIAL purposes and without fee is hereby 
-granted, provided that this copyright notice appear in all copies and 
-that both the copyright notice and this permission notice and warranty
-disclaimer appear in supporting documentation, and that the name of
-The Author not be used in advertising or publicity pertaining to
-distribution of the software without specific, written prior permission.
-For COMMERCIAL uses of versions above rml-2.1.8 please contact 
-Adrian Pop, adrpo@ida.liu.se. 
-
-THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
-INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS.
-IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, INDIRECT OR
-CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
-OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
-OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE
-USE OR PERFORMANCE OF THIS SOFTWARE.
-*/
 /***********************************************************
 [ rml-db-load.c ] 
 - Adrian Pop, adrpo@ida.liu.se, http://www.ida.liu.se/~adrpo 

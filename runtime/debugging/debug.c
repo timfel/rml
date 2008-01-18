@@ -1,38 +1,38 @@
-/******************************************************************************
- * @author Adrian Pop [adrpo@ida.liu.se, http://www.ida.liu.se/~adrpo]
- * Copyright (c) 2002-2007, Adrian Pop [adrpo@ida.liu.se],
- * Programming Environments Laboratory (PELAB),
- * Department of Computer and Information Science (IDA), 
- * Linköpings University (LiU). 
+/* 
+ * This file is part of OpenModelica.
+ * 
+ * It implements the Relational Meta-Language (RML) and MetaModelica
+ * http://www.ida.liu.se/~pelab/rml
+ * 
+ * Copyright (c) 1998-2008, Linköpings University,
+ * Department of Computer and Information Science, 
+ * SE-58183 Linköping, Sweden. 
+ * 
  * All rights reserved.
- *
- * http://www.ida.liu.se/~adrpo/license/
- *
- * NON-COMMERCIAL terms and conditions [NON-COMMERCIAL setting]:
- * Permission to use, copy, modify, and distribute this software and
- * its documentation in source or binary form (including products 
- * developed or generated using this software) for NON-COMMERCIAL 
- * purposes and without fee is hereby granted, provided that this 
- * copyright notice appear in all copies and that both the copyright 
- * notice and this permission notice and warranty disclaimer appear 
- * in supporting documentation, and that the name of The Author is not 
- * to be used in advertising or publicity pertaining to distribution 
- * of the software without specific, prior written permission.
  * 
- * COMMERCIAL terms and conditions [COMMERCIAL setting]:
- * COMMERCIAL use, copy, modification and distribution in source 
- * or binary form (including products developed or generated using
- * this software) is NOT permitted without prior written agreement 
- * from Adrian Pop [adrpo@ida.liu.se].
+ * THIS PROGRAM IS PROVIDED UNDER THE TERMS OF THIS OSMC PUBLIC 
+ * LICENSE (OSMC-PL). ANY USE, REPRODUCTION OR DISTRIBUTION OF 
+ * THIS PROGRAM CONSTITUTES RECIPIENT'S ACCEPTANCE OF THE OSMC 
+ * PUBLIC LICENSE. 
  * 
- * THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
- * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS.
- * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, INDIRECT OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
- * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE
- * USE OR PERFORMANCE OF THIS SOFTWARE.
- *****************************************************************************/
+ * The OpenModelica software and the Open Source Modelica 
+ * Consortium (OSMC) Public License (OSMC-PL) are obtained 
+ * from Linköpings University, either from the above address, 
+ * from the URL: http://www.ida.liu.se/projects/OpenModelica
+ * and in the OpenModelica distribution.
+ * 
+ * This program is distributed  WITHOUT ANY WARRANTY; without 
+ * even the implied warranty of  MERCHANTABILITY or FITNESS 
+ * FOR A PARTICULAR PURPOSE, EXCEPT AS EXPRESSLY SET FORTH 
+ * IN THE BY RECIPIENT SELECTED SUBSIDIARY LICENSE CONDITIONS 
+ * OF OSMC-PL. 
+ * 
+ * See the full OSMC Public License conditions for more details.
+ * 
+ * @author Adrian Pop [adrpo@ida.liu.se, http://www.ida.liu.se/~adrpo]
+ * 
+ */
+
 /***********************************************************
 [ debug.c ] 
 - Adrian Pop, adrpo@ida.liu.se, http://www.ida.liu.se/~adrpo 
@@ -155,15 +155,7 @@ int rmldb_init(void)
 { 
 	char process_id[20];	
 	if (rml_debug_enabled)
-	{
-		/*
-		snprintf(process_id, 20, "%d", getpid());
-		fprintf(stderr, "%s - Relational Meta-Language (RML) and MetaModelica (MMC) debugger\n", RMLDB_PROMPT);
-		fprintf(stderr, "%s - Copyright 2002-2007, Adrian Pop [adrpo@ida.liu.se], PELAB/IDA/LiU\n", RMLDB_PROMPT);  
-		fprintf(stderr, "%s - debugging process %s \n", RMLDB_PROMPT, process_id);
-		fflush(stderr);
-		*/
-		
+	{		
 		/* initalize stuff */
 		rmldb_current_execution_loc.file = NULL;
 		rmldb_current_execution_loc.relation = NULL;
@@ -380,8 +372,6 @@ int rmldb_push_stack_frame(
     else if (i >= 0 &&
         strcmp(call, "n") == 0 &&
         strcmp(rmldb_stack[i]->call, "n") == 0 
-        //&& strcmp(rmldb_stack[i]->file, file) == 0 && /* same file */
-        //strcmp(rmldb_stack[i]->function, function) == 0) /* same function */
         )
     {
         rmldb_pop_stack_frame('u');
@@ -389,12 +379,12 @@ int rmldb_push_stack_frame(
     
 	{		
 		rmldb_stack_frame_t* newFrame = (rmldb_stack_frame_t*)malloc(sizeof(rmldb_stack_frame_t));
-		newFrame->file = file; /* strdup(file); */
+		newFrame->file = file; 
 		newFrame->line = startLine;
 		newFrame->charStart = charStart;
 		newFrame->charEnd = charEnd;				
-		newFrame->function = function; /* strdup(function); */
-		newFrame->call = call; /* strdup(call); */
+		newFrame->function = function; 
+		newFrame->call = call; 
 		newFrame->variablesNr = rmldb_number_of_vars;
 		newFrame->rmlStackPointer = &rml_stack[rml_stack_size]-(void**)rmlSP;
 		for (i = 0; i < rmldb_number_of_vars; i++)

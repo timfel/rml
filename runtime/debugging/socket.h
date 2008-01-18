@@ -1,14 +1,39 @@
-/******************************************************************************
- * @author Adrian Pop [adrpo@ida.liu.se, http://www.ida.liu.se/~adrpo]
- * Copyright (c) 2002-2007, Adrian Pop [adrpo@ida.liu.se],
- * Programming Environments Laboratory (PELAB),
- * Department of Computer and Information Science (IDA), 
- * Linköpings University (LiU). 
+/* 
+ * This file is part of OpenModelica.
+ * 
+ * It implements the Relational Meta-Language (RML) and MetaModelica
+ * http://www.ida.liu.se/~pelab/rml
+ * 
+ * Copyright (c) 1998-2008, Linköpings University,
+ * Department of Computer and Information Science, 
+ * SE-58183 Linköping, Sweden. 
+ * 
  * All rights reserved.
- *
- * http://www.ida.liu.se/~adrpo/license/
- *
- *
+ * 
+ * THIS PROGRAM IS PROVIDED UNDER THE TERMS OF THIS OSMC PUBLIC 
+ * LICENSE (OSMC-PL). ANY USE, REPRODUCTION OR DISTRIBUTION OF 
+ * THIS PROGRAM CONSTITUTES RECIPIENT'S ACCEPTANCE OF THE OSMC 
+ * PUBLIC LICENSE. 
+ * 
+ * The OpenModelica software and the Open Source Modelica 
+ * Consortium (OSMC) Public License (OSMC-PL) are obtained 
+ * from Linköpings University, either from the above address, 
+ * from the URL: http://www.ida.liu.se/projects/OpenModelica
+ * and in the OpenModelica distribution.
+ * 
+ * This program is distributed  WITHOUT ANY WARRANTY; without 
+ * even the implied warranty of  MERCHANTABILITY or FITNESS 
+ * FOR A PARTICULAR PURPOSE, EXCEPT AS EXPRESSLY SET FORTH 
+ * IN THE BY RECIPIENT SELECTED SUBSIDIARY LICENSE CONDITIONS 
+ * OF OSMC-PL. 
+ * 
+ * See the full OSMC Public License conditions for more details.
+ * 
+ * @author Adrian Pop [adrpo@ida.liu.se, http://www.ida.liu.se/~adrpo]
+ * 
+ */
+
+/*
  * [ rml-socket.h ] 
  * - Adrian Pop, adrpo@ida.liu.se, http://www.ida.liu.se/~adrpo
  * - creation 2007-02-24

@@ -1,55 +1,39 @@
-/*
-
-    This file is part of Relational Meta-Language (RML).
-	http://www.ida.liu.se/~pelab/rml
-
-RML COPYRIGHT NOTICE, LICENSE AND DISCLAIMER.
-
-------------------------------------------------------------------------
-Portions Copyright (c) 2002-2007 by Adrian Pop
-(Versions above rml-2.1.8)
-
-Permission to use, copy, modify, and distribute this software and
-its documentation for NON-COMMERCIAL purposes and without fee is hereby 
-granted, provided that this copyright notice appear in all copies and 
-that both the copyright notice and this permission notice and warranty
-disclaimer appear in supporting documentation, and that the name of
-The Author not be used in advertising or publicity pertaining to
-distribution of the software without specific, written prior permission.
-For COMMERCIAL uses of versions above rml-2.1.8 please contact 
-Adrian Pop, adrpo@ida.liu.se. 
-
-THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
-INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS.
-IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, INDIRECT OR
-CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
-OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
-OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE
-USE OR PERFORMANCE OF THIS SOFTWARE.
-
-------------------------------------------------------------------------
-Portions Copyright (c) 1994-2000 by Mikael Pettersson.
-(Versions up to rml-2.1.8)
-
-Permission to use, copy, modify, and distribute this software and
-its documentation for any purpose and without fee is hereby granted,
-provided that the above copyright notice appear in all copies and that
-both the copyright notice and this permission notice and warranty
-disclaimer appear in supporting documentation, and that the name of
-The Author not be used in advertising or publicity pertaining to
-distribution of the software without specific, written prior permission.
-
-THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
-INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS.
-IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, INDIRECT OR
-CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
-OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
-OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE
-USE OR PERFORMANCE OF THIS SOFTWARE.
-
- * rml-core.h
+/* 
+ * This file is part of OpenModelica.
+ * 
+ * It implements the Relational Meta-Language (RML) and MetaModelica
+ * http://www.ida.liu.se/~pelab/rml
+ * 
+ * Copyright (c) 1998-2008, Linköpings University,
+ * Department of Computer and Information Science, 
+ * SE-58183 Linköping, Sweden. 
+ * 
+ * All rights reserved.
+ * 
+ * THIS PROGRAM IS PROVIDED UNDER THE TERMS OF THIS OSMC PUBLIC 
+ * LICENSE (OSMC-PL). ANY USE, REPRODUCTION OR DISTRIBUTION OF 
+ * THIS PROGRAM CONSTITUTES RECIPIENT'S ACCEPTANCE OF THE OSMC 
+ * PUBLIC LICENSE. 
+ * 
+ * The OpenModelica software and the Open Source Modelica 
+ * Consortium (OSMC) Public License (OSMC-PL) are obtained 
+ * from Linköpings University, either from the above address, 
+ * from the URL: http://www.ida.liu.se/projects/OpenModelica
+ * and in the OpenModelica distribution.
+ * 
+ * This program is distributed  WITHOUT ANY WARRANTY; without 
+ * even the implied warranty of  MERCHANTABILITY or FITNESS 
+ * FOR A PARTICULAR PURPOSE, EXCEPT AS EXPRESSLY SET FORTH 
+ * IN THE BY RECIPIENT SELECTED SUBSIDIARY LICENSE CONDITIONS 
+ * OF OSMC-PL. 
+ * 
+ * See the full OSMC Public License conditions for more details.
+ * 
  */
+
 /*
+ * rml-core.h
+ * 
  * A value is represented as a 32-bit quantity with a tag in the lowest bit.
  * An even value i<<1 represents the integer i.
  * An odd value p+3 represents (a pointer to) the node at even address p-3.
