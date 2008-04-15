@@ -77,6 +77,7 @@ fi
 
 if [ -z "$SMLCM" ]; then
   makeconfigureneeded=1
+  PATH=/usr/lib/smlnj/bin:$PATH
   MLLEX=`etc/which ml-lex` || MLLEX=`etc/which ml-lex.bat`
   if [ "$?" != 0 ]; then
     echo ./configure: unable to locate ml-lex in '$PATH'.
@@ -108,7 +109,7 @@ if [ -z "$SMLCM" ]; then
 	fi
 	eval $BIN_DIR
 	ARCH_OPSYS_HEAPSUFFIX=`$BIN_DIR/.arch-n-opsys`
-	if [ "$?" != 0 ]; then
+	if [ "$?" != 0 ]; then	    
 	  echo ./configure: unable to determine SML/NJ heap suffix
 	  exit 1
 	fi

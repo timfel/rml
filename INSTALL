@@ -1,6 +1,6 @@
 RML INSTALLATION GUIDE
 ==========================================================
-Last updated in 2006-03-21 by Adrian Pop, adrpo@ida.liu.se
+Last updated in 2008-04-15 by Adrian Pop, adrpo@ida.liu.se
  
 To install follow the steps below and if you run 
 into problems read the NOTE at the end of this file.
@@ -16,6 +16,17 @@ into problems read the NOTE at the end of this file.
    speedups of ~50% on compilation times. To compile the rml frontend 
    with MLton follow all the steps in this file and then refer to 
    instructions in INSTALL.MLton.txt
+ 
+   Ubuntu distribution:
+   run these commands to install SML & others:
+   > sudo apt-get install sml
+   > sudo apt-get install ml-lex
+   > sudo apt-get install ml-yacc
+   > sudo apt-get install libsmlnj-smlnj
+   > sudo apt-get install build-essential
+   > sudo apt-get install bison
+   > sudo apt-get install flex
+
 
 2. In the RML root directory, execute:
 
