@@ -18,8 +18,8 @@ into problems read the NOTE at the end of this file.
    instructions in INSTALL.MLton.txt
 
    Ubuntu distribution:
-   run these commands to install SML & others:
-   $ sudo aptitude install sml ml-lex ml-yacc libsmlnj-smlnj build-essential bison flex
+    run this commands to install SML & others:
+    $ sudo aptitude install sml ml-lex ml-yacc libsmlnj-smlnj build-essential bison flex
 
 
 2. In the RML root directory, execute:

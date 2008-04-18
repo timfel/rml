@@ -78,23 +78,32 @@ fi
 if [ -z "$SMLCM" ]; then
   makeconfigureneeded=1
   PATH=/usr/lib/smlnj/bin:$PATH
-  MLLEX=`etc/which ml-lex` || MLLEX=`etc/which ml-lex.bat`
+  MLLEX=`etc/which ml-lex` || MLLEX=`etc/which mllex` || MLLEX=`etc/which ml-lex.bat`
   if [ "$?" != 0 ]; then
-    echo ./configure: unable to locate ml-lex in '$PATH'.
+    echo ./configure: unable to locate ml-lex or mllex in '$PATH'.
     exit 1
   fi
   SMLCM=`echo $MLLEX | sed 's,ml-lex,sml-cm,'`
   if [ ! -x $SMLCM ]; then
     SMLCM=`echo $MLLEX | sed 's,ml-lex,sml,'`
     if [ ! -x $SMLCM ]; then
-      echo ./configure: unable to locate sml-cm or sml.
-      exit 1
+      SMLCM=`echo $MLLEX | sed 's,mllex,sml,'`
+      if [ ! -x $SMLCM ]; then
+        echo ./configure: unable to locate sml-cm or sml.
+        exit 1
+      fi
     fi
   fi
   MLYACC=`echo $MLLEX | sed 's,ml-lex,ml-yacc,'`
   if [ ! -x $MLYACC ]; then
-    echo ./configure: unable to locate ml-yacc.
-    exit 1
+    MLYACC=`echo $MLLEX | sed 's,mllex,ml-yacc,'`
+    if [ ! -x $MLYACC ]; then
+      MLYACC=`echo $MLLEX | sed 's,mllex,mlyacc,'`
+      if [ ! -x $MLYACC ]; then
+        echo ./configure: unable to locate ml-yacc or mlyacc.
+        exit 1
+      fi
+    fi
   fi
   echo ./configure: SMLCM is $SMLCM
   case "$TARGET" in
