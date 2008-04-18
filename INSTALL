@@ -1,8 +1,8 @@
 RML INSTALLATION GUIDE
 ==========================================================
 Last updated in 2008-04-15 by Adrian Pop, adrpo@ida.liu.se
- 
-To install follow the steps below and if you run 
+
+To install follow the steps below and if you run
 into problems read the NOTE at the end of this file.
 
 1. You must have a recent (110.57 or later) version of SML/NJ installed.
@@ -11,49 +11,43 @@ into problems read the NOTE at the end of this file.
 
    The SML/NJ web page, http://www.smlnj.org,
    contains all necessary information about obtaining and installing SML/NJ.
-   
-   The latest RML also compiles with the MLton compiler which gives 
-   speedups of ~50% on compilation times. To compile the rml frontend 
-   with MLton follow all the steps in this file and then refer to 
+
+   The latest RML also compiles with the MLton compiler which gives
+   speedups of ~50% on compilation times. To compile the rml frontend
+   with MLton follow all the steps in this file and then refer to
    instructions in INSTALL.MLton.txt
- 
+
    Ubuntu distribution:
    run these commands to install SML & others:
-   > sudo apt-get install sml
-   > sudo apt-get install ml-lex
-   > sudo apt-get install ml-yacc
-   > sudo apt-get install libsmlnj-smlnj
-   > sudo apt-get install build-essential
-   > sudo apt-get install bison
-   > sudo apt-get install flex
+   $ sudo aptitude install sml ml-lex ml-yacc libsmlnj-smlnj build-essential bison flex
 
 
 2. In the RML root directory, execute:
 
-	./configure
+    ./configure
 
    This performs a few checks, and then writes a number of variable=value
    bindings to the file "config.cache". Some of these bindings are:
 
-	TARGET		Platform for runtime systems and generated C code.
-			This is computed based on the Unix version and CPU
-			type of the current host.
+    TARGET		Platform for runtime systems and generated C code.
+            This is computed based on the Unix version and CPU
+            type of the current host.
 
-	PREFIX		Directory under which generated files will be installed.
-			Executables are placed in $PREFIX/bin, include files
-			in $PREFIX/include, and other files in $PREFIX/lib.
-			The default for PREFIX is `/bin/pwd`/$TARGET.
+    PREFIX		Directory under which generated files will be installed.
+            Executables are placed in $PREFIX/bin, include files
+            in $PREFIX/include, and other files in $PREFIX/lib.
+            The default for PREFIX is `/bin/pwd`/$TARGET.
 
-	SMLCM, MLLEX, MLYACC
-			Paths to the SML/NJ tools sml-cm (or sml), ml-lex,
-			and ml-yacc. These tools must be in your $PATH.
+    SMLCM, MLLEX, MLYACC
+            Paths to the SML/NJ tools sml-cm (or sml), ml-lex,
+            and ml-yacc. These tools must be in your $PATH.
 
-	HEAP_SUFFIX	The suffix appended by SML/NJ to exported heap images.
-	
+    HEAP_SUFFIX	The suffix appended by SML/NJ to exported heap images.
+
    NOTE: The debugging runtime of RML depends on the 'readline' library.
          If you don't have this library installed you can run configure with:
-	 
-	 ./configure --disable-debug
+
+     ./configure --disable-debug
 
 3. The configure script automatically executes 'make configure' after non-trivial
    changes in the configuration parameters, using config.cache to tailor the
@@ -61,18 +55,18 @@ into problems read the NOTE at the end of this file.
 
 4. Now you can:
 
-	* make
-	  compiles the rmlc compiler driver, rml translator and interpreter,
-	  and all supported runtime systems
-	* make install
-	  installs scripts, SML/NJ heap images, include files, and runtime
-	  libraries
-	* make clean
-	  removes temporary files
-	* make realclean
-	  like 'clean', but also removes the generated targets
-	* make distclean
-	  like 'realclean', but also removes all configuration-dependent files
+    * make
+      compiles the rmlc compiler driver, rml translator and interpreter,
+      and all supported runtime systems
+    * make install
+      installs scripts, SML/NJ heap images, include files, and runtime
+      libraries
+    * make clean
+      removes temporary files
+    * make realclean
+      like 'clean', but also removes the generated targets
+    * make distclean
+      like 'realclean', but also removes all configuration-dependent files
 
 5. Once 'make install' has been done, you can try out the example
    specifications in the examples directory.
@@ -85,8 +79,8 @@ Non-standard configurations
 6. The most common reason to re-configure is to choose different locations
    for installed binaries etc. This is achieved by executing:
 
-	./configure --prefix=$PREFIX
-	make install
+    ./configure --prefix=$PREFIX
+    make install
 
    This works since ./configure starts by reading config.cache if it exists,
    before parsing options and updating config.cache.
@@ -100,7 +94,7 @@ Non-standard configurations
    instead of "gcc" to compile C code. To achieve this, replace the "-gcc"
    part of TARGET with "-cc", and execute:
 
-	./configure --build=$TARGET
+    ./configure --build=$TARGET
 
    The configure script will complain if this TARGET is not supported.
 
@@ -146,11 +140,14 @@ Non-standard configurations
     runtime libraries are to be built or not.
 
 
-NOTE: 
+NOTE:
  If you run into problems during installation please
  run the command:
  rml-directory> ./etc/trace-install.sh configure-parameters
- Where configure-parameters are the command line parameters you gave to 
+ Where configure-parameters are the command line parameters you gave to
  the configure script.
- Then send the created trace-install.txt to Adrian Pop [adrpo@ida.liu.se] 
- to get help. Thank you, Adrian Pop, 2006-03-21
+ Then send the created trace-install.txt to Adrian Pop [adrpo@ida.liu.se]
+ to get help. 
+ 
+ Thank you, 
+ Adrian Pop, 2008-04-18
