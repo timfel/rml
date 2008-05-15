@@ -1,6 +1,6 @@
 RML INSTALLATION GUIDE
 ==========================================================
-Last updated in 2008-04-15 by Adrian Pop, adrpo@ida.liu.se
+Last updated in 2008-05-01 by Adrian Pop, adrpo@ida.liu.se
 
 To install follow the steps below and if you run
 into problems read the NOTE at the end of this file.
@@ -18,7 +18,7 @@ into problems read the NOTE at the end of this file.
    instructions in INSTALL.MLton.txt
 
    Ubuntu distribution:
-    run this commands to install SML & others:
+    run this command to install SML & others:
     $ sudo aptitude install sml ml-lex ml-yacc libsmlnj-smlnj build-essential bison flex
 
 
