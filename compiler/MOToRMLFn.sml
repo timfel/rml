@@ -426,7 +426,7 @@ let val Absyn.PROGRAM(_,_,interface as
 	  "string_append","string_int","string_length","string_list","string_list_string_char",
 	  "string_nth","string_nth_string_char","string_get","string_get_string_char",
 	  "string_setnth","string_setnth_string_char","string_update","string_update_string_char",
-	  "string_equal", "string_compare",
+	  "string_equal", "string_compare","string_append_list",
 	  (* immutable vectors *)
 	  "vector_length","vector_list","vector_nth","vector_get","vector_setnth",
 	  "vector_update","vector_create","vector_add","vector_array","vector_copy",
@@ -452,7 +452,7 @@ let val Absyn.PROGRAM(_,_,interface as
 	  (* strings *)
 	  "stringAppend","stringInt","stringLength","stringList","stringListStringChar","stringNth",
 	  "stringNthStringChar","stringGet","stringGetStringChar","stringSetNth","stringSetNthStringChar",
-	  "stringUpdate","stringUpdateStringChar","stringEqual","stringCompare", 
+	  "stringUpdate","stringUpdateStringChar","stringEqual","stringCompare","stringAppendList", 
 	  (* immutable vectors *)
 	  "vectorLength","vectorList","vectorNth","vectorGet","vectorSetNth",
 	  "vectorUpdate","vectorCreate","vectorAdd","vectorArray","vectorCopy",      

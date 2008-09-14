@@ -57,12 +57,13 @@
 #define RMLDB_FAILURE -1
 
 #define RMLDB_PROMPT "rml+mmc db@>"
-#define RMLDB_RUN    		0
-#define RMLDB_STEP   		1
-#define RMLDB_STEP_OVER		2
+#define RMLDB_RUN         0
+#define RMLDB_STEP        1
+#define RMLDB_STEP_OVER   2
 #define RMLDB_STEP_RETURN	3
-#define RMLDB_BREAKPOINT	4
+#define RMLDB_BREAKPOINT  4
 #define RMLDB_TRACE_CALLS	5
+#define RMLDB_TRACE_ALL   6 /* display all function calls and variable values */
 
 #define RMLDB_VAR_IN 0
 #define RMLDB_VAR_OUT 1

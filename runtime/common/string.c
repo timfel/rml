@@ -49,12 +49,43 @@ RML_BEGIN_LABEL(RML__string_5fappend)
   rml_uint_t len1 = RML_HDRSTRLEN(RML_GETHDR(rmlA1));
   struct rml_string *str = rml_prim_mkstring(len0 + len1, 2);
   (void)memcpy(&str->data[0], RML_STRINGDATA(rmlA0), len0);
-  (void)memcpy(&str->data[len0], RML_STRINGDATA(rmlA1),
-    len1+1);	/* +1 to copy terminating '\0' */
+  (void)memcpy(&str->data[len0], RML_STRINGDATA(rmlA1), len1+1);	/* +1 to copy terminating '\0' */
   rmlA0 = RML_TAGPTR(str);
   RML_TAILCALLK(rmlSC);
 }
 RML_END_LABEL
+
+/* str_append_list.c */
+RML_BEGIN_LABEL(RML__string_5fappend_5flist)
+{
+  /* count the length of elements in the first list */
+  rml_uint_t len_car = 0;
+  rml_uint_t len_cur = 0;
+  rml_uint_t len = 0;
+  void *lst = rmlA0;
+  while( RML_GETHDR(lst) == RML_CONSHDR ) {
+    len += RML_HDRSTRLEN(RML_GETHDR(RML_CAR(lst)));
+	  lst = RML_CDR(lst);
+  }
+  struct rml_string *str = rml_prim_mkstring(len, 1);
+  /* re-read the rmlA0 as it might have been moved by the GC */
+  lst = rmlA0;
+  while( RML_GETHDR(lst) == RML_CONSHDR ) {
+    void* car = RML_CAR(lst);
+    len_car = RML_HDRSTRLEN(RML_GETHDR(car));
+    (void)memcpy(
+      &str->data[len_cur], 
+      RML_STRINGDATA(car), 
+      len_car);
+    len_cur += len_car;
+	  lst = RML_CDR(lst);
+  }
+  str->data[len_cur+1] = '\0';
+  rmlA0 = RML_TAGPTR(str);
+  RML_TAILCALLK(rmlSC);
+}
+RML_END_LABEL
+
 
 /* str-int.c */
 RML_BEGIN_LABEL(RML__string_5fint)

@@ -167,10 +167,13 @@ int rmldb_init(void)
 	
 		/* parse for the first commands  */
 		rmldb_execution_type = rmldb_execution_startup_type;
-		
-		// start the command handler!
-		rmldb_startSignalHandler(NULL);
-		
+
+    // start the command handler only if we don't run in trace all mode
+    if (rmldb_execution_type != RMLDB_TRACE_ALL)
+    {
+		  // start the command handler!
+		  rmldb_startSignalHandler(NULL);
+    }		
 		/* rmldb_push_stack_frame("Main.mo", -1, -1, 1, 1, 1, 1, "Main.main", "start"); */
 	}	
 	return RMLDB_SUCCESS;
@@ -2313,7 +2316,9 @@ int rmldb_print_active_var(char* var_name)
 	int printed = 0;
 	int i = 0;
 	rmldb_type_db_t* type_db;
-	fprintf(stderr, "NOTE that the depth of printing is set to: %d\n", rmldb_depth_of_variable_print);
+	/* 
+   * fprintf(stderr, "NOTE that the depth of printing is set to: %d\n", rmldb_depth_of_variable_print);
+   */
 	for(i = 0; i < rmldb_number_of_vars; i ++)
 		if (strcmp(rmldb_vars[i]->var_name, var_name) == 0)
 		{
@@ -2439,6 +2444,14 @@ void RML__call_debug(char* fileName, int sp, int ep, int sl, int sc, int el, int
 		rmldb_current_execution_loc.range.el = el;
 		rmldb_current_execution_loc.range.ec = ec;
 
+		if (rmldb_execution_type == RMLDB_TRACE_ALL)
+		{
+      printf("%s\n", s);
+      rmldb_print_active_vars();
+			rmldb_clear_active_vars();
+	  	return;
+		}
+
 		if (rmldb_execution_type == RMLDB_STEP_RETURN) /* do we jump over the goal? */
 		{
 			/* TODO! deal with this later! */
@@ -2454,8 +2467,7 @@ void RML__call_debug(char* fileName, int sp, int ep, int sl, int sc, int el, int
 				rmldb_save_stack_pointer = rmldb_stack_point; /* as we already pushed one before */
 				rmldb_stack_pointer_saved = 1;
 			}
-			if (rmldb_save_stack_pointer != -1 &&
-				rmldb_save_stack_pointer == rmldb_stack_point) /* we came below, to the caller, we did the step */
+			if (rmldb_save_stack_pointer != -1 && rmldb_save_stack_pointer == rmldb_stack_point) /* we came below, to the caller, we did the step */
 			{
 				rmldb_save_stack_pointer = -1;
 				rmldb_stack_pointer_saved = 0;
@@ -2463,14 +2475,7 @@ void RML__call_debug(char* fileName, int sp, int ep, int sl, int sc, int el, int
 				rmldb_suspend_type = RMLDB_STEP_OVER;			
 			}
 		}
-	
-		if (rmldb_execution_type == RMLDB_TRACE_CALLS)
-		{
-			printf("%s\n",s);
-			rmldb_clear_active_vars();
-	  		return;
-		}
-	
+		
 		rmldb_push_stack_frame(fileName, sp, ep, sl, sc, el, ec, relation, call);
 		/* clear the pushed vars */
 		rmldb_clear_active_vars();

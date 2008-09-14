@@ -27,6 +27,7 @@ void rml_show_help(char *program, FILE* file)
   fprintf(file, "-dbgEventPort=<port>   open the server localhost:EventPort and send async events the client\n");
   fprintf(file, "-dbgSignalPort=<port>  open the server localhost:SignalPort and listen to ansync events from the client\n");  
   fprintf(file, "-dbgSocket             debug the socket communication.\n");
+	fprintf(file, "-debugAll              dumps all the calls and the values of variables to standard output; NOTE: can be extremly large\n");
   fprintf(file, "-help                  prints the help and exits\n");
 }
 
@@ -193,6 +194,14 @@ int main(int argc, char **argv)
 #else
       fprintf(stderr, "You have to compile your program in debug mode for this flag.\n");
 #endif /* RML_DEBUG */
+	    continue;
+	} else if( strcmp(arg, "debugAll") == 0 ) {
+#ifdef RML_DEBUG
+	    rmldb_execution_startup_type = RMLDB_TRACE_ALL;
+#else
+		  fprintf(stderr, "You have to compile your program in debug mode for this flag.\n");
+#endif /* RML_DEBUG */
+	    continue;
     } else if( strcmp(arg, "help") == 0 ) {
       rml_show_help(program, stdout);
       rml_exit(0);
@@ -207,7 +216,11 @@ int main(int argc, char **argv)
 
 #ifdef RML_DEBUG
   /* if we have no ports set, don't do debugging */
-  if (rmldb_cmd_port != -1 || rmldb_reply_port != -1 || rmldb_event_port != -1 || rmldb_signal_port != -1)
+  if (rmldb_cmd_port != -1 || 
+      rmldb_reply_port != -1 || 
+      rmldb_event_port != -1 || 
+      rmldb_signal_port != -1 ||
+      rmldb_execution_startup_type == RMLDB_TRACE_ALL)
   {
     rml_debug_enabled = 1;
   }

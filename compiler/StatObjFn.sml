@@ -193,6 +193,7 @@ functor StatObjFn(
 	  val VE = bindRel(VE,"string_update_string_char",[tau_string,tau_int,tau_string],[tau_string])	  
 	  val VE = bindRel(VE,"string_equal",[tau_string,tau_string],[tau_bool])	  
 	  val VE = bindRel(VE,"string_compare",[tau_string,tau_string],[tau_int])
+	  val VE = bindRel(VE,"string_append_list",[tau_string_list],[tau_string])
 	  	  
 	  (* immutable vectors *)
 	  val VE = bindRel(VE,"vector_length",[tau_alpha_vector],[tau_int])
@@ -314,6 +315,7 @@ functor StatObjFn(
 	  val VE = bindRel(VE,"stringUpdateStringChar",[tau_string,tau_int,tau_string],[tau_string])	  
 	  val VE = bindRel(VE,"stringEqual",[tau_string,tau_string],[tau_bool])	  
 	  val VE = bindRel(VE,"stringCompare",[tau_string,tau_string],[tau_int])
+	  val VE = bindRel(VE,"stringAppendList",[tau_string_list],[tau_string])
 
 	  (* immutable vectors *)
 	  val VE = bindRel(VE,"vectorLength",[tau_alpha_vector],[tau_int])

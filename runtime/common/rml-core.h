@@ -196,9 +196,9 @@ struct rml_struct {
 #define RML_CDR(X)	RML_FETCH(RML_OFFSET(RML_UNTAGPTR(X),2))
 
 #define RML_DEFSTRUCTLIT(NAME,LEN,CON)	\
-    struct {				\
-	rml_uint_t header;		\
-	void *data[LEN];		\
+    struct { \
+      rml_uint_t header; \
+      void *data[LEN]; \
     } NAME = { RML_STRUCTHDR(LEN,CON),
 #define RML_DEFSTRUCT0LIT(NAME,CON) struct rml_header NAME = { RML_STRUCTHDR(0,CON) }
 #define RML_REFSTRUCTLIT(NAME) RML_TAGPTR(&(NAME).header)
@@ -207,9 +207,9 @@ struct rml_struct {
 /*
  * Additional operators used by the C code
  */
-#define RML_OFFSET(p,i)		((void*)((void**)(p) + (i)))
-#define RML_FETCH(p)		(*(void**)(p))
-#define RML_STORE(dst,val)	(*(void**)(dst) = (val))
+#define RML_OFFSET(p,i)     ((void*)((void**)(p) + (i)))
+#define RML_FETCH(p)        (*(void**)(p))
+#define RML_STORE(dst,val)  (*(void**)(dst) = (val))
 
 /*
  * Strictly internal declarations
@@ -217,41 +217,74 @@ struct rml_struct {
 extern rml_sint_t rml_prim_atoi(const struct rml_string*);
 #define RML_CLOCKS_PER_SEC	1000	/* milliseconds */
 extern unsigned long rml_prim_clock(void);
-extern char rml_flag_bench;
+extern char          rml_flag_bench;
 extern unsigned long rml_clock_start;
-extern char rml_flag_gclog;
+extern char          rml_flag_gclog;
 extern unsigned long rml_gc_start_clock;
 extern unsigned long rml_gc_end_clock;
 extern double        rml_gc_total_time;
-extern char rml_flag_log;
+extern char          rml_flag_log;
 extern unsigned long rml_call_count;
-extern char rml_flag_no_stack_check;
-extern char rml_debug_enabled;
-extern char rml_trace_enabled;
+extern char          rml_flag_no_stack_check;
+extern char          rml_debug_enabled;
+extern char          rml_trace_enabled;
 
-/* adrpo added look into p-gccore.c for more */
+/* adrpo added: look into p-gccore.c for more */
 /* the young region */
-extern void **rml_young_region;
+extern void        **rml_young_region;
 extern unsigned long rml_young_size;
 
 /* the older region */
 extern unsigned long rml_older_size;
-extern void **rml_current_region;
-extern void **rml_current_next;
-extern void **rml_reserve_region;
+extern void        **rml_current_region;
+extern void        **rml_current_next;
+extern void        **rml_reserve_region;
+
+/* the allocated from C region */
+typedef struct rml_c_heap_region
+{
+  void **region;
+  void **next;
+  void **limit;
+  unsigned long size;
+  struct rml_c_heap_region* next_region;
+} rml_c_heap_region_t;
+
+extern rml_c_heap_region_t *rml_c_heap;
+extern unsigned long rml_c_heap_region_total_size;
 
 /* the roots */
-extern void **rmlSPMIN;
-extern void **rml_stack;
+extern void        **rmlSPMIN;
+extern void        **rml_stack;
 extern unsigned long rml_stack_size;
 
-extern void *rml_trail[];
+extern void         *rml_trail[];
 extern unsigned long rml_trail_size;
 
-extern void *rml_array_trail[];
+extern void         *rml_array_trail[];
 extern unsigned long rml_array_trail_size;
 
-extern unsigned long rml_allocated_from_c;
+/* functions for Foreign Function Interface (FFI) */
+extern void *mk_icon(int);
+extern void *mk_rcon(double);
+extern void *mk_scon(char*);
+extern void *mk_nil(void);
+extern void *mk_cons(void*, void*);
+extern void *mk_none(void);
+extern void *mk_some(void*);
+extern void *mk_box0(unsigned ctor);
+extern void *mk_box1(unsigned ctor, void*);
+extern void *mk_box2(unsigned ctor, void*, void*);
+extern void *mk_box3(unsigned ctor, void*, void*, void*);
+extern void *mk_box4(unsigned ctor, void*, void*, void*, void*);
+extern void *mk_box5(unsigned ctor, void*, void*, void*, void*, void*);
+extern void *mk_box6(unsigned ctor, void*, void*, void*, void*, void*, void*);
+extern void *mk_box7(unsigned ctor, void*, void*, void*, void*, void *,
+         void*, void*);
+extern void *mk_box8(unsigned ctor, void*, void*, void*, void*, void *,
+         void*, void*, void*);
+extern void *mk_box9(unsigned ctor, void*, void*, void*, void*, void *,
+         void*, void*, void*, void*);
 
 
 #ifdef	RML_MORE_LOGGING
@@ -275,8 +308,8 @@ extern void rml_show_status(void);
  */
 struct rml_gval {
     union {
-	void *value;
-	struct rml_gval *prev;
+      void *value;
+      struct rml_gval *prev;
     } u;
     struct rml_gval *next;
     const char *name;

@@ -205,10 +205,12 @@ extern RML_FORWARD_LABEL(RML__real_5ftanh);
 extern RML_FORWARD_LABEL(RML__string_5fappend);
 extern RML_FORWARD_LABEL(RML__string_5fint);
 extern RML_FORWARD_LABEL(RML__string_5flength);
-   /* java named */
+extern RML_FORWARD_LABEL(RML__string_5fappend_5flist);
+/* java named */
 #define RML__stringAppend RML__string_5fappend
 #define RML__stringInt    RML__string_5fint
 #define RML__stringLength RML__string_5flength
+#define RML__stringAppendList RML__string_5fappend_5flist
 
 /* declarative vectors */
 extern RML_FORWARD_LABEL(RML__vector_5flength);
