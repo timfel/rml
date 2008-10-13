@@ -19,12 +19,12 @@ into problems read the NOTE at the end of this file.
 
    Ubuntu distribution:
     run this command to install SML & others:
-    $ sudo aptitude install sml ml-lex ml-yacc libsmlnj-smlnj build-essential bison flex
+    $ sudo aptitude install ml-lex ml-yacc libsmlnj-smlnj build-essential bison flex
 
 
 2. In the RML root directory, execute:
 
-    ./configure
+    $ ./configure
 
    This performs a few checks, and then writes a number of variable=value
    bindings to the file "config.cache". Some of these bindings are:
@@ -47,7 +47,7 @@ into problems read the NOTE at the end of this file.
    NOTE: The debugging runtime of RML depends on the 'readline' library.
          If you don't have this library installed you can run configure with:
 
-     ./configure --disable-debug
+    $ ./configure --disable-debug
 
 3. The configure script automatically executes 'make configure' after non-trivial
    changes in the configuration parameters, using config.cache to tailor the
@@ -55,17 +55,17 @@ into problems read the NOTE at the end of this file.
 
 4. Now you can:
 
-    * make
+    $ make
       compiles the rmlc compiler driver, rml translator and interpreter,
       and all supported runtime systems
-    * make install
+    $ make install
       installs scripts, SML/NJ heap images, include files, and runtime
       libraries
-    * make clean
+    $ make clean
       removes temporary files
-    * make realclean
+    $ make realclean
       like 'clean', but also removes the generated targets
-    * make distclean
+    $ make distclean
       like 'realclean', but also removes all configuration-dependent files
 
 5. Once 'make install' has been done, you can try out the example
@@ -79,8 +79,8 @@ Non-standard configurations
 6. The most common reason to re-configure is to choose different locations
    for installed binaries etc. This is achieved by executing:
 
-    ./configure --prefix=$PREFIX
-    make install
+    $ ./configure --prefix=$PREFIX
+    $ make install
 
    This works since ./configure starts by reading config.cache if it exists,
    before parsing options and updating config.cache.
@@ -94,7 +94,7 @@ Non-standard configurations
    instead of "gcc" to compile C code. To achieve this, replace the "-gcc"
    part of TARGET with "-cc", and execute:
 
-    ./configure --build=$TARGET
+    $ ./configure --build=$TARGET
 
    The configure script will complain if this TARGET is not supported.
 
