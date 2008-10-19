@@ -1,12 +1,12 @@
 # Makefile for the rml compiler and interpreter
 SHELL=/bin/sh
 ifeq (${SMLNJ_HOME},)
-	$(warning no SMLNJ_HOME variable is not defined!)
-	$(warning Assuming SMLNJ_HOME=/usr/lib/smlnj)
-	$(warning Please define SMLNJ_HOME if is not /usr/lib/smlnj)
-	SMLNJ_HOME_=/usr/lib/smlnj
+$(warning no SMLNJ_HOME variable is not defined!)
+$(warning Assuming SMLNJ_HOME=/usr/lib/smlnj)
+$(warning Please define SMLNJ_HOME if is not /usr/lib/smlnj)
+SMLNJ_HOME_=/usr/lib/smlnj
 else
-	SMLNJ_HOME_=${SMLNJ_HOME}
+SMLNJ_HOME_=${SMLNJ_HOME}
 endif
 	
 GOROOT=..
