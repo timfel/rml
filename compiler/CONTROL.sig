@@ -104,6 +104,8 @@ signature CONTROL =
 
     (* print import loadinging order  *)
     val importLoadOrder : bool ref
+
+    val idirs : string list ref
 	
   end (* signature CONTROL *)
 

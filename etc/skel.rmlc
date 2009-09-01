@@ -29,6 +29,7 @@ RMLLIBDIR=\"$PREFIX/lib\"
 #
 # +C		compile rml files to C only; implies -c
 # +Rrts		use runtime system rts instead of the default
+# -Idir     add the directory dir to the list of directories to be search for RML sources
 #
 # Files have extension .rml, .c, .o, or .a
 #

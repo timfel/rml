@@ -25,9 +25,24 @@ functor MODParseFn(structure Absyn : ABSYN
 	val debugFlag = false
 	fun debug s = if (debugFlag) then Util.outStdErr("MODParseFn."^s) else ()	
 	
+	(* If file found in search path(s), return file path otherwise return file *)
+	fun prepathFile(file, paths) =
+	  case paths of
+	    nil => file
+	    | _ => let val fp = OS.Path.joinDirFile{dir = (hd paths), file = file}
+	           in
+	             if Control.fileExists fp then fp
+	             else prepathFile(file, tl paths)
+	           end
+		
     fun parse(startToken, file, repository, isInterface) =
-    let val is = TextIO.openIn file
-    in
+	let val f = if Control.fileExists(file) then 
+	              file (* If the file is in current dir, use it *)
+	            else  (* otherwise prepend includ path and check *)
+	              prepathFile(file, rev (!Control.idirs))
+	    val _ = debug("\nMODPraseFn.parse File: "^f^"\n")
+	    val is = TextIO.openIn f
+	in
 	(let val (lexarg, inputf) = LexArg.new(file, is)
 	     val pos = (2,0,0)	(*XXX: ML-Lex*)
 	     val lexer = MODParser.makeLexer inputf lexarg

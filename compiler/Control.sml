@@ -83,6 +83,9 @@ structure Control: CONTROL =
 
     (* what are we currently compiling? *)    
     val currentlyCompiling = ref UNKNOWN_FILE
+
+	(* list of search paths *)
+	val idirs = ref [""]
     
 	(* this one helps in selecting messages depending on what we are currently compiling *)
 	fun selectCompilerMessage(strRML, strMMC) =

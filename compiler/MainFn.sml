@@ -190,7 +190,8 @@ functor MainFn(
        sayErr "-i\n  generate a SML interpreter\n";
        sayErr "-v\n  print the version and exit\n";
        sayErr "-builtin\n  print the defined builtin relations/functions and exit\n";
-       sayErr "-help|--help|-h\n  print the help and exit\n"
+       sayErr "-help|--help|-h\n  print the help and exit\n";
+       sayErr "-Idir\n  add directory dir to the list of directories to be searched for source files\n"
     )
 
     fun usage msg = (* check the compiler line arguments (parameters) *)
@@ -288,6 +289,9 @@ functor MainFn(
 	 | "-help"  => help()
 	 | "-h"     => help()
 	 | _ =>
+		if String.isPrefix "-I" arg then 
+		  Control.idirs := String.substring(arg, 2, String.size arg - 2)::(!Control.idirs)
+		else
 	    let val size = String.size arg
 		val srtPfx = "-fswitch-rewrite-threshold="
 		val srtPfxSize = String.size srtPfx

@@ -23,7 +23,7 @@
  * (Eventually, the Uppsala Prolog collector [see PLILP'94], may be used.)
 
  2005-01-10 added by Adrian Pop, adrpo@ida.liu.se
- * The RML aray_trail is used to register locations in the older region that 
+ * The RML aray_trail is used to register locations in the older region that
  * may refer to objects in the young region. The entire arrays present in the
  * trail are scanned for the pointers into younger region.
  */
@@ -56,6 +56,16 @@ rml_c_heap_region_t *rml_c_heap;
 unsigned long rml_c_heap_region_total_size;
 rml_uint_t rml_c_heap_collect_flag = 0;
 unsigned long rml_c_heap_collect_count;
+/*
+ * A string cache for implementing string sharing
+ * adrpo 2009-03-05
+ */
+#define RML_SHARED_STRING_MAX 300   /* share only strings less than this */
+#define RML_STRING_CACHE_MAX 100000 /* the maximum of strings kept in the cache between two garbage collections */
+void* rml_string_cache[RML_STRING_CACHE_MAX];
+unsigned long rml_string_cache_index = 0;
+unsigned long rml_total_shared_strings = 0;
+unsigned long rml_total_shared_strings_words = 0;
 
 static void **rml_alloc_core(rml_uint_t nslots) {
   unsigned long nbytes = nslots * sizeof(void*);
@@ -87,7 +97,7 @@ unsigned long rml_trail_size;
 void *rml_trail[RML_TRAIL_SIZE];
 
 #if	!defined(RML_ARRAY_TRAIL_SIZE)
-#define RML_ARRAY_TRAIL_SIZE	(64*1024)
+#define RML_ARRAY_TRAIL_SIZE	(1024*1024)
 #endif
 unsigned long rml_array_trail_size;
 void *rml_array_trail[RML_ARRAY_TRAIL_SIZE];
@@ -203,6 +213,7 @@ void rml_free_c_heap_region() {
   /* allocate a new C managed heap for the next round */
   rml_c_heap = rml_alloc_c_heap_region(RML_C_HEAP_REGION_SIZE);
   rml_c_heap_region_total_size = 0;
+  rml_string_cache_index = 0;
 }
 
 /*
@@ -260,8 +271,10 @@ void rmldb_show_status(void) {
         (unsigned long)rml_young_size, /* RML_YOUNG_SIZE, */
         (unsigned long)rml_older_size,
         (unsigned long)(rml_heap_expansions_count));
-    fprintf(stderr, "[HEAP: %lu words allocated into managed C heap (from mk_* functions), collected %lu times, remaining uncollected %lu words]\n",
+    fprintf(stderr, "[HEAP: \t%lu words allocated into managed C heap (from mk_* functions), collected %lu times, remaining uncollected %lu words]\n",
         rml_allocated_from_c, rml_c_heap_collect_count, rml_c_heap_region_total_size);
+    fprintf(stderr, "[HEAP: \t%lu strings totaling %lu words where shared]\n",
+        rml_total_shared_strings, rml_total_shared_strings_words);
     fprintf(stderr, "[HEAP:\t%#.2f seconds waisted while doing GC]\n", rml_gc_total_time);
     fprintf(stderr, "[STACK:\t%lu words currently in use (%lu words max, %lu words total)]\n",
         (unsigned long)(&rml_stack[rml_stack_size] - (void**)rml_state_SP),
@@ -311,9 +324,11 @@ void rml_exit(int status) {
         (unsigned long)(rml_heap_expansions_count));
     fprintf(
         stderr,
-        "[HEAP: %lu words allocated into managed C heap (from mk_* functions), collected %lu times, remaining uncollected %lu words]\n",
+        "[HEAP: \t%lu words allocated into managed C heap (from mk_* functions), collected %lu times, remaining uncollected %lu words]\n",
         rml_allocated_from_c, rml_c_heap_collect_count,
         rml_c_heap_region_total_size);
+    fprintf(stderr, "[HEAP: \t%lu strings totaling %lu words where shared]\n",
+        rml_total_shared_strings, rml_total_shared_strings_words);
     fprintf(stderr, "[HEAP:\t%#.2f seconds waisted while doing GC]\n",
         rml_gc_total_time);
     fprintf(
@@ -367,7 +382,7 @@ static INLINE void **rml_forward_vec(void **scan, rml_uint_t nwords,
       continue;
 
     /* If not allocated in this region, do nothing. */
-    if ( (rml_uint_t)((char*)old - region_low) >= region_nbytes ) { 
+    if ( (rml_uint_t)((char*)old - region_low) >= region_nbytes ) {
       /* If is not allocated in the C heap, do not forward it! */
       if (rml_c_heap_collect_flag && rml_is_allocated_on_c_heap((void**)RML_UNTAGPTR(old))) {
         /* collect to next region */
@@ -431,8 +446,8 @@ static void **rml_forward_all(rml_uint_t nliveargs, void **next,
       next = rml_forward_vec(&RML_REFDATA(ref_node), 1, next, region_low, region_nbytes);
     }
   }
-  /* Adrian Pop, adrpo@ida.liu.se addded 2005-01-11 
-   * forwarding of array_setnth elements 
+  /* Adrian Pop, adrpo@ida.liu.se addded 2005-01-11
+   * forwarding of array_setnth elements
    */
   {
     void **ATP= rml_state_ATP;
@@ -472,7 +487,7 @@ static void **rml_forward_all(rml_uint_t nliveargs, void **next,
 
 static void **rml_collect(void **scan, char *region_low, rml_uint_t region_nbytes, rml_uint_t nliveargs) {
   /* void **scan_old = scan; */
-  void **next; 
+  void **next;
 
   /* forward all roots */
   next = rml_forward_all(nliveargs, scan, region_low, region_nbytes);
@@ -491,8 +506,8 @@ static void **rml_collect(void **scan, char *region_low, rml_uint_t region_nbyte
   {
     void **old = (void**)*scan_old;
     if ( RML_ISIMM(old)) { ++scan_old; continue; }
-    ++scan_old; 
-    if ( (rml_uint_t)((char*)old - region_low) >= region_nbytes) 
+    ++scan_old;
+    if ( (rml_uint_t)((char*)old - region_low) >= region_nbytes)
     {
       if (rml_c_heap_collect_flag && rml_is_allocated_on_c_heap((void**)RML_UNTAGPTR(old)))
         rmldb_var_print(old);
@@ -642,12 +657,12 @@ void rml_minor_collection(rml_uint_t nliveargs) {
     fflush(stderr);
   }
 
-  /* 
-   * do we have enough space in the current region 
-   * to also forward the rml_c_heap? 
+  /*
+   * do we have enough space in the current region
+   * to also forward the rml_c_heap?
    */
-  if (rml_c_heap_region_total_size && 
-      (rml_older_size - (rml_current_next - rml_current_region) > 
+  if (rml_c_heap_region_total_size &&
+      (rml_older_size - (rml_current_next - rml_current_region) >
       (rml_young_size + rml_c_heap_region_total_size))) {
     /* we have enough space, signal to go on with the forwarding */
     rml_c_heap_collect_flag = 1;
@@ -697,6 +712,10 @@ void **rml_older_alloc(rml_uint_t nwords, rml_uint_t nargs) {
 /******************************************/
 /* functions previously part of yacclib.c */
 /******************************************/
+
+/*
+ * functions to print externally allocated values
+ */
 extern void print_icon(FILE*, void*);
 extern void print_rcon(FILE*, void*);
 extern void print_scon(FILE*, void*);
@@ -720,8 +739,7 @@ void *alloc_words(unsigned nwords) {
 
       if (rml_flag_gclog) {
         rml_gc_end_clock = rml_prim_clock();
-        rml_gc_total_time += (double)(rml_gc_end_clock - rml_gc_start_clock)
-            / (double)RML_CLOCKS_PER_SEC;
+        rml_gc_total_time += (double)(rml_gc_end_clock - rml_gc_start_clock) / (double)RML_CLOCKS_PER_SEC;
       }
       /* return the pointer to available region */
       return p;
@@ -749,8 +767,7 @@ void *alloc_words(unsigned nwords) {
 
   if (rml_flag_gclog) {
     rml_gc_end_clock = rml_prim_clock();
-    rml_gc_total_time += (double)(rml_gc_end_clock - rml_gc_start_clock)
-        / (double)RML_CLOCKS_PER_SEC;
+    rml_gc_total_time += (double)(rml_gc_end_clock - rml_gc_start_clock) / (double)RML_CLOCKS_PER_SEC;
   }
   /* return the pointer to available region */
   return p;
@@ -789,10 +806,41 @@ void *mk_scon(char *s) {
   rml_uint_t nbytes = strlen(s);
   rml_uint_t header= RML_STRINGHDR(nbytes);
   rml_uint_t nwords= RML_HDRSLOTS(header) + 1;
-  struct rml_string *p = alloc_words(nwords);
-  p->header = header;
-  memcpy(p->data, s, nbytes+1); /* including terminating '\0' */
-  return RML_TAGPTR(p);
+  if (!rml_string_cache_index) /* no string in the cache */
+  {
+    struct rml_string *p = alloc_words(nwords);
+    p->header = header;
+    memcpy(p->data, s, nbytes+1); /* including terminating '\0' */
+    if (rml_string_cache_index < RML_STRING_CACHE_MAX &&
+        nbytes < RML_SHARED_STRING_MAX) /* add to sharing only if less than RML_SHARED_STRING_MAX */
+      rml_string_cache[rml_string_cache_index++] = p;
+    return RML_TAGPTR(p);
+  }
+  /* else, try to find if we already have the same string in the heap */
+  {
+    unsigned int i;
+    struct rml_string *p;
+    for (i = 0; i < rml_string_cache_index; i++)
+    {
+      p = rml_string_cache[i];
+      if (strcmp(p->data,s) == 0)
+      {
+        rml_total_shared_strings++;
+        rml_total_shared_strings_words += nwords;
+        return RML_TAGPTR(p);
+      }
+    }
+    /* no string found in cache */
+    {
+      struct rml_string *p = alloc_words(nwords);
+      p->header = header;
+      memcpy(p->data, s, nbytes+1); /* including terminating '\0' */
+      if (rml_string_cache_index < RML_STRING_CACHE_MAX &&
+          nbytes < RML_SHARED_STRING_MAX) /* add to sharing only if less than RML_SHARED_STRING_MAX */
+        rml_string_cache[rml_string_cache_index++] = p;
+      return RML_TAGPTR(p);
+    }
+  }
 }
 
 void *mk_nil(void) {

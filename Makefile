@@ -6,6 +6,7 @@ SUBDIRS=compiler etc runtime # examples
 
 default:	config.cache
 	$(MAKE) MAKETARGET=default all-subdirs
+	cp -f runtime/plain/*.a /c/OMDev/tools/rml/lib/plain/.
 
 all-subdirs:
 	-for dir in $(SUBDIRS); do \

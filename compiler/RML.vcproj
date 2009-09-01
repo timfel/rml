@@ -1,38 +1,61 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.10"
+	Version="9,00"
 	Name="RML"
 	ProjectGUID="{2801B9A3-96DD-4EBB-BE88-2331B24C840A}"
-	Keyword="MakeFileProj">
+	Keyword="MakeFileProj"
+	TargetFrameworkVersion="131072"
+	>
 	<Platforms>
 		<Platform
-			Name="Win32"/>
+			Name="Win32"
+		/>
 	</Platforms>
+	<ToolFiles>
+	</ToolFiles>
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory="Debug"
 			IntermediateDirectory="Debug"
-			ConfigurationType="0">
+			ConfigurationType="0"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			>
 			<Tool
 				Name="VCNMakeTool"
 				BuildCommandLine="&quot;%SMLNETPATH%\bin\smlnet.bat&quot; /on:debug /target:exe /out:Debug\RML.exe @script /make"
 				ReBuildCommandLine="&quot;%SMLNETPATH%\bin\smlnet.bat&quot; /on:debug /target:exe /out:Debug\RML.exe @script /remake"
 				CleanCommandLine="&quot;%SMLNETPATH%\bin\clean.bat&quot;"
-				Output="Debug\RML.exe"/>
+				Output="Debug\RML.exe"
+				PreprocessorDefinitions=""
+				IncludeSearchPath=""
+				ForcedIncludes=""
+				AssemblySearchPath=""
+				ForcedUsingAssemblies=""
+				CompileAsManaged=""
+			/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="Release"
 			IntermediateDirectory="Release"
-			ConfigurationType="0">
+			ConfigurationType="0"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			>
 			<Tool
 				Name="VCNMakeTool"
 				BuildCommandLine="&quot;%SMLNETPATH%\bin\smlnet.bat&quot; /target:exe /out:Release\RML.exe @script /make"
 				ReBuildCommandLine="&quot;%SMLNETPATH%\bin\smlnet.bat&quot; /target:exe /out:Release\RML.exe @script /remake"
 				CleanCommandLine="&quot;%SMLNETPATH%\bin\clean.bat&quot;"
-				Output="Release\RML.exe"/>
+				Output="Release\RML.exe"
+				PreprocessorDefinitions=""
+				IncludeSearchPath=""
+				ForcedIncludes=""
+				AssemblySearchPath=""
+				ForcedUsingAssemblies=""
+				CompileAsManaged=""
+			/>
 		</Configuration>
 	</Configurations>
 	<References>
@@ -40,808 +63,1071 @@
 	<Files>
 		<Filter
 			Name="Source Files"
-			Filter="sml;fun;sig;smlnet">
+			Filter="sml;fun;sig;smlnet"
+			>
 			<File
-				RelativePath="AADictFn.sml">
+				RelativePath="AADictFn.sml"
+				>
 			</File>
 			<File
-				RelativePath="ABSYN.sig">
+				RelativePath="ABSYN.sig"
+				>
 			</File>
 			<File
-				RelativePath="Absyn.sml">
+				RelativePath="Absyn.sml"
+				>
 			</File>
 			<File
-				RelativePath="ABSYN_INSTRUMENTED.sig">
+				RelativePath="ABSYN_INSTRUMENTED.sig"
+				>
 			</File>
 			<File
-				RelativePath=".\ABSYN_PERSIST.sig">
+				RelativePath=".\ABSYN_PERSIST.sig"
+				>
 			</File>
 			<File
-				RelativePath="ABSYN_PRINT.sig">
+				RelativePath="ABSYN_PRINT.sig"
+				>
 			</File>
 			<File
-				RelativePath="AbsynFn.sml">
+				RelativePath="AbsynFn.sml"
+				>
 			</File>
 			<File
-				RelativePath=".\AbsynPersist.sml">
+				RelativePath=".\AbsynPersist.sml"
+				>
 			</File>
 			<File
-				RelativePath=".\AbsynPersistFn.sml">
+				RelativePath=".\AbsynPersistFn.sml"
+				>
 			</File>
 			<File
-				RelativePath="AbsynPrint.sml">
+				RelativePath="AbsynPrint.sml"
+				>
 			</File>
 			<File
-				RelativePath="AbsynPrintFn.sml">
+				RelativePath="AbsynPrintFn.sml"
+				>
 			</File>
 			<File
-				RelativePath="ABSYNTOFOL.sig">
+				RelativePath="ABSYNTOFOL.sig"
+				>
 			</File>
 			<File
-				RelativePath="AbsynToFOL.sml">
+				RelativePath="AbsynToFOL.sml"
+				>
 			</File>
 			<File
-				RelativePath="AbsynToFOLFn.sml">
+				RelativePath="AbsynToFOLFn.sml"
+				>
 			</File>
 			<File
-				RelativePath=".\CACHE.sig">
+				RelativePath=".\CACHE.sig"
+				>
 			</File>
 			<File
-				RelativePath=".\Cache.sml">
+				RelativePath=".\Cache.sml"
+				>
 			</File>
 			<File
-				RelativePath=".\CacheFn.sml">
+				RelativePath=".\CacheFn.sml"
+				>
 			</File>
 			<File
-				RelativePath="CODE.sig">
+				RelativePath="CODE.sig"
+				>
 			</File>
 			<File
-				RelativePath="CODE_FVARS.sig">
+				RelativePath="CODE_FVARS.sig"
+				>
 			</File>
 			<File
-				RelativePath="CODE_OPTIM.sig">
+				RelativePath="CODE_OPTIM.sig"
+				>
 			</File>
 			<File
-				RelativePath="CodeFVarsFn.sml">
+				RelativePath="CodeFVarsFn.sml"
+				>
 			</File>
 			<File
-				RelativePath="CodeOptimFn.sml">
+				RelativePath="CodeOptimFn.sml"
+				>
 			</File>
 			<File
-				RelativePath="CODETOC.sig">
+				RelativePath="CODETOC.sig"
+				>
 			</File>
 			<File
-				RelativePath="CodeToCFn.sml">
+				RelativePath="CodeToCFn.sml"
+				>
 			</File>
 			<File
-				RelativePath="CONREP.sig">
+				RelativePath="CONREP.sig"
+				>
 			</File>
 			<File
-				RelativePath="Conrep.sml">
+				RelativePath="Conrep.sml"
+				>
 			</File>
 			<File
-				RelativePath="CONTROL.sig">
+				RelativePath="CONTROL.sig"
+				>
 			</File>
 			<File
-				RelativePath="Control.sml">
+				RelativePath="Control.sml"
+				>
 			</File>
 			<File
-				RelativePath="CPS.sig">
+				RelativePath="CPS.sig"
+				>
 			</File>
 			<File
-				RelativePath="CPS.sml">
+				RelativePath="CPS.sml"
+				>
 			</File>
 			<File
-				RelativePath="CPS_FVARS.sig">
+				RelativePath="CPS_FVARS.sig"
+				>
 			</File>
 			<File
-				RelativePath="CPS_OPTIM.sig">
+				RelativePath="CPS_OPTIM.sig"
+				>
 			</File>
 			<File
-				RelativePath="CPS_PRINT.sig">
+				RelativePath="CPS_PRINT.sig"
+				>
 			</File>
 			<File
-				RelativePath="CPS_USAGES.sig">
+				RelativePath="CPS_USAGES.sig"
+				>
 			</File>
 			<File
-				RelativePath="CPS_USEFUL.sig">
+				RelativePath="CPS_USEFUL.sig"
+				>
 			</File>
 			<File
-				RelativePath="CPSFn.sml">
+				RelativePath="CPSFn.sml"
+				>
 			</File>
 			<File
-				RelativePath="CPSFVars.sml">
+				RelativePath="CPSFVars.sml"
+				>
 			</File>
 			<File
-				RelativePath="CPSFVarsFn.sml">
+				RelativePath="CPSFVarsFn.sml"
+				>
 			</File>
 			<File
-				RelativePath="CPSOptim.sml">
+				RelativePath="CPSOptim.sml"
+				>
 			</File>
 			<File
-				RelativePath="CPSOptimFn.sml">
+				RelativePath="CPSOptimFn.sml"
+				>
 			</File>
 			<File
-				RelativePath="CPSPrint.sml">
+				RelativePath="CPSPrint.sml"
+				>
 			</File>
 			<File
-				RelativePath="CPSPrintFn.sml">
+				RelativePath="CPSPrintFn.sml"
+				>
 			</File>
 			<File
-				RelativePath="CPSTOCODE.sig">
+				RelativePath="CPSTOCODE.sig"
+				>
 			</File>
 			<File
-				RelativePath="CPSToCodeFn.sml">
+				RelativePath="CPSToCodeFn.sml"
+				>
 			</File>
 			<File
-				RelativePath="CPSToPlain.sml">
+				RelativePath="CPSToPlain.sml"
+				>
 			</File>
 			<File
-				RelativePath="CPSTOSML.sig">
+				RelativePath="CPSTOSML.sig"
+				>
 			</File>
 			<File
-				RelativePath="CPSToSML.sml">
+				RelativePath="CPSToSML.sml"
+				>
 			</File>
 			<File
-				RelativePath="CPSToSMLFn.sml">
+				RelativePath="CPSToSMLFn.sml"
+				>
 			</File>
 			<File
-				RelativePath="CPSToSwitch.sml">
+				RelativePath="CPSToSwitch.sml"
+				>
 			</File>
 			<File
-				RelativePath="CPSUsages.sml">
+				RelativePath="CPSUsages.sml"
+				>
 			</File>
 			<File
-				RelativePath="CPSUsagesFn.sml">
+				RelativePath="CPSUsagesFn.sml"
+				>
 			</File>
 			<File
-				RelativePath="CPSUseful.sml">
+				RelativePath="CPSUseful.sml"
+				>
 			</File>
 			<File
-				RelativePath="CPSUsefulFn.sml">
+				RelativePath="CPSUsefulFn.sml"
+				>
 			</File>
 			<File
-				RelativePath="DiffToC.sml">
+				RelativePath="DiffToC.sml"
+				>
 			</File>
 			<File
-				RelativePath="DiffToCFn.sml">
+				RelativePath="DiffToCFn.sml"
+				>
 			</File>
 			<File
-				RelativePath="FOL.sig">
+				RelativePath="FOL.sig"
+				>
 			</File>
 			<File
-				RelativePath="FOL.sml">
+				RelativePath="FOL.sml"
+				>
 			</File>
 			<File
-				RelativePath="FOL_OPTIM.sig">
+				RelativePath="FOL_OPTIM.sig"
+				>
 			</File>
 			<File
-				RelativePath="FOL_PRINT.sig">
+				RelativePath="FOL_PRINT.sig"
+				>
 			</File>
 			<File
-				RelativePath="FOL_UNIFY.sig">
+				RelativePath="FOL_UNIFY.sig"
+				>
 			</File>
 			<File
-				RelativePath="FOL_USAGES.sig">
+				RelativePath="FOL_USAGES.sig"
+				>
 			</File>
 			<File
-				RelativePath="FOLFn.sml">
+				RelativePath="FOLFn.sml"
+				>
 			</File>
 			<File
-				RelativePath="FOLOptim.sml">
+				RelativePath="FOLOptim.sml"
+				>
 			</File>
 			<File
-				RelativePath="FOLOptimFn.sml">
+				RelativePath="FOLOptimFn.sml"
+				>
 			</File>
 			<File
-				RelativePath="FOLPrint.sml">
+				RelativePath="FOLPrint.sml"
+				>
 			</File>
 			<File
-				RelativePath="FOLPrintFn.sml">
+				RelativePath="FOLPrintFn.sml"
+				>
 			</File>
 			<File
-				RelativePath="FOLTOCPS.sig">
+				RelativePath="FOLTOCPS.sig"
+				>
 			</File>
 			<File
-				RelativePath="FOLToCPS.sml">
+				RelativePath="FOLToCPS.sml"
+				>
 			</File>
 			<File
-				RelativePath="FOLToCPSFn.sml">
+				RelativePath="FOLToCPSFn.sml"
+				>
 			</File>
 			<File
-				RelativePath="FOLUnify.sml">
+				RelativePath="FOLUnify.sml"
+				>
 			</File>
 			<File
-				RelativePath="FOLUnifyFn.sml">
+				RelativePath="FOLUnifyFn.sml"
+				>
 			</File>
 			<File
-				RelativePath="FOLUsages.sml">
+				RelativePath="FOLUsages.sml"
+				>
 			</File>
 			<File
-				RelativePath="FOLUsagesFn.sml">
+				RelativePath="FOLUsagesFn.sml"
+				>
 			</File>
 			<File
-				RelativePath=".\FRONTEND.sig">
+				RelativePath=".\FRONTEND.sig"
+				>
 			</File>
 			<File
-				RelativePath=".\FrontEnd.sml">
+				RelativePath=".\FrontEnd.sml"
+				>
 			</File>
 			<File
-				RelativePath=".\FrontEndFn.sml">
+				RelativePath=".\FrontEndFn.sml"
+				>
 			</File>
 			<File
-				RelativePath="Instrument.sml">
+				RelativePath="Instrument.sml"
+				>
 			</File>
 			<File
-				RelativePath="InstrumentFn.sml">
+				RelativePath="InstrumentFn.sml"
+				>
 			</File>
 			<File
-				RelativePath="IntDict.sml">
+				RelativePath="IntDict.sml"
+				>
 			</File>
 			<File
-				RelativePath="INTERP.sig">
+				RelativePath="INTERP.sig"
+				>
 			</File>
 			<File
-				RelativePath="Interp.sml">
+				RelativePath="Interp.sml"
+				>
 			</File>
 			<File
-				RelativePath="INTERP_CORE.sig">
+				RelativePath="INTERP_CORE.sig"
+				>
 			</File>
 			<File
-				RelativePath="InterpCore.sml">
+				RelativePath="InterpCore.sml"
+				>
 			</File>
 			<File
-				RelativePath="InterpCoreFn.sml">
+				RelativePath="InterpCoreFn.sml"
+				>
 			</File>
 			<File
-				RelativePath="InterpFn.sml">
+				RelativePath="InterpFn.sml"
+				>
 			</File>
 			<File
-				RelativePath="IntKey.sml">
+				RelativePath="IntKey.sml"
+				>
 			</File>
 			<File
-				RelativePath="LEXARG.sig">
+				RelativePath="LEXARG.sig"
+				>
 			</File>
 			<File
-				RelativePath="LexArg.sml">
+				RelativePath="LexArg.sml"
+				>
 			</File>
 			<File
-				RelativePath=".\LEXARG_SIMPLE.sig">
+				RelativePath=".\LEXARG_SIMPLE.sig"
+				>
 			</File>
 			<File
-				RelativePath="LexArgFn.sml">
+				RelativePath="LexArgFn.sml"
+				>
 			</File>
 			<File
-				RelativePath=".\LexArgSimple.sml">
+				RelativePath=".\LexArgSimple.sml"
+				>
 			</File>
 			<File
-				RelativePath=".\LexArgSimpleFn.sml">
+				RelativePath=".\LexArgSimpleFn.sml"
+				>
 			</File>
 			<File
-				RelativePath="LEXUTIL.sig">
+				RelativePath="LEXUTIL.sig"
+				>
 			</File>
 			<File
-				RelativePath="LexUtil.sml">
+				RelativePath="LexUtil.sml"
+				>
 			</File>
 			<File
-				RelativePath="MAIN.sig">
+				RelativePath="MAIN.sig"
+				>
 			</File>
 			<File
-				RelativePath="Main.sml">
+				RelativePath="Main.sml"
+				>
 			</File>
 			<File
-				RelativePath="MainFn.sml">
+				RelativePath="MainFn.sml"
+				>
 			</File>
 			<File
-				RelativePath="MAKESTRING.sig">
+				RelativePath="MAKESTRING.sig"
+				>
 			</File>
 			<File
-				RelativePath="MakeString.sml">
+				RelativePath="MakeString.sml"
+				>
 			</File>
 			<File
-				RelativePath="MANGLE.sig">
+				RelativePath="MANGLE.sig"
+				>
 			</File>
 			<File
-				RelativePath="Mangle.sml">
+				RelativePath="Mangle.sml"
+				>
 			</File>
 			<File
-				RelativePath="MangleFn.sml">
+				RelativePath="MangleFn.sml"
+				>
 			</File>
 			<File
-				RelativePath="MaskToC.sml">
+				RelativePath="MaskToC.sml"
+				>
 			</File>
 			<File
-				RelativePath="MaskToCFn.sml">
+				RelativePath="MaskToCFn.sml"
+				>
 			</File>
 			<File
-				RelativePath=".\mod.grm">
+				RelativePath=".\mod.grm"
+				>
 			</File>
 			<File
-				RelativePath=".\mod.grm.desc">
+				RelativePath=".\mod.grm.desc"
+				>
 			</File>
 			<File
-				RelativePath=".\mod.grm.sig">
+				RelativePath=".\mod.grm.sig"
+				>
 			</File>
 			<File
-				RelativePath=".\mod.grm.sml">
+				RelativePath=".\mod.grm.sml"
+				>
 			</File>
 			<File
-				RelativePath=".\mod.lex">
+				RelativePath=".\mod.lex"
+				>
 			</File>
 			<File
-				RelativePath=".\mod.lex.sml">
+				RelativePath=".\mod.lex.sml"
+				>
 			</File>
 			<File
-				RelativePath=".\MOD_PARSE.sig">
+				RelativePath=".\MOD_PARSE.sig"
+				>
 			</File>
 			<File
-				RelativePath=".\MODLex.sml">
+				RelativePath=".\MODLex.sml"
+				>
 			</File>
 			<File
-				RelativePath=".\MODLrVals.sml">
+				RelativePath=".\MODLrVals.sml"
+				>
 			</File>
 			<File
-				RelativePath=".\MODParse.sml">
+				RelativePath=".\MODParse.sml"
+				>
 			</File>
 			<File
-				RelativePath=".\MODParseFn.sml">
+				RelativePath=".\MODParseFn.sml"
+				>
 			</File>
 			<File
-				RelativePath=".\MODParser.sml">
+				RelativePath=".\MODParser.sml"
+				>
 			</File>
 			<File
-				RelativePath=".\MOTORML.sig">
+				RelativePath=".\MOTORML.sig"
+				>
 			</File>
 			<File
-				RelativePath=".\MOToRML.sml">
+				RelativePath=".\MOToRML.sml"
+				>
 			</File>
 			<File
-				RelativePath=".\MOToRMLFn.sml">
+				RelativePath=".\MOToRMLFn.sml"
+				>
 			</File>
 			<File
-				RelativePath="ORD_DICT.sig">
+				RelativePath="ORD_DICT.sig"
+				>
 			</File>
 			<File
-				RelativePath="ORD_KEY.sig">
+				RelativePath="ORD_KEY.sig"
+				>
 			</File>
 			<File
-				RelativePath=".\persistent.grm">
+				RelativePath=".\persistent.grm"
+				>
 			</File>
 			<File
-				RelativePath=".\persistent.grm.desc">
+				RelativePath=".\persistent.grm.desc"
+				>
 			</File>
 			<File
-				RelativePath=".\persistent.grm.sig">
+				RelativePath=".\persistent.grm.sig"
+				>
 			</File>
 			<File
-				RelativePath=".\persistent.grm.sml">
+				RelativePath=".\persistent.grm.sml"
+				>
 			</File>
 			<File
-				RelativePath=".\persistent.lex">
+				RelativePath=".\persistent.lex"
+				>
 			</File>
 			<File
-				RelativePath=".\persistent.lex.sml">
+				RelativePath=".\persistent.lex.sml"
+				>
 			</File>
 			<File
-				RelativePath=".\PERSISTENT_PARSE.sig">
+				RelativePath=".\PERSISTENT_PARSE.sig"
+				>
 			</File>
 			<File
-				RelativePath=".\PERSISTENTLex.sml">
+				RelativePath=".\PERSISTENTLex.sml"
+				>
 			</File>
 			<File
-				RelativePath=".\PERSISTENTLrVals.sml">
+				RelativePath=".\PERSISTENTLrVals.sml"
+				>
 			</File>
 			<File
-				RelativePath=".\PERSISTENTParse.sml">
+				RelativePath=".\PERSISTENTParse.sml"
+				>
 			</File>
 			<File
-				RelativePath=".\PERSISTENTParseFn.sml">
+				RelativePath=".\PERSISTENTParseFn.sml"
+				>
 			</File>
 			<File
-				RelativePath=".\PERSISTENTParser.sml">
+				RelativePath=".\PERSISTENTParser.sml"
+				>
 			</File>
 			<File
-				RelativePath="PLAIN.sig">
+				RelativePath="PLAIN.sig"
+				>
 			</File>
 			<File
-				RelativePath="Plain.sml">
+				RelativePath="Plain.sml"
+				>
 			</File>
 			<File
-				RelativePath="PlainCodeToC.sml">
+				RelativePath="PlainCodeToC.sml"
+				>
 			</File>
 			<File
-				RelativePath="PlainFn.sml">
+				RelativePath="PlainFn.sml"
+				>
 			</File>
 			<File
-				RelativePath="PlainFVars.sml">
+				RelativePath="PlainFVars.sml"
+				>
 			</File>
 			<File
-				RelativePath="PlainOptim.sml">
+				RelativePath="PlainOptim.sml"
+				>
 			</File>
 			<File
-				RelativePath="PLAINTOC.sig">
+				RelativePath="PLAINTOC.sig"
+				>
 			</File>
 			<File
-				RelativePath="PlainToCFn.sml">
+				RelativePath="PlainToCFn.sml"
+				>
 			</File>
 			<File
-				RelativePath="PMC.sig">
+				RelativePath="PMC.sig"
+				>
 			</File>
 			<File
-				RelativePath="PMC.sml">
+				RelativePath="PMC.sml"
+				>
 			</File>
 			<File
-				RelativePath="PMCFn.sml">
+				RelativePath="PMCFn.sml"
+				>
 			</File>
 			<File
-				RelativePath="PP.sig">
+				RelativePath="PP.sig"
+				>
 			</File>
 			<File
-				RelativePath="PP.sml">
+				RelativePath="PP.sml"
+				>
 			</File>
 			<File
-				RelativePath="REORDER.sig">
+				RelativePath="REORDER.sig"
+				>
 			</File>
 			<File
-				RelativePath="Reorder.sml">
+				RelativePath="Reorder.sml"
+				>
 			</File>
 			<File
-				RelativePath="REORDER_SCC.sig">
+				RelativePath="REORDER_SCC.sig"
+				>
 			</File>
 			<File
-				RelativePath="REORDER_TY.sig">
+				RelativePath="REORDER_TY.sig"
+				>
 			</File>
 			<File
-				RelativePath="REORDER_VAL.sig">
+				RelativePath="REORDER_VAL.sig"
+				>
 			</File>
 			<File
-				RelativePath="ReorderFn.sml">
+				RelativePath="ReorderFn.sml"
+				>
 			</File>
 			<File
-				RelativePath=".\ReorderSCC.sml">
+				RelativePath=".\ReorderSCC.sml"
+				>
 			</File>
 			<File
-				RelativePath="ReorderTy.sml">
+				RelativePath="ReorderTy.sml"
+				>
 			</File>
 			<File
-				RelativePath=".\ReorderTyFn.sml">
+				RelativePath=".\ReorderTyFn.sml"
+				>
 			</File>
 			<File
-				RelativePath="ReorderVal.sml">
+				RelativePath="ReorderVal.sml"
+				>
 			</File>
 			<File
-				RelativePath=".\ReorderValFn.sml">
+				RelativePath=".\ReorderValFn.sml"
+				>
 			</File>
 			<File
-				RelativePath="rml.grm">
+				RelativePath="rml.grm"
+				>
 			</File>
 			<File
-				RelativePath=".\rml.grm.desc">
+				RelativePath=".\rml.grm.desc"
+				>
 			</File>
 			<File
-				RelativePath="rml.grm.sig">
+				RelativePath="rml.grm.sig"
+				>
 			</File>
 			<File
-				RelativePath="rml.grm.sml">
+				RelativePath="rml.grm.sml"
+				>
 			</File>
 			<File
-				RelativePath="rml.lex">
+				RelativePath="rml.lex"
+				>
 			</File>
 			<File
-				RelativePath="rml.lex.sml">
+				RelativePath="rml.lex.sml"
+				>
 			</File>
 			<File
-				RelativePath="RML.sml">
+				RelativePath="RML.sml"
+				>
 			</File>
 			<File
-				RelativePath=".\RML_PARSE.sig">
+				RelativePath=".\RML_PARSE.sig"
+				>
 			</File>
 			<File
-				RelativePath=".\RMLLex.sml">
+				RelativePath=".\RMLLex.sml"
+				>
 			</File>
 			<File
-				RelativePath="RMLLrVals.sml">
+				RelativePath="RMLLrVals.sml"
+				>
 			</File>
 			<File
-				RelativePath=".\RMLParse.sml">
+				RelativePath=".\RMLParse.sml"
+				>
 			</File>
 			<File
-				RelativePath=".\RMLParseFn.sml">
+				RelativePath=".\RMLParseFn.sml"
+				>
 			</File>
 			<File
-				RelativePath="RMLParser.sml">
+				RelativePath="RMLParser.sml"
+				>
 			</File>
 			<File
-				RelativePath="script.smlnet">
+				RelativePath="script.smlnet"
+				>
 			</File>
 			<File
-				RelativePath="SOURCE.sig">
+				RelativePath="SOURCE.sig"
+				>
 			</File>
 			<File
-				RelativePath="Source.sml">
+				RelativePath="Source.sml"
+				>
 			</File>
 			<File
-				RelativePath="sources.cm">
+				RelativePath="sources.cm"
+				>
 			</File>
 			<File
-				RelativePath="START.sig">
+				RelativePath="START.sig"
+				>
 			</File>
 			<File
-				RelativePath="Start.sml">
+				RelativePath="Start.sml"
+				>
 			</File>
 			<File
-				RelativePath="StartFn.sml">
+				RelativePath="StartFn.sml"
+				>
 			</File>
 			<File
-				RelativePath="STAT_ELAB.sig">
+				RelativePath="STAT_ELAB.sig"
+				>
 			</File>
 			<File
-				RelativePath="STAT_OBJ.sig">
+				RelativePath="STAT_OBJ.sig"
+				>
 			</File>
 			<File
-				RelativePath="StatElab.sml">
+				RelativePath="StatElab.sml"
+				>
 			</File>
 			<File
-				RelativePath="StatElabFn.sml">
+				RelativePath="StatElabFn.sml"
+				>
 			</File>
 			<File
-				RelativePath="StatObj.sml">
+				RelativePath="StatObj.sml"
+				>
 			</File>
 			<File
-				RelativePath="StatObjFn.sml">
+				RelativePath="StatObjFn.sml"
+				>
 			</File>
 			<File
-				RelativePath="STR_DICT.sig">
+				RelativePath="STR_DICT.sig"
+				>
 			</File>
 			<File
-				RelativePath="StrDict.sml">
+				RelativePath="StrDict.sml"
+				>
 			</File>
 			<File
-				RelativePath="StrKey.sml">
+				RelativePath="StrKey.sml"
+				>
 			</File>
 			<File
-				RelativePath="SWITCH.sig">
+				RelativePath="SWITCH.sig"
+				>
 			</File>
 			<File
-				RelativePath="Switch.sml">
+				RelativePath="Switch.sml"
+				>
 			</File>
 			<File
-				RelativePath="SWITCH_INTRAS.sig">
+				RelativePath="SWITCH_INTRAS.sig"
+				>
 			</File>
 			<File
-				RelativePath="SwitchCodeToC.sml">
+				RelativePath="SwitchCodeToC.sml"
+				>
 			</File>
 			<File
-				RelativePath="SwitchFn.sml">
+				RelativePath="SwitchFn.sml"
+				>
 			</File>
 			<File
-				RelativePath="SwitchFVars.sml">
+				RelativePath="SwitchFVars.sml"
+				>
 			</File>
 			<File
-				RelativePath="SwitchIntras.sml">
+				RelativePath="SwitchIntras.sml"
+				>
 			</File>
 			<File
-				RelativePath="SwitchIntrasFn.sml">
+				RelativePath="SwitchIntrasFn.sml"
+				>
 			</File>
 			<File
-				RelativePath="SwitchOptim.sml">
+				RelativePath="SwitchOptim.sml"
+				>
 			</File>
 			<File
-				RelativePath="SWITCHTOC.sig">
+				RelativePath="SWITCHTOC.sig"
+				>
 			</File>
 			<File
-				RelativePath="SYSDEP.sig">
+				RelativePath="SYSDEP.sig"
+				>
 			</File>
 			<File
-				RelativePath="SysDep.sml">
+				RelativePath="SysDep.sml"
+				>
 			</File>
 			<File
-				RelativePath="TRANSENV.sig">
+				RelativePath="TRANSENV.sig"
+				>
 			</File>
 			<File
-				RelativePath="TransEnv.sml">
+				RelativePath="TransEnv.sml"
+				>
 			</File>
 			<File
-				RelativePath="TransEnvFn.sml">
+				RelativePath="TransEnvFn.sml"
+				>
 			</File>
 			<File
-				RelativePath="TY.sig">
+				RelativePath="TY.sig"
+				>
 			</File>
 			<File
-				RelativePath="Ty.sml">
+				RelativePath="Ty.sml"
+				>
 			</File>
 			<File
-				RelativePath="TY_COMB.sig">
+				RelativePath="TY_COMB.sig"
+				>
 			</File>
 			<File
-				RelativePath="TY_FCN.sig">
+				RelativePath="TY_FCN.sig"
+				>
 			</File>
 			<File
-				RelativePath="TY_SCHEME.sig">
+				RelativePath="TY_SCHEME.sig"
+				>
 			</File>
 			<File
-				RelativePath="TyComb.sml">
+				RelativePath="TyComb.sml"
+				>
 			</File>
 			<File
-				RelativePath="TyCombFn.sml">
+				RelativePath="TyCombFn.sml"
+				>
 			</File>
 			<File
-				RelativePath="TyFcn.sml">
+				RelativePath="TyFcn.sml"
+				>
 			</File>
 			<File
-				RelativePath="TyFcnFn.sml">
+				RelativePath="TyFcnFn.sml"
+				>
 			</File>
 			<File
-				RelativePath="TyScheme.sml">
+				RelativePath="TyScheme.sml"
+				>
 			</File>
 			<File
-				RelativePath="TySchemeFn.sml">
+				RelativePath="TySchemeFn.sml"
+				>
 			</File>
 			<File
-				RelativePath="UTIL.sig">
+				RelativePath="UTIL.sig"
+				>
 			</File>
 			<File
-				RelativePath="Util.sml">
+				RelativePath="Util.sml"
+				>
 			</File>
 			<File
-				RelativePath="VERSION.sig">
+				RelativePath="VERSION.sig"
+				>
 			</File>
 			<File
-				RelativePath="Version.sml">
+				RelativePath="Version.sml"
+				>
 			</File>
 			<File
-				RelativePath="VersionFn.sml">
+				RelativePath="VersionFn.sml"
+				>
 			</File>
 		</Filter>
 		<Filter
 			Name="library"
-			Filter="">
+			>
 			<File
-				RelativePath=".\library\sources.cm">
+				RelativePath=".\library\sources.cm"
+				>
 			</File>
 			<Filter
 				Name="common"
-				Filter="">
+				>
 				<File
-					RelativePath=".\library\common\ARRAY_SOURCE_MAP.sig">
+					RelativePath=".\library\common\ARRAY_SOURCE_MAP.sig"
+					>
 				</File>
 				<File
-					RelativePath=".\library\common\ArraySourceMap.sml">
+					RelativePath=".\library\common\ArraySourceMap.sml"
+					>
 				</File>
 				<File
-					RelativePath=".\library\common\DARRAY.sig">
+					RelativePath=".\library\common\DARRAY.sig"
+					>
 				</File>
 				<File
-					RelativePath=".\library\common\DynIntArray.sml">
+					RelativePath=".\library\common\DynIntArray.sml"
+					>
 				</File>
 				<File
-					RelativePath=".\library\common\IntMap.sml">
+					RelativePath=".\library\common\IntMap.sml"
+					>
 				</File>
 				<File
-					RelativePath=".\library\common\IntSet.sml">
+					RelativePath=".\library\common\IntSet.sml"
+					>
 				</File>
 				<File
-					RelativePath=".\library\common\sources.cm">
+					RelativePath=".\library\common\sources.cm"
+					>
 				</File>
 			</Filter>
 			<Filter
 				Name="pickle"
-				Filter="">
+				>
 				<File
-					RelativePath=".\library\pickle\BasePickleFun.sml">
+					RelativePath=".\library\pickle\BasePickleFun.sml"
+					>
 				</File>
 				<File
-					RelativePath=".\library\pickle\BASEPICKLESIG.sig">
+					RelativePath=".\library\pickle\BASEPICKLESIG.sig"
+					>
 				</File>
 				<File
-					RelativePath=".\library\pickle\BitPickle.sml">
+					RelativePath=".\library\pickle\BitPickle.sml"
+					>
 				</File>
 				<File
-					RelativePath=".\library\pickle\BytePickle.sml">
+					RelativePath=".\library\pickle\BytePickle.sml"
+					>
 				</File>
 				<File
-					RelativePath=".\library\pickle\CODEC.sig">
+					RelativePath=".\library\pickle\CODEC.sig"
+					>
 				</File>
 				<File
-					RelativePath=".\library\pickle\Pickle.sml">
+					RelativePath=".\library\pickle\Pickle.sml"
+					>
 				</File>
 				<File
-					RelativePath=".\library\pickle\PickleFun.sml">
+					RelativePath=".\library\pickle\PickleFun.sml"
+					>
 				</File>
 				<File
-					RelativePath=".\library\pickle\PICKLESIG.sig">
+					RelativePath=".\library\pickle\PICKLESIG.sig"
+					>
 				</File>
 				<File
-					RelativePath=".\library\pickle\sources.cm">
+					RelativePath=".\library\pickle\sources.cm"
+					>
 				</File>
 			</Filter>
 		</Filter>
 		<Filter
 			Name="Additional Files"
-			Filter="">
+			>
 			<File
-				RelativePath=".\files\c.grm">
+				RelativePath=".\files\c.grm"
+				>
 			</File>
 			<File
-				RelativePath=".\files\c.lex">
+				RelativePath=".\files\c.lex"
+				>
 			</File>
 			<File
-				RelativePath=".\files\calc.grm">
+				RelativePath=".\files\calc.grm"
+				>
 			</File>
 			<File
-				RelativePath=".\files\calc.lex">
+				RelativePath=".\files\calc.lex"
+				>
 			</File>
 			<File
-				RelativePath=".\call-main.sml">
+				RelativePath=".\call-main.sml"
+				>
 			</File>
 			<File
-				RelativePath=".\files\compile-warnings.txt">
+				RelativePath=".\files\compile-warnings.txt"
+				>
 			</File>
 			<File
-				RelativePath=".\files\grammar-modelica-2.1.txt">
+				RelativePath=".\files\grammar-modelica-2.1.txt"
+				>
 			</File>
 			<File
-				RelativePath=".\files\improve.txt">
+				RelativePath=".\files\improve.txt"
+				>
 			</File>
 			<File
-				RelativePath=".\files\InstrumentFn-saved-2004-11-23.sml">
+				RelativePath=".\files\InstrumentFn-saved-2004-11-23.sml"
+				>
 			</File>
 			<File
-				RelativePath=".\MainMLton.sml">
+				RelativePath=".\MainMLton.sml"
+				>
 			</File>
 			<File
-				RelativePath=".\make-mlton.sml">
+				RelativePath=".\make-mlton.sml"
+				>
 			</File>
 			<File
-				RelativePath=".\files\profile-2006-02-12.txt">
+				RelativePath=".\files\profile-2006-02-12.txt"
+				>
 			</File>
 			<File
-				RelativePath=".\files\profile-rml.txt">
+				RelativePath=".\files\profile-rml.txt"
+				>
 			</File>
 			<File
-				RelativePath=".\files\profile-smlnj-rml.txt">
+				RelativePath=".\files\profile-smlnj-rml.txt"
+				>
 			</File>
 			<File
-				RelativePath=".\files\ReorderParse.sml">
+				RelativePath=".\files\ReorderParse.sml"
+				>
 			</File>
 			<File
-				RelativePath=".\files\ReorderParseFn.sml">
+				RelativePath=".\files\ReorderParseFn.sml"
+				>
 			</File>
 			<File
-				RelativePath=".\files\ReorderValFn_old.sml">
+				RelativePath=".\files\ReorderValFn_old.sml"
+				>
 			</File>
 			<File
-				RelativePath=".\files\rml-2004-09-17.grm">
+				RelativePath=".\files\rml-2004-09-17.grm"
+				>
 			</File>
 			<File
-				RelativePath=".\files\rml-2004-09-17.grm.sig">
+				RelativePath=".\files\rml-2004-09-17.grm.sig"
+				>
 			</File>
 			<File
-				RelativePath=".\files\rml-2004-09-17.grm.sml">
+				RelativePath=".\files\rml-2004-09-17.grm.sml"
+				>
 			</File>
 			<File
-				RelativePath=".\files\rml-operators-addition.txt">
+				RelativePath=".\files\rml-operators-addition.txt"
+				>
 			</File>
 			<File
-				RelativePath=".\RML.mlb">
+				RelativePath=".\RML.mlb"
+				>
 			</File>
 			<File
-				RelativePath=".\files\rmlplan.txt">
+				RelativePath=".\files\rmlplan.txt"
+				>
 			</File>
 			<File
-				RelativePath=".\files\Saved-Instrument-Source.txt">
+				RelativePath=".\files\Saved-Instrument-Source.txt"
+				>
 			</File>
 			<File
-				RelativePath=".\files\saved.c">
+				RelativePath=".\files\saved.c"
+				>
 			</File>
 			<File
-				RelativePath=".\sources.mlb">
+				RelativePath=".\sources.mlb"
+				>
 			</File>
 			<File
-				RelativePath=".\files\StatElabFn-2005-11-06-saved-code.sml">
+				RelativePath=".\files\StatElabFn-2005-11-06-saved-code.sml"
+				>
 			</File>
 			<File
-				RelativePath=".\files\warnings-compile.txt">
+				RelativePath=".\files\warnings-compile.txt"
+				>
 			</File>
 		</Filter>
 	</Files>

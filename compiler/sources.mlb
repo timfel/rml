@@ -1372,7 +1372,8 @@ local
       signature CPS_USAGES = gs_147
       structure List = gs_14
       structure TextIO = gs_5
-      signature UTIL = gs_3
+      structure Int = gs_15
+      signature UTIL = gs_3      
       CPSOptimFn.sml
    in
       functor gs_169 = CPSOptimFn
@@ -1382,6 +1383,7 @@ local
       functor CPSOptimFn = gs_169
       structure CPSPrint = gs_168
       structure CPSUsages = gs_149
+      structure Int = gs_15
       structure Util = gs_12
       CPSOptim.sml
    in
@@ -2063,6 +2065,8 @@ local
       structure TextIO = gs_5
       structure Time = gs_79
       signature UTIL = gs_3
+      structure OS = gs_16
+      structure Control = gs_128
       MODParseFn.sml
    in
       functor gs_232 = MODParseFn
