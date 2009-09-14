@@ -121,7 +121,7 @@ functor StatElabFn(structure Util : UTIL
 	   sayErr "\nreason: "; sayErr why)
       | sayTyErrExplain(Ty.TY_DIFFER(ty1, ty2, why)) =
 	  (sayErr "type "; Ty.printType ty1;
-	   sayErr " differs from type "; Ty.printType' ty2;
+	   sayErr " differs from:\ntype "; Ty.printType' ty2;
 	   sayErr "\nreason: different "; sayErr why)
 
     (* adrpo added 2004-11-29 ctxInfo, for better type error locations *)
