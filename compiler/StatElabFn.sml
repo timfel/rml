@@ -1386,7 +1386,7 @@ functor StatElabFn(structure Util : UTIL
 									"the declared variable type does not match the use context: ", 
 									Absyn.identName var,
 									Absyn.identCtxInfo var );
-								sayErr("It's declared "); 
+								sayErr("It's declared type:\n"); 
 								sayTyErrExplain(explain); sayErr("\n")
 							)
 						|	StaticElaborationError => () (* already explained *)
