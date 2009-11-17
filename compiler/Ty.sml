@@ -336,7 +336,7 @@ structure Ty : TY =
 	  end
 	  | unify2(ty1 as NAMED(id1, t1), ty2 as NAMED(id2, t2)) = 
 		(
-		 unify2(t1, t2)
+		 unify(t1, t2)
 		 (* 
 		 if id1 = id2 then () else tyErrDiffer(ty1, ty2, "named arguments");
 		 *)
