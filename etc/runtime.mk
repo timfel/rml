@@ -1,5 +1,5 @@
 # Generic runtime makefile
-# Parameters:	GOROOT CSRC XCSRC RMLHSRC YSIZEDEP xtra-install
+# Parameters:	GOROOT CSRC XCSRC RMLHSRC YSIZEDEP xtra-install DESTDIR
 SHELL=/bin/sh
 COMPILE.c=$(CC) $(CFLAGS) $(CPPFLAGS) -c -I.
 ARFLAGS=ruv
@@ -25,18 +25,18 @@ default:	rml.h librml.a $(DEBUGLIB) $(PROFLIB)
 install:	normal-install xtra-install
 
 normal-install:	rml.h librml.a $(DEBUGLIB) $(PROFLIB)
-	$(GOROOT)/etc/mkdirhier $(PREFIX)/include/$(RMLCRUNTIME)
-	$(GOROOT)/etc/mkdirhier $(PREFIX)/lib/$(RMLCRUNTIME)
-	cp rml.h $(PREFIX)/include/$(RMLCRUNTIME)/rml.h
-	cp librml.a $(PREFIX)/lib/$(RMLCRUNTIME)/librml.a
-	$(RANLIB) $(PREFIX)/lib/$(RMLCRUNTIME)/librml.a
+	$(GOROOT)/etc/mkdirhier $(DESTDIR)$(PREFIX)/include/$(RMLCRUNTIME)
+	$(GOROOT)/etc/mkdirhier $(DESTDIR)$(PREFIX)/lib/$(RMLCRUNTIME)
+	cp rml.h $(DESTDIR)$(PREFIX)/include/$(RMLCRUNTIME)/rml.h
+	cp librml.a $(DESTDIR)$(PREFIX)/lib/$(RMLCRUNTIME)/librml.a
+	$(RANLIB) $(DESTDIR)$(PREFIX)/lib/$(RMLCRUNTIME)/librml.a
 	if [ ! -z "$(DEBUGLIB)" ]; then \
-		cp librml_g.a $(PREFIX)/lib/$(RMLCRUNTIME)/librml_g.a; \
-		$(RANLIB) $(PREFIX)/lib/$(RMLCRUNTIME)/librml_g.a; \
+		cp librml_g.a $(DESTDIR)$(PREFIX)/lib/$(RMLCRUNTIME)/librml_g.a; \
+		$(RANLIB) $(DESTDIR)$(PREFIX)/lib/$(RMLCRUNTIME)/librml_g.a; \
 	fi
 	if [ ! -z "$(PROFLIB)" ]; then \
-		cp librml_p.a $(PREFIX)/lib/$(RMLCRUNTIME)/librml_p.a; \
-		$(RANLIB) $(PREFIX)/lib/$(RMLCRUNTIME)/librml_p.a; \
+		cp librml_p.a $(DESTDIR)$(PREFIX)/lib/$(RMLCRUNTIME)/librml_p.a; \
+		$(RANLIB) $(DESTDIR)$(PREFIX)/lib/$(RMLCRUNTIME)/librml_p.a; \
 	fi
 
 librml.a:	$(OBJS)

@@ -3,6 +3,7 @@
 makeconfigureneeded=
 TARGET=
 PREFIX=
+DESTDIR=
 SMLCM=
 MLLEX=
 MLYACC=
@@ -31,6 +32,9 @@ while [ "$#" != 0 ]; do
     --prefix=*)
 	PREFIX=`echo $arg | sed 's/--prefix=//'`
 	;;
+    --destdir=*)
+	DESTDIR=`echo $arg | sed 's/--destdir=//'`
+	;;
     --nosmlnj)
 	SMLCM=nosmlnj
 	MLLEX=nosmlnj
@@ -55,6 +59,7 @@ while [ "$#" != 0 ]; do
 	echo valid options are:
 	echo '--build=<cpu-os-compiler>'
 	echo '--prefix=<path>'
+	echo '--destdir=<path>'
 	echo '--nosmlnj'
 	echo '--{disable,enable}-{debug,profile}'
 	exit 1
@@ -134,6 +139,7 @@ fi
 
 echo TARGET=$TARGET > ./config.cache
 echo PREFIX=$PREFIX >> ./config.cache
+echo DESTDIR=$DESTDIR >> ./config.cache
 case "$TARGET" in
   x86-mingw32-gcc)
 	SMLDIR=`etc/which_dir sml.bat`

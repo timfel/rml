@@ -1,5 +1,5 @@
 #!/bin/sh
-# usage: install-sml APPNAME PREFIX SMLCM HEAP_SUFFIX GOROOT
+# usage: install-sml APPNAME PREFIX SMLCM HEAP_SUFFIX GOROOT DESTDIR
 
 APPNAME=$1
 PREFIX=$2
@@ -7,30 +7,31 @@ SMLCM=$3
 HEAP_SUFFIX=$4
 TARGET=$5
 GOROOT=$6
+DESTDIR=$7
 
 
-$GOROOT/etc/mkdirhier $PREFIX/bin
-$GOROOT/etc/mkdirhier $PREFIX/lib
+$GOROOT/etc/mkdirhier $DESTDIR$PREFIX/bin
+$GOROOT/etc/mkdirhier $DESTDIR$PREFIX/lib
 case "$TARGET" in
 x86-mingw32-gcc)
     SMLDIR=`$GOROOT/etc/which_dir sml.bat`
     RUN="$SMLDIR/.run/run.x86-win32.exe"
-    (echo '#!/bin/sh'; echo exec $RUN @SMLquiet @SMLload=\"$PREFIX/lib/$APPNAME.$HEAP_SUFFIX\" '$*') > $PREFIX/bin/$APPNAME
-    chmod +x $PREFIX/bin/$APPNAME
-    cp $APPNAME.$HEAP_SUFFIX $PREFIX/lib    
+    (echo '#!/bin/sh'; echo exec $RUN @SMLquiet @SMLload=\"$PREFIX/lib/$APPNAME.$HEAP_SUFFIX\" '$*') > $DESTDIR$PREFIX/bin/$APPNAME
+    chmod +x $DESTDIR$PREFIX/bin/$APPNAME
+    cp $APPNAME.$HEAP_SUFFIX $DESTDIR$PREFIX/lib    
      ;;
 x86-cygwin-gcc)
     SMLDIR=`$GOROOT/etc/which_dir sml.bat`
     RUN="$SMLDIR/.run/run.x86-win32.exe"
     CYG_RML_PATH=`cygpath -w "$PREFIX/lib/"`
-    (echo '#!/bin/sh'; echo exec $RUN @SMLquiet @SMLload=\"$CYG_RML_PATH\\$APPNAME.$HEAP_SUFFIX\" '$*') > $PREFIX/bin/$APPNAME
-    chmod +x $PREFIX/bin/$APPNAME
-    cp $APPNAME.$HEAP_SUFFIX $PREFIX/lib    
+    (echo '#!/bin/sh'; echo exec $RUN @SMLquiet @SMLload=\"$CYG_RML_PATH\\$APPNAME.$HEAP_SUFFIX\" '$*') > $DESTDIR$PREFIX/bin/$APPNAME
+    chmod +x $DESTDIR$PREFIX/bin/$APPNAME
+    cp $APPNAME.$HEAP_SUFFIX $DESTDIR$PREFIX/lib    
      ;;
 *)
     RUN="$SMLCM"
-    (echo '#!/bin/sh'; echo exec $RUN @SMLquiet @SMLload=$PREFIX/lib/$APPNAME.$HEAP_SUFFIX '$*') > $PREFIX/bin/$APPNAME
-    chmod +x $PREFIX/bin/$APPNAME
-    cp $APPNAME.$HEAP_SUFFIX $PREFIX/lib
+    (echo '#!/bin/sh'; echo exec $RUN @SMLquiet @SMLload=$PREFIX/lib/$APPNAME.$HEAP_SUFFIX '$*') > $DESTDIR$PREFIX/bin/$APPNAME
+    chmod +x $DESTDIR$PREFIX/bin/$APPNAME
+    cp $APPNAME.$HEAP_SUFFIX $DESTDIR$PREFIX/lib
     ;;
 esac

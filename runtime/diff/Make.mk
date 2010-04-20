@@ -26,9 +26,9 @@ $(YSIZEDEP:.c=.p.o):	$(p-gccore.h)
 XCSRC=
 RMLCRUNTIME=diff
 xtra-install:	$(GOROOT)/config.cache $(GOROOT)/config/$(TARGET)/labtab.h
-	$(GOROOT)/etc/mkdirhier $(PREFIX)/include/diff
-	rm -f $(PREFIX)/include/diff/labtab.h
-	cp $(GOROOT)/config/$(TARGET)/labtab.h $(PREFIX)/include/diff
+	$(GOROOT)/etc/mkdirhier $(DESTDIR)$(PREFIX)/include/diff
+	rm -f $(DESTDIR)$(PREFIX)/include/diff/labtab.h
+	cp $(GOROOT)/config/$(TARGET)/labtab.h $(DESTDIR)$(PREFIX)/include/diff
 
 # Common rules
 include $(GOROOT)/etc/runtime.mk
