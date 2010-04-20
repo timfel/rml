@@ -29,10 +29,10 @@ install-rml:	rml.$(HEAP_SUFFIX)
 	$(GOROOT)/etc/install-sml rml $(PREFIX) "$(SMLCM)" $(HEAP_SUFFIX) $(TARGET) $(GOROOT) $(DESTDIR)
 
 install-mlton:  rml
-        cp rml $(DESTDIR)$(PREFIX)/bin/rml
-        rm -f $(DESTDIR)$(PREFIX)/bin/rml.$(HEAP_SUFFIX)
+	cp rml $(DESTDIR)$(PREFIX)/bin/rml
+	rm -f $(DESTDIR)$(PREFIX)/bin/rml.$(HEAP_SUFFIX)
 rml-mlton:
-        mlton -verbose 3 -target self rml.mlb
+	mlton -verbose 3 -target self rml.mlb
 
 rml.lex.sml:	rml.lex
 	SMLNJ_HOME="${SMLNJ_HOME_}" ; export SMLNJ_HOME ; $(MLLEX) rml.lex
