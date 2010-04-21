@@ -66,7 +66,7 @@ clean-configure:
 distclean:	realclean clean-configure
 
 realclean:
-	rm -f rml.*-*
+	rm -f rml.*-* rml
 	rm -rf */CM
 	rm -rf */.cm
 	rm -rf */*/.cm
@@ -80,4 +80,4 @@ realclean:
 	rm -rf */*/.smlnetdep
 
 clean:
-	rm -f rml.*-*
+	rm -f rml.*-* rml

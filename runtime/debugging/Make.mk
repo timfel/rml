@@ -3,7 +3,8 @@
 #
 GOROOT=../..
 
-GENERATED=parse-rdb.c scan-rdb.c parse-command.c scan-command.c
+GENERATED=parse-rdb.c scan-rdb.c parse-command.c scan-command.c parse-rdb.h parse-command.h
+
 			
 default: parse-command.c scan-command.c parse-rdb.c scan-rdb.c
 
@@ -38,5 +39,3 @@ realclean:	clean
 clean:
 	rm -f *.o core rmldb \
 	      a.out core mon.out gmon.out *~ $(GENERATED)
-
-
