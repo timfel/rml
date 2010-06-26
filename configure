@@ -116,17 +116,23 @@ if [ -z "$SMLCM" ]; then
 	HEAP_SUFFIX=x86-win32
 	;;
   *)
-	BIN_DIR=`grep BIN_DIR= $SMLCM | head -1`
-	if [ "$?" != 0 -o -z "$BIN_DIR" ]; then
+	if [ -z "$SMLNJ_HOME" ]; then
 	  echo ./configure: unable to determine SML/NJ installation directory
+          echo Please set the SMLNJ_HOME environment variable as it is different on all platforms
 	  exit 1
 	fi
-	eval $BIN_DIR
+	BIN_DIR=$SMLNJ_HOME/bin/
+	if [ "$?" != 0 -o -z "$BIN_DIR" ]; then
+	  echo ./configure: unable to determine SML/NJ installation directory
+          echo $SMLNJ_HOME/bin/ does not exist
+	  exit 1
+	fi
 	ARCH_OPSYS_HEAPSUFFIX=`$BIN_DIR/.arch-n-opsys`
 	if [ "$?" != 0 ]; then	    
 	  echo ./configure: unable to determine SML/NJ heap suffix
 	  exit 1
 	fi
+	echo $ARCH_OPSYS_HEAPSUFFIX
 	eval $ARCH_OPSYS_HEAPSUFFIX
   esac
   echo ./configure: SML/NJ heap suffix is $HEAP_SUFFIX
