@@ -4,6 +4,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
+#ifdef __APPLE_CC__
+#include <unistd.h>
+#endif
 #include "rml.h"
 
 #include "parse-command.h"
