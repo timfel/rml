@@ -261,6 +261,7 @@ id={alpha}{alnum}*;
 	(LexArg.newLine(lexarg, mkPos(yypos, lexarg));
 	 continue());
 <INITIAL>{tab}		=>
+
 	(LexArg.newTab(lexarg, yygone, mkPos(yypos, lexarg));
 	 continue());
 <INITIAL>{white}	=>
@@ -348,34 +349,38 @@ id={alpha}{alnum}*;
 <INITIAL>"<>"	=>
 	(Tokens.NE_INT(mkPos(yypos, lexarg), mkPos(yypos+1, lexarg)));
 
-<INITIAL>"+."	=>
+<INITIAL>"+."{white}	=>
 	(Tokens.ADD_REAL(mkPos(yypos, lexarg), mkPos(yypos+1, lexarg)));
-<INITIAL>"-."	=>
+<INITIAL>"-."{white}	=>
 	(Tokens.SUB_REAL(mkPos(yypos, lexarg), mkPos(yypos+1, lexarg)));
-<INITIAL>"~."	=>
+<INITIAL>"~."{white}	=>
 	(Tokens.NEG_REAL(mkPos(yypos, lexarg), mkPos(yypos+1, lexarg)));	
-<INITIAL>"*."	=>
+<INITIAL>"*."{white}	=>
 	(Tokens.MUL_REAL(mkPos(yypos, lexarg), mkPos(yypos+1, lexarg)));
-<INITIAL>"/."	=>
+<INITIAL>"/."{white}	=>
 	(Tokens.DIV_REAL(mkPos(yypos, lexarg), mkPos(yypos+1, lexarg))); 
-<INITIAL>"%."	=>
+<INITIAL>"%."{white}	=>
 	(Tokens.MOD_REAL(mkPos(yypos, lexarg), mkPos(yypos+1, lexarg)));
-<INITIAL>"^."	=>
+<INITIAL>"^."{white}	=>
 	(Tokens.POW_REAL(mkPos(yypos, lexarg), mkPos(yypos+1, lexarg)));		
-<INITIAL>"==."	=>
+<INITIAL>"==."{white}	=>
 	(Tokens.EQEQ_REAL(mkPos(yypos, lexarg), mkPos(yypos+2, lexarg)));
-<INITIAL>">=."	=>
+<INITIAL>">=."{white}	=>
 	(Tokens.GE_REAL(mkPos(yypos, lexarg), mkPos(yypos+2, lexarg)));
-<INITIAL>">."	=>
+<INITIAL>">."{white}	=>
 	(Tokens.GT_REAL(mkPos(yypos, lexarg), mkPos(yypos+1, lexarg)));
-<INITIAL>"<=."	=>
+<INITIAL>"<=."{white}	=>
 	(Tokens.LE_REAL(mkPos(yypos, lexarg), mkPos(yypos+2, lexarg)));
-<INITIAL>"<."	=>
+<INITIAL>"<."{white}	=>
 	(Tokens.LT_REAL(mkPos(yypos, lexarg), mkPos(yypos+1, lexarg)));
-<INITIAL>"!=."	=>
+<INITIAL>"!=."{white}	=>
 	(Tokens.NE_REAL(mkPos(yypos, lexarg), mkPos(yypos+2, lexarg)));
-<INITIAL>"<>."	=>
+<INITIAL>"<>."{white}	=>
 	(Tokens.NE_REAL(mkPos(yypos, lexarg), mkPos(yypos+2, lexarg)));
+<INITIAL>("+"|"-"|"~"|"*"|"/"|"%"|"^"|"<"|">")"."	=>
+	(Tokens.REAL_OP_WITHOUT_FOLLOWING_WHITESPACE(mkPos(yypos, lexarg), mkPos(yypos+1, lexarg)));
+<INITIAL>("=="|">="|"<="|"!="|"<>")"."	=>
+	(Tokens.REAL_OP_WITHOUT_FOLLOWING_WHITESPACE(mkPos(yypos, lexarg), mkPos(yypos+2, lexarg)));
 
 <INITIAL>"+&"	=>
 	(Tokens.ADD_STRING(mkPos(yypos, lexarg), mkPos(yypos+1, lexarg)));

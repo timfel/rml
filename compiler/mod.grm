@@ -339,7 +339,8 @@ fun makeELEMENT(isFinal,
 	|   DOTSTAR
 	|   LIST 
 	|	START_MODELICA	(* <start symbol: function> *)
-	|	UNARY (* define to just assign precedence to +/- *)		
+	|	UNARY (* define to just assign precedence to +/- *)
+  | REAL_OP_WITHOUT_FOLLOWING_WHITESPACE
 	(* adrpo -- end *)
 
 %keyword
