@@ -125,7 +125,7 @@ val kwds = [
 		("algorithm", Tokens.ALGORITHM),
 		("annotation", Tokens.ANNOTATION),
 		("block", Tokens.BLOCK),
-		("boundary", Tokens.BOUNDARY),
+		(* ("boundary", Tokens.BOUNDARY), *)
 		(* not needed ("Code", Tokens.CODE), *)
 		("class", Tokens.CLASS),
 		("connect", Tokens.CONNECT),
