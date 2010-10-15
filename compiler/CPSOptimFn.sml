@@ -106,7 +106,7 @@ functor CPSOptimFn(structure Util : UTIL
     fun fetch_lit(0, CPS.STRUCTlit(con,lits,_)) =
 	  SOME(CPS.CONSTlit(CPS.HDRcon{con=con, len=length lits}))
       | fetch_lit(off, CPS.STRUCTlit(_,lits,_)) = SOME(List.nth(lits, off-1))
-      | fetch_lit(_, _) = bug "fetch_lit"
+      | fetch_lit(_, _) = NONE (* bug "fetch_lit" *)
 
     val qfalse	= CPS.QUOTEte(CPS.CONSTlit(CPS.INTcon 0))
     val qtrue	= CPS.QUOTEte(CPS.CONSTlit(CPS.INTcon 1))

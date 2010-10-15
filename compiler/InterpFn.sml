@@ -249,6 +249,12 @@ functor InterpFn(structure Util : UTIL
 	    in
 	      invoke(clause1, v_star, ME, VE, fc', pc, s)
 	    end
+	 | Absyn.CLAUSE3(clause1, clause2, _) =>
+	    let val m = InterpCore.marker s
+		val fc' = ORELSE(m, clause2, v_star, ME, VE, fc, pc)
+	    in
+	      invoke(clause1, v_star, ME, VE, fc', pc, s)
+	    end
 
     (* Relation Bindings *)
 

@@ -8,9 +8,18 @@ local
     bas
       (* $/ml-yacc-lib.cm ====> *) $(SML_LIB)/mlyacc-lib/mlyacc-lib.mlb
     end
+  basis l300 = 
+    bas
+      $(SML_LIB)/basis/sml-nj.mlb 
+    end
 in
 local
    $(SML_LIB)/basis/pervasive.mlb
+   local
+       open l300
+   in
+      structure gs_3000 =  SMLofNJ
+   end
    local
       open l4
    in
@@ -292,6 +301,7 @@ local
    local
       signature ABSYN = gs_10
       signature FOL = gs_33
+      signature CONTROL = gs_18
       ABSYNTOFOL.sig
    in
       signature gs_37 = ABSYNTOFOL
@@ -464,6 +474,7 @@ local
       structure Int = gs_15
       signature MAKESTRING = gs_61
       structure String = gs_0
+      structure SMLofNJ = gs_3000
       MakeString.sml
    in
       structure gs_64 = MakeString
@@ -1206,6 +1217,7 @@ local
       structure String = gs_0
       signature TY = gs_139
       structure TextIO = gs_5
+      structure Control = gs_128
       Ty.sml
    in
       structure gs_151 = Ty
@@ -1435,6 +1447,8 @@ local
       signature STR_DICT = gs_38
       signature UTIL = gs_3
       signature ABSYN_INSTRUMENTED = gs_188
+      signature CONTROL = gs_18
+      structure Control = gs_128
       AbsynToFOLFn.sml
    in
       functor gs_172 = AbsynToFOLFn
@@ -1466,6 +1480,7 @@ local
       structure FOL = gs_174
       structure StrDict = gs_85
       structure Util = gs_12
+      structure Control = gs_128
       AbsynToFOL.sml
    in
       structure gs_175 = AbsynToFOL

@@ -95,7 +95,7 @@ functor FOLOptimFn(structure Util : UTIL
 
     fun normConj(FOL.AND(c1,c2, info)) = mkAnd(normConj c1, normConj c2, info)
       | normConj(FOL.NOT(conj, info)) = mkNot(normNotConj(normConj conj), info)
-      | normConj(FOL.IF(c1, c2, c3, info)) = FOL.IF(normConj c1, normConj c2, normConj c3, info)
+      | normConj(FOL.IF(v, c2, c3, info)) = FOL.IF(v, normConj c2, normConj c3, info)
       | normConj conj = conj
 
 
@@ -148,8 +148,12 @@ functor FOLOptimFn(structure Util : UTIL
     fun mkAndThen(c1, d2, info) =
       case c1
 			of FOL.MATCH(mrules,i) =>
-				mkCase(map #1 mrules, [(map #2 mrules, d2)], i)
+				 mkCase(map #1 mrules, [(map #2 mrules, d2)], i)
 			 | FOL.AND(c1a,c1b,i) => mkAndThen(c1a, mkAndThen(c1b, d2, i), info)
+       (*
+       | FOL.IF(e, c1, c2, i) => 
+           (FOL.IF(e, mkAndThen(c1, d2, i), mkAndThen(c2, d2, i))
+       *)
 			 | _ => FOL.ANDTHEN(c1, d2, info)
 
     and mkCase(_, [], _) = bug "mkCase(_,[])"

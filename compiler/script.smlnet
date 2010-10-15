@@ -5,10 +5,10 @@ source
  c:\bin\cygwin\home\adrpo\dev\rml\compiler\, 
  c:\bin\cygwin\home\adrpo\dev\rml\compiler\library\common,
  c:\bin\cygwin\home\adrpo\dev\rml\compiler\library\pickle, 
- c:\bin\sml.net\lib\parsing\
+ c:\bin\smlnet\lib\parsing\
 
 
-@c:\bin\sml.net\lib\parsing\sources
+@c:\bin\smlnet\lib\parsing\sources
 
 structure Tokens=rml.grm.sml
 signature RML_TOKENS=rml.grm.sig, RML_LRVALS=rml.grm.sig

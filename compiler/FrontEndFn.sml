@@ -483,8 +483,8 @@ functor FrontEndFn(
 				else
 					AbsynPersist.parseModule(
 					Control.getFileName(file, Control.SERIALIZATION_FILE),
-					repository)
-		in
+					repository) 
+ 		in
 			SOME(module)
 		end
 	)

@@ -50,7 +50,7 @@ let
       | prLit(pp, FOL.SCON s) = prStr(pp, MakeString.scvt s)
 
     fun prVarRef pp (FOL.GVAR lid) = (prStr(pp, "GVAR("); prLongId(pp, lid); prStr(pp, ")"))
-      | prVarRef pp (FOL.BVAR var) = prVar pp var
+      | prVarRef pp (FOL.BVAR var) = (prStr(pp, "BVAR("); prVar pp var; prStr(pp, ")"))
 
     fun prExp pp =
       let fun p(FOL.LITexp(lit)) = prLit(pp, lit)
@@ -155,14 +155,14 @@ let
 		 p c2;
 		 prStr(pp, ")");
 		 PP.emit(pp, PP.END))
-	    | p(FOL.IF(c1, c2, c3, info)) =
+	    | p(FOL.IF(var, c2, c3, info)) =
 		(PP.emit(pp, PP.BEGIN{breakType=PP.CONSISTENT, offset=5});
 		 prStr(pp, "(IF@["^strInfo(info)^"] ");
-		 p c1;
+		 prVar pp var;
 		 prBlank(pp);
 		 p c2;
 		 prBlank(pp);
-		 p c2;		 
+		 p c3;
 		 prStr(pp, ")");
 		 PP.emit(pp, PP.END))
       in

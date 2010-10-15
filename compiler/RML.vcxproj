@@ -1,0 +1,332 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{2801B9A3-96DD-4EBB-BE88-2331B24C840A}</ProjectGuid>
+    <Keyword>MakeFileProj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Debug\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Debug\</IntDir>
+    <NMakeBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"%SMLNETPATH%\bin\smlnet.bat" /on:debug /target:exe /out:Debug\RML.exe %40script /make</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"%SMLNETPATH%\bin\smlnet.bat" /on:debug /target:exe /out:Debug\RML.exe %40script /remake</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"%SMLNETPATH%\bin\clean.bat"</NMakeCleanCommandLine>
+    <NMakeOutput Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Debug\RML.exe</NMakeOutput>
+    <NMakePreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+    <NMakeIncludeSearchPath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
+    <NMakeForcedIncludes Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(NMakeForcedIncludes)</NMakeForcedIncludes>
+    <NMakeAssemblySearchPath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(NMakeAssemblySearchPath)</NMakeAssemblySearchPath>
+    <NMakeForcedUsingAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(NMakeForcedUsingAssemblies)</NMakeForcedUsingAssemblies>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Release\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Release\</IntDir>
+    <NMakeBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"%SMLNETPATH%\bin\smlnet.bat" /target:exe /out:Release\RML.exe %40script /make</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"%SMLNETPATH%\bin\smlnet.bat" /target:exe /out:Release\RML.exe %40script /remake</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"%SMLNETPATH%\bin\clean.bat"</NMakeCleanCommandLine>
+    <NMakeOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Release\RML.exe</NMakeOutput>
+    <NMakePreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+    <NMakeIncludeSearchPath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
+    <NMakeForcedIncludes Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(NMakeForcedIncludes)</NMakeForcedIncludes>
+    <NMakeAssemblySearchPath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(NMakeAssemblySearchPath)</NMakeAssemblySearchPath>
+    <NMakeForcedUsingAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(NMakeForcedUsingAssemblies)</NMakeForcedUsingAssemblies>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <None Include="AADictFn.sml" />
+    <None Include="ABSYN.sig" />
+    <None Include="Absyn.sml" />
+    <None Include="ABSYN_INSTRUMENTED.sig" />
+    <None Include="ABSYN_PERSIST.sig" />
+    <None Include="ABSYN_PRINT.sig" />
+    <None Include="AbsynFn.sml" />
+    <None Include="AbsynPersist.sml" />
+    <None Include="AbsynPersistFn.sml" />
+    <None Include="AbsynPrint.sml" />
+    <None Include="AbsynPrintFn.sml" />
+    <None Include="ABSYNTOFOL.sig" />
+    <None Include="AbsynToFOL.sml" />
+    <None Include="AbsynToFOLFn.sml" />
+    <None Include="CACHE.sig" />
+    <None Include="Cache.sml" />
+    <None Include="CacheFn.sml" />
+    <None Include="CODE.sig" />
+    <None Include="CODE_FVARS.sig" />
+    <None Include="CODE_OPTIM.sig" />
+    <None Include="CodeFVarsFn.sml" />
+    <None Include="CodeOptimFn.sml" />
+    <None Include="CODETOC.sig" />
+    <None Include="CodeToCFn.sml" />
+    <None Include="CONREP.sig" />
+    <None Include="Conrep.sml" />
+    <None Include="CONTROL.sig" />
+    <None Include="Control.sml" />
+    <None Include="CPS.sig" />
+    <None Include="CPS.sml" />
+    <None Include="CPS_FVARS.sig" />
+    <None Include="CPS_OPTIM.sig" />
+    <None Include="CPS_PRINT.sig" />
+    <None Include="CPS_USAGES.sig" />
+    <None Include="CPS_USEFUL.sig" />
+    <None Include="CPSFn.sml" />
+    <None Include="CPSFVars.sml" />
+    <None Include="CPSFVarsFn.sml" />
+    <None Include="CPSOptim.sml" />
+    <None Include="CPSOptimFn.sml" />
+    <None Include="CPSPrint.sml" />
+    <None Include="CPSPrintFn.sml" />
+    <None Include="CPSTOCODE.sig" />
+    <None Include="CPSToCodeFn.sml" />
+    <None Include="CPSToPlain.sml" />
+    <None Include="CPSTOSML.sig" />
+    <None Include="CPSToSML.sml" />
+    <None Include="CPSToSMLFn.sml" />
+    <None Include="CPSToSwitch.sml" />
+    <None Include="CPSUsages.sml" />
+    <None Include="CPSUsagesFn.sml" />
+    <None Include="CPSUseful.sml" />
+    <None Include="CPSUsefulFn.sml" />
+    <None Include="DiffToC.sml" />
+    <None Include="DiffToCFn.sml" />
+    <None Include="FOL.sig" />
+    <None Include="FOL.sml" />
+    <None Include="FOL_OPTIM.sig" />
+    <None Include="FOL_PRINT.sig" />
+    <None Include="FOL_UNIFY.sig" />
+    <None Include="FOL_USAGES.sig" />
+    <None Include="FOLFn.sml" />
+    <None Include="FOLOptim.sml" />
+    <None Include="FOLOptimFn.sml" />
+    <None Include="FOLPrint.sml" />
+    <None Include="FOLPrintFn.sml" />
+    <None Include="FOLTOCPS.sig" />
+    <None Include="FOLToCPS.sml" />
+    <None Include="FOLToCPSFn.sml" />
+    <None Include="FOLUnify.sml" />
+    <None Include="FOLUnifyFn.sml" />
+    <None Include="FOLUsages.sml" />
+    <None Include="FOLUsagesFn.sml" />
+    <None Include="FRONTEND.sig" />
+    <None Include="FrontEnd.sml" />
+    <None Include="FrontEndFn.sml" />
+    <None Include="Instrument.sml" />
+    <None Include="InstrumentFn.sml" />
+    <None Include="IntDict.sml" />
+    <None Include="INTERP.sig" />
+    <None Include="Interp.sml" />
+    <None Include="INTERP_CORE.sig" />
+    <None Include="InterpCore.sml" />
+    <None Include="InterpCoreFn.sml" />
+    <None Include="InterpFn.sml" />
+    <None Include="IntKey.sml" />
+    <None Include="LEXARG.sig" />
+    <None Include="LexArg.sml" />
+    <None Include="LEXARG_SIMPLE.sig" />
+    <None Include="LexArgFn.sml" />
+    <None Include="LexArgSimple.sml" />
+    <None Include="LexArgSimpleFn.sml" />
+    <None Include="LEXUTIL.sig" />
+    <None Include="LexUtil.sml" />
+    <None Include="MAIN.sig" />
+    <None Include="Main.sml" />
+    <None Include="MainFn.sml" />
+    <None Include="MAKESTRING.sig" />
+    <None Include="MakeString.sml" />
+    <None Include="MANGLE.sig" />
+    <None Include="Mangle.sml" />
+    <None Include="MangleFn.sml" />
+    <None Include="MaskToC.sml" />
+    <None Include="MaskToCFn.sml" />
+    <None Include="mod.grm" />
+    <None Include="mod.grm.desc" />
+    <None Include="mod.grm.sig" />
+    <None Include="mod.grm.sml" />
+    <None Include="mod.lex" />
+    <None Include="mod.lex.sml" />
+    <None Include="MOD_PARSE.sig" />
+    <None Include="MODLex.sml" />
+    <None Include="MODLrVals.sml" />
+    <None Include="MODParse.sml" />
+    <None Include="MODParseFn.sml" />
+    <None Include="MODParser.sml" />
+    <None Include="MOTORML.sig" />
+    <None Include="MOToRML.sml" />
+    <None Include="MOToRMLFn.sml" />
+    <None Include="ORD_DICT.sig" />
+    <None Include="ORD_KEY.sig" />
+    <None Include="persistent.grm" />
+    <None Include="persistent.grm.desc" />
+    <None Include="persistent.grm.sig" />
+    <None Include="persistent.grm.sml" />
+    <None Include="persistent.lex" />
+    <None Include="persistent.lex.sml" />
+    <None Include="PERSISTENT_PARSE.sig" />
+    <None Include="PERSISTENTLex.sml" />
+    <None Include="PERSISTENTLrVals.sml" />
+    <None Include="PERSISTENTParse.sml" />
+    <None Include="PERSISTENTParseFn.sml" />
+    <None Include="PERSISTENTParser.sml" />
+    <None Include="PLAIN.sig" />
+    <None Include="Plain.sml" />
+    <None Include="PlainCodeToC.sml" />
+    <None Include="PlainFn.sml" />
+    <None Include="PlainFVars.sml" />
+    <None Include="PlainOptim.sml" />
+    <None Include="PLAINTOC.sig" />
+    <None Include="PlainToCFn.sml" />
+    <None Include="PMC.sig" />
+    <None Include="PMC.sml" />
+    <None Include="PMCFn.sml" />
+    <None Include="PP.sig" />
+    <None Include="PP.sml" />
+    <None Include="REORDER.sig" />
+    <None Include="Reorder.sml" />
+    <None Include="REORDER_SCC.sig" />
+    <None Include="REORDER_TY.sig" />
+    <None Include="REORDER_VAL.sig" />
+    <None Include="ReorderFn.sml" />
+    <None Include="ReorderSCC.sml" />
+    <None Include="ReorderTy.sml" />
+    <None Include="ReorderTyFn.sml" />
+    <None Include="ReorderVal.sml" />
+    <None Include="ReorderValFn.sml" />
+    <None Include="rml.grm" />
+    <None Include="rml.grm.desc" />
+    <None Include="rml.grm.sig" />
+    <None Include="rml.grm.sml" />
+    <None Include="rml.lex" />
+    <None Include="rml.lex.sml" />
+    <None Include="RML.sml" />
+    <None Include="RML_PARSE.sig" />
+    <None Include="RMLLex.sml" />
+    <None Include="RMLLrVals.sml" />
+    <None Include="RMLParse.sml" />
+    <None Include="RMLParseFn.sml" />
+    <None Include="RMLParser.sml" />
+    <None Include="script.smlnet" />
+    <None Include="SOURCE.sig" />
+    <None Include="Source.sml" />
+    <None Include="sources.cm" />
+    <None Include="START.sig" />
+    <None Include="Start.sml" />
+    <None Include="StartFn.sml" />
+    <None Include="STAT_ELAB.sig" />
+    <None Include="STAT_OBJ.sig" />
+    <None Include="StatElab.sml" />
+    <None Include="StatElabFn.sml" />
+    <None Include="StatObj.sml" />
+    <None Include="StatObjFn.sml" />
+    <None Include="STR_DICT.sig" />
+    <None Include="StrDict.sml" />
+    <None Include="StrKey.sml" />
+    <None Include="SWITCH.sig" />
+    <None Include="Switch.sml" />
+    <None Include="SWITCH_INTRAS.sig" />
+    <None Include="SwitchCodeToC.sml" />
+    <None Include="SwitchFn.sml" />
+    <None Include="SwitchFVars.sml" />
+    <None Include="SwitchIntras.sml" />
+    <None Include="SwitchIntrasFn.sml" />
+    <None Include="SwitchOptim.sml" />
+    <None Include="SWITCHTOC.sig" />
+    <None Include="SYSDEP.sig" />
+    <None Include="SysDep.sml" />
+    <None Include="TRANSENV.sig" />
+    <None Include="TransEnv.sml" />
+    <None Include="TransEnvFn.sml" />
+    <None Include="TY.sig" />
+    <None Include="Ty.sml" />
+    <None Include="TY_COMB.sig" />
+    <None Include="TY_FCN.sig" />
+    <None Include="TY_SCHEME.sig" />
+    <None Include="TyComb.sml" />
+    <None Include="TyCombFn.sml" />
+    <None Include="TyFcn.sml" />
+    <None Include="TyFcnFn.sml" />
+    <None Include="TyScheme.sml" />
+    <None Include="TySchemeFn.sml" />
+    <None Include="UTIL.sig" />
+    <None Include="Util.sml" />
+    <None Include="VERSION.sig" />
+    <None Include="Version.sml" />
+    <None Include="VersionFn.sml" />
+    <None Include="library\sources.cm" />
+    <None Include="library\common\ARRAY_SOURCE_MAP.sig" />
+    <None Include="library\common\ArraySourceMap.sml" />
+    <None Include="library\common\DARRAY.sig" />
+    <None Include="library\common\DynIntArray.sml" />
+    <None Include="library\common\IntMap.sml" />
+    <None Include="library\common\IntSet.sml" />
+    <None Include="library\common\sources.cm" />
+    <None Include="library\pickle\BasePickleFun.sml" />
+    <None Include="library\pickle\BASEPICKLESIG.sig" />
+    <None Include="library\pickle\BitPickle.sml" />
+    <None Include="library\pickle\BytePickle.sml" />
+    <None Include="library\pickle\CODEC.sig" />
+    <None Include="library\pickle\Pickle.sml" />
+    <None Include="library\pickle\PickleFun.sml" />
+    <None Include="library\pickle\PICKLESIG.sig" />
+    <None Include="library\pickle\sources.cm" />
+    <None Include="files\c.grm" />
+    <None Include="files\c.lex" />
+    <None Include="files\calc.grm" />
+    <None Include="files\calc.lex" />
+    <None Include="call-main.sml" />
+    <None Include="files\compile-warnings.txt" />
+    <None Include="files\grammar-modelica-2.1.txt" />
+    <None Include="files\improve.txt" />
+    <None Include="files\InstrumentFn-saved-2004-11-23.sml" />
+    <None Include="MainMLton.sml" />
+    <None Include="make-mlton.sml" />
+    <None Include="files\profile-2006-02-12.txt" />
+    <None Include="files\profile-rml.txt" />
+    <None Include="files\profile-smlnj-rml.txt" />
+    <None Include="files\ReorderParse.sml" />
+    <None Include="files\ReorderParseFn.sml" />
+    <None Include="files\ReorderValFn_old.sml" />
+    <None Include="files\rml-2004-09-17.grm" />
+    <None Include="files\rml-2004-09-17.grm.sig" />
+    <None Include="files\rml-2004-09-17.grm.sml" />
+    <None Include="files\rml-operators-addition.txt" />
+    <None Include="rml.mlb" />
+    <None Include="files\rmlplan.txt" />
+    <None Include="files\Saved-Instrument-Source.txt" />
+    <None Include="sources.mlb" />
+    <None Include="files\StatElabFn-2005-11-06-saved-code.sml" />
+    <None Include="files\warnings-compile.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="files\saved.c" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

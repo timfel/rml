@@ -80,7 +80,7 @@ functor ReorderValFn(structure Util : UTIL
 	 | Absyn.LETgoal(pat, exp, _) => (scanPat(pat,VE), depsOfExp VE (exp,deps))
 	 | Absyn.NOTgoal(goal, _) => (VE, #2(depsOfGoal(goal, (VE,deps))))
 	 | Absyn.ANDgoal(g1,g2, _) => depsOfGoal(g2, depsOfGoal(g1, (VE,deps)))
-	 | Absyn.CONDgoal(g1, g2, g3, _) => depsOfGoal(g3, depsOfGoal(g2, depsOfGoal(g1, (VE,deps))))
+	 | Absyn.IFgoal(exp, g2, g3, _) => depsOfGoal(g3, depsOfGoal(g2, (VE,deps)))
 
     fun depsOfGoalOpt(NONE, VE, deps) = (VE,deps)
       | depsOfGoalOpt(SOME goal, VE, deps) = depsOfGoal(goal, (VE,deps))
@@ -99,6 +99,7 @@ functor ReorderValFn(structure Util : UTIL
 	      depsOfResult(VE, deps, result)
 	    end
 	 | Absyn.CLAUSE2(cl1, cl2, _) => depsOfClause(VE, cl2, depsOfClause(VE,cl1,deps))
+	 | Absyn.CLAUSE3(cl1, cl2, _) => depsOfClause(VE, cl2, depsOfClause(VE,cl1,deps))
 
     fun analyseValBnd source VE depArr (i,VALBND(var,exp)) =
 	  let val deps = depsOfExp VE (exp,[])

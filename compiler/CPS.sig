@@ -18,10 +18,11 @@ signature CPS =
 			| BOOL_NOT | INT_NEG | INT_ABS
 
     datatype binop	= EQUAL
-			| BOOL_AND | BOOL_OR
-			| INT_ADD | INT_SUB | INT_MUL | INT_DIV
-			| INT_MOD | INT_MAX | INT_MIN | INT_LT
-			| INT_LE | INT_EQ | INT_NE | INT_GE | INT_GT
+			| BOOL_AND | BOOL_OR | BOOL_EQ
+			| CHAR_EQ
+			| INT_ADD | INT_SUB | INT_MUL | INT_DIV | INT_MOD | INT_MAX | INT_MIN | INT_LT | INT_LE | INT_EQ | INT_NE | INT_GE | INT_GT
+			| REAL_EQ
+			| STRING_EQ
 
     datatype var = VAR of {	tag	: int,
 							uses	: int ref,
@@ -118,6 +119,8 @@ signature CPS =
     
     val makeIdent	    : string * info -> ident
     val makeLongIdent	: ident option * ident -> longid
+
+	val mkID            : string -> longid
     
     val identName	    : ident  -> string
     val longIdentName   : longid -> string    

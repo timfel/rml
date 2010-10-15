@@ -95,43 +95,54 @@ signature CODE =
 			* int
 			-> unit
 
-    val mklab		: string * ConRep.longid * ConRep.info -> label
+    val mklab         : string * ConRep.longid * ConRep.info -> label
+    
+    val mkGOTO        : gototarget * int * ConRep.longid * ConRep.info * gototype -> code
+    val mkSTORE       : value * value * code -> code
+    val mkBIND        : variable option * value * code -> code
+    val mkSWITCH      : value * (casetag * code) list * code option -> code
 
-    val mkGOTO		: gototarget * int * ConRep.longid * ConRep.info * gototype -> code
-    val mkSTORE		: value * value * code -> code
-    val mkBIND		: variable option * value * code -> code
-    val mkSWITCH	: value * (casetag * code) list * code option -> code
+    val intraSP       : variable
+    val intraFC       : variable
+    val intraSC       : variable
+    val intraArgs     : variable Vector.vector
 
-    val intraSP		: variable
-    val intraFC		: variable
-    val intraSC		: variable
-    val intraArgs	: variable Vector.vector
+    val interSP       : variable
+    val interFC       : variable
+    val interSC       : variable
+    val interArgs     : variable Vector.vector
 
-    val interSP		: variable
-    val interFC		: variable
-    val interSC		: variable
-    val interArgs	: variable Vector.vector
-
-    val primMARKER	: label
-    val primUNWIND	: label
-    val primEQUAL	: label
-    val primBOOL_NOT	: label
-    val primINT_NEG	: label
-    val primINT_ABS	: label
-    val primBOOL_AND	: label
-    val primBOOL_OR	: label
-    val primINT_ADD	: label
-    val primINT_SUB	: label
-    val primINT_MUL	: label
-    val primINT_DIV	: label
-    val primINT_MOD	: label
-    val primINT_MAX	: label
-    val primINT_MIN	: label
-    val primINT_LT	: label
-    val primINT_LE	: label
-    val primINT_EQ	: label
-    val primINT_NE	: label
-    val primINT_GE	: label
-    val primINT_GT	: label
+    val primMARKER    : label
+    val primUNWIND    : label
+    
+    val primEQUAL     : label
+    
+    val primBOOL_NOT  : label
+    val primINT_NEG   : label
+    val primINT_ABS   : label
+    
+    val primBOOL_AND  : label
+    val primBOOL_OR   : label
+    val primBOOL_EQ   : label
+    
+    val primCHAR_EQ   : label
+    
+    val primINT_ADD   : label
+    val primINT_SUB   : label
+    val primINT_MUL   : label
+    val primINT_DIV   : label
+    val primINT_MOD   : label
+    val primINT_MAX   : label
+    val primINT_MIN   : label
+    val primINT_LT    : label
+    val primINT_LE    : label
+    val primINT_NE    : label
+    val primINT_GE    : label
+    val primINT_GT    : label
+    val primINT_EQ    : label
+    
+    val primREAL_EQ   : label
+    
+    val primSTRING_EQ : label
     
   end (* signature CODE *)

@@ -205,24 +205,35 @@ functor SwitchFn(
 
     val primMARKER	= LABEL(Mangle.NAME "rml_prim_marker", ConRep.dummyLongIdent, ConRep.dummyInfo)
     val primUNWIND	= LABEL(Mangle.NAME "rml_prim_unwind", ConRep.dummyLongIdent, ConRep.dummyInfo)
+    
     val primEQUAL	= LABEL(Mangle.NAME "rml_prim_equal", ConRep.dummyLongIdent, ConRep.dummyInfo)
-    val primBOOL_NOT	= LABEL(Mangle.NAME "RML_PRIM_BOOL_NOT", ConRep.dummyLongIdent, ConRep.dummyInfo)
-    val primINT_NEG	= LABEL(Mangle.NAME "RML_PRIM_INT_NEG", ConRep.dummyLongIdent, ConRep.dummyInfo)
-    val primINT_ABS	= LABEL(Mangle.NAME "RML_PRIM_INT_ABS", ConRep.dummyLongIdent, ConRep.dummyInfo)
-    val primBOOL_AND	= LABEL(Mangle.NAME "RML_PRIM_BOOL_AND", ConRep.dummyLongIdent, ConRep.dummyInfo)
-    val primBOOL_OR	= LABEL(Mangle.NAME "RML_PRIM_BOOL_OR", ConRep.dummyLongIdent, ConRep.dummyInfo)
-    val primINT_ADD	= LABEL(Mangle.NAME "RML_PRIM_INT_ADD", ConRep.dummyLongIdent, ConRep.dummyInfo)
-    val primINT_SUB	= LABEL(Mangle.NAME "RML_PRIM_INT_SUB", ConRep.dummyLongIdent, ConRep.dummyInfo)
-    val primINT_MUL	= LABEL(Mangle.NAME "RML_PRIM_INT_MUL", ConRep.dummyLongIdent, ConRep.dummyInfo)
-    val primINT_DIV	= LABEL(Mangle.NAME "RML_PRIM_INT_DIV", ConRep.dummyLongIdent, ConRep.dummyInfo)
-    val primINT_MOD	= LABEL(Mangle.NAME "RML_PRIM_INT_MOD", ConRep.dummyLongIdent, ConRep.dummyInfo)
-    val primINT_MAX	= LABEL(Mangle.NAME "RML_PRIM_INT_MAX", ConRep.dummyLongIdent, ConRep.dummyInfo)
-    val primINT_MIN	= LABEL(Mangle.NAME "RML_PRIM_INT_MIN", ConRep.dummyLongIdent, ConRep.dummyInfo)
-    val primINT_LT	= LABEL(Mangle.NAME "RML_PRIM_INT_LT", ConRep.dummyLongIdent, ConRep.dummyInfo)
-    val primINT_LE	= LABEL(Mangle.NAME "RML_PRIM_INT_LE", ConRep.dummyLongIdent, ConRep.dummyInfo)
-    val primINT_EQ	= LABEL(Mangle.NAME "RML_PRIM_INT_EQ", ConRep.dummyLongIdent, ConRep.dummyInfo)
-    val primINT_NE	= LABEL(Mangle.NAME "RML_PRIM_INT_NE", ConRep.dummyLongIdent, ConRep.dummyInfo)
-    val primINT_GE	= LABEL(Mangle.NAME "RML_PRIM_INT_GE", ConRep.dummyLongIdent, ConRep.dummyInfo)
-    val primINT_GT	= LABEL(Mangle.NAME "RML_PRIM_INT_GT", ConRep.dummyLongIdent, ConRep.dummyInfo)
-
+    
+    val primBOOL_NOT = LABEL(Mangle.NAME "RML_PRIM_BOOL_NOT", ConRep.dummyLongIdent, ConRep.dummyInfo)
+    val primINT_NEG  = LABEL(Mangle.NAME "RML_PRIM_INT_NEG", ConRep.dummyLongIdent, ConRep.dummyInfo)
+    val primINT_ABS  = LABEL(Mangle.NAME "RML_PRIM_INT_ABS", ConRep.dummyLongIdent, ConRep.dummyInfo)
+    
+    val primBOOL_AND = LABEL(Mangle.NAME "RML_PRIM_BOOL_AND", ConRep.dummyLongIdent, ConRep.dummyInfo)
+    val primBOOL_OR  = LABEL(Mangle.NAME "RML_PRIM_BOOL_OR", ConRep.dummyLongIdent, ConRep.dummyInfo)
+    val primBOOL_EQ  = LABEL(Mangle.NAME "RML_PRIM_BOOL_EQ", ConRep.dummyLongIdent, ConRep.dummyInfo)
+    
+    val primCHAR_EQ  = LABEL(Mangle.NAME "RML_PRIM_CHAR_EQ", ConRep.dummyLongIdent, ConRep.dummyInfo)
+    
+    val primINT_ADD  = LABEL(Mangle.NAME "RML_PRIM_INT_ADD", ConRep.dummyLongIdent, ConRep.dummyInfo)
+    val primINT_SUB  = LABEL(Mangle.NAME "RML_PRIM_INT_SUB", ConRep.dummyLongIdent, ConRep.dummyInfo)
+    val primINT_MUL  = LABEL(Mangle.NAME "RML_PRIM_INT_MUL", ConRep.dummyLongIdent, ConRep.dummyInfo)
+    val primINT_DIV  = LABEL(Mangle.NAME "RML_PRIM_INT_DIV", ConRep.dummyLongIdent, ConRep.dummyInfo)
+    val primINT_MOD  = LABEL(Mangle.NAME "RML_PRIM_INT_MOD", ConRep.dummyLongIdent, ConRep.dummyInfo)
+    val primINT_MAX  = LABEL(Mangle.NAME "RML_PRIM_INT_MAX", ConRep.dummyLongIdent, ConRep.dummyInfo)
+    val primINT_MIN  = LABEL(Mangle.NAME "RML_PRIM_INT_MIN", ConRep.dummyLongIdent, ConRep.dummyInfo)
+    val primINT_LT   = LABEL(Mangle.NAME "RML_PRIM_INT_LT", ConRep.dummyLongIdent, ConRep.dummyInfo)
+    val primINT_LE   = LABEL(Mangle.NAME "RML_PRIM_INT_LE", ConRep.dummyLongIdent, ConRep.dummyInfo)
+    val primINT_NE   = LABEL(Mangle.NAME "RML_PRIM_INT_NE", ConRep.dummyLongIdent, ConRep.dummyInfo)
+    val primINT_GE   = LABEL(Mangle.NAME "RML_PRIM_INT_GE", ConRep.dummyLongIdent, ConRep.dummyInfo)
+    val primINT_GT   = LABEL(Mangle.NAME "RML_PRIM_INT_GT", ConRep.dummyLongIdent, ConRep.dummyInfo)
+    val primINT_EQ   = LABEL(Mangle.NAME "RML_PRIM_INT_EQ", ConRep.dummyLongIdent, ConRep.dummyInfo)
+    
+    val primREAL_EQ  = LABEL(Mangle.NAME "RML_PRIM_REAL_EQ", ConRep.dummyLongIdent, ConRep.dummyInfo)
+    
+    val primSTRING_EQ  = LABEL(Mangle.NAME "RML_PRIM_STRING_EQ", ConRep.dummyLongIdent, ConRep.dummyInfo)
+    
   end (* functor SwitchFn *)

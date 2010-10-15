@@ -24,10 +24,11 @@ functor TyFcnFn(structure Util : UTIL
        * The only requirement on mkeqty is that it return types
        * tau for who Ty.admitsEq(tau, true) returns true.
        *)
-      let fun mkeqty _ = Ty.VAR(Ty.RIGID "'a")
-	  val ty = TyComb.apply(comb, List.tabulate(ary, mkeqty))
-      in
-	   Ty.admitsEq(ty, true)
-      end
+    let 
+      fun mkeqty _ = Ty.VAR(Ty.RIGID "'a", NONE)
+	    val ty = TyComb.apply(comb, List.tabulate(ary, mkeqty))
+    in
+	    Ty.admitsEq(ty, true)
+    end
 
   end (* functor TyFcnFn *)

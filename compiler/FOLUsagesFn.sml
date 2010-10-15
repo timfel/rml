@@ -1,8 +1,8 @@
 (* fol/fol-usages.sml *)
 
 functor FOLUsagesFn(structure Util : UTIL
-		    structure FOL : FOL
-		      ) : FOL_USAGES =
+            structure FOL : FOL
+              ) : FOL_USAGES =
   struct
 
     structure FOL = FOL
@@ -10,13 +10,13 @@ functor FOLUsagesFn(structure Util : UTIL
     fun zapVar var =
       let val FOL.VAR({uses,...}, _) = FOL.deref var
       in
-		uses := 0
+            uses := 0
       end
 
     fun incVar var =
       let val FOL.VAR({uses,...}, _) = FOL.deref var
       in
-		uses := !uses + 1
+            uses := !uses + 1
       end
 
     fun doPat'(FOL.STRUCTpat(_, pats)) = List.app doPat pats
@@ -33,13 +33,13 @@ functor FOLUsagesFn(structure Util : UTIL
     fun doMRule(var, pat) = (incVar var; doPat pat)
 
     fun doConj(FOL.CALL(vref, exps, vars, _)) =
-	  (doVarRef vref; List.app doExp exps; List.app zapVar vars)
+      (doVarRef vref; List.app doExp exps; List.app zapVar vars)
       | doConj(FOL.MATCH(mrules, _)) = List.app doMRule mrules
       | doConj(FOL.EQUAL(var, exp, _)) = (doExp exp; incVar var)
       | doConj(FOL.BIND(var, exp, _)) = (doExp exp; zapVar var)
       | doConj(FOL.NOT(conj, _)) = doConj conj
       | doConj(FOL.AND(c1, c2, _)) = (doConj c1; doConj c2)
-      | doConj(FOL.IF(c1, c2, c3, _)) = (doConj c1; doConj c2; doConj c3)
+      | doConj(FOL.IF(var, c2, c3, _)) = (incVar var; doConj c2; doConj c3)
 
     fun doDisj(FOL.RETURN(exps, _)) = List.app doExp exps
       | doDisj(FOL.FAIL(_)) = ()
@@ -47,7 +47,7 @@ functor FOLUsagesFn(structure Util : UTIL
       | doDisj(FOL.ANDTHEN(c1, d2, _)) = (doConj c1; doDisj d2)
       | doDisj(FOL.COND(c1, d2, d3, _)) = (doConj c1; doDisj d2; doDisj d3)
       | doDisj(FOL.CASE(vars, cases, _)) =
-	  (List.app incVar vars; List.app doCase cases)
+           (List.app incVar vars; List.app doCase cases)
 
     and doCase(pats, disj) = (List.app doPat pats; doDisj disj)
 

@@ -135,6 +135,7 @@ structure LexUtil : LEXUTIL =
 	    | echar #"a" = #"\a"
 	    | echar #"b" = #"\b"
 	    | echar #"v" = #"\v"
+      | echar #"'" = #"'"
 	    | echar c = c	(* #"\\" and #"\"" *)
 	  fun cntrl c = Char.chr((Char.ord c - 64) mod 128)
 	  val c = String.sub(s,i)

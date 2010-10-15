@@ -139,8 +139,9 @@ let
 	  end
 
     (* translate a CPS variable to a local Code variable *)
+	fun mkID(name) = CPS.mkID(name)
 
-    fun new_lvar() = Code.LVAR{tag=Util.tick(), name=CPS.dummyLongIdent}
+    fun new_lvar(name) = Code.LVAR{ tag=Util.tick(), name=mkID(name) }
     fun trans_lvar(CPS.VAR{tag,name,...}) = Code.LVAR{tag=tag, name=name}
     fun trans_var var = Code.LOCvar(trans_lvar var)
 
@@ -235,28 +236,32 @@ let
 			   | CPS.INT_ABS	=> call Code.primINT_ABS
 		  end
 
-    fun trans_binary(CPS.EQUAL)		= Code.primEQUAL
-      | trans_binary(CPS.BOOL_AND)	= Code.primBOOL_AND
-      | trans_binary(CPS.BOOL_OR)	= Code.primBOOL_OR
-      | trans_binary(CPS.INT_ADD)	= Code.primINT_ADD
-      | trans_binary(CPS.INT_SUB)	= Code.primINT_SUB
-      | trans_binary(CPS.INT_MUL)	= Code.primINT_MUL
-      | trans_binary(CPS.INT_DIV)	= Code.primINT_DIV
-      | trans_binary(CPS.INT_MOD)	= Code.primINT_MOD
-      | trans_binary(CPS.INT_MAX)	= Code.primINT_MAX
-      | trans_binary(CPS.INT_MIN)	= Code.primINT_MIN
-      | trans_binary(CPS.INT_LT)	= Code.primINT_LT
-      | trans_binary(CPS.INT_LE)	= Code.primINT_LE
-      | trans_binary(CPS.INT_EQ)	= Code.primINT_EQ
-      | trans_binary(CPS.INT_NE)	= Code.primINT_NE
-      | trans_binary(CPS.INT_GE)	= Code.primINT_GE
-      | trans_binary(CPS.INT_GT)	= Code.primINT_GT
+    fun trans_binary(CPS.EQUAL)     = Code.primEQUAL
+      | trans_binary(CPS.BOOL_AND)  = Code.primBOOL_AND
+      | trans_binary(CPS.BOOL_OR)   = Code.primBOOL_OR
+      | trans_binary(CPS.BOOL_EQ)   = Code.primBOOL_EQ
+      | trans_binary(CPS.CHAR_EQ)   = Code.primCHAR_EQ
+      | trans_binary(CPS.INT_ADD)   = Code.primINT_ADD
+      | trans_binary(CPS.INT_SUB)   = Code.primINT_SUB
+      | trans_binary(CPS.INT_MUL)   = Code.primINT_MUL
+      | trans_binary(CPS.INT_DIV)   = Code.primINT_DIV
+      | trans_binary(CPS.INT_MOD)   = Code.primINT_MOD
+      | trans_binary(CPS.INT_MAX)   = Code.primINT_MAX
+      | trans_binary(CPS.INT_MIN)   = Code.primINT_MIN
+      | trans_binary(CPS.INT_LT)    = Code.primINT_LT
+      | trans_binary(CPS.INT_LE)    = Code.primINT_LE
+      | trans_binary(CPS.INT_EQ)    = Code.primINT_EQ
+      | trans_binary(CPS.INT_NE)    = Code.primINT_NE
+      | trans_binary(CPS.INT_GE)    = Code.primINT_GE
+      | trans_binary(CPS.INT_GT)    = Code.primINT_GT
+      | trans_binary(CPS.REAL_EQ)   = Code.primREAL_EQ
+      | trans_binary(CPS.STRING_EQ) = Code.primSTRING_EQ
 
     (* translate a CPS.Constant to a Code.CaseTag *)
-    fun trans_casetag(CPS.INTcon i)			= Code.INTct i
-      | trans_casetag(CPS.HDRcon{len,con})	= Code.HDRct{len=len,con=con}
-      | trans_casetag(CPS.REALcon r)		= Code.REALct r
-      | trans_casetag(CPS.STRINGcon s)		= Code.STRINGct s
+    fun trans_casetag(CPS.INTcon i)         = Code.INTct i
+      | trans_casetag(CPS.HDRcon{len,con})  = Code.HDRct{len=len,con=con}
+      | trans_casetag(CPS.REALcon r)        = Code.REALct r
+      | trans_casetag(CPS.STRINGcon s)      = Code.STRINGct s
 
     (* bind outgoing arguments *)
     fun bind_args(vars, args, code) =
@@ -277,11 +282,11 @@ let
 			  let val lab = mkShortLabel((lk2name(kind,CPS.longIdentName name)) ^ (MakeString.icvt tag), name, pos)
 			  and nfvars = length (!fvars)
 			  and formals = lk2formals kind
-			  and varHP = new_lvar()
-			  and varSP = trans_var(CPS.newVar(CPS.dummyLongIdent))
+			  and varHP = new_lvar("HP")
+			  and varSP = trans_var(CPS.newVar(mkID("SP")))
 			  val offSP = offSP - nfvars - 1
 			  val valKont = Code.OFFSET(valSP, offSP)
-			  val varAP = trans_var(CPS.newVar(CPS.dummyLongIdent))
+			  val varAP = trans_var(CPS.newVar(mkID("AP")))
 			  in
 				push_labdef(
 					false, lab, varHP, size_exp body, length formals,
@@ -383,8 +388,8 @@ let
 											Code.mkGOTO(Code.VALUEg val_pv', List.length val_args', name, pos, Code.NClk))))))
 					  )))
 		 | CPS.LetLABe(CPS.LAB{tag, fvars, bvars, body, name, pos, ...}, exp)	=>
-			let val varHP = new_lvar()
-			and varSP = trans_var(CPS.newVar(CPS.dummyLongIdent))
+			let val varHP = new_lvar("HP")
+			and varSP = trans_var(CPS.newVar(mkID("SP")))
 			and formals = !fvars @ bvars
 			and lab = mkShortLabel((CPS.longIdentName name)^"_label"^(MakeString.icvt tag), name, pos)
 			in
@@ -457,8 +462,8 @@ let
 		warnAt(pos, "unused function: "^(trans_longid name)^".")
       )
       else
-		let val varHP = new_lvar()
-			and varSP = trans_var(CPS.newVar(CPS.dummyLongIdent))
+		let val varHP = new_lvar("HP")
+			and varSP = trans_var(CPS.newVar(mkID("SP")))
 			and lab = Code.mklab(trans_longid name, name, pos)
 		in
 		  push_labdef(
