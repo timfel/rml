@@ -4,7 +4,7 @@
  * It implements the Relational Meta-Language (RML) and MetaModelica
  * http://www.ida.liu.se/~pelab/rml
  * 
- * Copyright (c) 1998-2008, Linköpings University,
+ * Copyright (c) 1998-2010, Linköpings University,
  * Department of Computer and Information Science, 
  * SE-58183 Linköping, Sweden. 
  * 
@@ -117,6 +117,8 @@
 #define RML_HDRSLOTS(hdr)	((hdr) >> 10)
 #define RML_HDRHASPTRS(hdr)	(!((hdr) & 1))
 #define RML_HDRISFORWARD(hdr)	(((hdr) & 3) == 3)
+#define RML_NONEHDR		RML_STRUCTHDR(0,0)
+#define RML_SOMEHDR		RML_STRUCTHDR(1,1)
 
 /*
  * Node layout and access macros
@@ -141,6 +143,7 @@ struct rml_string {
     char data[1];	/* `bytes' elements + terminating '\0' */
 };
 #define RML_STRINGDATA(x) (((struct rml_string*)RML_UNTAGPTR(x))->data)
+#define RML_STRINGDATA_NO_TAG(x) (((struct rml_string*)x)->data)
 
 #define RML_DEFSTRINGLIT(NAME,LEN,VAL)	\
     struct {				\
@@ -156,6 +159,7 @@ struct rml_real {
     rml_uint_t data[RML_SIZE_DBL/RML_SIZE_INT];
 };
 #define RML_REALDATA(x) (((struct rml_real*)RML_UNTAGPTR(x))->data)
+#define RML_REALDATA_NO_TAG(x) (((struct rml_real*)x)->data)
 
 #ifdef	RML_DBL_PAD
 struct rml_real_lit {	/* there must be no padding between `header' and `data' */
@@ -228,6 +232,7 @@ extern unsigned long rml_call_count;
 extern char          rml_flag_no_stack_check;
 extern char          rml_debug_enabled;
 extern char          rml_trace_enabled;
+extern char          rml_string_sharing;
 
 /* adrpo added: look into p-gccore.c for more */
 /* the young region */
@@ -264,30 +269,6 @@ extern unsigned long rml_trail_size;
 extern void         *rml_array_trail[];
 extern unsigned long rml_array_trail_size;
 
-/* functions for Foreign Function Interface (FFI) */
-extern void *mk_bcon(double);
-extern void *mk_icon(int);
-extern void *mk_rcon(double);
-extern void *mk_scon(char*);
-extern void *mk_nil(void);
-extern void *mk_cons(void*, void*);
-extern void *mk_none(void);
-extern void *mk_some(void*);
-extern void *mk_box0(unsigned ctor);
-extern void *mk_box1(unsigned ctor, void*);
-extern void *mk_box2(unsigned ctor, void*, void*);
-extern void *mk_box3(unsigned ctor, void*, void*, void*);
-extern void *mk_box4(unsigned ctor, void*, void*, void*, void*);
-extern void *mk_box5(unsigned ctor, void*, void*, void*, void*, void*);
-extern void *mk_box6(unsigned ctor, void*, void*, void*, void*, void*, void*);
-extern void *mk_box7(unsigned ctor, void*, void*, void*, void*, void *,
-         void*, void*);
-extern void *mk_box8(unsigned ctor, void*, void*, void*, void*, void *,
-         void*, void*, void*);
-extern void *mk_box9(unsigned ctor, void*, void*, void*, void*, void *,
-         void*, void*, void*, void*);
-
-
 #ifdef	RML_MORE_LOGGING
 extern const char *rml_latest_module;
 extern unsigned char rml_latest_known;
@@ -302,7 +283,6 @@ extern void *rml_prim_mkreal(double);
 
 /* adrpo added 2004-11-03 */
 extern void rml_show_status(void);
-
 
 /*
  * Module init stuff
@@ -331,7 +311,13 @@ extern void *rml_prim_alloc(rml_uint_t, rml_uint_t);
  * These could have the same names in ANSI-C, but alas not
  * in some not-quite ANSI-C compilers.
  */
+/* one time structures and addresses for nil and none */
 extern const struct rml_header rml_prim_nil;
+extern void* rml_prim_nil_tagged;
+
+extern const struct rml_header rml_prim_none;
+extern void* rml_prim_none_tagged;
+
 #define rml_prim_marker()	((void*)(rmlTP))
 extern rml_sint_t rml_prim_stringeq(void*, rml_uint_t, const char*);
 extern void *rml_prim_equal(void*, void*);
@@ -342,25 +328,38 @@ extern void  rml_prim_unwind_(void**);
  * Primitive operations for inlinable primitive procedures.
  * Preconditions like division by zero are supposed to have been checked.
  */
-#define RML_PRIM_MKBOOL(FLAG)	((FLAG) ? RML_TRUE : RML_FALSE)
-#define RML_PRIM_BOOL_NOT(X)	RML_PRIM_MKBOOL(((X) == RML_FALSE))
-#define RML_PRIM_INT_NEG(X)	RML_FIXNUM_NEG((X))
-#define RML_PRIM_INT_ABS(X)	(RML_FIXNUM_LT((X),RML_IMMEDIATE(RML_TAGFIXNUM(0))) ? RML_FIXNUM_NEG((X)) : (X))
-#define RML_PRIM_BOOL_AND(X,Y)	RML_FIXNUM_AND((X),(Y))
-#define RML_PRIM_BOOL_OR(X,Y)	RML_FIXNUM_OR((X),(Y))
-#define RML_PRIM_INT_ADD(X,Y)	RML_FIXNUM_ADD((X),(Y))
-#define RML_PRIM_INT_SUB(X,Y)	RML_FIXNUM_SUB((X),(Y))
-#define RML_PRIM_INT_MUL(X,Y)	RML_FIXNUM_MUL((X),(Y))
-#define RML_PRIM_INT_DIV(X,Y)	RML_FIXNUM_DIV((X),(Y))
-#define RML_PRIM_INT_MOD(X,Y)	RML_FIXNUM_MOD((X),(Y))
-#define RML_PRIM_INT_MAX(X,Y)	(RML_FIXNUM_GE((X),(Y)) ? (X) : (Y))
-#define RML_PRIM_INT_MIN(X,Y)	(RML_FIXNUM_LE((X),(Y)) ? (X) : (Y))
-#define RML_PRIM_INT_LT(X,Y)	RML_PRIM_MKBOOL(RML_FIXNUM_LT((X),(Y)))
-#define RML_PRIM_INT_LE(X,Y)	RML_PRIM_MKBOOL(RML_FIXNUM_LE((X),(Y)))
-#define RML_PRIM_INT_EQ(X,Y)	RML_PRIM_MKBOOL(RML_FIXNUM_EQ((X),(Y)))
-#define RML_PRIM_INT_NE(X,Y)	RML_PRIM_MKBOOL(RML_FIXNUM_NE((X),(Y)))
-#define RML_PRIM_INT_GE(X,Y)	RML_PRIM_MKBOOL(RML_FIXNUM_GE((X),(Y)))
-#define RML_PRIM_INT_GT(X,Y)	RML_PRIM_MKBOOL(RML_FIXNUM_GT((X),(Y)))
+#define RML_PRIM_MKBOOL(FLAG)   ((FLAG) ? RML_TRUE : RML_FALSE)
+
+#define RML_PRIM_BOOL_NOT(X)    RML_PRIM_MKBOOL(((X) == RML_FALSE))
+#define RML_PRIM_BOOL_AND(X,Y)  RML_FIXNUM_AND((X),(Y))
+#define RML_PRIM_BOOL_OR(X,Y)   RML_FIXNUM_OR((X),(Y))
+#define RML_PRIM_BOOL_EQ(X,Y)   RML_PRIM_MKBOOL(RML_FIXNUM_EQ((X),(Y)))
+
+#define RML_PRIM_INT_NEG(X)     RML_FIXNUM_NEG((X))
+#define RML_PRIM_INT_ABS(X)     (RML_FIXNUM_LT((X),RML_IMMEDIATE(RML_TAGFIXNUM(0))) ? RML_FIXNUM_NEG((X)) : (X))
+
+#define RML_PRIM_INT_ADD(X,Y)   RML_FIXNUM_ADD((X),(Y))
+#define RML_PRIM_INT_SUB(X,Y)   RML_FIXNUM_SUB((X),(Y))
+#define RML_PRIM_INT_MUL(X,Y)   RML_FIXNUM_MUL((X),(Y))
+#define RML_PRIM_INT_DIV(X,Y)   RML_FIXNUM_DIV((X),(Y))
+#define RML_PRIM_INT_MOD(X,Y)   RML_FIXNUM_MOD((X),(Y))
+#define RML_PRIM_INT_MAX(X,Y)   (RML_FIXNUM_GE((X),(Y)) ? (X) : (Y))
+#define RML_PRIM_INT_MIN(X,Y)   (RML_FIXNUM_LE((X),(Y)) ? (X) : (Y))
+#define RML_PRIM_INT_LT(X,Y)    RML_PRIM_MKBOOL(RML_FIXNUM_LT((X),(Y)))
+#define RML_PRIM_INT_LE(X,Y)    RML_PRIM_MKBOOL(RML_FIXNUM_LE((X),(Y)))
+#define RML_PRIM_INT_NE(X,Y)    RML_PRIM_MKBOOL(RML_FIXNUM_NE((X),(Y)))
+#define RML_PRIM_INT_GE(X,Y)    RML_PRIM_MKBOOL(RML_FIXNUM_GE((X),(Y)))
+#define RML_PRIM_INT_GT(X,Y)    RML_PRIM_MKBOOL(RML_FIXNUM_GT((X),(Y)))
+#define RML_PRIM_INT_EQ(X,Y)    RML_PRIM_MKBOOL(RML_FIXNUM_EQ((X),(Y)))
+
+/* comparison based first on pointer equality, then on the actual data
+#define RML_PRIM_REAL_EQ(X,Y)   RML_PRIM_MKBOOL(((X) == (Y))?1:(rml_prim_get_real(X)==rml_prim_get_real(Y)))
+#define RML_PRIM_STRING_EQ(X,Y) RML_PRIM_MKBOOL(((X) == (Y))?1:(strcmp(RML_STRINGDATA(X), RML_STRINGDATA(Y))==0))
+*/
+/* comparison based on actual data */
+#define RML_PRIM_REAL_EQ(X,Y)   RML_PRIM_MKBOOL(rml_prim_get_real(X)==rml_prim_get_real(Y))
+#define RML_PRIM_STRING_EQ(X,Y) RML_PRIM_MKBOOL(((X) == (Y))?1:(strcmp(RML_STRINGDATA(X), RML_STRINGDATA(Y))==0))
+
 
 /*
  * Handling of external (user) roots.
@@ -550,3 +549,40 @@ extern rml_uint_t rml_nrArgs;
 
 
 #endif	/*RML_STATE_JOIN*/
+
+/* functions/defines for Foreign Function Interface (FFI) */
+
+/* boxes up to 9 */
+extern void *mk_box0(unsigned ctor);
+extern void *mk_box1(unsigned ctor, void*);
+extern void *mk_box2(unsigned ctor, void*, void*);
+extern void *mk_box3(unsigned ctor, void*, void*, void*);
+extern void *mk_box4(unsigned ctor, void*, void*, void*, void*);
+extern void *mk_box5(unsigned ctor, void*, void*, void*, void*, void*);
+extern void *mk_box6(unsigned ctor, void*, void*, void*, void*, void*, void*);
+extern void *mk_box7(unsigned ctor, void*, void*, void*, void*, void*, void*, void*);
+extern void *mk_box8(unsigned ctor, void*, void*, void*, void*, void*, void*, void*, void*);
+extern void *mk_box9(unsigned ctor, void*, void*, void*, void*, void*, void*, void*, void*, void*);
+
+/* booleans */
+#define		mk_bcon(X)			(X) ? RML_TRUE : RML_FALSE
+
+/* integers */
+#define		mk_icon(X)			RML_IMMEDIATE(RML_TAGFIXNUM((rml_sint_t)X))
+
+/* reals */
+extern void *mk_rcon(double);
+
+/* strings */
+extern void *mk_scon(const char*);
+extern void *mk_scon_no_string_sharing(const char *s);
+extern void *mk_scon_string_sharing(const char *s);
+
+/* lists */
+#define		mk_cons(CAR, CDR)	mk_box2(1, CAR, CDR)
+#define		mk_nil()			rml_prim_nil_tagged
+
+/* options */
+#define		mk_some(X)			mk_box1(1, X)
+#define		mk_none()			rml_prim_none_tagged
+
