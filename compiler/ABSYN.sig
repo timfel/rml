@@ -49,7 +49,7 @@ signature ABSYN =
 				  | LETgoal of pat * exp * info
 				  | NOTgoal of goal * info
 				  | ANDgoal of goal * goal * info
-				  | CONDgoal of goal * goal * goal * info				  
+				  | IFgoal of exp * goal * goal * info
 
     datatype result	= RETURN of exp list * info
 					| FAIL of info
@@ -77,8 +77,9 @@ signature ABSYN =
                                * pat list ref 
                                * (ident * ty option * exp option * attr) list (* list of variables and their type *)
                                * info
-					| CLAUSE2 of clause * clause * info 
-
+					| CLAUSE2 of clause * clause * info (* mathcontinue *)
+					| CLAUSE3 of clause * clause * info (* match *)
+					
     datatype conbind = CONcb of ident * info
 					 | CTORcb of ident * ty list * info
 

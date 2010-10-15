@@ -276,14 +276,14 @@ functor AbsynPersistFn(structure MakeString : MAKESTRING
 	   prSC(os); 
 	   prInfo(os, info); 
 	   prPR(os))
-      | print_goal(os, Absyn.CONDgoal(g1, g2, g3, info)) =
+      | print_goal(os, Absyn.IFgoal(exp, thenGoal, elseGoal, info)) =
 	  (
 	   prHD(os,"$Ig(");
-	   print_goal(os, g1); 
+	   print_exp(os, exp);
 	   prSC(os);
-	   print_goal(os, g2); 
+	   print_goal(os, thenGoal); 
 	   prSC(os); 
-	   print_goal(os, g3); 
+	   print_goal(os, elseGoal); 
 	   prSC(os); 
 	   prInfo(os, info); 
 	   prPR(os))
@@ -356,6 +356,16 @@ functor AbsynPersistFn(structure MakeString : MAKESTRING
 	   prSC(os); 	   
 	   prInfo(os, info); 
 	   prPR(os))
+      | print_clause(os, Absyn.CLAUSE3(cl1, cl2, info)) =
+	  (
+	   prHD(os,"$C3(");  
+	   print_clause(os, cl1);
+	   prSC(os); 
+	   print_clause(os, cl2);
+	   prSC(os); 	   
+	   prInfo(os, info); 
+	   prPR(os))
+
 
     fun print_conbind(os, Absyn.CONcb(id, info)) = 
        (

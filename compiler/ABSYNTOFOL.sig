@@ -3,9 +3,9 @@
 signature ABSYNTOFOL =
   sig
   
-    structure Absyn	: ABSYN
-    structure FOL	: FOL
-
-    val translate	: Absyn.module -> FOL.module
+    structure Absyn   : ABSYN
+    structure FOL     : FOL
+    
+    val translate     : Absyn.module -> FOL.module
 
   end (* signature ABSYNTOFOL *)

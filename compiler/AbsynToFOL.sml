@@ -5,4 +5,5 @@ structure AbsynToFOL =
 	       structure Util = Util      
 	       structure Absyn = Absyn
 	       structure FOL = FOL
-	       structure Instrument = Instrument);
+	       structure Instrument = Instrument
+	       structure Control = Control);

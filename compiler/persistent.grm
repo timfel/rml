@@ -77,11 +77,12 @@ end
 	|	LETgoal
 	|	NOTgoal
 	|	ANDgoal
-	|	CONDgoal	
+	|	IFgoal	
 	|	RETURN
 	|	FAIL			
 	|	CLAUSE1
 	|	CLAUSE2
+	|	CLAUSE3
 	|	CONcb
 	|	CTORcb
 	|	DATBIND
@@ -141,11 +142,12 @@ end
   LETgoal
   NOTgoal
   ANDgoal
-  CONDgoal
+  IFgoal
   RETURN
   FAIL
   CLAUSE1
   CLAUSE2
+  CLAUSE3
   CONcb
   CTORcb
   DATBIND
@@ -530,6 +532,8 @@ clause_plus
 		( clause )
 	| CLAUSE2 LPAR clause SEMICOLON clause_plus SEMICOLON info RPAR
 		( Absyn.CLAUSE2(clause, clause_plus, info) )
+	| CLAUSE3 LPAR clause SEMICOLON clause_plus SEMICOLON info RPAR
+		( Absyn.CLAUSE3(clause, clause_plus, info) )
 
 attributes
 	: ICON  
@@ -588,8 +592,8 @@ goal
 		( Absyn.NOTgoal(goal, info) )	
 	| ANDgoal LPAR goal SEMICOLON goal SEMICOLON info RPAR
 		( Absyn.ANDgoal(goal1, goal2, info) )
-	| CONDgoal LPAR goal SEMICOLON goal SEMICOLON goal SEMICOLON info RPAR
-		( Absyn.CONDgoal(goal1, goal2, goal3, info) )
+	| IFgoal LPAR exp SEMICOLON goal SEMICOLON goal SEMICOLON info RPAR
+		( Absyn.IFgoal(exp, goal1, goal2, info) )
 
 (* EXPRESSIONS *)
 exp	(* expressions possibly starting with LPAREN *)
