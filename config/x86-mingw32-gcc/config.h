@@ -7,6 +7,7 @@ typedef unsigned int rml_uint_t;
 #define RML_SIZE_INT 4
 #define RML_SIZE_DBL 8
 #define RML_DBL_PAD
+#define RML_DBL_STRICT /* conservative assumption */
 /* end of repchk-generated section */
 
 #define	RML_CLOCK_ANSIC
