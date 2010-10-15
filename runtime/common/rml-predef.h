@@ -16,11 +16,12 @@ extern void rmldb_var_print(void *p);
 extern RML_FORWARD_LABEL(RML__bool_5fand);
 extern RML_FORWARD_LABEL(RML__bool_5fnot);
 extern RML_FORWARD_LABEL(RML__bool_5for);
-   /* java named */
+extern RML_FORWARD_LABEL(RML__bool_5feq);
+/* java named */
 #define RML__boolAnd RML__bool_5fand
 #define RML__boolNot RML__bool_5fnot
 #define RML__boolOr RML__bool_5for
-
+#define RML__boolEq RML__bool_5feq
 
 /* chars */
 extern RML_FORWARD_LABEL(RML__int_5fint);
@@ -34,7 +35,7 @@ extern RML_FORWARD_LABEL(RML__string_5fequal);
 extern RML_FORWARD_LABEL(RML__string_5fcompare);
 #define RML__char_5fint	RML__int_5fint
 #define RML__int_5fchar	RML__int_5fint
-   /* java named */
+/* java named */
 #define RML__intChar        RML__int_5fint
 #define RML__charInt        RML__int_5fint
 #define RML__listString     RML__list_5fstring
@@ -45,6 +46,8 @@ extern RML_FORWARD_LABEL(RML__string_5fcompare);
 #define RML__stringUpdate   RML__string_5fupdate
 #define RML__stringEqual    RML__string_5fequal
 #define RML__stringCompare  RML__string_5fcompare
+#define RML__stringEq       RML__string_5fequal
+#define RML__string_5feq    RML__string_5fequal
 
 /* string chars */
 extern RML_FORWARD_LABEL(RML__string_5fchar_5fint);
@@ -55,6 +58,7 @@ extern RML_FORWARD_LABEL(RML__string_5fnth_5fstring_5fchar);
 extern RML_FORWARD_LABEL(RML__string_5fget_5fstring_5fchar);
 extern RML_FORWARD_LABEL(RML__string_5fsetnth_5fstring_5fchar);
 extern RML_FORWARD_LABEL(RML__string_5fupdate_5fstring_5fchar);
+extern RML_FORWARD_LABEL(RML__string_5fchar_5flist_5fstring);
    /* java named */
 #define RML__stringCharInt           RML__string_5fchar_5fint
 #define RML__intStringChar           RML__int_5fstring_5fchar
@@ -64,6 +68,7 @@ extern RML_FORWARD_LABEL(RML__string_5fupdate_5fstring_5fchar);
 #define RML__stringGetStringChar     RML__string_5fget_5fstring_5fchar
 #define RML__stringSetNthStringChar  RML__string_5fsetnth_5fstring_5fchar
 #define RML__stringUpdateStringChar  RML__string_5fupdate_5fstring_5fchar
+#define RML__stringCharListString    RML__string_5fchar_5flist_5fstring
 
 extern RML_FORWARD_LABEL(RML__int_5fabs);
 extern RML_FORWARD_LABEL(RML__int_5fadd);
