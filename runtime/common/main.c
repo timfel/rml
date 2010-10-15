@@ -17,6 +17,8 @@ void rml_show_help(char *program, FILE* file)
   fprintf(file, "-no-stack-check        instructs the runtime no to check for stack overflow\n");
   fprintf(file, "-stack-size=<size>     instructs the runtime to alloc a stack of specified size\n");
   fprintf(file, "-young-size=<size>     instructs the runtime to alloc a young size of specified size\n");
+  fprintf(file, "-string-sharing        instructs the runtime to enable string sharing\n");
+  fprintf(file, "-no-string-sharing     instructs the runtime to disable string sharing (default)\n");
   fprintf(file, "*************************** TRACING COMMANDS *************************\n");
   fprintf(file, "-trace                 prints all the function names during execution; default to 'no'; NOTE: compiled with -ftrace\n");
   fprintf(file, "-no-trace              disable printing of all the function names; default to 'yes'; NOTE: compiled with -ftrace\n");
@@ -27,7 +29,7 @@ void rml_show_help(char *program, FILE* file)
   fprintf(file, "-dbgEventPort=<port>   open the server localhost:EventPort and send async events the client\n");
   fprintf(file, "-dbgSignalPort=<port>  open the server localhost:SignalPort and listen to ansync events from the client\n");  
   fprintf(file, "-dbgSocket             debug the socket communication.\n");
-	fprintf(file, "-debugAll              dumps all the calls and the values of variables to standard output; NOTE: can be extremly large\n");
+  fprintf(file, "-debugAll              dumps all the calls and the values of variables to standard output; NOTE: can be extremly large\n");
   fprintf(file, "-help                  prints the help and exits\n");
 }
 
@@ -187,6 +189,12 @@ int main(int argc, char **argv)
       continue;
     } else if( strcmp(arg, "no-trace") == 0 ) {
       rml_trace_enabled = 0;
+      continue;
+    } else if( strcmp(arg, "string-sharing") == 0 ) {
+      rml_string_sharing = 1;
+      continue;
+    } else if( strcmp(arg, "no-string-sharing") == 0 ) {
+      rml_string_sharing = 0;
       continue;
     } else if( strcmp(arg, "dbgCalls") == 0 ) {
 #ifdef RML_DEBUG
