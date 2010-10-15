@@ -2,7 +2,7 @@
 # Root Makefile
 #
 SHELL=/bin/sh
-SUBDIRS=compiler etc runtime # examples
+SUBDIRS = compiler etc runtime # examples
 
 default:	config.cache
 	$(MAKE) MAKETARGET=default all-subdirs
@@ -16,7 +16,7 @@ configure:	config.cache
 	$(MAKE) MAKETARGET="-f Make.mk configure" all-subdirs
 
 install:	config.cache
-	$(MAKE) MAKETARGET="install" all-subdirs
+	$(MAKE) MAKETARGET=install all-subdirs
 
 distclean:
 	$(MAKE) MAKETARGET="-f Make.mk distclean" all-subdirs
