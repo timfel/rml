@@ -1,0 +1,253 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{04C021D6-B5F4-421B-B99E-69545E43B5D3}</ProjectGuid>
+    <RootNamespace>RMLruntime</RootNamespace>
+    <Keyword>ManagedCProj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <CLRSupport>OldSyntax</CLRSupport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <CLRSupport>OldSyntax</CLRSupport>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Configuration)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Configuration)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>c:\bin\cygwin\home\adrpo\rml-2.1.11\x86-cygwin-gcc\include\plain; c:\bin\cygwin\home\adrpo\rml-2.1.11\examples\etc\;c:\bin\cygwin\home\adrpo\rml-2.1.11\examples\petro\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>false</MinimalRebuild>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <OutputFile>$(OutDir)$(ProjectName).exe</OutputFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AssemblyDebug>true</AssemblyDebug>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>c:\bin\cygwin\home\adrpo\rml-2.1.11\x86-cygwin-gcc\include\plain; c:\bin\cygwin\home\adrpo\rml-2.1.11\examples\etc\;c:\bin\cygwin\home\adrpo\rml-2.1.11\examples\petro\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>false</MinimalRebuild>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <OutputFile>$(OutDir)$(ProjectName).exe</OutputFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="common\array.c" />
+    <ClCompile Include="common\boolean.c" />
+    <ClCompile Include="common\controlflow.c" />
+    <ClCompile Include="common\integer.c" />
+    <ClCompile Include="common\internal.c" />
+    <ClCompile Include="common\list.c" />
+    <ClCompile Include="common\logicalvar.c" />
+    <ClCompile Include="common\main.c">
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)1.obj</ObjectFileName>
+      <XMLDocumentationFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)1.xdc</XMLDocumentationFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename)1.obj</ObjectFileName>
+      <XMLDocumentationFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename)1.xdc</XMLDocumentationFileName>
+    </ClCompile>
+    <ClCompile Include="common\p-gccore.c" />
+    <ClCompile Include="common\p-gcuser-block.c" />
+    <ClCompile Include="common\p-gcuser-plain.c" />
+    <ClCompile Include="common\p-usergc.c" />
+    <ClCompile Include="common\real.c" />
+    <ClCompile Include="common\string.c" />
+    <ClCompile Include="common\vector.c" />
+    <ClCompile Include="mask\p-mask.c" />
+    <ClCompile Include="debugging\debug.c" />
+    <ClCompile Include="debugging\rml-db-load.c" />
+    <ClCompile Include="debugging\rml-db-parse.c" />
+    <ClCompile Include="debugging\rml-db-scan.c" />
+    <ClCompile Include="debugging\rml-debug.c" />
+    <ClCompile Include="debugging\rml-socket.c" />
+    <ClCompile Include="debugging\rmldb-parse.c" />
+    <ClCompile Include="debugging\rmldb-scan.c" />
+    <ClCompile Include="..\examples\petrol\absyn.c" />
+    <ClCompile Include="..\examples\petrol\fcemit.c" />
+    <ClCompile Include="..\examples\petrol\fcode.c" />
+    <ClCompile Include="..\examples\petrol\flatten.c" />
+    <ClCompile Include="..\examples\petrol\lexer.c" />
+    <ClCompile Include="..\examples\petrol\main.c" />
+    <ClCompile Include="..\examples\petrol\parser.c" />
+    <ClCompile Include="..\examples\petrol\parsutil.c" />
+    <ClCompile Include="..\examples\petrol\static.c" />
+    <ClCompile Include="..\examples\petrol\tcode.c" />
+    <ClCompile Include="..\examples\petrol\types.c" />
+    <ClCompile Include="..\examples\petrol\y.tab.c" />
+    <ClCompile Include="..\examples\etc\ccall.c" />
+    <ClCompile Include="..\examples\etc\yacclib.c" />
+    <ClCompile Include="..\config\tools\gcc.2722.x86.c" />
+    <ClCompile Include="..\config\tools\goto.c" />
+    <ClCompile Include="..\config\tools\pushy.c" />
+    <ClCompile Include="..\config\tools\repchk-mingw.c" />
+    <ClCompile Include="..\config\tools\repchk-vc.c" />
+    <ClCompile Include="..\config\tools\repchk.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="plain\Make.mk" />
+    <None Include="plain\Makefile" />
+    <None Include="diff\Make.mk" />
+    <None Include="diff\Makefile" />
+    <None Include="mask\Make.mk" />
+    <None Include="mask\Makefile" />
+    <None Include="debugging\Make.mk" />
+    <None Include="debugging\Makefile" />
+    <None Include="debugging\rml-db-parse.y" />
+    <None Include="debugging\rml-db-scan.l" />
+    <None Include="debugging\rmldb-parse.y" />
+    <None Include="debugging\rmldb-scan.l" />
+    <None Include="..\examples\petrol\absyn.rml" />
+    <None Include="..\examples\petrol\fcemit.rml" />
+    <None Include="..\examples\petrol\fcode.rml" />
+    <None Include="..\examples\petrol\flatten.rml" />
+    <None Include="..\examples\petrol\main.rml" />
+    <None Include="..\examples\petrol\main.save.rml" />
+    <None Include="..\examples\petrol\parse.rml" />
+    <None Include="..\examples\petrol\static.rml" />
+    <None Include="..\examples\petrol\tcode.rml" />
+    <None Include="..\examples\petrol\types.rml" />
+    <None Include="..\examples\petrol\log.txt" />
+    <None Include="..\examples\petrol\Make.mk" />
+    <None Include="..\examples\petrol\Makefile" />
+    <None Include="..\examples\petrol\parser.y" />
+    <None Include="..\examples\petrol\testd\8q.d" />
+    <None Include="..\examples\petrol\testd\8q.out" />
+    <None Include="..\examples\petrol\testp\a.d" />
+    <None Include="..\examples\petrol\testp\b.d" />
+    <None Include="..\examples\petrol\testd\big.d" />
+    <None Include="..\examples\petrol\testd\cirkel.d" />
+    <None Include="..\examples\petrol\testd\codtest.d" />
+    <None Include="..\examples\petrol\testd\factorial.d" />
+    <None Include="..\examples\petrol\testd\fib.d" />
+    <None Include="..\examples\petrol\testd\lib\math.d" />
+    <None Include="..\examples\petrol\testd\params.d" />
+    <None Include="..\examples\petrol\testd\parstest1.d" />
+    <None Include="..\examples\petrol\testd\qsort.d" />
+    <None Include="..\examples\petrol\testd\quadtest.d" />
+    <None Include="..\examples\petrol\testd\return.d" />
+    <None Include="..\examples\petrol\testd\semtest1.d" />
+    <None Include="..\examples\petrol\testd\sieve.d" />
+    <None Include="..\examples\petrol\testd\lib\stdio.d" />
+    <None Include="..\examples\petrol\testd\stone.d" />
+    <None Include="..\examples\petrol\testd\testmath.d" />
+    <None Include="..\Copyright" />
+    <None Include="..\Makefile" />
+    <None Include="..\x86-cygwin-gcc\bin\rmlc" />
+    <None Include="..\config\x86-cygwin-gcc\variables.mk" />
+    <None Include="..\etc\client.mk" />
+    <None Include="..\etc\config.guess" />
+    <None Include="..\etc\cp-if-change" />
+    <None Include="..\etc\dispatch.mk" />
+    <None Include="..\etc\fakevpath" />
+    <None Include="..\etc\fixlex" />
+    <None Include="..\etc\fixyacc" />
+    <None Include="..\etc\install-sml" />
+    <None Include="..\etc\Make.mk" />
+    <None Include="..\etc\Makefile" />
+    <None Include="..\etc\mkdirhier" />
+    <None Include="..\etc\mktosh" />
+    <None Include="..\etc\runtime.mk" />
+    <None Include="..\etc\skel.rmlc" />
+    <None Include="..\etc\which" />
+    <None Include="Make.mk" />
+    <None Include="Makefile" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="debugging\rml-db-load.h" />
+    <ClInclude Include="debugging\rml-db-parse.h" />
+    <ClInclude Include="debugging\rml-debug.h" />
+    <ClInclude Include="debugging\rml-socket.h" />
+    <ClInclude Include="debugging\rmldb-parse.h" />
+    <ClInclude Include="..\examples\petrol\absyn.h" />
+    <ClInclude Include="..\examples\petrol\fcemit.h" />
+    <ClInclude Include="..\examples\petrol\fcode.h" />
+    <ClInclude Include="..\examples\petrol\flatten.h" />
+    <ClInclude Include="..\examples\petrol\lexer.h" />
+    <ClInclude Include="..\examples\petrol\main.h" />
+    <ClInclude Include="..\examples\petrol\parser.h" />
+    <ClInclude Include="..\examples\petrol\parsutil.h" />
+    <ClInclude Include="..\examples\petrol\petrol.h" />
+    <ClInclude Include="..\examples\petrol\static.h" />
+    <ClInclude Include="..\examples\petrol\tcode.h" />
+    <ClInclude Include="..\examples\petrol\types.h" />
+    <ClInclude Include="..\examples\petrol\y.tab.h" />
+    <ClInclude Include="..\examples\etc\yacclib.h" />
+    <ClInclude Include="common\p-gccore.h" />
+    <ClInclude Include="common\rml-core.h" />
+    <ClInclude Include="common\rml-predef.h" />
+    <ClInclude Include="common\rml-state.h" />
+    <ClInclude Include="common\z-agptr.h" />
+    <ClInclude Include="common\z-joing.h" />
+    <ClInclude Include="common\z-lgptr.h" />
+    <ClInclude Include="common\z-split.h" />
+    <ClInclude Include="plain\rml-labels.h" />
+    <ClInclude Include="plain\rml-select.h" />
+    <ClInclude Include="diff\rml-labels.h" />
+    <ClInclude Include="diff\rml-select.h" />
+    <ClInclude Include="mask\rml-labels.h" />
+    <ClInclude Include="mask\rml-select.h" />
+    <ClInclude Include="..\config\x86-cygwin-gcc\config.h" />
+    <ClInclude Include="..\config\x86-cygwin-gcc\labtab.h" />
+    <ClInclude Include="..\x86-cygwin-gcc\include\plain\rml.h" />
+    <ClInclude Include="..\config\tools\mingw-config.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
