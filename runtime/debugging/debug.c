@@ -87,7 +87,7 @@ typedef struct rmldb_stack_frame
    char* function;
    char* call;
    rmldb_var_node_t* variables[RMLDB_MAX_VARS];
-   int   variablesNr; /* the number of varsiables in this stack frame. */
+   int   variablesNr; /* the number of variables in this stack frame. */
    unsigned int   rmlStackPointer;     
 } rmldb_stack_frame_t;
 
