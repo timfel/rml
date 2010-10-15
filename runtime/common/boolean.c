@@ -23,3 +23,10 @@ RML_BEGIN_LABEL(RML__bool_5for)
     RML_TAILCALLK(rmlSC);
 }
 RML_END_LABEL
+
+RML_BEGIN_LABEL(RML__bool_5feq)
+{
+    rmlA0 = RML_PRIM_INT_EQ(rmlA0, rmlA1);
+    RML_TAILCALLK(rmlSC);
+}
+RML_END_LABEL
