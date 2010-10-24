@@ -2,21 +2,21 @@
  * A simple 2-generational copying compacting garbage collector for RML.
  *
  * There are two main memory areas:
- * -	The young region, where objects are initially allocated.
- * -	The older region, to which young objects are promoted if
- *	they survive a minor collection.
- *	The older region is split in two halves, current and reserve, and
- *	behaves roughly as in a conventional two-space copying collector.
- *	The size of any of these regions must be a multiple (2 or higher)
- * 	of RML_YOUNG_SIZE, in order to guarantee that a minor collection of the
- *	young region cannot overflow the current region.
- *	If, after a minor collection, the available space in the current
- *	region is less than RML_YOUNG_SIZE, a major collection is performed to
- *	copy the live parts of the current region to the reserve region;
- *	then the current and reserve regions are swapped. Should less than
- *	RML_YOUNG_SIZE space be available after the major collection, then the
- *	objects are copied to new and larger older regions, and the original
- *	older regions are deallocated.
+ * -  The young region, where objects are initially allocated.
+ * -  The older region, to which young objects are promoted if
+ *  they survive a minor collection.
+ *  The older region is split in two halves, current and reserve, and
+ *  behaves roughly as in a conventional two-space copying collector.
+ *  The size of any of these regions must be a multiple (2 or higher)
+ *   of RML_YOUNG_SIZE, in order to guarantee that a minor collection of the
+ *  young region cannot overflow the current region.
+ *  If, after a minor collection, the available space in the current
+ *  region is less than RML_YOUNG_SIZE, a major collection is performed to
+ *  copy the live parts of the current region to the reserve region;
+ *  then the current and reserve regions are swapped. Should less than
+ *  RML_YOUNG_SIZE space be available after the major collection, then the
+ *  objects are copied to new and larger older regions, and the original
+ *  older regions are deallocated.
  *
  * The RML trail is used to register locations in the older region that may
  * refer to objects in the young region. The entire trail is always scanned.
@@ -29,7 +29,7 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>	/* strerror() */
+#include <string.h>  /* strerror() */
 #include <errno.h>
 #include <stdarg.h>
 #include <assert.h>
@@ -95,27 +95,36 @@ static void rml_free_core(void **p, size_t nslots_unused) {
 }
 
 /* the roots */
-#if	!defined(RML_STACK_SIZE)
-#define RML_STACK_SIZE	(1024*1024*4) /* 4Mbytes stack */
+#if  !defined(RML_STACK_SIZE)
+#define RML_STACK_SIZE  (1024*1024*4) /* 4Mbytes stack */
 #endif
 unsigned long rml_stack_size;
 void **rml_stack;
 void **rmlSPMIN;
 
-#if	!defined(RML_TRAIL_SIZE)
-#define RML_TRAIL_SIZE	(64*1024)
+#if  !defined(RML_TRAIL_SIZE)
+#define RML_TRAIL_SIZE  (64*1024)
 #endif
 
 unsigned long rml_trail_size;
+/* stores the logical variables that were bound so that on back-tracking to unbound them */
 void *rml_trail[RML_TRAIL_SIZE];
 
-#if	!defined(RML_ARRAY_TRAIL_SIZE)
-#define RML_ARRAY_TRAIL_SIZE	(1024*1024)
+#if  !defined(RML_ARRAY_TRAIL_SIZE)
+#define RML_ARRAY_TRAIL_SIZE  (1024*1024)
 #endif
-unsigned long rml_array_trail_size;
+unsigned long rml_array_trail_size = 0;
+/* stores the pointers from older to young (write barrier) */
 void *rml_array_trail[RML_ARRAY_TRAIL_SIZE];
 
-#ifdef	RML_STATE_JOIN
+#if  !defined(RML_SHARE_TRAIL_SIZE)
+#define RML_SHARE_TRAIL_SIZE  (1024*1024)
+#endif
+unsigned long rml_share_trail_size = 0;
+/* stores references that can be shared because values they point to are semantically equal */
+void *rml_share_trail[RML_SHARE_TRAIL_SIZE][2];
+
+#ifdef  RML_STATE_JOIN
 
 struct rml_state rml_state = { 0, /* SP */
 0, /* FC */
@@ -125,10 +134,11 @@ struct rml_state rml_state = { 0, /* SP */
 0, /* &rml_young_region[0], *//* young_next */
 0, /* &rml_young_region[rml_young_size], *//* young_limit; never changes */
 &rml_array_trail[RML_ARRAY_TRAIL_SIZE], /* ATP */
+&rml_share_trail[RML_SHARE_TRAIL_SIZE][2], /* STP */
 0 /* nrArgs */
 };
 
-#else	/*!RML_STATE_JOIN*/
+#else  /*!RML_STATE_JOIN*/
 
 void *rmlSP;
 void *rmlFC;
@@ -138,9 +148,10 @@ void *rmlARGS[RML_NUM_ARGS];
 void **rml_young_next; /*  = &rml_young_region[0]; */
 void **rml_young_limit; /* = &rml_young_region[rml_young_size]; */
 void **rmlATP = &rml_array_trail[RML_ARRAY_TRAIL_SIZE];
+void **rmlSTP = &rml_share_trail[RML_SHARE_TRAIL_SIZE][2];
 rml_uint_t rml_nrArgs = 0; /* number of arguments passed on the stack */
 
-#endif	/*RML_STATE_JOIN*/
+#endif  /*RML_STATE_JOIN*/
 
 /* misc */
 char rml_flag_bench;
@@ -159,14 +170,14 @@ unsigned long rml_allocated_from_c;
 /* adrpo added 2004-11-02 */
 unsigned long rml_heap_expansions_count;
 unsigned long rml_heap_shrinkings_count;
-#ifdef	RML_MORE_LOGGING
+#ifdef  RML_MORE_LOGGING
 const char *rml_latest_module;
 unsigned char rml_latest_known;
 unsigned long rml_intra_calls;
 unsigned long rml_intra_known_calls;
 unsigned long rml_inter_calls;
 unsigned long rml_inter_known_calls;
-#endif	/*RML_MORE_LOGGING*/
+#endif  /*RML_MORE_LOGGING*/
 
 #if defined(__GNUC__)
 #define INLINE __inline__
@@ -284,7 +295,7 @@ void rmldb_show_status(void) {
         (unsigned long)rml_young_size, /* RML_YOUNG_SIZE, */
         (unsigned long)rml_older_size,
         (unsigned long)(rml_heap_expansions_count),
-		(unsigned long)(rml_heap_shrinkings_count));
+    (unsigned long)(rml_heap_shrinkings_count));
     fprintf(stderr, "[HEAP: \t%lu words allocated into managed C heap (from mk_* functions), collected %lu times, remaining uncollected %lu words]\n",
         rml_allocated_from_c, rml_c_heap_collect_count, rml_c_heap_region_total_size);
     fprintf(stderr, "[HEAP: \t%lu strings totaling %lu words where shared]\n",
@@ -300,11 +311,11 @@ void rmldb_show_status(void) {
         (unsigned long)(&rml_trail[RML_TRAIL_SIZE] - rml_state_TP));
     fprintf(stderr, "[MOTOR:\t%lu tailcalls performed]\n",
         rml_call_count);
-#ifdef	RML_MORE_LOGGING
+#ifdef  RML_MORE_LOGGING
     fprintf(stderr, "[CALLS:\t%lu intra, %lu known intra, %lu inter, %lu known inter]\n",
         rml_intra_calls, rml_intra_known_calls,
         rml_inter_calls, rml_inter_known_calls);
-#endif	/*RML_MORE_LOGGING*/
+#endif  /*RML_MORE_LOGGING*/
   }
   else
   {
@@ -336,7 +347,7 @@ void rml_exit(int status) {
         (unsigned long)rml_young_size, /* RML_YOUNG_SIZE, */
         (unsigned long)rml_older_size,
         (unsigned long)(rml_heap_expansions_count),
-		(unsigned long)(rml_heap_shrinkings_count));
+    (unsigned long)(rml_heap_shrinkings_count));
     fprintf(
         stderr,
         "[HEAP: \t%lu words allocated into managed C heap (from mk_* functions), collected %lu times, remaining uncollected %lu words]\n",
@@ -357,11 +368,11 @@ void rml_exit(int status) {
     fprintf(stderr, "[TRAIL:\t%lu words currently in use]\n",
         (unsigned long)(&rml_trail[RML_TRAIL_SIZE] - rml_state_TP));
     fprintf(stderr, "[MOTOR:\t%lu tailcalls performed]\n", rml_call_count);
-#ifdef	RML_MORE_LOGGING
+#ifdef  RML_MORE_LOGGING
     fprintf(stderr, "[CALLS:\t%lu intra, %lu known intra, %lu inter, %lu known inter]\n",
         rml_intra_calls, rml_intra_known_calls,
         rml_inter_calls, rml_inter_known_calls);
-#endif	/*RML_MORE_LOGGING*/
+#endif  /*RML_MORE_LOGGING*/
   }
   if (rml_flag_bench) {
     unsigned long rml_clock_end = rml_prim_clock();
@@ -452,6 +463,14 @@ void rml_user_gc_callback(struct rml_xgcstate *s, void **vec, rml_uint_t nelts) 
   s->next = rml_forward_vec(vec, nelts, s->next, s->region_low, s->region_nbytes);
 }
 
+/* global root data */
+void rml_roots_gc_callback(struct rml_xgcstate *s, void **vec, rml_uint_t nelts) {
+  if (rml_flag_gclog && !rml_flag_bench) {
+    fprintf(stderr, " [rml_roots_gc called roots=%lu]", nelts);
+  }
+  s->next = rml_forward_vec(vec, nelts, s->next, s->region_low, s->region_nbytes);
+}
+
 /* Forward all roots. Return updated allocation pointer.
  * Objects located outside of [region_low,region_low+region_nbytes] remain in place.
  */
@@ -472,7 +491,7 @@ static void **rml_forward_all(rml_uint_t nliveargs, void **next, char *region_lo
     }
   }
   /* Adrian Pop, adrpo@ida.liu.se addded 2005-01-11
-   * forwarding of array_setnth elements
+   * forwarding of array_setnth/array_update elements
    */
   {
     void **ATP= rml_state_ATP;
@@ -499,6 +518,17 @@ static void **rml_forward_all(rml_uint_t nliveargs, void **next, char *region_lo
     /* next = rml_forward_vec(ATP, (rml_uint_t)cnt, next, region_low, region_nbytes); */
     rml_state_ATP = &rml_array_trail[RML_ARRAY_TRAIL_SIZE];
   }
+  
+  /* forward global roots from roots.c */
+  {
+    struct rml_xgcstate state;
+    state.next = next;
+    state.region_low = region_low;
+    state.region_nbytes = region_nbytes;
+    rml_roots_gc(&state);
+    next = state.next;
+  }
+
   /* forward roots from user defined heap */
   {
     struct rml_xgcstate state;
@@ -551,12 +581,24 @@ static void **rml_collect(void **scan, char *region_low, rml_uint_t region_nbyte
 
 static void rml_major_collection(rml_uint_t nwords, rml_uint_t nliveargs) 
 {
-  void **next, **scan;
-  rml_uint_t current_inuse;
+  void **next =0, **scan = 0;
+  rml_uint_t current_inuse = 0;
+  rml_uint_t used_before = rml_current_next - rml_current_region;
 
   ++rml_majorgc_count;
-  if (rml_flag_gclog && !rml_flag_bench) {
-    fprintf(stderr, "\n[major collection #%lu..", rml_majorgc_count);
+  if (rml_flag_gclog && !rml_flag_bench) 
+  {
+    fprintf(stderr, "\n[major collection: N: %lu, F: %lu, O: %lu Y: %lu, O/Y: %lu, W: %lu, C: %lu, L: %lu]",
+      (unsigned long)rml_c_heap_region_total_size + nwords + rml_young_size,
+      (unsigned long)rml_older_size - (rml_current_next - rml_current_region),
+      (unsigned long)rml_older_size,
+      (unsigned long)rml_young_size,
+      (unsigned long)rml_older_size/rml_young_size,
+      (unsigned long)nwords,
+      (unsigned long)rml_c_heap_region_total_size,
+      (unsigned long)nliveargs
+      ); 
+    fprintf(stderr, "\n[major collection #%lu..", rml_majorgc_count); 
     fflush(stderr);
   }
 
@@ -564,23 +606,27 @@ static void rml_major_collection(rml_uint_t nwords, rml_uint_t nliveargs)
   if (!rml_reserve_region) 
   {
     /* 
-	 * see if we have enough space to add 
-	 * external C heap data + the young gen + what we need to allocate now (nwords)
-	 */
+   * see if we have enough space to add 
+   * external C heap data + the young gen + what we need to allocate now (nwords)
+   */
     if ((rml_c_heap_region_total_size + nwords + rml_young_size)
         < (rml_older_size - (rml_current_next - rml_current_region)))
-	{
+    {
       /* we have enough space */
+      if (rml_flag_gclog && !rml_flag_bench) 
+      {
+        rml_heap_expansions_count++;
+        fprintf(stderr, " keep heap size ..."); fflush(stderr);
+      }
       rml_reserve_region = rml_alloc_core(rml_older_size, RML_EXIT_ON_FAILURE);
-	}
+    }
     else 
-	{
+    {
       /* we DON'T have enough space , do a heap expansion directly */
       if (rml_flag_gclog && !rml_flag_bench) 
-	  {
+      {
         rml_heap_expansions_count++;
-        fprintf(stderr, " expanding heap (A) ...");
-        fflush(stderr);
+        fprintf(stderr, " expanding heap (A) ..."); fflush(stderr);
       }
       rml_older_size += rml_c_heap_region_total_size + nwords + rml_young_size;
       rml_reserve_region = rml_alloc_core(rml_older_size, RML_EXIT_ON_FAILURE);
@@ -599,95 +645,136 @@ static void rml_major_collection(rml_uint_t nwords, rml_uint_t nliveargs)
   }
 
   /* update the older region state variables */
+  /* switch reserve with current */
   rml_current_next = next;
   scan = rml_reserve_region;
-  current_inuse = next - scan;
   next = rml_current_region;
   rml_current_region = scan;
   rml_reserve_region = next;
 
+  current_inuse = rml_current_next - rml_current_region;
+
+  if (rml_flag_gclog && !rml_flag_bench) 
+  {
+     rml_heap_expansions_count++;
+     fprintf(stderr, " AC O/U: %.3g CO: %lu O/Y: %.3g U/Y: %.3g", 
+       (double)rml_older_size/(double)current_inuse,
+       (unsigned long)used_before-current_inuse,
+       (double)rml_older_size/(double)rml_young_size,
+       (double)current_inuse/(double)rml_young_size
+       );
+     fflush(stderr);
+  }
+
   /* 
    * Check if the older region should be expanded.
    * Expansion is triggered if more than 90% is in use.
-   * The new size is chosen to make the heap at least 50% free or as much as free memory goes.
+   * The new size is chosen to make the heap at least 
+   * 50% free or as much as free memory goes and is 
+   * still enough.
    */
   current_inuse += nwords + rml_c_heap_region_total_size;
+
   /* do a heap expansion if needed */
-  if ( 10 * current_inuse > 9 * rml_older_size) /* current_inuse > 90/100 * rml_older_size */
+  if ( ((100.0*(double)current_inuse)/(double)rml_older_size) > 90 ) /* current_inuse > 90/100 * rml_older_size */
   {
-    rml_uint_t new_size;
+    rml_uint_t new_size = 0;
 
     if (rml_flag_gclog && !rml_flag_bench) {
       rml_heap_expansions_count++;
-      fprintf(stderr, " expanding heap (B)...");
+      fprintf(stderr, " expanding heap (B) [used: %.3g%%] ...", (((double)current_inuse*100.0)/(double)rml_older_size));
       fflush(stderr);
     }
 
     new_size = (2 * current_inuse) + rml_young_size;
-
+    
     /* expand the older region */
     rml_free_core(rml_reserve_region, rml_older_size);
     rml_reserve_region = rml_alloc_core(new_size, RML_NO_EXIT_ON_FAILURE);
-	if ( !rml_reserve_region ) /* we couldn't allocate that much, try again, with less memory */
-	{
-		if (rml_flag_gclog && !rml_flag_bench) {
-			fprintf(stderr, " (LESS %50) "); fflush(stderr);
-		}
-		new_size = current_inuse + rml_young_size; /* try to allocate less */
-		rml_reserve_region = rml_alloc_core(new_size, RML_EXIT_ON_FAILURE);
-	}
-	else
-	{
-		if (rml_flag_gclog && !rml_flag_bench) {
-		    fprintf(stderr, " (MORE 50%) "); fflush(stderr);
-		}
-	}
-
-
+    if ( !rml_reserve_region ) /* we couldn't allocate that much, try again, with less memory */
+    {
+      if (rml_flag_gclog && !rml_flag_bench) {
+        fprintf(stderr, " (LESS %50) "); fflush(stderr);
+      }
+      new_size = current_inuse + rml_young_size; /* try to allocate less */
+      rml_reserve_region = rml_alloc_core(new_size, RML_EXIT_ON_FAILURE);
+    }
+    else
+    {
+      if (rml_flag_gclog && !rml_flag_bench) {
+          fprintf(stderr, " (MORE 50%) "); fflush(stderr);
+      }
+    }
+    
+    
     if (rml_c_heap_region_total_size != 0) {
-      rml_c_heap_collect_flag = 1;
+       rml_c_heap_collect_flag = 1;
     }
 
     next = rml_collect(rml_reserve_region, (char*)rml_current_region, (char*)rml_current_next - (char*)rml_current_region, nliveargs);
+    assert(next-rml_reserve_region < new_size);
     /* free our rml_c_heap! */
     if (rml_c_heap_collect_flag) {
-      rml_c_heap_collect_flag = 0;
-      rml_free_c_heap_region();
+       rml_c_heap_collect_flag = 0;
+       rml_free_c_heap_region();
     }
-    assert(next-rml_reserve_region < new_size);
 
     rml_current_next = next;
     rml_free_core(rml_current_region, rml_older_size);
     rml_current_region = rml_reserve_region;
     rml_older_size = new_size;
-    rml_reserve_region = NULL; /* rml_alloc_core(rml_older_size, RML_EXIT_ON_FAILURE); */
+    rml_reserve_region = NULL;
+
+    current_inuse = rml_current_next - rml_current_region;
   } 
-  else if ( /* do a heap shrink if only 25% is used and it was an expansion */
-           current_inuse < rml_young_size && /* less than 25% used */
-           rml_young_size * 8 <= rml_older_size  /* older is at least 8 times the young */
-          ) 
+  else if ( /* do a heap shrink if only 15% is used and it was an expansion */
+           (100.0*(double)current_inuse)/(double)rml_older_size <= 20 && /* less than 20% used */
+           rml_young_size * 4 < rml_older_size  /* older is at least 4 times the young */
+          )
   {
     rml_uint_t new_size = 0;
+    rml_uint_t ratio = 0;
+
+    ratio = (current_inuse/rml_young_size) + 2 /* we need to have at least young free */;
+    if (ratio < 4) 
+      ratio = 4;
+    else 
+      if (ratio % 2) /* not even */
+        ratio++; /* make it even */
+        
+    new_size = ratio * rml_young_size;
 
     if (rml_flag_gclog && !rml_flag_bench) {
       rml_heap_shrinkings_count++;
-      fprintf(stderr, " shrinking heap.."); fflush(stderr);
+      fprintf(stderr, " shrinking heap [ratio: %lu, before: %.3g%%, after: %.3g%%] ...", 
+        (unsigned long)ratio,
+        (((double)current_inuse*100.0)/(double)rml_older_size),
+        (((double)current_inuse*100.0)/(double)new_size)
+        ); 
+      fflush(stderr);
     }
 
-    new_size = 4 * rml_young_size; /* make the default size */
-	
     /* shrink the older region */
-    rml_free_core(rml_reserve_region, rml_older_size);
 
-    rml_reserve_region = rml_alloc_core(new_size, RML_EXIT_ON_FAILURE);	
+    /* free the reserve */
+    rml_free_core(rml_reserve_region, rml_older_size);
+    /* allocate the reserve */
+    rml_reserve_region = rml_alloc_core(new_size, RML_EXIT_ON_FAILURE);  
+    /* collect */
     next = rml_collect(rml_reserve_region, (char*)rml_current_region, (char*)rml_current_next - (char*)rml_current_region, nliveargs);
-	assert(next-rml_reserve_region < new_size);
-		
+    assert(next-rml_reserve_region < new_size);
+    /* set the next */
     rml_current_next = next;
-    rml_free_core(rml_current_region, rml_older_size);	
+    /* free the current */
+    rml_free_core(rml_current_region, rml_older_size);  
+    /* switch regions reserve becomes next */
     rml_current_region = rml_reserve_region;
+    /* set the new size */
     rml_older_size = new_size;
+    /* nullize the reserve */
     rml_reserve_region = NULL;
+
+    current_inuse = rml_current_next - rml_current_region;
   } 
   else 
   {
@@ -697,7 +784,7 @@ static void rml_major_collection(rml_uint_t nwords, rml_uint_t nliveargs)
   /* done with the major collection */
   if (rml_flag_gclog && !rml_flag_bench)
   {
-    fprintf(stderr, " %lu%% used]\n", (unsigned long)((current_inuse*100)/rml_older_size));
+    fprintf(stderr, " used: %.3g%%]", (((double)current_inuse*100.0)/(double)rml_older_size));
     fflush(stderr);
   }
 }
@@ -706,13 +793,10 @@ static void rml_major_collection(rml_uint_t nwords, rml_uint_t nliveargs)
 
 void rml_minor_collection(rml_uint_t nliveargs) {
   void **next;
-  rml_uint_t current_nfree;
+  rml_uint_t current_nfree = rml_older_size - (rml_current_next - rml_current_region);
+  /* increase the minor collections */
   ++rml_minorgc_count;
-  if (rml_flag_gclog && !rml_flag_bench) {
-    fprintf(stderr, "\nminor collection #%d", rml_minorgc_count);
-    fflush(stderr);
-  }
-
+  
   /*
    * do we have enough space in the current region
    * to also forward the rml_c_heap?
@@ -725,7 +809,6 @@ void rml_minor_collection(rml_uint_t nliveargs) {
   }
   /* collect the young region, forwarding to the current region */
   next = rml_collect(rml_current_next, (char*)rml_young_region, rml_young_size * sizeof(void*), nliveargs);
-
   assert(next-rml_current_next < rml_older_size);
 
   /* free our rml_c_heap and set the flag on nothing */
@@ -733,12 +816,21 @@ void rml_minor_collection(rml_uint_t nliveargs) {
     rml_c_heap_collect_flag = 0;
     rml_free_c_heap_region();
   }
+
+  if (rml_flag_gclog && !rml_flag_bench) {
+    fprintf(stderr, "\nminor collection #%d collected: %lu",
+      rml_minorgc_count,
+      (unsigned long)(current_nfree - (rml_older_size - (next - rml_current_region)))
+      );
+    fflush(stderr);
+  }
+
   /* update the older region state variables */
   rml_current_next = next;
   current_nfree = rml_older_size - (next - rml_current_region);
 
   /* check if a major collection should be done */
-  if (rml_c_heap_region_total_size || (current_nfree < rml_young_size)) /* RML_YOUNG_SIZE )*/
+  if (rml_c_heap_region_total_size || (current_nfree < rml_young_size))
     rml_major_collection(0, nliveargs);
 }
 
@@ -748,7 +840,7 @@ void rml_minor_collection(rml_uint_t nliveargs) {
 void **rml_older_alloc(rml_uint_t nwords, rml_uint_t nargs) {
   void **next = rml_current_next;
   rml_uint_t nfree = rml_older_size - (next - rml_current_region);
-  if (!rml_c_heap_region_total_size && nfree >= nwords + rml_young_size)/* RML_YOUNG_SIZE ) */
+  if (!rml_c_heap_region_total_size && nfree >= nwords + rml_young_size)
   {
     rml_current_next = next + nwords;
     return next;
@@ -772,9 +864,9 @@ void shareEqual(void)
   void *p, *q;
   void **pp, **qq;
   rml_uint_t slotsIdx;
-#if	defined(RML_STATE_APTR) || defined(RML_STATE_LPTR)
+#if  defined(RML_STATE_APTR) || defined(RML_STATE_LPTR)
   struct rml_state *rmlState = &rml_state;
-#endif	/*RML_STATE_APTR || RML_STATE_LPTR*/
+#endif  /*RML_STATE_APTR || RML_STATE_LPTR*/
   if (*pp != *qq) /* if pointers are different */
   {
     /* check to see if pointers are in young or older */
@@ -972,7 +1064,7 @@ void *mk_scon_no_string_sharing(const char *s) {
 
 void *mk_scon(const char *s) {
   return rml_string_sharing ? 
-		   mk_scon_string_sharing(s) : mk_scon_no_string_sharing(s);
+       mk_scon_string_sharing(s) : mk_scon_no_string_sharing(s);
 }
 
 void *mk_box0(unsigned ctor) {

@@ -112,37 +112,54 @@ signature CODE =
     val interSC       : variable
     val interArgs     : variable Vector.vector
 
-    val primMARKER    : label
-    val primUNWIND    : label
+    val primMARKER           : label
+    val primUNWIND           : label
     
-    val primEQUAL     : label
+    val primEQUAL            : label
     
-    val primBOOL_NOT  : label
-    val primINT_NEG   : label
-    val primINT_ABS   : label
+    val primBOOL_NOT         : label
+    val primINT_NEG          : label
+    val primINT_ABS          : label
+    val primINT_BIT_NOT      : label
+    val primREF_INT          : label
+    val primVAL_CONSTR       : label
+    val primVAL_SLOTS        : label
+    val primSTRING_HASH      : label
+    val primSTRING_HASH_DJB2 : label
+    val primSTRING_HASH_SDBM : label
+
+    val primBOOL_AND         : label
+    val primBOOL_OR          : label
+    val primBOOL_EQ          : label
     
-    val primBOOL_AND  : label
-    val primBOOL_OR   : label
-    val primBOOL_EQ   : label
+    val primCHAR_EQ          : label
     
-    val primCHAR_EQ   : label
+    val primINT_ADD          : label
+    val primINT_SUB          : label
+    val primINT_MUL          : label
+    val primINT_DIV          : label
+    val primINT_MOD          : label
+    val primINT_MAX          : label
+    val primINT_MIN          : label
+    val primINT_LT           : label
+    val primINT_LE           : label
+    val primINT_NE           : label
+    val primINT_GE           : label
+    val primINT_GT           : label
+    val primINT_EQ           : label
+    val primINT_BIT_AND      : label
+    val primINT_BIT_OR       : label
+    val primINT_BIT_XOR      : label
+    val primINT_BIT_LSHIFT   : label
+    val primINT_BIT_RSHIFT   : label
+
+    val primREAL_EQ          : label
     
-    val primINT_ADD   : label
-    val primINT_SUB   : label
-    val primINT_MUL   : label
-    val primINT_DIV   : label
-    val primINT_MOD   : label
-    val primINT_MAX   : label
-    val primINT_MIN   : label
-    val primINT_LT    : label
-    val primINT_LE    : label
-    val primINT_NE    : label
-    val primINT_GE    : label
-    val primINT_GT    : label
-    val primINT_EQ    : label
+    val primSTRING_EQ        : label
+
+    val primREF_EQ           : label
     
-    val primREAL_EQ   : label
-    
-    val primSTRING_EQ : label
+    val primVAL_EQ           : label
+    val primVAL_MATCH        : label
     
   end (* signature CODE *)

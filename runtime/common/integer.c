@@ -179,3 +179,52 @@ RML_BEGIN_LABEL(RML__int_5fsub)
     RML_TAILCALLK(rmlSC);
 }
 RML_END_LABEL
+
+/* int_bit_not.c */
+RML_BEGIN_LABEL(RML__int_5fbit_5fnot)
+{
+    rmlA0 = RML_PRIM_INT_BIT_NOT(rmlA0);
+    RML_TAILCALLK(rmlSC);
+}
+RML_END_LABEL
+
+/* int_bit_and.c */
+RML_BEGIN_LABEL(RML__int_5fbit_5fand)
+{
+    rmlA0 = RML_PRIM_INT_BIT_AND(rmlA0, rmlA1);
+    RML_TAILCALLK(rmlSC);
+}
+RML_END_LABEL
+
+/* int_bit_or.c */
+RML_BEGIN_LABEL(RML__int_5fbit_5for)
+{
+    rmlA0 = RML_PRIM_INT_BIT_OR(rmlA0, rmlA1);
+    RML_TAILCALLK(rmlSC);
+}
+RML_END_LABEL
+
+/* int_bit_xor.c */
+RML_BEGIN_LABEL(RML__int_5fbit_5fxor)
+{
+    rmlA0 = RML_PRIM_INT_BIT_XOR(rmlA0, rmlA1);
+    RML_TAILCALLK(rmlSC);
+}
+RML_END_LABEL
+
+/* int_bit_lshift.c */
+RML_BEGIN_LABEL(RML__int_5fbit_5flshift)
+{
+    rmlA0 = RML_PRIM_INT_BIT_LSHIFT(rmlA0, rmlA1);
+    RML_TAILCALLK(rmlSC);
+}
+RML_END_LABEL
+
+/* int_bit_rshift.c */
+RML_BEGIN_LABEL(RML__int_5fbit_5frshift)
+{
+    rmlA0 = RML_PRIM_INT_BIT_RSHIFT(rmlA0, rmlA1);
+    RML_TAILCALLK(rmlSC);
+}
+RML_END_LABEL
+

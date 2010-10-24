@@ -1,15 +1,15 @@
 (* cpstocode/cpstocode.sml *)
 
 functor CPSToCodeFn(structure MakeString : MAKESTRING
-		    structure Util : UTIL
-		    structure CPS : CPS
-		    structure CPSUsages : CPS_USAGES
-		    structure CPSFVars : CPS_FVARS
-		    structure Code : CODE
-		    sharing CPS = CPSUsages.CPS = CPSFVars.CPS
-		    sharing CPS.ConRep = Code.ConRep
-		    sharing type CPS.Source.source = Code.Source.source
-		      ) : CPSTOCODE =
+        structure Util : UTIL
+        structure CPS : CPS
+        structure CPSUsages : CPS_USAGES
+        structure CPSFVars : CPS_FVARS
+        structure Code : CODE
+        sharing CPS = CPSUsages.CPS = CPSFVars.CPS
+        sharing CPS.ConRep = Code.ConRep
+        sharing type CPS.Source.source = Code.Source.source
+          ) : CPSTOCODE =
   struct
 
     structure CPS = CPS
@@ -27,14 +27,14 @@ let
     in
       fun zap_xlabs() = code_xlabs := []
       fun record_xlab(lab) =
-		let fun loop([]) = code_xlabs := lab :: !code_xlabs
-			  | loop(lab'::labs) = if lab=lab' then () else loop labs
-		in
-		  loop(!code_xlabs)
-		end
+    let fun loop([]) = code_xlabs := lab :: !code_xlabs
+        | loop(lab'::labs) = if lab=lab' then () else loop labs
+    in
+      loop(!code_xlabs)
+    end
       fun get_xlabs() =
-		let val xlabs = !code_xlabs in code_xlabs := []; xlabs end
-		end
+    let val xlabs = !code_xlabs in code_xlabs := []; xlabs end
+    end
 
     (* manage the set of imported external values *)
     local
@@ -42,13 +42,13 @@ let
     in
       fun zap_xvals() = code_xvals := []
       fun record_xval(lab) =
-	let fun loop([]) = code_xvals := lab :: !code_xvals
-	      | loop(lab'::labs) = if lab=lab' then () else loop labs
-	in
-	  loop(!code_xvals)
-	end
+  let fun loop([]) = code_xvals := lab :: !code_xvals
+        | loop(lab'::labs) = if lab=lab' then () else loop labs
+  in
+    loop(!code_xvals)
+  end
       fun get_xvals() =
-	let val xvals = !code_xvals in code_xvals := []; xvals end
+  let val xvals = !code_xvals in code_xvals := []; xvals end
     end
 
     (* manage the set of label definitions to be emitted for the current module *)
@@ -57,11 +57,11 @@ let
     fun zap_labdefs() = code_labdefs := []
     fun push_labdef(globalP, label, varHP, nalloc, nargs, code, pos) =
       let val labdef = 
-				Code.LABDEF{
-					globalP=globalP, label=label, varHP=varHP, 
-					nalloc=nalloc, nargs=nargs, code=code, pos=pos}
+        Code.LABDEF{
+          globalP=globalP, label=label, varHP=varHP, 
+          nalloc=nalloc, nargs=nargs, code=code, pos=pos}
       in
-		code_labdefs := labdef :: !code_labdefs
+    code_labdefs := labdef :: !code_labdefs
       end
     fun get_labdefs() = let val labdefs = !code_labdefs in zap_labdefs(); labdefs end
 
@@ -80,29 +80,29 @@ let
     fun zap_litdefs() = (code_litdefs := []; nr_litdefs := 0)
     fun find_litdef(litdef') =
       let fun litdef_equal(Code.REALld r1, Code.REALld r2) = Real.==(r1, r2)
-	    | litdef_equal(Code.STRINGld s1, Code.STRINGld s2) = s1 = s2
-	    | litdef_equal(Code.STRUCTld(con1,lrs1), Code.STRUCTld(con2,lrs2)) =
-			(con1 = con2) andalso (lrs1 = lrs2)
-	    | litdef_equal(_, _) = false
-	  fun loop((litname,litdef)::litdefs) =
-		if litdef_equal(litdef',litdef) then litname else loop litdefs
-	    | loop([]) =
-		let val litname = Code.LITNAME(!nr_litdefs)
-		in
-		  nr_litdefs := !nr_litdefs + 1;
-		  code_litdefs := (litname,litdef') :: !code_litdefs;
-		  litname
-		end
+      | litdef_equal(Code.STRINGld s1, Code.STRINGld s2) = s1 = s2
+      | litdef_equal(Code.STRUCTld(con1,lrs1), Code.STRUCTld(con2,lrs2)) =
+      (con1 = con2) andalso (lrs1 = lrs2)
+      | litdef_equal(_, _) = false
+    fun loop((litname,litdef)::litdefs) =
+    if litdef_equal(litdef',litdef) then litname else loop litdefs
+      | loop([]) =
+    let val litname = Code.LITNAME(!nr_litdefs)
+    in
+      nr_litdefs := !nr_litdefs + 1;
+      code_litdefs := (litname,litdef') :: !code_litdefs;
+      litname
+    end
       in
-		loop(!code_litdefs)
+    loop(!code_litdefs)
       end
     fun litdef2litref litdef =
       let val litname = find_litdef(litdef)
       in
-		case litdef
-		  of Code.REALld _	=> Code.REALlr litname
-		   | Code.STRINGld _	=> Code.STRINGlr litname
-		   | Code.STRUCTld _	=> Code.STRUCTlr litname
+    case litdef
+      of Code.REALld _  => Code.REALlr litname
+       | Code.STRINGld _  => Code.STRINGlr litname
+       | Code.STRUCTld _  => Code.STRUCTlr litname
       end
     fun get_litdefs() = let val litdefs = rev(!code_litdefs) in zap_litdefs(); litdefs end
 
@@ -112,11 +112,11 @@ let
 
     fun trans_proc(CPS.LOCAL_REL(CPS.DEF{name,pos,...})) = Code.mklab(trans_longid name, name, pos)
       | trans_proc(CPS.EXTERN_REL(longid,_)) =
-	  let val lab = Code.mklab(trans_longid longid, longid, getInfo(longid))
-	  in
-	    record_xlab lab;
-	    lab
-	  end
+    let val lab = Code.mklab(trans_longid longid, longid, getInfo(longid))
+    in
+      record_xlab lab;
+      lab
+    end
 
     (* translate a CPS.Constant to a Code.LitRef *)
 
@@ -130,16 +130,16 @@ let
     fun trans_lit(CPS.CONSTlit c) = trans_const c
       | trans_lit(CPS.PROClit proc) = Code.LABELlr(trans_proc proc)
       | trans_lit(CPS.STRUCTlit(con, lits, _)) =
-		litdef2litref(Code.STRUCTld(con, map trans_lit lits))
+    litdef2litref(Code.STRUCTld(con, map trans_lit lits))
       | trans_lit(CPS.EXTERNlit longid) =
-	  let val lab = Code.mklab(trans_longid longid, longid, getInfo(longid))
-	  in
-	    record_xval lab;
-	    Code.EXTERNlr lab
-	  end
+    let val lab = Code.mklab(trans_longid longid, longid, getInfo(longid))
+    in
+      record_xval lab;
+      Code.EXTERNlr lab
+    end
 
     (* translate a CPS variable to a local Code variable *)
-	fun mkID(name) = CPS.mkID(name)
+  fun mkID(name) = CPS.mkID(name)
 
     fun new_lvar(name) = Code.LVAR{ tag=Util.tick(), name=mkID(name) }
     fun trans_lvar(CPS.VAR{tag,name,...}) = Code.LVAR{tag=tag, name=name}
@@ -153,26 +153,26 @@ let
 
     fun push_fvars(valSP, off, fvars, code) =
       let fun loop([], _, code) = code
-	    | loop(var::vars, off, code) =
-		  loop(vars, off+1, Code.mkSTORE(Code.OFFSET(valSP, off), Code.VAR(trans_var var), code))
+      | loop(var::vars, off, code) =
+      loop(vars, off+1, Code.mkSTORE(Code.OFFSET(valSP, off), Code.VAR(trans_var var), code))
       in
-		loop(fvars, off, code)
+    loop(fvars, off, code)
       end
 
     (* load `fvars' from `ptr[off]' .. `ptr[off-length fvars]' in reverse order *)
 
     fun fetch_fvars(varPtr, off, fvars, code) =
       let fun loop([], _, code) = code
-	    | loop(var::vars, off, code) =
-			loop(vars, off-1,
-				 Code.mkBIND(SOME(trans_var var),
-					 Code.FETCH(Code.OFFSET(Code.VAR varPtr, off)), code))
+      | loop(var::vars, off, code) =
+      loop(vars, off-1,
+         Code.mkBIND(SOME(trans_var var),
+           Code.FETCH(Code.OFFSET(Code.VAR varPtr, off)), code))
       in
-		loop(fvars, off, code)
+    loop(fvars, off, code)
       end
 
     (* pop the activation record and bind sp *)
-    fun pop_fvars(varSP, varPtr, n, code) =	(* sp = ptr + n *)
+    fun pop_fvars(varSP, varPtr, n, code) =  (* sp = ptr + n *)
       Code.mkBIND(SOME varSP, Code.OFFSET(Code.VAR varPtr, n), code)
 
     (* Give some indication as to why Vector.sub failed..
@@ -181,17 +181,17 @@ let
      *)
     fun tooManyArgs() =
       bug("tooManyArgs: Sorry, this compiler is limited to " ^
-	  	Int.toString(Vector.length Code.intraArgs) ^
-	  	" formal/actual parameters")
+      Int.toString(Vector.length Code.intraArgs) ^
+      " formal/actual parameters")
 
     (* bind the formal parameters of a procedure value or procedure continuation *)
 
     fun bind_proc_args(var_star, code) =
       let fun loop([], _) = code
-	    | loop(var::var_star, argno) =
-		  Code.mkBIND(SOME(trans_var var), Code.VAR(Vector.sub(Code.intraArgs, argno)), loop(var_star, argno + 1))
+      | loop(var::var_star, argno) =
+      Code.mkBIND(SOME(trans_var var), Code.VAR(Vector.sub(Code.intraArgs, argno)), loop(var_star, argno + 1))
       in
-				loop(var_star, 0) handle General.Subscript => tooManyArgs()
+        loop(var_star, 0) handle General.Subscript => tooManyArgs()
       end
 
     (* continuation utilities *)
@@ -210,15 +210,15 @@ let
 
     fun size_exp(CPS.EXP r) =
       case !r
-			of CPS.AppFCe _					=> 0
-			 | CPS.AppSCe _					=> 0
-			 | CPS.AppPVe _					=> 0
-			 | CPS.LetLABe(_, exp)			=> size_exp exp
-			 | CPS.AppLABe _				=> 0
-			 | CPS.RESTOREe(_, exp)			=> size_exp exp
-			 | CPS.LETe(_, _, exp)			=> size_exp exp
-			 | CPS.PRIMe(_, prim, exp)		=> size_prim prim + size_exp exp
-			 | CPS.SWITCHe(_, cases, def)	=> List.foldl max_size_case (sizeDefault def) cases
+      of CPS.AppFCe _          => 0
+       | CPS.AppSCe _          => 0
+       | CPS.AppPVe _          => 0
+       | CPS.LetLABe(_, exp)      => size_exp exp
+       | CPS.AppLABe _        => 0
+       | CPS.RESTOREe(_, exp)      => size_exp exp
+       | CPS.LETe(_, _, exp)      => size_exp exp
+       | CPS.PRIMe(_, prim, exp)    => size_prim prim + size_exp exp
+       | CPS.SWITCHe(_, cases, def)  => List.foldl max_size_case (sizeDefault def) cases
 
     and sizeDefault(NONE) = 0
       | sizeDefault(SOME exp) = size_exp exp
@@ -229,33 +229,48 @@ let
     fun trans_unary(unop, te) =
       let fun call(lab) = Code.CALL(lab, [te])
       in
-			case unop
-			  of CPS.FETCH off 	=> Code.FETCH(mkOFFSET(Code.UNTAGPTR te, off))
-			   | CPS.BOOL_NOT	=> call Code.primBOOL_NOT
-			   | CPS.INT_NEG	=> call Code.primINT_NEG
-			   | CPS.INT_ABS	=> call Code.primINT_ABS
-		  end
+      case unop
+        of CPS.FETCH off         => Code.FETCH(mkOFFSET(Code.UNTAGPTR te, off))
+         | CPS.BOOL_NOT          => call Code.primBOOL_NOT
+         | CPS.INT_NEG          => call Code.primINT_NEG
+         | CPS.INT_ABS          => call Code.primINT_ABS
+         | CPS.INT_BIT_NOT      => call Code.primINT_BIT_NOT
+         | CPS.REF_INT          => call Code.primREF_INT
+         | CPS.VAL_CONSTR       => call Code.primVAL_CONSTR
+         | CPS.VAL_SLOTS        => call Code.primVAL_SLOTS
+         | CPS.STRING_HASH      => call Code.primSTRING_HASH
+         | CPS.STRING_HASH_DJB2 => call Code.primSTRING_HASH_DJB2
+         | CPS.STRING_HASH_SDBM => call Code.primSTRING_HASH_SDBM
+      end
 
-    fun trans_binary(CPS.EQUAL)     = Code.primEQUAL
-      | trans_binary(CPS.BOOL_AND)  = Code.primBOOL_AND
-      | trans_binary(CPS.BOOL_OR)   = Code.primBOOL_OR
-      | trans_binary(CPS.BOOL_EQ)   = Code.primBOOL_EQ
-      | trans_binary(CPS.CHAR_EQ)   = Code.primCHAR_EQ
-      | trans_binary(CPS.INT_ADD)   = Code.primINT_ADD
-      | trans_binary(CPS.INT_SUB)   = Code.primINT_SUB
-      | trans_binary(CPS.INT_MUL)   = Code.primINT_MUL
-      | trans_binary(CPS.INT_DIV)   = Code.primINT_DIV
-      | trans_binary(CPS.INT_MOD)   = Code.primINT_MOD
-      | trans_binary(CPS.INT_MAX)   = Code.primINT_MAX
-      | trans_binary(CPS.INT_MIN)   = Code.primINT_MIN
-      | trans_binary(CPS.INT_LT)    = Code.primINT_LT
-      | trans_binary(CPS.INT_LE)    = Code.primINT_LE
-      | trans_binary(CPS.INT_EQ)    = Code.primINT_EQ
-      | trans_binary(CPS.INT_NE)    = Code.primINT_NE
-      | trans_binary(CPS.INT_GE)    = Code.primINT_GE
-      | trans_binary(CPS.INT_GT)    = Code.primINT_GT
-      | trans_binary(CPS.REAL_EQ)   = Code.primREAL_EQ
-      | trans_binary(CPS.STRING_EQ) = Code.primSTRING_EQ
+    fun trans_binary(CPS.EQUAL)          = Code.primEQUAL
+      | trans_binary(CPS.BOOL_AND)       = Code.primBOOL_AND
+      | trans_binary(CPS.BOOL_OR)        = Code.primBOOL_OR
+      | trans_binary(CPS.BOOL_EQ)        = Code.primBOOL_EQ
+      | trans_binary(CPS.CHAR_EQ)        = Code.primCHAR_EQ
+      | trans_binary(CPS.INT_ADD)        = Code.primINT_ADD
+      | trans_binary(CPS.INT_SUB)        = Code.primINT_SUB
+      | trans_binary(CPS.INT_MUL)        = Code.primINT_MUL
+      | trans_binary(CPS.INT_DIV)        = Code.primINT_DIV
+      | trans_binary(CPS.INT_MOD)        = Code.primINT_MOD
+      | trans_binary(CPS.INT_MAX)        = Code.primINT_MAX
+      | trans_binary(CPS.INT_MIN)        = Code.primINT_MIN
+      | trans_binary(CPS.INT_LT)         = Code.primINT_LT
+      | trans_binary(CPS.INT_LE)         = Code.primINT_LE
+      | trans_binary(CPS.INT_EQ)         = Code.primINT_EQ
+      | trans_binary(CPS.INT_NE)         = Code.primINT_NE
+      | trans_binary(CPS.INT_GE)         = Code.primINT_GE
+      | trans_binary(CPS.INT_GT)         = Code.primINT_GT
+      | trans_binary(CPS.INT_BIT_AND)    = Code.primINT_BIT_AND
+      | trans_binary(CPS.INT_BIT_OR)     = Code.primINT_BIT_OR
+      | trans_binary(CPS.INT_BIT_XOR)    = Code.primINT_BIT_XOR
+      | trans_binary(CPS.INT_BIT_LSHIFT) = Code.primINT_BIT_LSHIFT
+      | trans_binary(CPS.INT_BIT_RSHIFT) = Code.primINT_BIT_RSHIFT
+      | trans_binary(CPS.REAL_EQ)        = Code.primREAL_EQ
+      | trans_binary(CPS.STRING_EQ)      = Code.primSTRING_EQ
+      | trans_binary(CPS.REF_EQ)         = Code.primREF_EQ
+      | trans_binary(CPS.VAL_EQ)         = Code.primVAL_EQ
+      | trans_binary(CPS.VAL_MATCH)      = Code.primVAL_MATCH
 
     (* translate a CPS.Constant to a Code.CaseTag *)
     fun trans_casetag(CPS.INTcon i)         = Code.INTct i
@@ -266,176 +281,176 @@ let
     (* bind outgoing arguments *)
     fun bind_args(vars, args, code) =
       let fun loop([], _, code) = code
-	      |   loop(arg::args, argno, code) = 
-		      loop(args, argno+1, Code.mkBIND(SOME(Vector.sub(vars, argno)), arg, code))
+        |   loop(arg::args, argno, code) = 
+          loop(args, argno+1, Code.mkBIND(SOME(Vector.sub(vars, argno)), arg, code))
       in
-				loop(args, 0, code) handle General.Subscript => tooManyArgs()
+        loop(args, 0, code) handle General.Subscript => tooManyArgs()
       end
 
     (* translate a TrivExp *)
 
     fun trans_te'(te', valSP, offSP, cont) =
       case te'
-		of CPS.VARte(var)	=> cont(Code.VAR(trans_var var), offSP)
-		 | CPS.QUOTEte(lit)	=> cont(Code.LITERAL(trans_lit lit), offSP)
-		 | CPS.LAMte{tag,fvars,kind,body,name,pos}	=>
-			  let val lab = mkShortLabel((lk2name(kind,CPS.longIdentName name)) ^ (MakeString.icvt tag), name, pos)
-			  and nfvars = length (!fvars)
-			  and formals = lk2formals kind
-			  and varHP = new_lvar("HP")
-			  and varSP = trans_var(CPS.newVar(mkID("SP")))
-			  val offSP = offSP - nfvars - 1
-			  val valKont = Code.OFFSET(valSP, offSP)
-			  val varAP = trans_var(CPS.newVar(mkID("AP")))
-			  in
-				push_labdef(
-					false, lab, varHP, size_exp body, length formals,
-					Code.mkBIND(SOME varAP, lk2ap kind,
-						fetch_fvars(varAP, nfvars, rev(!fvars),
-							pop_fvars(varSP, varAP, nfvars+1,
-								bind_proc_args(formals,  
-									trans_exp(body, Code.VAR varSP, 0, Code.VAR(Code.LOCvar varHP), 0))))), pos);
-									
-				push_fvars(valSP, offSP + 1, !fvars, Code.mkSTORE(valKont, Code.LITERAL(Code.LABELlr lab), cont(valKont, offSP)))
-			  end
+    of CPS.VARte(var)  => cont(Code.VAR(trans_var var), offSP)
+     | CPS.QUOTEte(lit)  => cont(Code.LITERAL(trans_lit lit), offSP)
+     | CPS.LAMte{tag,fvars,kind,body,name,pos}  =>
+        let val lab = mkShortLabel((lk2name(kind,CPS.longIdentName name)) ^ (MakeString.icvt tag), name, pos)
+        and nfvars = length (!fvars)
+        and formals = lk2formals kind
+        and varHP = new_lvar("HP")
+        and varSP = trans_var(CPS.newVar(mkID("SP")))
+        val offSP = offSP - nfvars - 1
+        val valKont = Code.OFFSET(valSP, offSP)
+        val varAP = trans_var(CPS.newVar(mkID("AP")))
+        in
+        push_labdef(
+          false, lab, varHP, size_exp body, length formals,
+          Code.mkBIND(SOME varAP, lk2ap kind,
+            fetch_fvars(varAP, nfvars, rev(!fvars),
+              pop_fvars(varSP, varAP, nfvars+1,
+                bind_proc_args(formals,  
+                  trans_exp(body, Code.VAR varSP, 0, Code.VAR(Code.LOCvar varHP), 0))))), pos);
+                  
+        push_fvars(valSP, offSP + 1, !fvars, Code.mkSTORE(valKont, Code.LITERAL(Code.LABELlr lab), cont(valKont, offSP)))
+        end
 
     and trans_te(te, valSP, offSP, cont) = trans_te'(CPS.getTE te, valSP, offSP, cont)
 
     and trans_args(args, valSP, offSP, cont) =
       let fun loop([], val_args, offSP) = cont(rev val_args, offSP)
-	    | loop(arg::args, val_args, offSP) =
-		  trans_te(
-			arg, valSP, offSP, 
-			fn(val_arg, offSP) => loop(args, val_arg::val_args, offSP))
+      | loop(arg::args, val_args, offSP) =
+      trans_te(
+      arg, valSP, offSP, 
+      fn(val_arg, offSP) => loop(args, val_arg::val_args, offSP))
       in
-				loop(args, [], offSP)
+        loop(args, [], offSP)
       end
 
     and trans_prim(prim, valSP, offSP, valHP, offHP, cont) =
       case prim
-		of CPS.MARKERp		=> cont(Code.CALL(Code.primMARKER,[]), offSP, offHP)
-		 | CPS.MKSTRUCTp(con, te_star) =>
-			let fun loop([], offSP, offHP') = cont(Code.TAGPTR(mkOFFSET(valHP, offHP)), offSP, offHP')
-			    |	loop(te::te_star, offSP, offHP') =
-					trans_te(te, valSP, offSP, fn(te',offSP) =>
-					Code.mkSTORE(Code.OFFSET(valHP, offHP'), te',
-					loop(te_star, offSP, offHP' + 1)))
-			in
-			  Code.mkSTORE(mkOFFSET(valHP, offHP),
-				   Code.LITERAL(Code.HDRlr{len=length te_star, con=con}),
-			  loop(te_star, offSP, offHP + 1))
-			end
-		 | CPS.UNARYp(unop, te)	=>
-			trans_te(te, valSP, offSP, fn(te',offSP') =>
-				cont(trans_unary(unop, te'), offSP', offHP))
-		 | CPS.BINARYp(binop, te1, te2)	=>
-			trans_te(te1, valSP, offSP, fn(te1',offSP1) =>
-			trans_te(te2, valSP, offSP1, fn(te2',offSP2) =>
-			cont(Code.CALL(trans_binary binop, [te1',te2']), offSP2, offHP)))
+    of CPS.MARKERp    => cont(Code.CALL(Code.primMARKER,[]), offSP, offHP)
+     | CPS.MKSTRUCTp(con, te_star) =>
+      let fun loop([], offSP, offHP') = cont(Code.TAGPTR(mkOFFSET(valHP, offHP)), offSP, offHP')
+          |  loop(te::te_star, offSP, offHP') =
+          trans_te(te, valSP, offSP, fn(te',offSP) =>
+          Code.mkSTORE(Code.OFFSET(valHP, offHP'), te',
+          loop(te_star, offSP, offHP' + 1)))
+      in
+        Code.mkSTORE(mkOFFSET(valHP, offHP),
+           Code.LITERAL(Code.HDRlr{len=length te_star, con=con}),
+        loop(te_star, offSP, offHP + 1))
+      end
+     | CPS.UNARYp(unop, te)  =>
+      trans_te(te, valSP, offSP, fn(te',offSP') =>
+        cont(trans_unary(unop, te'), offSP', offHP))
+     | CPS.BINARYp(binop, te1, te2)  =>
+      trans_te(te1, valSP, offSP, fn(te1',offSP1) =>
+      trans_te(te2, valSP, offSP1, fn(te2',offSP2) =>
+      cont(Code.CALL(trans_binary binop, [te1',te2']), offSP2, offHP)))
 
-    and trans_exp'(exp', valSP, offSP, valHP, offHP) =	(* -> Code.Code *)
+    and trans_exp'(exp', valSP, offSP, valHP, offHP) =  (* -> Code.Code *)
       case exp'
-		of CPS.AppFCe{fc=te_fc,name=name,pos=pos}	=>
-			trans_te(te_fc, valSP, offSP, 
-			fn(val_fc', offSP) =>
-				Code.mkBIND(SOME Code.intraFC, val_fc',
-					Code.mkBIND(SOME Code.intraSP, mkOFFSET(valSP, offSP),
-						Code.mkGOTO(Code.VALUEg(Code.FETCH val_fc'), 0, name, pos, Code.FClk))))
-		 | CPS.AppSCe{sc, args, name, pos}	=> 
-			trans_args(args, valSP, offSP, 
-				fn(val_args', offSP) =>
-				trans_te(sc, valSP, offSP, 
-					fn(val_sc', offSP) =>
-					bind_args(
-						Code.intraArgs, val_args',
-						Code.mkBIND(SOME Code.intraSC, val_sc',
-							Code.mkBIND(SOME Code.intraSP, mkOFFSET(valSP, offSP),
-								Code.mkGOTO(Code.VALUEg(Code.FETCH val_sc'),
-									List.length val_args', name, pos, Code.SClk))))))
-		 | CPS.AppPVe{pv, args, fc, sc, name, pos}	=> 
-			trans_args(args, valSP, offSP, 
-				fn(val_args', offSP) =>
-				trans_te(fc, valSP, offSP, fn(val_fc', offSP) =>
-				trans_te(sc, valSP, offSP, fn(val_sc', offSP) =>
-					case CPS.getTE pv
-					  of CPS.QUOTEte(CPS.PROClit(proc as CPS.LOCAL_REL _))	=>
-						  let val lab = trans_proc proc
-						  in
-							bind_args(Code.intraArgs, val_args',
-								Code.mkBIND(SOME Code.intraFC, val_fc',
-									Code.mkBIND(SOME Code.intraSC, val_sc',
-										Code.mkBIND(SOME Code.intraSP, mkOFFSET(valSP, offSP),
-											Code.mkGOTO(Code.LOCALg lab, List.length val_args', name, pos, Code.NClk)))))
-						  end
-					   | CPS.QUOTEte(CPS.PROClit(proc as CPS.EXTERN_REL _))	=>
-						  let val lab = trans_proc proc
-						  in
-							bind_args(
-								Code.interArgs, val_args',
-								Code.mkBIND(SOME Code.interFC, val_fc', 
-									Code.mkBIND(SOME Code.interSC, val_sc',
-										Code.mkBIND(SOME Code.interSP, mkOFFSET(valSP, offSP),
-											Code.mkGOTO(Code.EXTERNg lab, List.length val_args', name, pos, Code.EClk)))))
-						  end
-					   | _	=>
-						  trans_te(pv, valSP, offSP, fn(val_pv', offSP) =>
-							bind_args(
-								Code.intraArgs, 
-								val_args',
-								Code.mkBIND(SOME Code.intraFC, val_fc',
-									Code.mkBIND(SOME Code.intraSC, val_sc',
-										Code.mkBIND(SOME Code.intraSP, mkOFFSET(valSP, offSP),
-											Code.mkGOTO(Code.VALUEg val_pv', List.length val_args', name, pos, Code.NClk))))))
-					  )))
-		 | CPS.LetLABe(CPS.LAB{tag, fvars, bvars, body, name, pos, ...}, exp)	=>
-			let val varHP = new_lvar("HP")
-			and varSP = trans_var(CPS.newVar(mkID("SP")))
-			and formals = !fvars @ bvars
-			and lab = mkShortLabel((CPS.longIdentName name)^"_label"^(MakeString.icvt tag), name, pos)
-			in
-			  push_labdef(false, lab, varHP, size_exp body, length formals,
-				  Code.mkBIND(SOME varSP, Code.VAR Code.intraSP,
-				  bind_proc_args(
-					formals,
-					trans_exp(
-						body,
-						Code.VAR varSP, 0,
-						Code.VAR(Code.LOCvar varHP), 0))), pos);
-			  trans_exp(exp, valSP, offSP, valHP, offHP)
-			end
-		 | CPS.AppLABe(CPS.LAB{tag, fvars, name, pos, ...}, t_star)		=>
-			let val t_star = (map CPS.mkVARte (!fvars)) @ t_star
-			and lab = mkShortLabel((CPS.longIdentName name)^"_label"^(MakeString.icvt tag), name, pos)
-			in
-			  trans_args(t_star, valSP, offSP, 
-				fn(val_args', offSP) =>
-					bind_args(Code.intraArgs, val_args',
-					Code.mkBIND(SOME Code.intraSP, mkOFFSET(valSP, offSP),
-						Code.mkGOTO(Code.LOCALg lab, List.length val_args', name, pos, Code.LClk))))
-			end
-		 | CPS.RESTOREe(te, exp)	=>
-			trans_te(te, valSP, offSP, 
-				fn(te',offSP) =>
-					Code.mkBIND(NONE, Code.CALL(Code.primUNWIND, [te']),
-						trans_exp(exp, valSP, offSP, valHP, offHP)))
-		 | CPS.LETe(var, te, exp)	=>
-			trans_te(te, valSP, offSP, 
-				fn(te',offSP) =>
-					Code.mkBIND(SOME(trans_var var), te',
-						trans_exp(exp, valSP, offSP, valHP, offHP)))
-		 | CPS.PRIMe(var, prim, exp)	=>
-			trans_prim(prim,valSP,offSP,valHP,offHP, 
-				fn (value,offSP,offHP) =>
-					Code.mkBIND(SOME(trans_var var), value,
-						trans_exp(exp, valSP, offSP, valHP, offHP)))
-		 | CPS.SWITCHe(_,[],NONE) => bug "trans_exp': SWITCH(_,[],NONE)"
-		 | CPS.SWITCHe(_,[],SOME exp) => trans_exp(exp,valSP,offSP,valHP,offHP)
-		 | CPS.SWITCHe(te, cases, default)	=>
-			trans_te(te, valSP, offSP, 
-				fn(te',offSP) =>
-					Code.mkSWITCH(te',
-						map (trans_case valSP offSP valHP offHP) cases,
-							transDefault(default, valSP, offSP, valHP, offHP)))
+    of CPS.AppFCe{fc=te_fc,name=name,pos=pos}  =>
+      trans_te(te_fc, valSP, offSP, 
+      fn(val_fc', offSP) =>
+        Code.mkBIND(SOME Code.intraFC, val_fc',
+          Code.mkBIND(SOME Code.intraSP, mkOFFSET(valSP, offSP),
+            Code.mkGOTO(Code.VALUEg(Code.FETCH val_fc'), 0, name, pos, Code.FClk))))
+     | CPS.AppSCe{sc, args, name, pos}  => 
+      trans_args(args, valSP, offSP, 
+        fn(val_args', offSP) =>
+        trans_te(sc, valSP, offSP, 
+          fn(val_sc', offSP) =>
+          bind_args(
+            Code.intraArgs, val_args',
+            Code.mkBIND(SOME Code.intraSC, val_sc',
+              Code.mkBIND(SOME Code.intraSP, mkOFFSET(valSP, offSP),
+                Code.mkGOTO(Code.VALUEg(Code.FETCH val_sc'),
+                  List.length val_args', name, pos, Code.SClk))))))
+     | CPS.AppPVe{pv, args, fc, sc, name, pos}  => 
+      trans_args(args, valSP, offSP, 
+        fn(val_args', offSP) =>
+        trans_te(fc, valSP, offSP, fn(val_fc', offSP) =>
+        trans_te(sc, valSP, offSP, fn(val_sc', offSP) =>
+          case CPS.getTE pv
+            of CPS.QUOTEte(CPS.PROClit(proc as CPS.LOCAL_REL _))  =>
+              let val lab = trans_proc proc
+              in
+              bind_args(Code.intraArgs, val_args',
+                Code.mkBIND(SOME Code.intraFC, val_fc',
+                  Code.mkBIND(SOME Code.intraSC, val_sc',
+                    Code.mkBIND(SOME Code.intraSP, mkOFFSET(valSP, offSP),
+                      Code.mkGOTO(Code.LOCALg lab, List.length val_args', name, pos, Code.NClk)))))
+              end
+             | CPS.QUOTEte(CPS.PROClit(proc as CPS.EXTERN_REL _))  =>
+              let val lab = trans_proc proc
+              in
+              bind_args(
+                Code.interArgs, val_args',
+                Code.mkBIND(SOME Code.interFC, val_fc', 
+                  Code.mkBIND(SOME Code.interSC, val_sc',
+                    Code.mkBIND(SOME Code.interSP, mkOFFSET(valSP, offSP),
+                      Code.mkGOTO(Code.EXTERNg lab, List.length val_args', name, pos, Code.EClk)))))
+              end
+             | _  =>
+              trans_te(pv, valSP, offSP, fn(val_pv', offSP) =>
+              bind_args(
+                Code.intraArgs, 
+                val_args',
+                Code.mkBIND(SOME Code.intraFC, val_fc',
+                  Code.mkBIND(SOME Code.intraSC, val_sc',
+                    Code.mkBIND(SOME Code.intraSP, mkOFFSET(valSP, offSP),
+                      Code.mkGOTO(Code.VALUEg val_pv', List.length val_args', name, pos, Code.NClk))))))
+            )))
+     | CPS.LetLABe(CPS.LAB{tag, fvars, bvars, body, name, pos, ...}, exp)  =>
+      let val varHP = new_lvar("HP")
+      and varSP = trans_var(CPS.newVar(mkID("SP")))
+      and formals = !fvars @ bvars
+      and lab = mkShortLabel((CPS.longIdentName name)^"_label"^(MakeString.icvt tag), name, pos)
+      in
+        push_labdef(false, lab, varHP, size_exp body, length formals,
+          Code.mkBIND(SOME varSP, Code.VAR Code.intraSP,
+          bind_proc_args(
+          formals,
+          trans_exp(
+            body,
+            Code.VAR varSP, 0,
+            Code.VAR(Code.LOCvar varHP), 0))), pos);
+        trans_exp(exp, valSP, offSP, valHP, offHP)
+      end
+     | CPS.AppLABe(CPS.LAB{tag, fvars, name, pos, ...}, t_star)    =>
+      let val t_star = (map CPS.mkVARte (!fvars)) @ t_star
+      and lab = mkShortLabel((CPS.longIdentName name)^"_label"^(MakeString.icvt tag), name, pos)
+      in
+        trans_args(t_star, valSP, offSP, 
+        fn(val_args', offSP) =>
+          bind_args(Code.intraArgs, val_args',
+          Code.mkBIND(SOME Code.intraSP, mkOFFSET(valSP, offSP),
+            Code.mkGOTO(Code.LOCALg lab, List.length val_args', name, pos, Code.LClk))))
+      end
+     | CPS.RESTOREe(te, exp)  =>
+      trans_te(te, valSP, offSP, 
+        fn(te',offSP) =>
+          Code.mkBIND(NONE, Code.CALL(Code.primUNWIND, [te']),
+            trans_exp(exp, valSP, offSP, valHP, offHP)))
+     | CPS.LETe(var, te, exp)  =>
+      trans_te(te, valSP, offSP, 
+        fn(te',offSP) =>
+          Code.mkBIND(SOME(trans_var var), te',
+            trans_exp(exp, valSP, offSP, valHP, offHP)))
+     | CPS.PRIMe(var, prim, exp)  =>
+      trans_prim(prim,valSP,offSP,valHP,offHP, 
+        fn (value,offSP,offHP) =>
+          Code.mkBIND(SOME(trans_var var), value,
+            trans_exp(exp, valSP, offSP, valHP, offHP)))
+     | CPS.SWITCHe(_,[],NONE) => bug "trans_exp': SWITCH(_,[],NONE)"
+     | CPS.SWITCHe(_,[],SOME exp) => trans_exp(exp,valSP,offSP,valHP,offHP)
+     | CPS.SWITCHe(te, cases, default)  =>
+      trans_te(te, valSP, offSP, 
+        fn(te',offSP) =>
+          Code.mkSWITCH(te',
+            map (trans_case valSP offSP valHP offHP) cases,
+              transDefault(default, valSP, offSP, valHP, offHP)))
 
     and transDefault(SOME exp, valSP, offSP, valHP, offHP) = SOME(trans_exp(exp, valSP, offSP, valHP, offHP))
       | transDefault(NONE, _, _, _, _) = NONE
@@ -445,37 +460,37 @@ let
 
     and trans_exp(CPS.EXP r, valSP, offSP, valHP, offHP) = trans_exp'(!r, valSP, offSP, valHP, offHP)
 
-	fun getName(CPS.ConRep.LONGID{name,...}) = name
+  fun getName(CPS.ConRep.LONGID{name,...}) = name
 
-	fun getBugLoc(CPS.ConRep.INFO(sp,ep)) =
-	let val {fileName, sline, scolumn, eline, ecolumn} = CPS.Source.getLoc(source, sp, ep)
-	in
-	 ("\n"^fileName^":"^(Int.toString sline)^"."^(Int.toString scolumn)^"-"^
-	                    (Int.toString eline)^"."^(Int.toString ecolumn)^" ")
-	end
-  	fun warnAt(info, msg) = Util.outStdErr(getBugLoc(info)^"Warning: "^msg^"\n")
+  fun getBugLoc(CPS.ConRep.INFO(sp,ep)) =
+  let val {fileName, sline, scolumn, eline, ecolumn} = CPS.Source.getLoc(source, sp, ep)
+  in
+   ("\n"^fileName^":"^(Int.toString sline)^"."^(Int.toString scolumn)^"-"^
+                      (Int.toString eline)^"."^(Int.toString ecolumn)^" ")
+  end
+    fun warnAt(info, msg) = Util.outStdErr(getBugLoc(info)^"Warning: "^msg^"\n")
 
     fun trans_def(CPS.DEF{name,uses,v_tvs,v_fc,v_sc,body,pos,...}) =
       if !uses = 0 
       then 
       (
-		warnAt(pos, "unused function: "^(trans_longid name)^".")
+    warnAt(pos, "unused function: "^(trans_longid name)^".")
       )
       else
-		let val varHP = new_lvar("HP")
-			and varSP = trans_var(CPS.newVar(mkID("SP")))
-			and lab = Code.mklab(trans_longid name, name, pos)
-		in
-		  push_labdef(
-			!uses < 0, lab, varHP, size_exp body, length v_tvs,
-			Code.mkBIND(SOME(trans_var v_sc), Code.VAR Code.intraSC,
-				Code.mkBIND(SOME(trans_var v_fc), Code.VAR Code.intraFC,
-				  Code.mkBIND(SOME varSP, Code.VAR Code.intraSP,
-					bind_proc_args(v_tvs,
-						trans_exp(body,
-							Code.VAR varSP, 0,
-								Code.VAR(Code.LOCvar varHP), 0))))), pos)
-		end
+    let val varHP = new_lvar("HP")
+      and varSP = trans_var(CPS.newVar(mkID("SP")))
+      and lab = Code.mklab(trans_longid name, name, pos)
+    in
+      push_labdef(
+      !uses < 0, lab, varHP, size_exp body, length v_tvs,
+      Code.mkBIND(SOME(trans_var v_sc), Code.VAR Code.intraSC,
+        Code.mkBIND(SOME(trans_var v_fc), Code.VAR Code.intraFC,
+          Code.mkBIND(SOME varSP, Code.VAR Code.intraSP,
+          bind_proc_args(v_tvs,
+            trans_exp(body,
+              Code.VAR varSP, 0,
+                Code.VAR(Code.LOCvar varHP), 0))))), pos)
+    end
 
     fun trans_ctor(longid,rep) = (trans_longid longid, rep)
     
@@ -486,18 +501,18 @@ let
 
 in
       (let val _ = zap_everything()
-	   val (module as CPS.MODULE{name,ctors,xmods,values,defines,...}) = CPSUsages.update module
-	   val _ = code_modname := name
-	   val _ = CPSFVars.update module
-	   val values = map trans_value values
-	   val _ = List.app trans_def defines
-	   (* val _ = print ("CPS2Code:"^CPS.Source.getFileName(source)^"\n") *)
+     val (module as CPS.MODULE{name,ctors,xmods,values,defines,...}) = CPSUsages.update module
+     val _ = code_modname := name
+     val _ = CPSFVars.update module
+     val values = map trans_value values
+     val _ = List.app trans_def defines
+     (* val _ = print ("CPS2Code:"^CPS.Source.getFileName(source)^"\n") *)
        in
-		Code.MODULE{
-			modname=name, ctors=map trans_ctor ctors, xmods=xmods,
-			xvals=get_xvals(),values=values, xlabs=get_xlabs(),
-			litdefs=get_litdefs(),labdefs=get_labdefs(), 
-			source=source}
+    Code.MODULE{
+      modname=name, ctors=map trans_ctor ctors, xmods=xmods,
+      xvals=get_xvals(),values=values, xlabs=get_xlabs(),
+      litdefs=get_litdefs(),labdefs=get_labdefs(), 
+      source=source}
        end)
       handle e => (zap_everything(); raise e)
 end

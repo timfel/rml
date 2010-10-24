@@ -433,69 +433,167 @@ let val Absyn.PROGRAM(_,_,interface as
         errorAtFunction(info, "only one DOT in component reference is allowed", "cref2Ident")
                 
     val rmlEnvironmentConstructors = ["NONE","nil","cons","list","SOME"]
+    
     val rmlEnvironmentRelations = 
       [
-      (* functions 
-      "cons","list","SOME",*)
+      (* roots *)
+      "set_global_root",   "setGlobalRoot",
+      "get_global_root",   "getGlobalRoot",
+
+      (* references *)
+      "reference_eq",      "referenceEq",
+      "reference_integer", "referenceInteger",
+      "reference_update",  "referenceUpdate",
+      "reference_setnth",  "referenceSetNth",
+      "reference_share",   "referenceShare",
+      
+      (* values *)
+      "value_constructor", "valueConstructor",
+      "value_slots",       "valueSlots",
+      "value_eq",          "valueEq",
+      "value_match",       "valueMatch",
+
       (* booleans *)
-      "bool_and","bool_not","bool_or",
+      "bool_and", "boolAnd",
+      "bool_not", "boolNot",
+      "bool_or",  "boolOr",
+      "bool_eq",  "boolEq",
+      
       (* characters *)
-      "char_int","string_char_int",
+      "char_int", "charInt",
+      "string_char_int", "stringCharInt",
+      
       (* integers *)
-      "int_abs","int_add","int_char","int_string_char","int_div","int_eq","int_ge","int_gt",
-      "int_le","int_lt","int_max","int_min","int_mod","int_mul","int_ne","int_neg","int_real",
-      "int_string","int_sub",
+      "int_abs",         "intAbs",
+      "int_add",         "intAdd",
+      "int_char",        "intChar",
+      "int_string_char", "intStringChar",
+      "int_div",         "intDiv",
+      "int_eq",          "intEq",
+      "int_ge",          "intGe",
+      "int_gt",          "intGt",
+      "int_le",          "intLe",
+      "int_lt",          "intLt",
+      "int_max",         "intMax",
+      "int_min",         "intMin",
+      "int_mod",         "intMod",
+      "int_mul",         "intMul",
+      "int_ne",          "intNe",
+      "int_neg",         "intNeg",
+      "int_real",        "intReal",
+      "int_string",      "intString",
+      "int_sub",         "intSub",
+      "int_bit_not",     "intBitNot",
+      "int_bit_and",     "intBitAnd",
+      "int_bit_or",      "intBitOr",
+      "int_bit_xor",     "intBitXor",
+      "int_bit_lshift",  "intBitLShift",
+      "int_bit_rshift",  "intBitRShift",
+      
       (* lists *)
-      "list_append","list_delete","list_length","list_member","list_nth","list_reverse",
-      "list_string","string_char_list_string","list_vector","list_array",      
+      "list_append",             "listAppend",
+      "list_delete",             "listDelete",
+      "list_length",             "listLength",
+      "list_member",             "listMember",
+      "list_nth",                "listNth",
+      "list_get",                "listGet", 
+      "list_reverse",            "listReverse", 
+      "list_string",             "listString",
+      "string_char_list_string", "stringCharListString",
+      "string_list_string_char", "stringListStringChar",
+      "list_vector",             "listVector",
+      "list_array",              "listArray",
+      "list_map",                "listMap",
+      
       (* logical variables *)
-      "lvar_get","lvar_new","lvar_set",
+      "lvar_get", "listGet",
+      "lvar_new", "lvarNew",
+      "lvar_set", "lvarSet",
+
       (* reals *)
-      "real_abs","real_add","real_atan","real_cos","real_div","real_eq","real_exp","real_floor",
-      "real_ge","real_gt","real_int","real_le","real_ln","real_lt","real_max","real_min",
-      "real_mod","real_mul","real_ne","real_neg","real_pow","real_sin","real_sqrt",
-      "real_string","real_sub",
+      "real_abs",    "realAbs",
+      "real_add",    "realAdd",
+      "real_atan",   "realAtan",
+      "real_cos",    "realCos",
+      "real_div",    "realDiv",
+      "real_eq",     "realEq",
+      "real_exp",    "realExp",
+      "real_floor",  "realFloor",
+      "real_ge",     "realGe",
+      "real_gt",     "realGt",
+      "real_int",    "realInt",
+      "real_le",     "realLe",
+      "real_ln",     "realLn",
+      "real_lt",     "realLt",
+      "real_max",    "realMax",
+      "real_min",    "realMin",
+      "real_mod",    "realMod",
+      "real_mul",    "realMul",
+      "real_ne",     "realNe",
+      "real_neg",    "realNeg",
+      "real_pow",    "realPow",
+      "real_sin",    "realSin",
+      "real_sqrt",   "realSqrt",
+      "real_string", "realString",
+      "real_sub",    "realSub",
+      "real_asin",   "realAsin",
+      "real_acos",   "realAcos",
+      "real_atan2",  "realAtan2",
+      "real_cosh",   "realCosh",
+      "real_log",    "realLog",
+      "real_log10",  "realLog10",
+      "real_sinh",   "realSinh",
+      "real_tanh",   "realTanh",
+      
       (* strings *)
-      "string_append","string_int","string_length","string_list","string_list_string_char",
-      "string_nth","string_nth_string_char","string_get","string_get_string_char",
-      "string_setnth","string_setnth_string_char","string_update","string_update_string_char",
-      "string_equal", "string_compare","string_append_list","string_5fchar_5flist_5fstring",
+      "string_append",             "stringAppend",
+      "string_int",                "stringInt",
+      "string_length",             "stringLength",
+      "string_list",               "stringList",
+      "string_nth",                "stringNth",
+      "string_nth_string_char",    "stringNthStringChar",
+      "string_get",                "stringGet",
+      "string_get_string_char",    "stringGetStringChar",
+      "string_setnth",             "stringSetNth",
+      "string_setnth_string_char", "stringSetNthStringChar",
+      "string_update",             "stringUpdate",
+      "string_update_string_char", "stringUpdateStringChar",
+      "string_equal",              "stringEqual",
+      "string_eq",                 "stringEq",
+      "string_compare",            "stringCompare",
+      "string_append_list",        "stringAppendList",
+      "string_hash",               "stringHash",
+      "string_hash_djb2",          "stringHashDjb2",
+      "string_hash_sdbm",           "stringHashSdbm",
+      
       (* immutable vectors *)
-      "vector_length","vector_list","vector_nth","vector_get","vector_setnth",
-      "vector_update","vector_create","vector_add","vector_array","vector_copy",
+      "vector_length", "vectorLength",
+      "vector_list",   "vectorList",
+      "vector_nth",    "vectorNth",
+      "vector_get",    "vectorGet",
+      "vector_setnth", "vectorSetNth",
+      "vector_update", "vectorUpdate",
+      "vector_create", "vectorCreate",
+      "vector_add",    "vectorAdd",
+      "vector_array",  "vectorArray",
+      "vector_copy",   "vectorCopy",
+      
       (* mutable arrays *)      
-      "array_length","array_list","array_nth","array_get","array_setnth",
-      "array_update","array_create","array_add","array_vector","array_copy",      
-      (* the environment using Java name convention 2005-11-10 *)      
-      "boolAnd","boolNot","boolOr","boolEq",
-      (* characters *)
-      "charInt","stringCharInt",
-      (* integers *)
-      "intAbs","intAdd","intChar","intStringChar","intDiv","intEq","intGe","intGt","intLe","intLt",
-      "intMax","intMin","intMod","intMul","intNe","intNeg","intReal","intString","intSub",
-      (* lists *)
-      "listAppend","listDelete","listLength","listMember","listNth","listReverse",
-      "listString","stringCharListString","listVector","listArray",
-      (* logical variables *)
-      "lvarGet","lvarNew","lvarSet",
-      (* reals *)
-      "realAbs","realAdd","realAtan","realCos","realDiv","realEq","realExp","realFloor","realGe",
-      "realGt","realInt","realLe","realLn","realLt","realMax","realMin","realMod","realMul",
-      "realNe","realNeg","realPow","realSin","realSqrt","realString","realSub",
-      (* strings *)
-      "stringAppend","stringInt","stringLength","stringList","stringListStringChar","stringNth",
-      "stringNthStringChar","stringGet","stringGetStringChar","stringSetNth","stringSetNthStringChar",
-      "stringUpdate","stringUpdateStringChar","stringEq","stringEqual","stringCompare","stringAppendList","stringCharListString",
-      (* immutable vectors *)
-      "vectorLength","vectorList","vectorNth","vectorGet","vectorSetNth",
-      "vectorUpdate","vectorCreate","vectorAdd","vectorArray","vectorCopy",      
-      (* mutable arrays *)      
-      "arrayLength","arrayList","arrayNth","arrayGet","arraySetNth","arrayUpdate",
-      "arrayCreate","arrayAdd","arrayVector","arrayCopy",
+      "array_length",  "arrayLength",
+      "array_list",    "arrayList",
+      "array_nth",     "arrayNth",
+      "array_get",     "arrayGet",
+      "array_setnth",  "arraySetNth",
+      "array_update",  "arrayUpdate",
+      "array_create",  "arrayCreate",
+      "array_add",     "arrayAdd",
+      "array_vector",  "arrayVector",
+      "array_copy",    "arrayCopy",
+
       (* if expressions *)
       "if_exp", "ifExp",
       (* misc *)
-      "clock","print","tick",
+      "clock", "print", "tick", "unique",
       (* debug *)
       "debug", "debug_print", "debug_show_depth", 
       "debug_push_in01", "debug_push_in02", "debug_push_in03", "debug_push_in04", "debug_push_in05", "debug_push_in06", 

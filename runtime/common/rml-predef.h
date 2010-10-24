@@ -13,6 +13,17 @@ extern void rmldb_var_print(void *p);
  * Standard procedures
  * adrpo added Java named RML buildin relations 2005-11-10
  */
+
+/* values */
+extern RML_FORWARD_LABEL(RML__value_5fconstructor);
+extern RML_FORWARD_LABEL(RML__value_5fslots);
+extern RML_FORWARD_LABEL(RML__value_5eq);
+/* java named */
+#define RML__valueConstructor RML__value_5fconstructor
+#define RML__valueSlots       RML__value_5fslots
+#define RML__valueEq          RML__value_5eq
+
+/* booleans */
 extern RML_FORWARD_LABEL(RML__bool_5fand);
 extern RML_FORWARD_LABEL(RML__bool_5fnot);
 extern RML_FORWARD_LABEL(RML__bool_5for);
@@ -20,8 +31,8 @@ extern RML_FORWARD_LABEL(RML__bool_5feq);
 /* java named */
 #define RML__boolAnd RML__bool_5fand
 #define RML__boolNot RML__bool_5fnot
-#define RML__boolOr RML__bool_5for
-#define RML__boolEq RML__bool_5feq
+#define RML__boolOr  RML__bool_5for
+#define RML__boolEq  RML__bool_5feq
 
 /* chars */
 extern RML_FORWARD_LABEL(RML__int_5fint);
@@ -59,7 +70,7 @@ extern RML_FORWARD_LABEL(RML__string_5fget_5fstring_5fchar);
 extern RML_FORWARD_LABEL(RML__string_5fsetnth_5fstring_5fchar);
 extern RML_FORWARD_LABEL(RML__string_5fupdate_5fstring_5fchar);
 extern RML_FORWARD_LABEL(RML__string_5fchar_5flist_5fstring);
-   /* java named */
+/* java named */
 #define RML__stringCharInt           RML__string_5fchar_5fint
 #define RML__intStringChar           RML__int_5fstring_5fchar
 #define RML__listStringChar          RML__list_5fstring_5fchar
@@ -87,24 +98,39 @@ extern RML_FORWARD_LABEL(RML__int_5fneg);
 extern RML_FORWARD_LABEL(RML__int_5freal);
 extern RML_FORWARD_LABEL(RML__int_5fstring);
 extern RML_FORWARD_LABEL(RML__int_5fsub);
-   /* java named */
-#define RML__intAbs    RML__int_5fabs
-#define RML__intAdd    RML__int_5fadd
-#define RML__intDiv    RML__int_5fdiv
-#define RML__intEq     RML__int_5feq
-#define RML__intGe     RML__int_5fge
-#define RML__intGt     RML__int_5fgt
-#define RML__intLe     RML__int_5fle
-#define RML__intLt     RML__int_5flt
-#define RML__intMax    RML__int_5fmax
-#define RML__intMin    RML__int_5fmin
-#define RML__intMod    RML__int_5fmod
-#define RML__intMul    RML__int_5fmul
-#define RML__intNe     RML__int_5fne
-#define RML__intNeg    RML__int_5fneg
-#define RML__intReal   RML__int_5freal
-#define RML__intString RML__int_5fstring
-#define RML__intSub    RML__int_5fsub
+/* bit operations */
+extern RML_FORWARD_LABEL(RML__int_5fbit_5fnot);
+extern RML_FORWARD_LABEL(RML__int_5fbit_5fand);
+extern RML_FORWARD_LABEL(RML__int_5fbit_5for);
+extern RML_FORWARD_LABEL(RML__int_5fbit_5fxor);
+extern RML_FORWARD_LABEL(RML__int_5fbit_5flshift);
+extern RML_FORWARD_LABEL(RML__int_5fbit_5frshift);
+/* java named */
+#define RML__intAbs       RML__int_5fabs
+#define RML__intAdd       RML__int_5fadd
+#define RML__intDiv       RML__int_5fdiv
+#define RML__intEq        RML__int_5feq
+#define RML__intGe        RML__int_5fge
+#define RML__intGt        RML__int_5fgt
+#define RML__intLe        RML__int_5fle
+#define RML__intLt        RML__int_5flt
+#define RML__intMax       RML__int_5fmax
+#define RML__intMin       RML__int_5fmin
+#define RML__intMod       RML__int_5fmod
+#define RML__intMul       RML__int_5fmul
+#define RML__intNe        RML__int_5fne
+#define RML__intNeg       RML__int_5fneg
+#define RML__intReal      RML__int_5freal
+#define RML__intString    RML__int_5fstring
+#define RML__intSub       RML__int_5fsub
+/* bit operations */
+#define RML__intBitNot    RML__int_5fbit_5fnot
+#define RML__intBitAnd    RML__int_5fbit_5fand
+#define RML__intBitOr     RML__int_5fbit_5for
+#define RML__intBitXor    RML__int_5fbit_5fxor
+#define RML__intBitLShift RML__int_5fbit_5flshift
+#define RML__intBitRShift RML__int_5fbit_5frshift
+
 
 /* lists */
 extern RML_FORWARD_LABEL(RML__list_5fappend);
@@ -116,7 +142,7 @@ extern RML_FORWARD_LABEL(RML__list_5fget);
 extern RML_FORWARD_LABEL(RML__list_5freverse);
 extern RML_FORWARD_LABEL(RML__list_5fvector);
 extern RML_FORWARD_LABEL(RML__list_5farray);
-   /* java named */
+/* java named */
 #define RML__listAppend  RML__list_5fappend
 #define RML__listDelete  RML__list_5fdelete
 #define RML__listLength  RML__list_5flength
@@ -131,7 +157,7 @@ extern RML_FORWARD_LABEL(RML__list_5farray);
 extern RML_FORWARD_LABEL(RML__lvar_5fget);
 extern RML_FORWARD_LABEL(RML__lvar_5fnew);
 extern RML_FORWARD_LABEL(RML__lvar_5fset);
-   /* java named */
+/* java named */
 #define RML__lvarGet RML__lvar_5fget
 #define RML__lvarNew RML__lvar_5fnew
 #define RML__lvarSet RML__lvar_5fset
@@ -171,7 +197,7 @@ extern RML_FORWARD_LABEL(RML__real_5flog);
 extern RML_FORWARD_LABEL(RML__real_5flog10);
 extern RML_FORWARD_LABEL(RML__real_5fsinh);
 extern RML_FORWARD_LABEL(RML__real_5ftanh);
-   /* java named */
+/* java named */
 #define RML__realAbs    RML__real_5fabs
 #define RML__realAdd    RML__real_5fadd
 #define RML__realAtan   RML__real_5fatan
@@ -228,7 +254,7 @@ extern RML_FORWARD_LABEL(RML__vector_5fcreate);
 extern RML_FORWARD_LABEL(RML__vector_5fadd);
 extern RML_FORWARD_LABEL(RML__vector_5farray);
 extern RML_FORWARD_LABEL(RML__vector_5fcopy);
-   /* java named */
+/* java named */
 #define RML__vectorLength RML__vector_5flength
 #define RML__vectorList   RML__vector_5flist
 #define RML__vectorNth    RML__vector_5fnth
@@ -251,7 +277,7 @@ extern RML_FORWARD_LABEL(RML__array_5fcreate);
 extern RML_FORWARD_LABEL(RML__array_5fadd);
 extern RML_FORWARD_LABEL(RML__array_5fvector);
 extern RML_FORWARD_LABEL(RML__array_5fcopy);
-   /* java named */
+/* java named */
 #define RML__arrayLength RML__array_5flength
 #define RML__arrayList   RML__array_5flist
 #define RML__arrayNth    RML__array_5fnth

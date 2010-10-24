@@ -19,15 +19,28 @@ functor CPSFn(
 			          | REALcon of real
 			          | STRINGcon of string
 
-    datatype unop = FETCH of int
-			      | BOOL_NOT | INT_NEG | INT_ABS
+    datatype unop  = FETCH of int
+                           |  BOOL_NOT 
+                           |  INT_NEG    | INT_ABS 
+                           |  INT_BIT_NOT 
+                           | STRING_HASH | STRING_HASH_DJB2 | STRING_HASH_SDBM
+                           |  VAL_CONSTR | VAL_SLOTS
+                           |  REF_INT
+                           
 
-    datatype binop = EQUAL                   
-			       | BOOL_AND | BOOL_OR | BOOL_EQ
-			       | CHAR_EQ 
-			       | INT_ADD | INT_SUB | INT_MUL | INT_DIV | INT_MOD | INT_MAX | INT_MIN | INT_LT | INT_LE | INT_EQ | INT_NE | INT_GE | INT_GT
-			       | REAL_EQ
-			       | STRING_EQ
+    datatype binop  = EQUAL
+                    | BOOL_AND | BOOL_OR | BOOL_EQ
+                    | CHAR_EQ
+                    | INT_ADD | INT_SUB 
+                    | INT_MUL | INT_DIV | INT_MOD 
+                    | INT_MAX | INT_MIN 
+                    | INT_LT  | INT_LE | INT_EQ | INT_NE | INT_GE | INT_GT 
+                    | INT_BIT_AND | INT_BIT_OR | INT_BIT_XOR 
+                    | INT_BIT_LSHIFT | INT_BIT_RSHIFT
+                    | REAL_EQ
+                    | STRING_EQ 
+                    | VAL_EQ | VAL_MATCH
+                    | REF_EQ 
 
     datatype var = VAR of {	tag		: int,
 							uses	: int ref,

@@ -71,7 +71,7 @@ RML_BEGIN_LABEL(RML__string_5fappend_5flist)
     len += RML_HDRSTRLEN(RML_GETHDR(RML_CAR(lst)));
     lst = RML_CDR(lst);
   }
-  
+
   /* allocate the string */
   str = rml_prim_mkstring(len, 1);
   if (len == 0) /* if the list is empty, return empty string! */
@@ -87,11 +87,11 @@ RML_BEGIN_LABEL(RML__string_5fappend_5flist)
     void* car = RML_CAR(lst);
     len_car = RML_HDRSTRLEN(RML_GETHDR(car));
     (void)memcpy(
-      &str->data[len_cur], 
-      RML_STRINGDATA(car), 
+      &str->data[len_cur],
+      RML_STRINGDATA(car),
       len_car);
     len_cur += len_car;
-	lst = RML_CDR(lst);
+    lst = RML_CDR(lst);
   }
   str->data[len_cur] = '\0';
   rmlA0 = RML_TAGPTR(str);
@@ -400,8 +400,36 @@ RML_BEGIN_LABEL(RML__string_5fcompare)
   char *str1 = RML_STRINGDATA(rmlA0);
   char *str2 = RML_STRINGDATA(rmlA1);
   rml_sint_t result = strcmp(str1, str2);
+  if      (result>0) result =  1;
+  else if (result<0) result = -1;
   rmlA0 = RML_IMMEDIATE(RML_TAGFIXNUM(result));
   RML_TAILCALLK(rmlSC);
 }
 RML_END_LABEL
 
+RML_BEGIN_LABEL(RML__string_5fhash)
+{
+  char *str = RML_STRINGDATA(rmlA0);
+  rml_uint_t hash = (rml_uint_t)rml_default_hash(str);
+  rmlA0 = RML_PRIM_INT_ABS(RML_IMMEDIATE(RML_TAGFIXNUM(hash)));
+  RML_TAILCALLK(rmlSC);
+}
+RML_END_LABEL
+
+RML_BEGIN_LABEL(RML__string_5fhash_5fsdbm)
+{
+  char *str = RML_STRINGDATA(rmlA0);
+  rml_uint_t hash = (rml_uint_t)rml_sdbm_hash(str);
+  rmlA0 = RML_PRIM_INT_ABS(RML_IMMEDIATE(RML_TAGFIXNUM(hash)));
+  RML_TAILCALLK(rmlSC);
+}
+RML_END_LABEL
+
+RML_BEGIN_LABEL(RML__string_5fhash_5fdjb2)
+{
+  char *str = RML_STRINGDATA(rmlA0);
+  rml_uint_t hash = (rml_uint_t)rml_djb2_hash(str);
+  rmlA0 = RML_PRIM_INT_ABS(RML_IMMEDIATE(RML_TAGFIXNUM(hash)));
+  RML_TAILCALLK(rmlSC);
+}
+RML_END_LABEL

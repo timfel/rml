@@ -107,7 +107,11 @@
     <ClCompile Include="common\p-gcuser-plain.c" />
     <ClCompile Include="common\p-usergc.c" />
     <ClCompile Include="common\real.c" />
+    <ClCompile Include="common\reference.c" />
+    <ClCompile Include="common\root.c" />
     <ClCompile Include="common\string.c" />
+    <ClCompile Include="common\system.c" />
+    <ClCompile Include="common\value.c" />
     <ClCompile Include="common\vector.c" />
     <ClCompile Include="mask\p-mask.c" />
     <ClCompile Include="debugging\debug.c" />
@@ -231,7 +235,6 @@
     <ClInclude Include="common\p-gccore.h" />
     <ClInclude Include="common\rml-core.h" />
     <ClInclude Include="common\rml-predef.h" />
-    <ClInclude Include="common\rml-state.h" />
     <ClInclude Include="common\z-agptr.h" />
     <ClInclude Include="common\z-joing.h" />
     <ClInclude Include="common\z-lgptr.h" />

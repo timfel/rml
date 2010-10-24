@@ -4,7 +4,7 @@
 GOROOT=../..
 
 CSRC=	array.c boolean.c integer.c list.c logicalvar.c real.c string.c vector.c internal.c \
-	p-gccore.c p-gcuser-block.c p-usergc.c controlflow.c \
+	p-gccore.c p-gcuser-block.c p-usergc.c controlflow.c reference.c system.c value.c root.c \
 	parse-command.c scan-command.c parse-rdb.c scan-rdb.c load.c \
 	socket.c command.c handler.c debug.c \
 	main.c

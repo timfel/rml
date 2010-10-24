@@ -3,130 +3,143 @@
 signature CPS =
   sig
 
-	structure Source    : SOURCE
-    structure ConRep	: CONREP
+  structure Source    : SOURCE
+    structure ConRep  : CONREP
     type info = ConRep.info 
-	type ident = ConRep.ident
-	type longid = ConRep.longid
-	    
+    type ident = ConRep.ident
+    type longid = ConRep.longid
+      
     datatype constant = INTcon of int
-			          | HDRcon of {len: int, con: int}
-			          | REALcon of real
-			          | STRINGcon of string
+                | HDRcon of {len: int, con: int}
+                | REALcon of real
+                | STRINGcon of string
 
-    datatype unop	= FETCH of int
-			| BOOL_NOT | INT_NEG | INT_ABS
+    datatype unop  = FETCH of int
+                           |  BOOL_NOT 
+                           |  INT_NEG    | INT_ABS 
+                           |  INT_BIT_NOT 
+                           | STRING_HASH | STRING_HASH_DJB2 | STRING_HASH_SDBM
+                           |  VAL_CONSTR | VAL_SLOTS
+                           |  REF_INT
+                           
 
-    datatype binop	= EQUAL
-			| BOOL_AND | BOOL_OR | BOOL_EQ
-			| CHAR_EQ
-			| INT_ADD | INT_SUB | INT_MUL | INT_DIV | INT_MOD | INT_MAX | INT_MIN | INT_LT | INT_LE | INT_EQ | INT_NE | INT_GE | INT_GT
-			| REAL_EQ
-			| STRING_EQ
+    datatype binop  = EQUAL
+                    | BOOL_AND | BOOL_OR | BOOL_EQ
+                    | CHAR_EQ
+                    | INT_ADD | INT_SUB 
+                    | INT_MUL | INT_DIV | INT_MOD 
+                    | INT_MAX | INT_MIN 
+                    | INT_LT  | INT_LE | INT_EQ | INT_NE | INT_GE | INT_GT 
+                    | INT_BIT_AND | INT_BIT_OR | INT_BIT_XOR 
+                    | INT_BIT_LSHIFT | INT_BIT_RSHIFT
+                    | REAL_EQ
+                    | STRING_EQ 
+                    | VAL_EQ | VAL_MATCH
+                    | REF_EQ 
 
-    datatype var = VAR of {	tag	: int,
-							uses	: int ref,
-							subst	: trivexp' option ref,
-							name	: longid }
+    datatype var = VAR of {  tag  : int,
+              uses  : int ref,
+              subst  : trivexp' option ref,
+              name  : longid }
 
-    and lamkind	= FClk
-			    | SClk of {v_tvs: var list}
+    and lamkind  = FClk
+          | SClk of {v_tvs: var list}
 
-    and literal	= CONSTlit of constant
-			    | STRUCTlit of int * literal list * longid
-			    | PROClit of proc
-			    | EXTERNlit of longid
+    and literal  = CONSTlit of constant
+          | STRUCTlit of int * literal list * longid
+          | PROClit of proc
+          | EXTERNlit of longid
 
     and proc = EXTERN_REL of longid * ({args:trivexp list, fc:trivexp, sc:trivexp} -> exp' option) option
-			 | LOCAL_REL of def
+       | LOCAL_REL of def
 
-    and label = LAB of {	tag 	: int,
-							uses	: int ref,
-							fvars	: var list ref,
-							bvars	: var list,
-							body	: exp,
-							name	: longid,
-							pos		: info }
+    and label = LAB of {  tag   : int,
+              uses  : int ref,
+              fvars  : var list ref,
+              bvars  : var list,
+              body  : exp,
+              name  : longid,
+              pos    : info }
 
     and trivexp' = VARte of var
-			     | LAMte of {	tag		: int,
-								fvars	: var list ref,
-								kind	: lamkind,
-								body	: exp,
-								name	: longid,
-								pos		: info }
-			     | QUOTEte of literal
+           | LAMte of {  tag    : int,
+                fvars  : var list ref,
+                kind  : lamkind,
+                body  : exp,
+                name  : longid,
+                pos    : info }
+           | QUOTEte of literal
 
-    and trivexp		= TE of trivexp' ref
+    and trivexp    = TE of trivexp' ref
 
-    and primapp	= MARKERp
-			    | MKSTRUCTp of int * trivexp list
-			    | UNARYp of unop * trivexp
-			    | BINARYp of binop * trivexp * trivexp
+    and primapp  = MARKERp
+          | MKSTRUCTp of int * trivexp list
+          | UNARYp of unop * trivexp
+          | BINARYp of binop * trivexp * trivexp
 
     and exp' = AppFCe of {fc:trivexp, name:longid, pos:info}
-			 | AppSCe of {sc:trivexp, args:trivexp list, name:longid, pos:info}
-			 | AppPVe of {pv:trivexp, args:trivexp list, fc:trivexp, sc:trivexp, name:longid, pos:info}
-			 | LetLABe of label * exp
-			 | AppLABe of label * trivexp list
-			 | RESTOREe of trivexp * exp
-			 | LETe of var * trivexp * exp
-			 | PRIMe of var * primapp * exp
-			 | SWITCHe of trivexp * (constant * exp) list * exp option
+       | AppSCe of {sc:trivexp, args:trivexp list, name:longid, pos:info}
+       | AppPVe of {pv:trivexp, args:trivexp list, fc:trivexp, sc:trivexp, name:longid, pos:info}
+       | LetLABe of label * exp
+       | AppLABe of label * trivexp list
+       | RESTOREe of trivexp * exp
+       | LETe of var * trivexp * exp
+       | PRIMe of var * primapp * exp
+       | SWITCHe of trivexp * (constant * exp) list * exp option
 
-    and exp		= EXP of exp' ref
+    and exp    = EXP of exp' ref
 
-    and def		= DEF of {	
-					name	: longid,
-					uses	: int ref,
-					v_tvs	: var list,
-					v_fc	: var,
-					v_sc	: var,
-					body	: exp,
-					pos		: info }
+    and def    = DEF of {  
+          name  : longid,
+          uses  : int ref,
+          v_tvs  : var list,
+          v_fc  : var,
+          v_sc  : var,
+          body  : exp,
+          pos    : info }
 
-    datatype module	= MODULE of {	name	: string,
-					ctors	: (longid * ConRep.conrep) list,
-					xmods	: string list,
-					values	: (longid * literal) list,
-					defines	: def list,
-					source	: Source.source	}
+    datatype module  = MODULE of {  name  : string,
+          ctors  : (longid * ConRep.conrep) list,
+          xmods  : string list,
+          values  : (longid * literal) list,
+          defines  : def list,
+          source  : Source.source  }
 
-    val constEqual	: constant * constant -> bool
+    val constEqual  : constant * constant -> bool
 
-    val getTE'		: trivexp -> trivexp' ref
-    val getTE		: trivexp -> trivexp'
+    val getTE'    : trivexp -> trivexp' ref
+    val getTE    : trivexp -> trivexp'
 
-    val getExp		: exp -> exp'
+    val getExp    : exp -> exp'
 
-    val newVar		: longid -> var
-    val newDef		: {name:longid, args:var list, fc:var, sc:var, body:exp, pos:info} -> def
-    val newLam		: lamkind  * exp * longid * info -> trivexp
-    val newLab		: var list * exp * longid * info -> label
+    val newVar    : longid -> var
+    val newDef    : {name:longid, args:var list, fc:var, sc:var, body:exp, pos:info} -> def
+    val newLam    : lamkind  * exp * longid * info -> trivexp
+    val newLab    : var list * exp * longid * info -> label
 
-    val mkVARte		: var -> trivexp
-    val mkQUOTEte	: literal -> trivexp
+    val mkVARte    : var -> trivexp
+    val mkQUOTEte  : literal -> trivexp
 
-    val mkAppFCe	: {fc:trivexp, name:longid, pos:info} -> exp
-    val mkAppSCe	: {sc:trivexp, args:trivexp list, name:longid, pos:info} -> exp
-    val mkAppPVe	: {pv:trivexp, args:trivexp list, fc:trivexp, sc:trivexp, name:longid, pos:info} -> exp
-    val mkLetLABe	: label * exp -> exp
-    val mkAppLABe	: label * trivexp list -> exp
-    val mkRESTOREe	: trivexp * exp -> exp
-    val mkLETe		: var * trivexp * exp -> exp
-    val mkPRIMe		: var * primapp * exp -> exp
-    val mkSWITCHe	: trivexp * (constant*exp) list * exp option -> exp
+    val mkAppFCe  : {fc:trivexp, name:longid, pos:info} -> exp
+    val mkAppSCe  : {sc:trivexp, args:trivexp list, name:longid, pos:info} -> exp
+    val mkAppPVe  : {pv:trivexp, args:trivexp list, fc:trivexp, sc:trivexp, name:longid, pos:info} -> exp
+    val mkLetLABe  : label * exp -> exp
+    val mkAppLABe  : label * trivexp list -> exp
+    val mkRESTOREe  : trivexp * exp -> exp
+    val mkLETe    : var * trivexp * exp -> exp
+    val mkPRIMe    : var * primapp * exp -> exp
+    val mkSWITCHe  : trivexp * (constant*exp) list * exp option -> exp
     
-    val makeIdent	    : string * info -> ident
-    val makeLongIdent	: ident option * ident -> longid
+    val makeIdent      : string * info -> ident
+    val makeLongIdent  : ident option * ident -> longid
 
-	val mkID            : string -> longid
+  val mkID            : string -> longid
     
-    val identName	    : ident  -> string
+    val identName      : ident  -> string
     val longIdentName   : longid -> string    
     
     val dummyInfo       : info
-    val dummyIdent		: ident 
+    val dummyIdent    : ident 
     
     val dummyLongIdent  : longid   
 

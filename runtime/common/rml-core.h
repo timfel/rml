@@ -269,6 +269,9 @@ extern unsigned long rml_trail_size;
 extern void         *rml_array_trail[];
 extern unsigned long rml_array_trail_size;
 
+extern void         *rml_share_trail[][2];
+extern unsigned long rml_share_trail_size;
+
 #ifdef	RML_MORE_LOGGING
 extern const char *rml_latest_module;
 extern unsigned char rml_latest_known;
@@ -320,24 +323,58 @@ extern void* rml_prim_none_tagged;
 
 #define rml_prim_marker()	((void*)(rmlTP))
 extern rml_sint_t rml_prim_stringeq(void*, rml_uint_t, const char*);
-extern void *rml_prim_equal(void*, void*);
+extern inline void *rml_prim_equal(void*, void*);
 extern void  rml_prim_unwind_(void**);
 #define rml_prim_unwind(XTP) do{if(rmlTP<(void**)(XTP))rml_prim_unwind_((void**)(XTP));}while(0)
+
+/*
+ * adrpo 2008-12-02
+ * http://www.cse.yorku.ca/~oz/hash.html
+ * hash functions used by RML: 
+ *   stringHash -> rml_default_hash
+ *   stringHashDjb2 -> rml_djb2_hash
+ *   stringHashSdbm -> rml_sdbm_hash
+ */
+/*** djb2 hash ***/
+static inline unsigned long rml_djb2_hash(unsigned char *str)
+{
+  unsigned long hash = 5381;
+  int c;
+  while (c = *str++)  hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+  return hash;
+}
+
+/*** sdbm hash ***/
+static inline unsigned long rml_sdbm_hash(unsigned char* str)
+{
+  unsigned long hash = 0;
+  int c;
+  while (c = *str++) hash = c + (hash << 6) + (hash << 16) - hash;
+  return hash;
+}
+
+static inline unsigned long rml_default_hash(unsigned char* str)
+{
+  unsigned long hash = 0;
+  int c;
+  while (c = *str++) hash += c;
+  return hash;
+}
 
 /*
  * Primitive operations for inlinable primitive procedures.
  * Preconditions like division by zero are supposed to have been checked.
  */
+/* booleans */
 #define RML_PRIM_MKBOOL(FLAG)   ((FLAG) ? RML_TRUE : RML_FALSE)
-
 #define RML_PRIM_BOOL_NOT(X)    RML_PRIM_MKBOOL(((X) == RML_FALSE))
 #define RML_PRIM_BOOL_AND(X,Y)  RML_FIXNUM_AND((X),(Y))
 #define RML_PRIM_BOOL_OR(X,Y)   RML_FIXNUM_OR((X),(Y))
 #define RML_PRIM_BOOL_EQ(X,Y)   RML_PRIM_MKBOOL(RML_FIXNUM_EQ((X),(Y)))
 
+/* integers */
 #define RML_PRIM_INT_NEG(X)     RML_FIXNUM_NEG((X))
 #define RML_PRIM_INT_ABS(X)     (RML_FIXNUM_LT((X),RML_IMMEDIATE(RML_TAGFIXNUM(0))) ? RML_FIXNUM_NEG((X)) : (X))
-
 #define RML_PRIM_INT_ADD(X,Y)   RML_FIXNUM_ADD((X),(Y))
 #define RML_PRIM_INT_SUB(X,Y)   RML_FIXNUM_SUB((X),(Y))
 #define RML_PRIM_INT_MUL(X,Y)   RML_FIXNUM_MUL((X),(Y))
@@ -351,14 +388,36 @@ extern void  rml_prim_unwind_(void**);
 #define RML_PRIM_INT_GE(X,Y)    RML_PRIM_MKBOOL(RML_FIXNUM_GE((X),(Y)))
 #define RML_PRIM_INT_GT(X,Y)    RML_PRIM_MKBOOL(RML_FIXNUM_GT((X),(Y)))
 #define RML_PRIM_INT_EQ(X,Y)    RML_PRIM_MKBOOL(RML_FIXNUM_EQ((X),(Y)))
+/* bit operations */
+#define RML_PRIM_INT_BIT_NOT(X)      RML_IMMEDIATE(RML_TAGFIXNUM(~(RML_UNTAGFIXNUM(X))))
+#define RML_PRIM_INT_BIT_AND(X,Y)    RML_IMMEDIATE(RML_TAGFIXNUM( (RML_UNTAGFIXNUM(X)  |  RML_UNTAGFIXNUM(Y)) ))
+#define RML_PRIM_INT_BIT_OR(X,Y)     RML_IMMEDIATE(RML_TAGFIXNUM( (RML_UNTAGFIXNUM(X)  &  RML_UNTAGFIXNUM(Y)) ))
+#define RML_PRIM_INT_BIT_XOR(X,Y)    RML_IMMEDIATE(RML_TAGFIXNUM( (RML_UNTAGFIXNUM(X)  ^  RML_UNTAGFIXNUM(Y)) ))
+#define RML_PRIM_INT_BIT_LSHIFT(X,Y) RML_IMMEDIATE(RML_TAGFIXNUM( (RML_UNTAGFIXNUM(X) <<  RML_UNTAGFIXNUM(Y)) ))
+#define RML_PRIM_INT_BIT_RSHIFT(X,Y) RML_IMMEDIATE(RML_TAGFIXNUM( (RML_UNTAGFIXNUM(X) >>  RML_UNTAGFIXNUM(Y)) ))
 
-/* comparison based first on pointer equality, then on the actual data
-#define RML_PRIM_REAL_EQ(X,Y)   RML_PRIM_MKBOOL(((X) == (Y))?1:(rml_prim_get_real(X)==rml_prim_get_real(Y)))
-#define RML_PRIM_STRING_EQ(X,Y) RML_PRIM_MKBOOL(((X) == (Y))?1:(strcmp(RML_STRINGDATA(X), RML_STRINGDATA(Y))==0))
-*/
-/* comparison based on actual data */
+/* real */
 #define RML_PRIM_REAL_EQ(X,Y)   RML_PRIM_MKBOOL(rml_prim_get_real(X)==rml_prim_get_real(Y))
+/* string */
 #define RML_PRIM_STRING_EQ(X,Y) RML_PRIM_MKBOOL(((X) == (Y))?1:(strcmp(RML_STRINGDATA(X), RML_STRINGDATA(Y))==0))
+/* hashes */
+#define RML_PRIM_STRING_HASH(X)       RML_PRIM_INT_ABS(RML_IMMEDIATE(RML_TAGFIXNUM((rml_uint_t)rml_default_hash(RML_STRINGDATA(X)))));
+#define RML_PRIM_STRING_HASH_DJB2(X)  RML_PRIM_INT_ABS(RML_IMMEDIATE(RML_TAGFIXNUM((rml_uint_t)rml_djb2_hash(RML_STRINGDATA(X)))));
+#define RML_PRIM_STRING_HASH_SDBM(X)  RML_PRIM_INT_ABS(RML_IMMEDIATE(RML_TAGFIXNUM((rml_uint_t)rml_sdbm_hash(RML_STRINGDATA(X)))));
+
+/* references */
+#define RML_PRIM_REF_EQ(X,Y)     ((X == Y) ? RML_TRUE : RML_FALSE)
+#define RML_PRIM_REF_INT(X)      ( RML_ISIMM(X) ? X : RML_IMMEDIATE(RML_TAGFIXNUM((rml_uint_t)RML_UNTAGPTR(X))) )
+
+/* values */
+/* return the constructor */
+#define RML_PRIM_VAL_CONSTR(X)   ( RML_ISIMM(X) ? RML_IMMEDIATE(RML_TAGFIXNUM(0)) : RML_IMMEDIATE(RML_TAGFIXNUM(RML_HDRCTOR(RML_GETHDR(X)))) )
+/* return the slots */
+#define RML_PRIM_VAL_SLOTS(X)    ( RML_ISIMM(X) ? X : RML_IMMEDIATE(RML_TAGFIXNUM(RML_HDRSLOTS(RML_GETHDR(X)))) )
+/* polymorphic equality */
+#define RML_PRIM_VAL_EQ(X, Y)    ( rml_prim_equal(X, Y) )
+/* matches  */
+#define RML_PRIM_VAL_MATCH(X, Y) ( (RML_GETHDR(X) == RML_GETHDR(Y)) ? RML_TRUE : RML_FALSE )
 
 
 /*
@@ -382,6 +441,12 @@ extern void rml_user_gc_callback(struct rml_xgcstate *state, void **vec, rml_uin
 extern void rml_user_gc(struct rml_xgcstate *state);
 
 /*
+ * global data that can be set/get via setGlobalRoot/getGlobalRoot
+ */
+extern void rml_roots_gc_callback(struct rml_xgcstate *state, void **vec, rml_uint_t nelts);
+extern void rml_roots_gc(struct rml_xgcstate *state);
+
+/*
  * rml-state.h
  */
 #ifdef	RML_STATE_JOIN
@@ -393,6 +458,7 @@ struct rml_state {
   void *SP, *FC, *SC, **TP, *ARGS[RML_NUM_ARGS];
   void **young_next, **young_limit; 
   void **ATP;
+  void **STP;
   rml_uint_t nrArgs;
 };
 extern struct rml_state rml_state;
@@ -402,6 +468,7 @@ extern struct rml_state rml_state;
 #define rml_state_SC		(rml_state.SC)
 #define rml_state_TP		(rml_state.TP)
 #define rml_state_ATP		(rml_state.ATP)
+#define rml_state_STP		(rml_state.STP)
 #define rml_state_ARGS		(rml_state.ARGS)
 #define rml_state_young_next	(rml_state.young_next)
 #define rml_state_young_limit	(rml_state.young_limit)
@@ -449,6 +516,7 @@ extern struct rml_state rml_state;
 #define rml_young_next		(rmlState->young_next)
 #define rml_young_limit		(rmlState->young_limit)
 #define rmlATP			(rmlState->ATP)
+#define rmlSTP			(rmlState->STP)
 #define rml_nrArgs          (rmlState->nrArgs)
 
 #else	/*!(RML_STATE_APTR || RML_STATE_LPTR)*/
