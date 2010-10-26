@@ -14,14 +14,36 @@ extern void rmldb_var_print(void *p);
  * adrpo added Java named RML buildin relations 2005-11-10
  */
 
+/* roots */
+extern RML_FORWARD_LABEL(RML__set_5fglobal_5froot);
+extern RML_FORWARD_LABEL(RML__get_5fglobal_5froot);
+/* java named */
+#define RML__setGlobalRoot  RML__set_5fglobal_5froot
+#define RML__getGlobalRoot  RML__get_5fglobal_5froot
+
+/* references */
+extern RML_FORWARD_LABEL(RML__reference_5feq);
+extern RML_FORWARD_LABEL(RML__reference_5finteger);
+extern RML_FORWARD_LABEL(RML__reference_5fupdate);
+extern RML_FORWARD_LABEL(RML__reference_5fsetnth);
+extern RML_FORWARD_LABEL(RML__reference_5fshare);
+/* java named */
+#define RML__referenceEq       RML__reference_5feq
+#define RML__referenceInteger  RML__reference_5finteger
+#define RML__referenceUpdate   RML__reference_5fupdate
+#define RML__referenceSetNth   RML__reference_5fsetnth
+#define RML__referenceShare    RML__reference_5fshare
+
 /* values */
 extern RML_FORWARD_LABEL(RML__value_5fconstructor);
 extern RML_FORWARD_LABEL(RML__value_5fslots);
 extern RML_FORWARD_LABEL(RML__value_5eq);
+extern RML_FORWARD_LABEL(RML__value_5match);
 /* java named */
 #define RML__valueConstructor RML__value_5fconstructor
 #define RML__valueSlots       RML__value_5fslots
 #define RML__valueEq          RML__value_5eq
+#define RML__valueMatch       RML__value_5match
 
 /* booleans */
 extern RML_FORWARD_LABEL(RML__bool_5fand);
@@ -297,6 +319,7 @@ extern RML_FORWARD_LABEL(RML__if_5fexp);
 extern RML_FORWARD_LABEL(RML__clock);
 extern RML_FORWARD_LABEL(RML__print);
 extern RML_FORWARD_LABEL(RML__tick);
+extern RML_FORWARD_LABEL(RML__unique);
 
 /* debugging */
 /* let these relation be available in all rml libraries */
