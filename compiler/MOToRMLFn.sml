@@ -145,6 +145,8 @@ let val Absyn.PROGRAM(_,_,interface as
     datatype kind        = CON | FUN | FUNTYPE
     (* datatype valvalue    = VAL of {k: kind, v: int} *)
 
+    datatype funcKind    = EXTERNAL_FUNCTION | NORMAL_FUNCTION | TYPE_FUNCTION
+
     fun  isPattern(exps) =
     let fun is_present(Absyn.NAMEDARG(SOME(ident), exp, infoNamedArg)) = true
         |    is_present(Absyn.NAMEDARG(NONE, exp, infoNamedArg)) = false
@@ -372,7 +374,7 @@ let val Absyn.PROGRAM(_,_,interface as
                                   vardecl (* variable name & properties *)
                        | ALGORITHM of scope * 
                                       Absyn.clause * Absyn.info      (* algorithms != match *)
-                       | FUNCTYPE of scope *               (* scope  *) 
+                       | FUNC     of scope *               (* scope  *) 
                                      Absyn.ident *           (* name   *)
                                      construct list           (* in/out *)
                        | EXTERNAL of scope * 
@@ -381,7 +383,8 @@ let val Absyn.PROGRAM(_,_,interface as
                                 Absyn.ident * 
                                 Absyn.ty * 
                                 Absyn.clause option * 
-                                Absyn.info
+                                Absyn.info *
+                                funcKind
     *)
     (* what can we find in a package/uniontype/function/functiontype/record *)     
     datatype construct = CoB of Absyn.conbind      (* constructors   *)
@@ -408,9 +411,10 @@ let val Absyn.PROGRAM(_,_,interface as
                                   Absyn.ident * (* variable name *)
                                   Absyn.attr (* variable attributes *)                                  
                        | ALGORITHM of Absyn.clause * Absyn.info * Absyn.info     (* algorithms != match *)
-                       | FUNCTYPE of Absyn.ident option *  (* scope  *) 
+                       | FUNC of Absyn.ident option *  (* scope  *) 
                                      Absyn.ident *           (* name   *)
-                                     construct list           (* in/out *)
+                                     construct list *         (* in/out *)
+                                     funcKind                 (* function or function type! *)
                        | EXTERNAL of string
                        | REL of Absyn.ident * 
                                 Absyn.ty * 
@@ -420,7 +424,8 @@ let val Absyn.PROGRAM(_,_,interface as
                                  Absyn.info * (* match info *) 
                                  Absyn.pat *  (* match return expression *)
                                  Absyn.info) option * (* match info *)
-                                Absyn.info  
+                                Absyn.info *
+                                funcKind  
                                 
     type constructs = construct list
 
@@ -2673,7 +2678,7 @@ let val Absyn.PROGRAM(_,_,interface as
 
 
     fun sweepFUNCTYPES([]) = []
-    |   sweepFUNCTYPES((x as FUNCTYPE(_))::rest) = x::sweepFUNCTYPES(rest)
+    |   sweepFUNCTYPES((x as FUNC(_))::rest) = x::sweepFUNCTYPES(rest)
     |   sweepFUNCTYPES(_::rest) = sweepFUNCTYPES(rest)
 
     fun constructClause(ident,
@@ -2868,21 +2873,23 @@ let val Absyn.PROGRAM(_,_,interface as
                     (* 
                         collect everything in a FUNCTYPE
                     *)
-                    FUNCTYPE(
+                    FUNC(
                         SOME(f_ident), 
                         identclass, 
-                        buildRelationSpecAndDec(identclass, classparts))::
+                        buildRelationSpecAndDec(identclass, classparts),
+                        NORMAL_FUNCTION)::
                     splitElements(f_ident, rest, visibility)
             )
             |    Absyn.R_FUNCTION_TYPE(_) =>
                 (
                     (* 
-                        collect everything in a FUNCTYPE
+                        collect everything in a FUNC
                     *)
-                    FUNCTYPE(
+                    FUNC(
                         SOME(f_ident), 
                         identclass, 
-                        buildRelationSpecAndDec(identclass, classparts))::
+                        buildRelationSpecAndDec(identclass, classparts),
+                        TYPE_FUNCTION)::
                     splitElements(f_ident, rest, visibility)
             )
             |    Absyn.R_TYPE(info) =>
@@ -3016,8 +3023,8 @@ let val Absyn.PROGRAM(_,_,interface as
        end func;
        -> func_FuncType1
     *)
-    fun constructRelationsAndDatatypes(ident_, []) = ([], [])     
-    |   constructRelationsAndDatatypes(ident, resultlist) = 
+    fun constructRelationsAndDatatypes(ident_, [], kind) = ([], [])     
+    |   constructRelationsAndDatatypes(ident, resultlist, kind) = 
             let val clauseList = sweepCLAUSE(resultlist)
                 val algList = sweepALGORITHM(resultlist)
                 val ty = constructRelationTy(resultlist)
@@ -3034,7 +3041,7 @@ let val Absyn.PROGRAM(_,_,interface as
                                     CLAUSE(clause, infoClause) => (clause, infoClause)
                                 |    _ => bug ("constructRelationsAndDatatypes: expected clause here") 
                         in
-                         ([REL(ident, ty, SOME(clause), variables, matchExps, infoClause)], resultlist)
+                         ([REL(ident, ty, SOME(clause), variables, matchExps, infoClause, kind)], resultlist)
                         end
                     else (* no clause in this relation => external or functype *)
                         if (List.length algList >= 1)
@@ -3051,26 +3058,28 @@ let val Absyn.PROGRAM(_,_,interface as
                                         => Absyn.CLAUSE1(constructProperANDgoalChainOpt(goal), relid, pats, res, ref [], vars, infoC)
                                     |    _ => bug ("constructRelationsAndDatatypes: we should not have multiple clauses here") 
                             in
-                            ([REL(ident, ty, SOME(clause_good), variables, matchExps, infoClause)], resultlist)
+                            ([REL(ident, ty, SOME(clause_good), variables, matchExps, infoClause, kind)], resultlist)
                             end
                         else (* no clause in this relation => external or functype *)
-                         ([REL(ident, ty, NONE, variables, matchExps, Absyn.identCtxInfo ident)], resultlist)                
+                        let val relLst = [REL(ident, ty, NONE, variables, matchExps, Absyn.identCtxInfo ident, kind)]
+                        in
+                          (relLst, resultlist)
+                        end
             in
                 debug("constructRelationsAndDatatypes\n");
                 (rels, binds)
             end
 
     fun fixSpecs([]) = []
-    |    fixSpecs(REL(ident, ty, NONE, _, _, info)::rest) = 
-            Absyn.RELspec(ident, ty, info) :: fixSpecs(rest)
-    |    fixSpecs(REL(ident, ty, SOME(clause), _, _, info)::rest) = 
-            Absyn.RELspec(ident, ty, info) :: fixSpecs(rest)
+    |    fixSpecs(REL(ident, ty, NONE, _, _, info, NORMAL_FUNCTION)::rest) = Absyn.RELspec(ident, ty, info) :: fixSpecs(rest)
+    |    fixSpecs(REL(ident, ty, NONE, _, _, info, EXTERNAL_FUNCTION)::rest) = Absyn.RELspec(ident, ty, info) :: fixSpecs(rest)
+    |    fixSpecs(REL(ident, ty, NONE, _, _, info, TYPE_FUNCTION)::rest) = (* Absyn.RELspec(ident, ty, info) :: *) fixSpecs(rest) (* ignore if is a type function *)
+    |    fixSpecs(REL(ident, ty, SOME(clause), _, _, info, _)::rest) = Absyn.RELspec(ident, ty, info) :: fixSpecs(rest)
     |    fixSpecs(_::rest) = fixSpecs(rest)
     
     fun fixDecs([]) = []
-    |    fixDecs(REL(ident, ty, NONE, variables, _, info)::rest) = fixDecs(rest)
-    |    fixDecs(REL(ident, ty, SOME(clause), variables, matchExps, info)::rest) = 
-            Absyn.RELBIND(ident, SOME(ty), clause, variables, matchExps, info)::fixDecs(rest)
+    |    fixDecs(REL(ident, ty, NONE, variables, _, info, _)::rest) = fixDecs(rest)
+    |    fixDecs(REL(ident, ty, SOME(clause), variables, matchExps, info,_)::rest) = Absyn.RELBIND(ident, SOME(ty), clause, variables, matchExps, info)::fixDecs(rest)
     |    fixDecs(_::rest) = fixDecs(rest)
 
     fun fixSpecBinds([]) = []
@@ -3085,7 +3094,7 @@ let val Absyn.PROGRAM(_,_,interface as
         |    NONE => fixSpecBinds(rest)
         else fixSpecBinds(rest)
     end
-    | fixSpecBinds(FUNCTYPE(_, reltypeid, constructs)::rest) = 
+    | fixSpecBinds(FUNC(_, reltypeid, constructs, TYPE_FUNCTION)::rest) = 
         Absyn.TYPEspec(
             [Absyn.TYPBIND([], reltypeid, constructRelationTy(constructs), Absyn.identCtxInfo reltypeid)], 
             Absyn.identCtxInfo reltypeid)::(fixSpecBinds(constructs) @ fixSpecBinds(rest))
@@ -3151,7 +3160,7 @@ let val Absyn.PROGRAM(_,_,interface as
           if List.exists is_there specs
           then removeDecsSpecsDuplicates(decs, specs)
           else dec::removeDecsSpecsDuplicates(decs, specs)
-        end                
+        end
             
     fun fixDecBinds(specs, []) = []
     | fixDecBinds(specs, (z as TyB(x))::rest) = 
@@ -3164,7 +3173,7 @@ let val Absyn.PROGRAM(_,_,interface as
             SOME(exp) => Absyn.VALdec(id, exp, info)::fixDecBinds(specs, rest)
         |    NONE => fixDecBinds(specs, rest)
     )
-    | fixDecBinds(specs, FUNCTYPE(_, ftypeid, constructs)::rest) = 
+    | fixDecBinds(specs, FUNC(_, ftypeid, constructs, TYPE_FUNCTION)::rest) = 
         Absyn.TYPEdec(
             [Absyn.TYPBIND([], ftypeid, constructRelationTy(constructs), Absyn.identCtxInfo ftypeid)], 
             Absyn.identCtxInfo ftypeid)::(fixDecBinds(specs, constructs) @ fixDecBinds(specs, rest))        
@@ -3269,7 +3278,7 @@ let val Absyn.PROGRAM(_,_,interface as
             => CLAUSE(fixClauseLocalVariables(ident, ftypeident, clause), info)
         |    VAL(id, exp, SOME(ty), attr, info, ident_option) =>
             VAL(id, exp, SOME((fixTypeScope (ident, ftypeident)) ty), attr, info, ident_option)
-        |    REL(idR, tyR, clauseR, varlist, matchexps, info) =>
+        |    REL(idR, tyR, clauseR, varlist, matchexps, info, kind) =>
             let fun fix(x as (i, SOME(ty), exp, attr)) = 
                         (i, SOME((fixTypeScope (ident, ftypeident)) ty), exp, attr)
                 |    fix(x as (i, NONE, exp, attr)) = x
@@ -3279,7 +3288,7 @@ let val Absyn.PROGRAM(_,_,interface as
                     SOME(clause) => 
                     SOME(fixClauseLocalVariables(ident, ftypeident, clause))
                 |    NONE => NONE,
-                map fix varlist, matchexps, info)
+                map fix varlist, matchexps, info, kind)
             end
         |    _ => x
         end
@@ -3289,10 +3298,10 @@ let val Absyn.PROGRAM(_,_,interface as
     |    fixScope(id, front, part::rest) =
     (
     case part of 
-        FUNCTYPE(SOME(relationid), functypeid, constructs) => 
+        FUNC(SOME(relationid), functypeid, constructs, fKind) => 
             let val fixedFront = List.map (fixFuncTypeScope (id, functypeid)) front
                 val fixedRest  = List.map (fixFuncTypeScope (id, functypeid)) rest 
-                val fixedPart  = FUNCTYPE(NONE, concatIds(relationid, functypeid), constructs)
+                val fixedPart  = FUNC(NONE, concatIds(relationid, functypeid), constructs, fKind)
             in
                 fixScope(id, fixedFront@[fixedPart], fixedRest)
             end            
@@ -3307,7 +3316,7 @@ let val Absyn.PROGRAM(_,_,interface as
            ...
          end ident;
     *)
-    fun buildRelation (ident, classdef, isPublic, specs, decs) = 
+    fun buildRelation (ident, classdef, isPublic, specs, decs, kind) = 
         let val _ = localEnv := StrDict.empty
             val classparts' = case classdef of
                               Absyn.PARTS(classparts, _, _) => classparts
@@ -3317,7 +3326,10 @@ let val Absyn.PROGRAM(_,_,interface as
                                 errorAtFunction(info, "enumeration is not supported", "buildRelation")
             val resultlist = buildRelationSpecAndDec(ident, classparts')
             val resultList = fixScope(ident, [], resultlist)
-            val (rels, datbinds) = constructRelationsAndDatatypes(ident, resultList)
+            val resultList = case kind of
+                              TYPE_FUNCTION => [ FUNC(NONE, ident, resultList, TYPE_FUNCTION) ]
+                            | _ => resultList
+            val (rels, datbinds) = constructRelationsAndDatatypes(ident, resultList, kind)
             val (specs', decs') = augmentSpecsAndDecs(specs, decs, rels, datbinds, isPublic)
         in
             debug("buildRelation - specs: "^L(specs')^", decs: "^L(decs')^"\n");
@@ -3452,8 +3464,8 @@ let val Absyn.PROGRAM(_,_,interface as
                           Absyn.R_RECORD(_) =>        ( buildRecord  (ident, eX, isPublic, specs, decs) )
                         | Absyn.R_TYPE(_)   =>        ( buildType    (class, isPublic, specs, decs) )
                         | Absyn.R_TYPEVARIABLE(_) =>  ( buildType    (class, isPublic, specs, decs) )                        
-                        | Absyn.R_FUNCTION(_) =>      ( buildRelation(ident, classdef, isPublic, specs, decs) )
-                        | Absyn.R_FUNCTION_TYPE(_) => ( buildRelation(ident, classdef, isPublic, specs, decs) )
+                        | Absyn.R_FUNCTION(_) =>      ( buildRelation(ident, classdef, isPublic, specs, decs, NORMAL_FUNCTION) )
+                        | Absyn.R_FUNCTION_TYPE(_) => ( buildRelation(ident, classdef, isPublic, specs, decs, TYPE_FUNCTION) )
                         | Absyn.R_UNIONTYPE(_) =>     ( buildDatatype(ident, classdef, isPublic, specs, decs) )
                         | _ => 
                         errorAtFunction(
