@@ -508,7 +508,10 @@ let val Absyn.PROGRAM(_,_,interface as
       "string_list_string_char", "stringListStringChar",
       "list_vector",             "listVector",
       "list_array",              "listArray",
+      "list_append_usafe",       "listAppendUnsafe",
+      (*
       "list_map",                "listMap",
+      *)
       
       (* logical variables *)
       "lvar_get", "listGet",
@@ -524,6 +527,7 @@ let val Absyn.PROGRAM(_,_,interface as
       "real_eq",     "realEq",
       "real_exp",    "realExp",
       "real_floor",  "realFloor",
+      "real_ceil",   "realCeil",
       "real_ge",     "realGe",
       "real_gt",     "realGt",
       "real_int",    "realInt",
@@ -598,7 +602,12 @@ let val Absyn.PROGRAM(_,_,interface as
       (* if expressions *)
       "if_exp", "ifExp",
       (* misc *)
-      "clock", "print", "tick", "unique",
+      "clock", 
+      "print", 
+      "tick", 
+      "unique", 
+      "enable_trace",  "enableTrace",
+      "disable_trace", "disableTrace",
       (* debug *)
       "debug", "debug_print", "debug_show_depth", 
       "debug_push_in01", "debug_push_in02", "debug_push_in03", "debug_push_in04", "debug_push_in05", "debug_push_in06", 
@@ -3012,6 +3021,20 @@ let val Absyn.PROGRAM(_,_,interface as
               (matchExp, infoMatchExp, resultMatchExp, infoResultMatchExp)::sweepMATCHexp(rest)
             | _ => sweepMATCHexp(rest)
     )
+    
+    fun checkMatchAgainstFunctionType(_, _) = ()
+    (*
+    fun checkMatchAgainstFunctionType(NONE, ty) = ()
+    |   checkMatchAgainstFunctionType(
+             SOME(MATCHexp(matchExp, infoMatchExp, resultMatchExp, infoResultMatchExp)), 
+             ty as Ty.REL(inputs, outputs)) = 
+        let
+          
+        in
+          
+        end
+    *)
+    
     (* 
        returns (rels, binds) 
        FunctionTypes SHOULD BE AUGMENTED WITH THE FUNCTION NAME 
@@ -3033,6 +3056,7 @@ let val Absyn.PROGRAM(_,_,interface as
                 val matchExps = if List.length matchExps >= 1
                                 then SOME(List.hd matchExps)
                                 else NONE
+                val _ = checkMatchAgainstFunctionType(matchExps, ty)
                 val (rels, binds) =    
                     if (List.length clauseList >= 1)
                     then

@@ -80,6 +80,15 @@ fun printErrInfo lexArg (left, right) =
       sayErr(strErr)
     end
 
+fun mkMatchStr(match) =
+    let
+        val str = case (match) of
+                     Absyn.MATCH => "match"
+                  |  Absyn.MATCHCONTINUE => "matchcontinue"
+    in
+      str
+    end
+
 fun warnDifferentIdents lexArg (ident1, ident2) =
     let val strErr1 = getInfoAsString(splitInfo lexArg (Absyn.identCtxInfo(ident1)))
         val strErr2 = getInfoAsString(splitInfo lexArg (Absyn.identCtxInfo(ident2)))
@@ -90,6 +99,20 @@ fun warnDifferentIdents lexArg (ident1, ident2) =
          sayErr (strErr2);
          sayErr("Warning: the identifier from: 'end "^Absyn.identName(ident2)^
                 "' does not match identfier: '"^Absyn.identName(ident1)^"' given here: "^
+                strErr1^"\n") 
+        )
+    end
+
+fun warnDifferentMatch lexArg (ident1, ident2) =
+    let val strErr1 = getInfoAsString(splitInfo lexArg (Absyn.identCtxInfo(ident1)))
+        val strErr2 = getInfoAsString(splitInfo lexArg (Absyn.identCtxInfo(ident2)))
+    in
+        if (Absyn.identName ident1 = Absyn.identName ident2) then ()
+        else
+        (
+         sayErr (strErr2);
+         sayErr("Warning: the type of match from: 'end "^Absyn.identName(ident2)^
+                "' is not the same as the type of match: '"^Absyn.identName(ident1)^"' given here: "^
                 strErr1^"\n") 
         )
     end
@@ -1868,6 +1891,11 @@ match_expression:
     case_else 
   END match                                            (* 182 *)
   ( 
+    warnDifferentMatch lexArg 
+       (
+       Absyn.makeIdent(mkMatchStr(match1), makeInfo lexArg (match1left, match1right)),
+       Absyn.makeIdent(mkMatchStr(match2), makeInfo lexArg (match2left, match2right))
+       );
     Absyn.MATCHexp(
                 match1,
                 expression, 

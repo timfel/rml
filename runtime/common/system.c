@@ -86,3 +86,28 @@ RML_BEGIN_LABEL(RML__print)
 }
 RML_END_LABEL
 
+
+RML_BEGIN_LABEL(RML__enable_5ftrace)
+{
+  rml_trace_enabled = 1;
+  if (rml_trace_enabled)
+  {
+    fprintf(stderr, "enableTrace\n"); fflush(stderr);
+  }
+  RML_TAILCALLK(rmlSC);
+}
+RML_END_LABEL
+
+RML_BEGIN_LABEL(RML__disable_5ftrace)
+{
+  if (rml_trace_enabled)
+  {
+    fprintf(stderr, "disableTrace\n"); fflush(stderr);
+  }
+  rml_trace_enabled = 0;
+  RML_TAILCALLK(rmlSC);
+}
+RML_END_LABEL
+
+
+

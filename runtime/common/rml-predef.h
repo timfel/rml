@@ -66,6 +66,10 @@ extern RML_FORWARD_LABEL(RML__string_5fsetnth);
 extern RML_FORWARD_LABEL(RML__string_5fupdate);
 extern RML_FORWARD_LABEL(RML__string_5fequal);
 extern RML_FORWARD_LABEL(RML__string_5fcompare);
+/* hash functions */
+extern RML_FORWARD_LABEL(RML__string_5fhash);
+extern RML_FORWARD_LABEL(RML__string_5fhash_5fdjb2);
+extern RML_FORWARD_LABEL(RML__string_5fhash_5fsdbm);
 #define RML__char_5fint	RML__int_5fint
 #define RML__int_5fchar	RML__int_5fint
 /* java named */
@@ -81,6 +85,10 @@ extern RML_FORWARD_LABEL(RML__string_5fcompare);
 #define RML__stringCompare  RML__string_5fcompare
 #define RML__stringEq       RML__string_5fequal
 #define RML__string_5feq    RML__string_5fequal
+/* hash functions */
+#define RML__stringHash     RML__string_5fhash
+#define RML__stringHashDjb2 RML__string_5fhash_5fdjb2
+#define RML__stringHashSdbm RML__string_5fhash_5fsdbm
 
 /* string chars */
 extern RML_FORWARD_LABEL(RML__string_5fchar_5fint);
@@ -164,16 +172,18 @@ extern RML_FORWARD_LABEL(RML__list_5fget);
 extern RML_FORWARD_LABEL(RML__list_5freverse);
 extern RML_FORWARD_LABEL(RML__list_5fvector);
 extern RML_FORWARD_LABEL(RML__list_5farray);
+extern RML_FORWARD_LABEL(RML__list_5fappend_5funsafe);
 /* java named */
-#define RML__listAppend  RML__list_5fappend
-#define RML__listDelete  RML__list_5fdelete
-#define RML__listLength  RML__list_5flength
-#define RML__listMember  RML__list_5fmember
-#define RML__listNth     RML__list_5fnth
-#define RML__listGet     RML__list_5fget
-#define RML__listReverse RML__list_5freverse
-#define RML__listVector  RML__list_5fvector
-#define RML__listArray   RML__list_5farray
+#define RML__listAppend       RML__list_5fappend
+#define RML__listDelete       RML__list_5fdelete
+#define RML__listLength       RML__list_5flength
+#define RML__listMember       RML__list_5fmember
+#define RML__listNth          RML__list_5fnth
+#define RML__listGet          RML__list_5fget
+#define RML__listReverse      RML__list_5freverse
+#define RML__listVector       RML__list_5fvector
+#define RML__listArray        RML__list_5farray
+#define RML__listAppendUnsafe RML__list_5fappend_5funsafe
 
 /* logical variables */
 extern RML_FORWARD_LABEL(RML__lvar_5fget);
@@ -193,6 +203,7 @@ extern RML_FORWARD_LABEL(RML__real_5fdiv);
 extern RML_FORWARD_LABEL(RML__real_5feq);
 extern RML_FORWARD_LABEL(RML__real_5fexp);
 extern RML_FORWARD_LABEL(RML__real_5ffloor);
+extern RML_FORWARD_LABEL(RML__real_5fceil);
 extern RML_FORWARD_LABEL(RML__real_5fge);
 extern RML_FORWARD_LABEL(RML__real_5fgt);
 extern RML_FORWARD_LABEL(RML__real_5fint);
@@ -228,6 +239,7 @@ extern RML_FORWARD_LABEL(RML__real_5ftanh);
 #define RML__realEq     RML__real_5feq
 #define RML__realExp    RML__real_5fexp
 #define RML__realFloor  RML__real_5ffloor
+#define RML__realCeil   RML__real_5fceil
 #define RML__realGe     RML__real_5fge
 #define RML__realGt     RML__real_5fgt
 #define RML__realInt    RML__real_5fint
@@ -320,6 +332,12 @@ extern RML_FORWARD_LABEL(RML__clock);
 extern RML_FORWARD_LABEL(RML__print);
 extern RML_FORWARD_LABEL(RML__tick);
 extern RML_FORWARD_LABEL(RML__unique);
+extern RML_FORWARD_LABEL(RML__enable_5ftrace);
+extern RML_FORWARD_LABEL(RML__disable_5ftrace);
+/* java names */
+#define RML_enableTrace  RML__enable_5ftrace
+#define RML_disableTrace RML__disable_5ftrace
+
 
 /* debugging */
 /* let these relation be available in all rml libraries */

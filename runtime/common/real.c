@@ -110,6 +110,14 @@ RML_BEGIN_LABEL(RML__real_5ffloor)
 }
 RML_END_LABEL
 
+/* real_ceil.c */
+RML_BEGIN_LABEL(RML__real_5fceil)
+{
+    rmlA0 = rml_prim_mkreal(ceil(rml_prim_get_real(rmlA0)));
+    RML_TAILCALLK(rmlSC);
+}
+RML_END_LABEL
+
 /* real_ge.c */
 RML_BEGIN_LABEL(RML__real_5fge)
 {

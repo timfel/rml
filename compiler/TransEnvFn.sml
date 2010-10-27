@@ -148,6 +148,8 @@ functor TransEnvFn(structure Util : UTIL
       val te = extern(te, "print")
       val te = extern(te, "tick")
       val te = extern(te, "unique")
+      val te = extern2(te, "enable_trace",  "enableTrace")
+      val te = extern2(te, "disable_trace", "disableTrace")
       
       (* roots *)
       val te = extern2(te, "set_global_root",   "setGlobalRoot")
@@ -273,6 +275,7 @@ functor TransEnvFn(structure Util : UTIL
       val te = extern2(te, "real_exp",    "realExp")
       val te = extern2(te, "real_ln",     "realLn")
       val te = extern2(te, "real_floor",  "realFloor")
+      val te = extern2(te, "real_ceil",   "realCeil")
       val te = extern2(te, "real_int",    "realInt")
       val te = extern2(te, "real_pow",    "realPow")
       val te = extern2(te, "real_sqrt",   "realSqrt")
@@ -316,6 +319,7 @@ functor TransEnvFn(structure Util : UTIL
       val te = extern2(te, "string_list_string_char",  "stringListStringChar")
       val te = extern2(te, "list_vector",              "listVector")
       val te = extern2(te, "list_array",               "listArray")
+      val te = extern2(te, "list_append_unsafe",       "listAppendUsafe")
       (* not working yet
       val te = extern2(te, "list_map",                 "listMap")
       *)

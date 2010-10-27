@@ -61,6 +61,7 @@
   <ItemDefinitionGroup>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <None Include="..\install.sh" />
     <None Include="AADictFn.sml" />
     <None Include="ABSYN.sig" />
     <None Include="Absyn.sml" />
