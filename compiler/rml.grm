@@ -491,7 +491,7 @@ conbind
 			Cache.REC,
 			!(LexArg.currVisibility lexArg));
 			
-		Absyn.CONcb(ident,
+		Absyn.CONcb(ident, Absyn.rmlIdent "dummy", Absyn.rmlIdent "dummy", 
 			makeInfo lexArg (identleft, identright)) )
 	| ident OF tuple_ty
 	( 

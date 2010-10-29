@@ -244,6 +244,7 @@ end
 	|	attributes of Absyn.attr
 	|	local_var of (Absyn.ident * Absyn.ty option * Absyn.exp option * Absyn.attr)
 	|	local_vars of (Absyn.ident * Absyn.ty option * Absyn.exp option * Absyn.attr) list
+  | fourints of (int * int * int * int)
 
 %eop EOF_HARD EOF_SOFT MODULE DECLARATIONS
 %noshift EOF_HARD
@@ -327,19 +328,27 @@ spec_star
 	| spec COMMA spec_star
 		( spec :: spec_star )
 
+fourints:
+  LPAR ICON COMMA ICON COMMA ICON COMMA ICON RPAR
+  (
+    (ICON1, ICON2, ICON3, ICON4)
+  )
+
 spec
-	: WITHspec LPAR SCON SEMICOLON REF LPAR interface RPAR SEMICOLON info RPAR 
+	: WITHspec LPAR SCON SEMICOLON REF LPAR interface RPAR SEMICOLON info SEMICOLON fourints RPAR 
 	( 
-		let val Absyn.INFO(sp, ep) = info
+		let 
+       val Absyn.INFO(sp, ep) = info
+       val (sline, scolumn, eline, ecolumn) = fourints
 		in
 		 LexArgSimple.addImport(
 		 lexArg,
 		 SCON, 
-		 ((sp,~1,~1),(ep,~1,~1)),
+		 ((sp,sline,scolumn),(ep,eline,ecolumn)),
 		 Cache.PUBLIC)
 		end;
 		
-		Absyn.WITHspec(SCON, ref interface, info ) 
+		Absyn.WITHspec( SCON, ref interface, info ) 
 	)
 	| ABSTYPEspec LPAR ICON SEMICOLON tyvarseq SEMICOLON ident SEMICOLON info RPAR
 		( Absyn.ABSTYPEspec(if (ICON=0) then false else true, tyvarseq, ident, info) )
@@ -369,18 +378,20 @@ dec_star
 		( dec :: dec_star )
 
 dec
-	: WITHdec LPAR SCON SEMICOLON REF LPAR interface RPAR SEMICOLON info RPAR
+	: WITHdec LPAR SCON SEMICOLON REF LPAR interface RPAR SEMICOLON info SEMICOLON fourints RPAR
 	( 
-		let val Absyn.INFO(sp, ep) = info
+		let 
+       val Absyn.INFO(sp, ep) = info
+       val (sline, scolumn, eline, ecolumn) = fourints
 		in
 		 LexArgSimple.addImport(
 		 lexArg,
 		 SCON, 
-		 ((sp,~1,~1),(ep,~1,~1)),
-		 Cache.PROTECTED)
+		 ((sp,sline,scolumn),(ep,eline,ecolumn)),
+		 Cache.PUBLIC)
 		end;
 	
-		Absyn.WITHdec(SCON, ref interface, info) 
+		Absyn.WITHdec( SCON, ref interface, info ) 
 	)
 	| TYPEdec LPAR typbind_plus SEMICOLON info RPAR
 		( Absyn.TYPEdec(typbind_plus,info) )
@@ -479,7 +490,7 @@ conbind_plus_protected
 		( conbind_protected :: conbind_plus_protected )
 
 conbind_protected
-	: CONcb LPAR ident SEMICOLON info RPAR
+	: CONcb LPAR ident SEMICOLON ident SEMICOLON ident SEMICOLON info RPAR
 	( 
 		 LexArgSimple.addRestriction(
 			lexArg, 
@@ -488,7 +499,7 @@ conbind_protected
 			Cache.PROTECTED
 			);
 		
-		Absyn.CONcb(ident, info) 
+		Absyn.CONcb(ident1, ident2, ident3, info) 
 	)
 	| CTORcb LPAR ident SEMICOLON ty_seq SEMICOLON info RPAR
 	( 
@@ -503,16 +514,16 @@ conbind_protected
 	)
 
 conbind
-	: CONcb LPAR ident SEMICOLON info RPAR
+	: CONcb LPAR ident SEMICOLON ident SEMICOLON ident SEMICOLON info RPAR
 	( 
 		 LexArgSimple.addRestriction(
 			lexArg, 
-			Absyn.identName ident,
+			Absyn.identName ident1,
 			Cache.REC,
 			Cache.PUBLIC
 			);
 		
-		Absyn.CONcb(ident, info) 
+		Absyn.CONcb(ident1, ident2, ident3, info) 
 	)
 	| CTORcb LPAR ident SEMICOLON ty_seq SEMICOLON info RPAR
 	( 

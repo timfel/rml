@@ -85,6 +85,10 @@ let val Absyn.PROGRAM(_,_,interface as
         debug("IDENT("^identstr^")\n");
         prLoc(info)
     )
+
+    (* make a name like r_RECORDNAME_u__m_MODULETYPENAME *)
+    fun mkIDForConstOfConstantRec(id1 as Absyn.IDENT(_, info), id2) = 
+        Absyn.IDENT("r_"^Absyn.identName(id1)^"_u_TMP_m_"^Absyn.identName(id2), info);
     
     fun constructProperANDgoalChain(g) = g
     (* 
@@ -967,7 +971,7 @@ let val Absyn.PROGRAM(_,_,interface as
             end
                                             
     (* returns either a conbind or a typbind or a typevariabile *)                        
-    fun sweepRecords([]) = []
+    fun sweepRecords([], uid) = []
         (* 
            normal case: constructor declarations
             record Z types end Z;
@@ -991,14 +995,14 @@ let val Absyn.PROGRAM(_,_,interface as
                     _), 
                     info, 
                     _),
-                _)::rest) = 
+                _)::rest, uid) = 
                 (debug("sweepRecords\n");
                  let val Absyn.IDENT(idstr, tmpInfo) = identclass
                      val varty = Absyn.IDENT("'"^idstr, tmpInfo)
                      val tyvar = Absyn.VARty(varty, tmpInfo)
                      val tybind = Absyn.TYPBIND([varty],identclass,tyvar,tmpInfo)
                  in 
-                  TyV(varty)::(TyB(tybind)::sweepRecords(rest))
+                  TyV(varty)::(TyB(tybind)::sweepRecords(rest, uid))
                  end)        
         | sweepRecords(
             Absyn.ELEMENTITEM(
@@ -1010,20 +1014,20 @@ let val Absyn.PROGRAM(_,_,interface as
                                     partial,
                                     final,
                                     encapsulated,
-                                    _,
+                                    Absyn.R_RECORD(_),
                                     classdef as Absyn.PARTS(classparts, _, _),
                                     _), _), 
                     info, 
                     _),
-                _)::rest) = 
+                _)::rest, uid) = 
             let val types = getTypesFromRecords(classparts)
             in
                 debug("sweepRecords\n");
                 if (List.length types = 0)
-                then CoB(Absyn.CONcb(identclass, 
-                        Absyn.identCtxInfo identclass))::sweepRecords(rest)
+                then CoB(Absyn.CONcb(identclass, uid, current_modid,
+                        Absyn.identCtxInfo identclass))::sweepRecords(rest, uid)
                 else CoB(Absyn.CTORcb(identclass, types, 
-                        Absyn.identCtxInfo identclass))::sweepRecords(rest)
+                        Absyn.identCtxInfo identclass))::sweepRecords(rest, uid)
             end
         (* 
                 type X = option<Type>            -> option type
@@ -1043,27 +1047,27 @@ let val Absyn.PROGRAM(_,_,interface as
                                     partial,
                                     final,
                                     encapsulated,
-                                    _,
+                                    Absyn.R_TYPE(_),
                                     classdef,
                                 _),
                     _), 
                     info, 
                     _),
-                _)::rest) = 
+                _)::rest, uid) = 
             (debug("sweepRecords\n");
              case classdef of
                 (* list, option, record, polymorphic *)
                  Absyn.DERIVED(typeSpec,    _, _, _, infoDerived) =>  
                  TyB((getDerivedType(identclass, typeSpec)))
-                 ::sweepRecords(rest)
+                 ::sweepRecords(rest, uid)
              | _ => errorAtFunction(info,"derived class definition expected!", "sweepRecords")
              )
-        | sweepRecords(Absyn.ELEMENTITEM(_, info)::rest) = 
+        | sweepRecords(Absyn.ELEMENTITEM(_, info)::rest, uid) = 
             (warnAtFunction(info, "ignored element in uniontype!", "sweepRecords");
-             sweepRecords(rest))
-        | sweepRecords(Absyn.ANNOTATIONITEM(_, info)::rest) = 
+             sweepRecords(rest, uid))
+        | sweepRecords(Absyn.ANNOTATIONITEM(_, info)::rest, uid) = 
             (warnAtFunction(info, "ignored annotation in uniontype!", "sweepRecords");
-             sweepRecords(rest))
+             sweepRecords(rest, uid))
 
 
     fun getTyVars([]) = []
@@ -1073,10 +1077,31 @@ let val Absyn.PROGRAM(_,_,interface as
             |    _ => getTyVars(rest)
             
     fun getCons([]) = []
-    |    getCons(x::rest) = 
+    |   getCons(x::rest) = 
             case x of 
                 CoB(y) => y::getCons(rest)
             |    _ => getCons(rest)
+    
+    fun buildConstantsForConstantConstructors([], _) = ([], [])
+    |   buildConstantsForConstantConstructors(CoB(Absyn.CONcb(id_record, id_uniontype, id_module, info))::rest, isPublic) = 
+        let
+           val name = mkIDForConstOfConstantRec(id_record, id_module)
+           val ty = Absyn.CONSty([], Absyn.LONGID(NONE, id_uniontype, info), info)
+           val fullRecName = 
+                Absyn.LONGID(
+                   if (Absyn.identName id_module) = (Absyn.identName current_modid) 
+                   then NONE 
+                   else SOME(id_module), 
+                   id_record, info)
+           val exp = Absyn.IDENTexp(fullRecName, ref(Absyn.STRUCTexp(NONE, [], info)), info)
+           val valDec  = Absyn.VALdec (name, exp, info)
+           val valSpec = Absyn.VALspec(name, ty, info)
+           val (valDecs, valSpecs) = buildConstantsForConstantConstructors(rest, isPublic)
+        in
+          (valDec::valDecs, if isPublic then valSpec::valSpecs else valSpecs) 
+        end
+    |   buildConstantsForConstantConstructors(_::rest, isPublic) = 
+          buildConstantsForConstantConstructors(rest, isPublic)
             
     fun getTypsSpec([]) = []
     |    getTypsSpec(x::rest) = 
@@ -1091,16 +1116,16 @@ let val Absyn.PROGRAM(_,_,interface as
             |    _ => getTypsDec(rest)
            
     (* this one looks inside uniontype for constructors/types/type variables *)            
-    fun buildConstructors([]) = []
-    |    buildConstructors(Absyn.PUBLIC(elementItems, _)::rest) = 
-            sweepRecords(elementItems) @ buildConstructors(rest)
-    |    buildConstructors(Absyn.PROTECTED(elementItems, _)::rest) = 
-            sweepRecords(elementItems) @ buildConstructors(rest)
-    |    buildConstructors(Absyn.EQUATIONS(_, info)::rest) = 
+    fun buildConstructors([], uid) = []
+    |    buildConstructors(Absyn.PUBLIC(elementItems, _)::rest, uid) = 
+            sweepRecords(elementItems, uid) @ buildConstructors(rest, uid)
+    |    buildConstructors(Absyn.PROTECTED(elementItems, _)::rest, uid) = 
+            sweepRecords(elementItems, uid) @ buildConstructors(rest, uid)
+    |    buildConstructors(Absyn.EQUATIONS(_, info)::rest, uid) = 
             errorAtFunction(info, "equation sections are not allowed in uniontypes", "getTypesFromRecords")
-    |    buildConstructors(Absyn.ALGORITHMS(algorithmItems, info)::rest) =
-            errorAtFunction(info, "algorithm sections are not allowed in uniontypes", "getTypesFromRecords")                
-    |    buildConstructors(Absyn.EXTERNAL(_,_,_,info)::rest) =
+    |    buildConstructors(Absyn.ALGORITHMS(algorithmItems, info)::rest, uid) =
+            errorAtFunction(info, "algorithm sections are not allowed in uniontypes", "getTypesFromRecords")
+    |    buildConstructors(Absyn.EXTERNAL(_,_,_,info)::rest, uid) =
             errorAtFunction(info, "external function declaration sections are not allowed in uniontypes", "getTypesFromRecords")                
                     
     fun buildDatatype (ident as Absyn.IDENT(name, info), classdef, isPublic, specs, decs) = 
@@ -1111,26 +1136,27 @@ let val Absyn.PROGRAM(_,_,interface as
                                     info, 
                                     "only public and protected elements are allowed in uniontypes", 
                                     "buildDatatype")                
-            val contytyvar_list = buildConstructors(classparts)
-            val (tyspecs, tydecs, cons, tyvars) = 
+            val contytyvar_list = buildConstructors(classparts, ident)
+            val (tyspecs, tydecs, cons, tyvars, (valdecs, valspecs)) = 
                     (getTypsSpec(contytyvar_list),
                      getTypsDec(contytyvar_list),
                      getCons(contytyvar_list),
-                     getTyVars(contytyvar_list)) 
+                     getTyVars(contytyvar_list),
+                     buildConstantsForConstantConstructors(contytyvar_list, isPublic)) 
         in
             debug("buildDatatype: specs\n");
             (
             specs @
             (
             if (isPublic = true) 
-            then tyspecs @ [ Absyn.DATAspec([Absyn.DATBIND(tyvars, ident, cons, info)], [], info) ]
+            then tyspecs @ [ Absyn.DATAspec([Absyn.DATBIND(tyvars, ident, cons, info)], [], info) ] @ valspecs
             else []
             ),
             decs @
             (
             if (isPublic = false) 
-            then tydecs @ [ Absyn.DATAdec([Absyn.DATBIND(tyvars, ident, cons, info)], [], info)  ]
-            else []
+            then tydecs @ [ Absyn.DATAdec([Absyn.DATBIND(tyvars, ident, cons, info)], [], info)  ] @ valdecs
+            else valdecs
             )             
             )
         end
@@ -1709,9 +1735,25 @@ let val Absyn.PROGRAM(_,_,interface as
                         then (result, SOME(lastGoal), info)
                         else (result, SOME(Absyn.ANDgoal(constructGoals(goals), lastGoal, info)), info)
                     end
-                |    _ =>
+                |   SOME(Absyn.R_RECORD(_)) => (* record *)
+                    let (* use defined constant for constant records *)
+                       val lid = case lid of 
+                                    Absyn.LONGID(SOME(id1), id2, inf) => 
+                                       Absyn.LONGID(SOME(id1), mkIDForConstOfConstantRec(id2, id1), inf)
+                                 |  Absyn.LONGID(NONE, id2, inf) =>
+                                       if Absyn.identName id2 = "NONE" 
+                                       then lid
+                                       else Absyn.LONGID(NONE, mkIDForConstOfConstantRec(id2, current_modid), inf)
+                    in
                     (
-                    Absyn.RETURN([Absyn.IDENTexp(lid, ref(Absyn.STRUCTexp(NONE,[], info)), info)], info),          
+                    Absyn.RETURN([Absyn.IDENTexp(lid, ref(Absyn.STRUCTexp(NONE,[], info)), info)], info),
+                    NONE,
+                    info
+                    )
+                    end
+                |   _ => (* who knows! *)
+                    (
+                    Absyn.RETURN([Absyn.IDENTexp(lid, ref(Absyn.STRUCTexp(NONE,[], info)), info)], info),
                     NONE,
                     info
                     )
@@ -3362,27 +3404,28 @@ let val Absyn.PROGRAM(_,_,interface as
 
     fun buildRecord  (ident, eX, isPublic, specs, decs) = 
     let val info = Absyn.identCtxInfo ident
-        val contytyvar_list = buildConstructors([Absyn.PUBLIC([eX],info)])
-        val (tyspecs, tydecs, cons, tyvars) = 
+        val contytyvar_list = buildConstructors([Absyn.PUBLIC([eX],info)], ident)
+        val (tyspecs, tydecs, cons, tyvars, (valdecs, valspecs)) = 
                 (getTypsSpec(contytyvar_list),
                     getTypsDec(contytyvar_list),
                     getCons(contytyvar_list),
-                    getTyVars(contytyvar_list)) 
+                    getTyVars(contytyvar_list),
+                    buildConstantsForConstantConstructors(contytyvar_list, isPublic))
     in
         debug("buildRecord: specs\n");
         (
         specs @
         (
-        if (isPublic = true) 
-        then tyspecs @ [ Absyn.DATAspec([Absyn.DATBIND(tyvars, ident, cons, info)], [], info) ]
+        if (isPublic = true)
+        then tyspecs @ [ Absyn.DATAspec([Absyn.DATBIND(tyvars, ident, cons, info)], [], info) ] @ valspecs
         else []
         ),
         decs @
         (
-        if (isPublic = false) 
-        then tydecs @ [ Absyn.DATAdec([Absyn.DATBIND(tyvars, ident, cons, info)], [], info)  ]
-        else []
-        )             
+        if (isPublic = false)
+        then tydecs @ [ Absyn.DATAdec([Absyn.DATBIND(tyvars, ident, cons, info)], [], info) ] @ valdecs
+        else valdecs
+        )
         )
     end
         

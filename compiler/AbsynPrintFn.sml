@@ -15,10 +15,10 @@ functor AbsynPrintFn(structure MakeString : MAKESTRING
         | loop(foo::foo_star) =
         (prStr(os, between); print_foo(os, foo); loop foo_star)
       in
-    prStr(os, b4);
-    (case foo_star
-       of []        => ()
-        | (foo::foo_star)    => (print_foo(os, foo); loop foo_star));
+        prStr(os, b4);
+        (case foo_star
+           of []        => ()
+            | (foo::foo_star)    => (print_foo(os, foo); loop foo_star));
         prStr(os, after)
       end
 
@@ -154,7 +154,7 @@ functor AbsynPrintFn(structure MakeString : MAKESTRING
       (prStr(os, "match "); print_clause(os, cl1); print_clause(os, cl2))
 
 
-    fun print_conbind(os, Absyn.CONcb(id, _)) = print_ident(os, id)
+    fun print_conbind(os, Absyn.CONcb(id_record, id_uniontype, id_module, _)) = print_ident(os, id_record)
       | print_conbind(os, Absyn.CTORcb(id, tyseq, _)) =
       (print_ident(os, id); prStr(os, " of "); print_tuple_ty(os, tyseq))
 

@@ -80,16 +80,13 @@ signature ABSYN =
 					| CLAUSE2 of clause * clause * info (* mathcontinue *)
 					| CLAUSE3 of clause * clause * info (* match *)
 					
-    datatype conbind = CONcb of ident * info
+    datatype conbind = CONcb of ident * ident * ident * info (* record name, uniontype name, module name *)
 					 | CTORcb of ident * ty list * info
 
     datatype datbind = DATBIND of tyvar list * ident * conbind list * info
 
     datatype typbind = TYPBIND of tyvar list * ident * ty * info
 
-	(* 
-	adrpo added 2006-03-18 the list of variables with types 
-	*) 					
     datatype relbind = RELBIND of ident 
 								* ty option 
 								* clause
@@ -97,7 +94,7 @@ signature ABSYN =
 								* (exp * info * pat * info) option (* match exp and match return exp *)
 								* info
 
-    datatype spec = WITHspec of string * interface ref * info
+    datatype spec = WITHspec of string * interface ref * info  
 				  | ABSTYPEspec of bool * tyvar list * ident * info
 				  | TYPEspec of typbind list * info
 				  | DATAspec of datbind list * typbind list * info

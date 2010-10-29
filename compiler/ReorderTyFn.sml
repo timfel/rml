@@ -57,7 +57,7 @@ functor ReorderTyFn(structure Util : UTIL
 		depsOf
       end
 
-    fun depsOfConBnd TE (Absyn.CONcb (_, _), deps) = deps
+    fun depsOfConBnd TE (Absyn.CONcb (_, _, _, _), deps) = deps
       | depsOfConBnd TE (Absyn.CTORcb(_,tyseq, _), deps) =
 	  List.foldl (depsOfTy TE) deps tyseq
 

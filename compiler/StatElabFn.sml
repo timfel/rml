@@ -433,10 +433,10 @@ fun elab_module(os, main_module, repository) =
      *)
     fun elab_conbind(ME, TE, VE, CE, tyvarseq_opt, res_tau, conbinds) =
     let 
-        fun conbind_con(Absyn.CONcb(con, _)) = con
+        fun conbind_con(Absyn.CONcb(con, _, _, _)) = con
         |   conbind_con(Absyn.CTORcb(con, _, _)) = con
       
-        fun conbind_tau(Absyn.CONcb _, PreCE) = (res_tau, PreCE)
+        fun conbind_tau(Absyn.CONcb(_, _, _, _), PreCE) = (res_tau, PreCE)
         |   conbind_tau(Absyn.CTORcb(_, tyseq, _), PreCE) =
               let 
                 val domtaus = map (elab_ty ME TE tyvarseq_opt) tyseq

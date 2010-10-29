@@ -259,7 +259,7 @@ functor AbsynToFOLFn(structure StrDict : STR_DICT
         FOL.REL(cnvId var, vars, cnvClause vars cl, cvInfo info)
       end
 
-    fun cnvConBind(Absyn.CONcb(con, _)) = FOL.CONcd(cnvId con)
+    fun cnvConBind(Absyn.CONcb(con, _, _, _)) = FOL.CONcd(cnvId con)
       | cnvConBind(Absyn.CTORcb(con, tys, _)) = FOL.CTORcd(cnvId con, List.length tys)
     fun cnvDatBind(Absyn.DATBIND(_, tycon, conbinds, _)) =
       FOL.DATDESC(cnvId tycon, map cnvConBind conbinds)

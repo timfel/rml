@@ -81,7 +81,7 @@ functor AbsynFn(structure MakeString : MAKESTRING
                     | CLAUSE2 of clause * clause * info (* matchcontinue *)
                     | CLAUSE3 of clause * clause * info (* match *)
 
-    datatype conbind = CONcb of ident * info
+    datatype conbind = CONcb of ident * ident * ident * info (* record name, uniontype name, module name *)
                      | CTORcb of ident * ty list * info
 
     datatype datbind = DATBIND of tyvar list * ident * conbind list * info
