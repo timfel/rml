@@ -63,6 +63,20 @@ struct
 
 
     (* Print plain error messages *)
+    fun sayWarning s = TextIO.output(TextIO.stdErr, s)
+
+    (* Print error messages with source-file contexts *)
+    fun sayWarning'(source, msg, left, right) =
+        Absyn.Source.sayMsg source ("Warning: "^msg, left, right)
+
+    fun sayIdWarning'(source, msg, name, Absyn.INFO(left, right)) =
+        sayWarning'(source, msg^name, left, right)
+
+    fun sayWarning(msg, left, right) = sayWarning'(!currentSource, msg, left, right)
+
+    fun sayIdWarning(msg, name, Absyn.INFO(left, right)) = sayWarning(msg^name, left, right)
+
+    (* Print plain error messages *)
     fun sayErr s = TextIO.output(TextIO.stdErr, s)
 
     (* Print error messages with source-file contexts *)
@@ -74,8 +88,7 @@ struct
 
     fun sayError(msg, left, right) = sayError'(!currentSource, msg, left, right)
 
-    fun sayIdError(msg, name, Absyn.INFO(left, right)) =
-        sayError(msg^name, left, right)
+    fun sayIdError(msg, name, Absyn.INFO(left, right)) = sayError(msg^name, left, right)
 
     (* Generate error messages, then raise StaticElaborationError *)
     exception StaticElaborationError
@@ -109,6 +122,14 @@ struct
         
     fun idUnboundError(kind, Absyn.IDENT(name, ctxInfo)) = 
         idError("unbound " ^ kind ^ " ", name, ctxInfo)
+
+    fun idDuplicateDeclWarning(ty1, ty2, here as Absyn.IDENT(namehere, ctxInfoHere), there as Absyn.IDENT(namethere, ctxInfoThere)) =
+        (
+          sayIdWarning("Duplicate definition of: ", namehere, ctxInfoHere); 
+          sayErr("with type: "); case ty1 of SOME(ty1) => (Ty.printType ty1; sayErr("\n")) | _ => sayErr("Unknown\n");
+          sayIdWarning("this is the other definition: ", namethere, ctxInfoThere); 
+          sayErr("with type: "); case ty2 of SOME(ty2) => (Ty.printType ty2; sayErr("\n")) | _ => sayErr("Unknown\n")
+        )
 
     fun idRebindError(
             kind, 
@@ -1576,10 +1597,27 @@ fun elab_module(os, main_module, repository) =
       fun check(Absyn.CLAUSE1(goal_opt, var, patseq, result, patseq_ref, localVars, ctxInfo)) = 
         (
         let fun elaborateLocalVariables([], d) = d
-            |    elaborateLocalVariables((id, SOME(ty), _, Absyn.ATTRIBUTES{output,...})::rest, d) =
-                let val tauLocal = 
-                        SOME(elab_ty ME TE NONE ty)
-                        handle exn => (case exn of _ => NONE)
+            |   elaborateLocalVariables((id, SOME(ty_prev), _, Absyn.ATTRIBUTES{output,...})::rest, d) =
+                let 
+                  val tauLocal = SOME(elab_ty ME TE NONE ty_prev) handle exn => (case exn of _ => NONE)                  
+
+                  fun checkDuplicate(id, []) = ()
+                  |   checkDuplicate(id, (id', SOME(ty_now), _, _)::rst) = 
+                      let
+                         val tauNow = SOME(elab_ty ME TE NONE ty_now) handle exn => (case exn of _ => NONE)
+                      in
+                        if (Absyn.identName id = Absyn.identName id')
+                        then
+                        ( 
+                            if !Control.disableWarnings 
+                            then ()
+                            else idDuplicateDeclWarning(tauLocal, tauNow, id, id')
+                        )
+                        else checkDuplicate(id, rst)
+                      end
+                  |   checkDuplicate(id, (id', NONE, _, _)::rst) = checkDuplicate(id, rst)
+                  
+                  val _ = checkDuplicate(id, rest) (* check for duplicates *)
                 in
                 case tauLocal of
                     SOME(tauLocal) => 
@@ -1591,7 +1629,9 @@ fun elab_module(os, main_module, repository) =
                 |    NONE => elaborateLocalVariables(rest, d)
                 end
             |    elaborateLocalVariables(_::rest, d) = elaborateLocalVariables(rest, d)
+            
             val StatObj.VALSTR{localVE,...} = lookupVar(VE, varRel) 
+            
             val localVE = elaborateLocalVariables(localVars, localVE)
             (*val pats = case tau of
                        Ty.REL(tyargs_taus, _, _) => fixPatSeq(patseq, patseq_ref, tyargs_taus) (* adrpo added *)

@@ -89,6 +89,18 @@ fun mkMatchStr(match) =
       str
     end
 
+fun warnLocalDeprecated lexArg (info) = 
+    let val strErr1 = getInfoAsString(splitInfo lexArg info)
+    in
+      if !Control.disableWarnings
+      then ()
+      else
+      (
+      sayErr (strErr1);
+      sayErr("Warning: local declarations in case and else in match are deprecated! Please move them to the local declarations in match.\n")
+      )
+    end
+
 fun warnDifferentIdents lexArg (ident1, ident2) =
     let val strErr1 = getInfoAsString(splitInfo lexArg (Absyn.identCtxInfo(ident1)))
         val strErr2 = getInfoAsString(splitInfo lexArg (Absyn.identCtxInfo(ident2)))
@@ -1928,6 +1940,10 @@ case_stmt:
                                                        (* 187 *)
      CASE seq_pat opt_string_comment local_element_list equation_clause_case THEN expression SEMICOLON 
     ( 
+        case local_element_list of 
+              [] => () 
+            | _ => warnLocalDeprecated lexArg (makeInfo lexArg (CASEleft, SEMICOLONright))
+        ;
         Absyn.CASE(
             seq_pat, 
             local_element_list, 
@@ -1943,6 +1959,10 @@ case_else:
                                                        (* 189 *)
 | ELSE opt_string_comment local_element_list equation_clause_case THEN expression SEMICOLON
   ( 
+     case local_element_list of 
+           [] => () 
+         | _  => warnLocalDeprecated lexArg (makeInfo lexArg (ELSEleft, SEMICOLONright))
+     ;
     [Absyn.ELSE( 
         local_element_list, 
         equation_clause_case, 

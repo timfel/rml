@@ -7,5 +7,6 @@ structure MODParse =
 	  structure Tokens = MODLrVals.Tokens
 	  structure LexArg = LexArg
 	  structure Util = Util
-	  structure Cache = Cache);
+	  structure Cache = Cache
+    );
 
