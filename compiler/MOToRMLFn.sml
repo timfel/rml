@@ -463,10 +463,11 @@ let val Absyn.PROGRAM(_,_,interface as
       "value_match",       "valueMatch",
 
       (* booleans *)
-      "bool_and", "boolAnd",
-      "bool_not", "boolNot",
-      "bool_or",  "boolOr",
-      "bool_eq",  "boolEq",
+      "bool_and",    "boolAnd",
+      "bool_not",    "boolNot",
+      "bool_or",     "boolOr",
+      "bool_eq",     "boolEq",
+      "bool_string", "boolString",
       
       (* characters *)
       "char_int", "charInt",

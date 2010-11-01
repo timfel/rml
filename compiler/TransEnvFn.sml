@@ -175,10 +175,11 @@ functor TransEnvFn(structure Util : UTIL
       val te = StrDict.insert(te, "false", CON{rep=ConRep.INT 0, nrcons=2})
       val te = StrDict.insert(te, "true",  CON{rep=ConRep.INT 1, nrcons=2})
 
-      val te = inline2(te, "bool_and", "boolAnd", mk_binary_inliner CPS.BOOL_AND)
-      val te = inline2(te, "bool_not", "boolNot", mk_unary_inliner CPS.BOOL_NOT)
-      val te = inline2(te, "bool_or",  "boolOr",  mk_binary_inliner CPS.BOOL_OR)
-      val te = inline2(te, "bool_eq",  "boolEq",  mk_binary_inliner CPS.BOOL_EQ)
+      val te = inline2(te, "bool_and",    "boolAnd", mk_binary_inliner CPS.BOOL_AND)
+      val te = inline2(te, "bool_not",    "boolNot", mk_unary_inliner CPS.BOOL_NOT)
+      val te = inline2(te, "bool_or",     "boolOr",  mk_binary_inliner CPS.BOOL_OR)
+      val te = inline2(te, "bool_eq",     "boolEq",  mk_binary_inliner CPS.BOOL_EQ)
+      val te = extern2(te, "bool_string", "boolString")
 
       (* characters *)
       val te = inline2(te, "char_int", "charInt", int_int_inliner)

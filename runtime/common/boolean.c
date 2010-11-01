@@ -30,3 +30,15 @@ RML_BEGIN_LABEL(RML__bool_5feq)
     RML_TAILCALLK(rmlSC);
 }
 RML_END_LABEL
+
+static const RML_DEFSTRINGLIT(rml_true_str_literal,  4, "true");
+static const RML_DEFSTRINGLIT(rml_false_str_literal, 5, "false");
+
+RML_BEGIN_LABEL(RML__bool_5fstring)
+{
+    rmlA0 = (RML_UNTAGFIXNUM(rmlA0)) ? RML_REFSTRINGLIT(rml_true_str_literal) : 
+                                       RML_REFSTRINGLIT(rml_false_str_literal);
+    RML_TAILCALLK(rmlSC);
+}
+RML_END_LABEL
+

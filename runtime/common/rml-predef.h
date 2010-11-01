@@ -50,11 +50,13 @@ extern RML_FORWARD_LABEL(RML__bool_5fand);
 extern RML_FORWARD_LABEL(RML__bool_5fnot);
 extern RML_FORWARD_LABEL(RML__bool_5for);
 extern RML_FORWARD_LABEL(RML__bool_5feq);
+extern RML_FORWARD_LABEL(RML__bool_5fstring);
 /* java named */
-#define RML__boolAnd RML__bool_5fand
-#define RML__boolNot RML__bool_5fnot
-#define RML__boolOr  RML__bool_5for
-#define RML__boolEq  RML__bool_5feq
+#define RML__boolAnd    RML__bool_5fand
+#define RML__boolNot    RML__bool_5fnot
+#define RML__boolOr     RML__bool_5for
+#define RML__boolEq     RML__bool_5feq
+#define RML__boolString RML__bool_5fstring
 
 /* chars */
 extern RML_FORWARD_LABEL(RML__int_5fint);
