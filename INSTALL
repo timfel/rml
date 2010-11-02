@@ -22,7 +22,7 @@ into problems read the NOTE at the end of this file.
     $ sudo aptitude install ml-lex ml-yacc libsmlnj-smlnj build-essential bison flex
 
 
-2. In the RML root directory, execute:
+2. In the RML root directory, execute: (before you run the configure script set the SMLNJ_HOME, export SMLNJ_HOME=/usr/lib/smlnj )
 
     $ ./configure
 
