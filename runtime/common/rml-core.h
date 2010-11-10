@@ -323,9 +323,23 @@ extern void* rml_prim_none_tagged;
 
 #define rml_prim_marker()	((void*)(rmlTP))
 extern rml_sint_t rml_prim_stringeq(void*, rml_uint_t, const char*);
-extern inline void *rml_prim_equal(void*, void*);
+
+#ifdef _MSC_VER
+extern void *rml_prim_equal(void*, void*);
+#else
+inline void *rml_prim_equal(void*, void*);
+#endif
+extern void  rml_prim_unwind_(void**);
+
 extern void  rml_prim_unwind_(void**);
 #define rml_prim_unwind(XTP) do{if(rmlTP<(void**)(XTP))rml_prim_unwind_((void**)(XTP));}while(0)
+
+
+#ifdef _MSC_VER
+#define STATIC_INLINE static __inline
+#else
+#define STATIC_INLINE static inline
+#endif
 
 /*
  * adrpo 2008-12-02
@@ -336,7 +350,7 @@ extern void  rml_prim_unwind_(void**);
  *   stringHashSdbm -> rml_sdbm_hash
  */
 /*** djb2 hash ***/
-static inline unsigned long rml_djb2_hash(unsigned char *str)
+STATIC_INLINE unsigned long rml_djb2_hash(unsigned char *str)
 {
   unsigned long hash = 5381;
   int c;
@@ -345,7 +359,7 @@ static inline unsigned long rml_djb2_hash(unsigned char *str)
 }
 
 /*** sdbm hash ***/
-static inline unsigned long rml_sdbm_hash(unsigned char* str)
+STATIC_INLINE unsigned long rml_sdbm_hash(unsigned char* str)
 {
   unsigned long hash = 0;
   int c;
@@ -353,7 +367,7 @@ static inline unsigned long rml_sdbm_hash(unsigned char* str)
   return hash;
 }
 
-static inline unsigned long rml_default_hash(unsigned char* str)
+STATIC_INLINE unsigned long rml_default_hash(unsigned char* str)
 {
   unsigned long hash = 0;
   int c;

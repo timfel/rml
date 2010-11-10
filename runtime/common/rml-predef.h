@@ -337,8 +337,8 @@ extern RML_FORWARD_LABEL(RML__unique);
 extern RML_FORWARD_LABEL(RML__enable_5ftrace);
 extern RML_FORWARD_LABEL(RML__disable_5ftrace);
 /* java names */
-#define RML_enableTrace  RML__enable_5ftrace
-#define RML_disableTrace RML__disable_5ftrace
+#define RML__enableTrace  RML__enable_5ftrace
+#define RML__disableTrace RML__disable_5ftrace
 
 
 /* debugging */
