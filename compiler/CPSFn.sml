@@ -58,22 +58,29 @@ functor CPSFn(
     and proc = EXTERN_REL of longid * ({args:trivexp list, fc:trivexp, sc:trivexp} -> exp' option) option
 			 | LOCAL_REL of def
 
-    and label = LAB of {	tag		: int,
-							uses	: int ref,
-							fvars	: var list ref,
-							bvars	: var list,
-							body	: exp,
-							name	: longid,
-							pos		: info }
+    and label = LAB of 
+                {  
+                  tag   : int,
+                  uses  : int ref,
+                  fvars  : var list ref,
+                  bvars  : var list,
+                  body  : exp,
+                  name  : longid,
+                  pos    : info 
+                }
 
     and trivexp' = VARte of var
-			     | LAMte of {	tag		: int,
-								fvars	: var list ref,
-								kind	: lamkind,
-								body	: exp,
-								name	: longid,
-								pos		: info }
-			     | QUOTEte of literal
+           | LAMte of 
+             {  
+               tag   : int,
+               fvars : var list ref,
+               kind  : lamkind,
+               body  : exp,
+               name  : longid,
+               pos   : info,
+               ty    : string (* type of continuation return, match, etc *)
+             }
+           | QUOTEte of literal
 
     and trivexp	= TE of trivexp' ref
 
@@ -165,8 +172,14 @@ functor CPSFn(
     fun newVar(lid) =
       VAR{tag=Util.tick(), uses=ref 0, subst=ref NONE, name=lid}
 
-    fun newLam(kind, body, lid, info) =
-      TE(ref(LAMte{tag=Util.tick(), fvars=ref[], kind=kind, body=body, name=lid, pos=info}))
+    fun newLam(increase, kind, body, lid, info, lamdaType) =
+      let
+         val counter = if increase
+                       then Util.counterValueSCIncrease()
+                       else Util.counterValueFCIncrease()
+      in
+        TE(ref(LAMte{tag=counter, fvars=ref[], kind=kind, body=body, name=lid, pos=info, ty=lamdaType}))
+      end
 
     fun newLab(bvars, body, lid, info) =
       LAB{tag=Util.tick(), uses=ref 0, fvars=ref [], bvars=bvars, body=body, name=lid, pos=info}

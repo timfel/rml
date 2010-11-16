@@ -6,6 +6,7 @@ COFLAGS=-O2
 CPFLAGS=
 # no -g flags at all supported by this gcc
 CGFLAGS=-DRML_DEBUG
+CTFLAGS=-DRML_TRACE 
 RANLIB=echo
 CPP=gcc -x c -E -ansi
 AS=/usr/bin/as -nocpp

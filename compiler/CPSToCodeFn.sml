@@ -201,8 +201,8 @@ let
     fun lk2formals(CPS.FClk) = []
       | lk2formals(CPS.SClk{v_tvs,...}) = v_tvs
 
-    fun lk2name(CPS.FClk,   name) = name^"_failureContLam"
-      | lk2name(CPS.SClk _, name) = name^"_successContLam"
+    fun lk2name(CPS.FClk,   name, ty) = name^"_"^ty^"_FC"
+      | lk2name(CPS.SClk _, name, ty) = name^"_"^ty^"_SC"
 
     (* compute the heap allocation needs of an expression *)
     fun size_prim(CPS.MKSTRUCTp(_, te_star)) = 1 + length te_star
@@ -293,8 +293,8 @@ let
       case te'
     of CPS.VARte(var)  => cont(Code.VAR(trans_var var), offSP)
      | CPS.QUOTEte(lit)  => cont(Code.LITERAL(trans_lit lit), offSP)
-     | CPS.LAMte{tag,fvars,kind,body,name,pos}  =>
-        let val lab = mkShortLabel((lk2name(kind,CPS.longIdentName name)) ^ (MakeString.icvt tag), name, pos)
+     | CPS.LAMte{tag,fvars,kind,body,name,pos,ty}  =>
+        let val lab = mkShortLabel((lk2name(kind, CPS.longIdentName name, ty)) ^ (MakeString.icvt tag), name, pos)
         and nfvars = length (!fvars)
         and formals = lk2formals kind
         and varHP = new_lvar("HP")

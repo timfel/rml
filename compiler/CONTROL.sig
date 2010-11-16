@@ -80,26 +80,29 @@ signature CONTROL =
     
   (* this one helps in selecting messages depending on what we are currently compiling *)
   val selectCompilerMessage: string * string -> string    
-    
+  
+  val fileName:   string -> string
   val fileBase:   string -> string
   val fileType:   string -> filetype
   val getFileExt: filetype -> string
-  val pathSplit:  string -> (string * string option)
+  val pathFileExtSplit:  string -> string * string * string option
+  val splitFileExt:  string -> string * string option
   val fileExists: string -> bool    
   val fileNewer: string * string -> bool (* see if file1 is newer than file2 *)
-  val getFileName: string * filetype -> string 
-  val fileCheckSerializationInfo: string -> bool
-  val isSerializedFileValid: string -> bool
-  val isInterfaceFileValid:  string -> bool
-  val joinBaseExt: string * string option -> string
+  val getFullFileName: string * string * filetype -> string 
+  val fileCheckSerializationInfo: string * string * string option -> bool
+  val isSerializedFileValid: string * string  * string option -> bool
+  val isInterfaceFileValid:  string * string * string option -> bool
+  val joinPathFileExt: string * string * string option -> string
+  val joinFileExt: string * string option -> string
   
   (* datatype for the result if is ok or if is error *)
   datatype 'a outcome = OK of 'a | ERR of exn
     
   (* function to write files with error handling *)
-  val withOutputOption: (TextIO.outstream option * 'a -> 'b) -> 'a -> string -> 'b
+  val withOutputOption: (TextIO.outstream option * 'a -> 'b) -> 'a -> (string*string*string option) -> 'b
   (* function to write files with error handling *)
-  val withOutput      : (TextIO.outstream * 'a -> 'b) -> 'a -> string -> 'b     
+  val withOutput      : (TextIO.outstream * 'a -> 'b) -> 'a -> (string*string*string option) -> 'b     
   (* function to write files with error handling *)
   val withOutputStream: ('a * 'b -> 'c) -> 'b -> 'a -> 'c
   (* function to write files with error handling *)
@@ -108,7 +111,14 @@ signature CONTROL =
   (* print import loadinging order  *)
   val importLoadOrder : bool ref
 
-  val idirs : string list ref
+  (* list of search paths *)
+  val iDirs : string list ref
+  (* output path for H files *)
+  val oHDir : string ref
+  (* output path for C files *)
+  val oCDir : string ref
+  (* output path for temp files *)
+  val oTDir : string ref
   
 end (* signature CONTROL *)
 

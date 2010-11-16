@@ -4,6 +4,7 @@ CFLAGS=
 COFLAGS=-xO2
 CPFLAGS=-xpg
 CGFLAGS=-g -DRML_DEBUG
+CTFLAGS=-DRML_TRACE 
 RANLIB=echo
 CPP=/usr/ccs/lib/cpp
 AS=/usr/ccs/bin/as

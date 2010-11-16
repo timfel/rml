@@ -36,24 +36,24 @@ functor FrontEndFn(
     
     type repository = Cache.repository
 
-  fun bug  s = Util.bug("FrontEndFn."^s)
-  fun warn s = Util.warn(s)
-  fun sayErr s = Util.outStdErr(s)
+    fun bug  s = Util.bug("FrontEndFn."^s)
+    fun warn s = Util.warn(s)
+    fun sayErr s = Util.outStdErr(s)
   
-  fun debug s = if (!Control.importLoadOrder) then Util.outStdErr ("FrontEndFn."^s) else ()  
+    fun debug s = if (!Control.importLoadOrder) then Util.outStdErr ("FrontEndFn."^s) else ()  
 
     (* generates the AST representation *)
-    fun doAst((prefix, ext), astModule) =
-    let val fileName = Control.joinBaseExt(prefix, ext)
-    val interfaceFile = Control.getFileName(fileName, Control.INTERFACE_FILE)
-    val serializationFile = Control.getFileName(fileName, Control.SERIALIZATION_FILE)
+    fun doAst((prefix, fileName, ext), astModule) =
+    let val fullFileName = Control.joinPathFileExt(prefix, fileName, ext)
+    val interfaceFile = Control.getFullFileName(!Control.oTDir, fileName, Control.INTERFACE_FILE)
+    val serializationFile = Control.getFullFileName(!Control.oTDir, fileName, Control.SERIALIZATION_FILE)
     in
        if !Control.emitAst (* check if we should dump the AST *)
-       then Control.withOutput AbsynPrint.printModule astModule (prefix ^ ".ast")
+       then Control.withOutput AbsynPrint.printModule astModule (!Control.oTDir, fileName, SOME("ast"))
        else ();
        if !Control.emitDebug (* check if we should dump the DEBUG instrumented AST *)
-       then Control.withOutput AbsynPrint.printModule astModule (prefix ^ ".dbg")
-       else ()       
+       then Control.withOutput AbsynPrint.printModule astModule (!Control.oTDir, fileName, SOME("dbg"))
+       else ()
     end
 
     (* instrument - adrpo 2006-12-27 not done here anymore
@@ -87,8 +87,10 @@ functor FrontEndFn(
     importList
   end
 
-  fun getImports(file, repository) =
-  let val entryRML = Cache.getCacheEntry(repository, Cache.rmlCache, file)
+  fun getImports((prefix, fileName, ext), repository) =
+  let 
+    val file = Control.joinFileExt(fileName, ext)
+    val entryRML = Cache.getCacheEntry(repository, Cache.rmlCache, file)
     val entrySRZ = Cache.getCacheEntry(repository, Cache.srzCache, file)
     val entryMOD = Cache.getCacheEntry(repository, Cache.modCache, file)
     val imports = 
@@ -111,8 +113,10 @@ functor FrontEndFn(
   end
 
 
-  fun getInterfaceImports(file, repository) =
-  let val entryRML = Cache.getCacheEntry(repository, Cache.rmlCache, file)
+  fun getInterfaceImports((prefix, fileName, ext), repository) =
+  let 
+    val file = Control.joinFileExt(fileName, ext)
+    val entryRML = Cache.getCacheEntry(repository, Cache.rmlCache, file)
     val entrySRZ = Cache.getCacheEntry(repository, Cache.srzCache, file)
     val imports = 
       case (entryRML, entrySRZ) of
@@ -135,8 +139,10 @@ functor FrontEndFn(
     publicImportList(getImportList(imports))
   end
 
-  fun getMODImports(file, repository, interfaceOnly) =
-  let val entryRML = Cache.getCacheEntry(repository, Cache.rmlCache, file)
+  fun getMODImports((prefix, fileName, ext), repository, interfaceOnly) =
+  let 
+    val file = Control.joinFileExt(fileName, ext)
+    val entryRML = Cache.getCacheEntry(repository, Cache.rmlCache, file)
     val entrySRZ = Cache.getCacheEntry(repository, Cache.srzCache, file)
     val entryMOD = Cache.getCacheEntry(repository, Cache.modCache, file)
     val imports = 
@@ -185,8 +191,10 @@ functor FrontEndFn(
     else allImportList(importList)
   end
   
-  fun getModuleImports(file, repository) =
-  let val entryRML = Cache.getCacheEntry(repository, Cache.rmlCache, file)
+  fun getModuleImports((prefix, fileName, ext), repository) =
+  let 
+    val file = Control.joinFileExt(fileName, ext)
+    val entryRML = Cache.getCacheEntry(repository, Cache.rmlCache, file)
     val entrySRZ = Cache.getCacheEntry(repository, Cache.srzCache, file)
     val imports = 
       case (entryRML, entrySRZ) of
@@ -210,34 +218,21 @@ functor FrontEndFn(
   end
   
   fun loadRMLSerializedOrParse func1 func2 (file, repository) =
-  (* 
-  if Control.isSerializedFileValid(file)
-  then 
-  (
-    debug("loadRMLSerializedOrParse: reading serialization of : "^file^"\n");
-    let val Absyn.SRZ_FILE(_, Absyn.SERIALIZED(_, SOME(module))) = 
-          func1(
-          Control.getFileName(file, Control.SERIALIZATION_FILE),
-          repository)
-    in
-      module
-    end
-  )
-  else 
-  *)
   let val Absyn.RML_FILE(_,module) = func2(file, repository)
   in
     debug("loadRMLSerializedOrParse: parsing : "^file^"\n");     
     module
   end
   
-  fun getModuleIdent(file, repository) =
-  let val entryRML = Cache.getCacheEntry(repository, Cache.rmlCache, file)
+  fun getModuleIdent((prefix, fileName, ext), repository) =
+  let 
+    val file = Control.joinFileExt(fileName, ext)
+    val entryRML = Cache.getCacheEntry(repository, Cache.rmlCache, file)
     val entrySRZ = Cache.getCacheEntry(repository, Cache.srzCache, file)
     val entryMOD = Cache.getCacheEntry(repository, Cache.modCache, file)
     val moduleId =
       case (entryRML, entrySRZ, entryMOD) of
-        (SOME(entryR),_,_)       => Cache.getModId(entryR) 
+         (SOME(entryR),_,_)       => Cache.getModId(entryR) 
       |  (NONE,SOME(entryS),_)    => Cache.getModId(entryS)
       |  (NONE,NONE,SOME(entryM)) =>  Cache.getModId(entryM)
       |  (NONE,NONE,NONE)         =>  bug("getModId!")
@@ -245,8 +240,10 @@ functor FrontEndFn(
     moduleId
   end
 
-  fun getExternals(file, repository) =
-  let val entryRML = Cache.getCacheEntry(repository, Cache.rmlCache, file)
+  fun getExternals((prefix, fileName, ext), repository) =
+  let 
+    val file = Control.joinFileExt(fileName, ext)
+    val entryRML = Cache.getCacheEntry(repository, Cache.rmlCache, file)
     val entrySRZ = Cache.getCacheEntry(repository, Cache.srzCache, file)
     val entryMOD = Cache.getCacheEntry(repository, Cache.modCache, file)
     val externals =
@@ -273,50 +270,60 @@ functor FrontEndFn(
   end
 
   
-    fun warnUnusedImports(file, currentModuleDependencies, repository) =
-    let val imports = getImports(file, repository)
-    fun apply x = (x, Absyn.identName (getModuleIdent(x, repository)))
+  fun warnUnusedImports((prefix, fileName, ext), currentModuleDependencies, repository) =
+  let 
+    val file = Control.joinFileExt(fileName, ext)
+    val imports = getImports((prefix, fileName, ext), repository)
+    fun apply x = 
+         let
+           val (f, e) = Control.splitFileExt(x)
+         in
+           (x, Absyn.identName (getModuleIdent((prefix, f, e), repository)))
+         end
     val dependencyModuleIds = ref (map apply currentModuleDependencies)
-    val externals = getExternals(file, repository)
+    val externals = getExternals((prefix, fileName, ext), repository)
     fun verify(str, _,  dict) = 
       let fun loop([]) = []
-        |  loop((f,hd)::rest) = 
-          if (String.isPrefix hd str)
-          then loop(rest)         (* if is there ignore it *)
-          else (f,hd)::loop(rest) (* if is not there, keep it and move forward *)
+          |   loop((f,hd)::rest) = 
+              if (String.isPrefix hd str)
+              then loop(rest)         (* if is there ignore it *)
+              else (f,hd)::loop(rest) (* if is not there, keep it and move forward *)
       in
         dependencyModuleIds := loop(!dependencyModuleIds); () 
       end
     val _ = StrDict.fold(verify, (), externals)
     fun loopUnused([]) = ()
-    |  loopUnused((f,moduleId)::rest) =
-      if moduleId <> "RML" (* ignore RML *)
-      then
-      let val ((sp,sl,sc),(ep,el,ec)) = 
+    |   loopUnused((f,moduleId)::rest) =
+        if moduleId <> "RML" (* ignore RML *)
+        then
+        let 
+           val ((sp,sl,sc),(ep,el,ec)) = 
             case StrDict.find(imports,f) of
               SOME(pos1,pos2,_) => (pos1,pos2)
             |  NONE => bug("warnUnusedImports.loopUnused!")
-      in
-        if !Control.disableWarnings
-        then ()
-        else
-        (
+        in
+          if !Control.disableWarnings
+          then ()
+          else
+          (
           sayErr(file^":"^
                  (Int.toString sl)^"."^
                  (Int.toString sc)^"-"^
                  (Int.toString el)^"."^
                  (Int.toString ec)^" ");
                  warn("unused imported module: "^moduleId(*^" in import: "^f*))
-        );
-        loopUnused(rest)
-      end
-      else loopUnused(rest)
-    in
+          );
+          loopUnused(rest)
+        end
+        else loopUnused(rest)
+  in
     loopUnused(!dependencyModuleIds)
-    end  
+  end  
 
-  fun loadRMLInterface(file, repository) =  
-  let val entryRML = Cache.getCacheEntry(repository, Cache.rmlCache, file)
+  fun loadRMLInterface((prefix, fileName, ext), repository) =  
+  let 
+    val file = Control.joinFileExt(fileName, ext)
+    val entryRML = Cache.getCacheEntry(repository, Cache.rmlCache, file)
     val entrySRZ = Cache.getCacheEntry(repository, Cache.srzCache, file)
     val apply = loadRMLSerializedOrParse AbsynPersist.parseInterface RMLParse.parseInterface
     val module = 
@@ -337,13 +344,21 @@ functor FrontEndFn(
           then Cache.srzI(entryS)
           else apply ( file, repository )
     fun loop([],r) = ()
-    |  loop(x::rest,r) = (loadRMLInterface(x,r); loop(rest,r))
+    |   loop(x::rest,r) = 
+        let
+           val (f, e) = Control.splitFileExt(x)
+        in
+          loadRMLInterface((prefix, f, e), r); 
+          loop(rest,r)
+        end
   in
-    loop(getInterfaceImports(file, repository), repository)
+    loop(getInterfaceImports((prefix, fileName, ext), repository), repository)
   end
 
-  fun loadRMLFile(file, repository) =  
-  let val entryRML = Cache.getCacheEntry(repository, Cache.rmlCache, file)
+  fun loadRMLFile((prefix, fileName, ext), repository) =  
+  let 
+    val file = Control.joinFileExt(fileName, ext)
+    val entryRML = Cache.getCacheEntry(repository, Cache.rmlCache, file)
     val entrySRZ = Cache.getCacheEntry(repository, Cache.srzCache, file)
     val apply = loadRMLSerializedOrParse AbsynPersist.parseModule RMLParse.parseModule
     val module = 
@@ -363,9 +378,15 @@ functor FrontEndFn(
           if Cache.hasSRZ_M(entryS) 
           then Cache.srzM(entryS)
           else apply( file, repository )
-    val currentModuleDependencies = getModuleImports(file, repository)
+    val currentModuleDependencies = getModuleImports((prefix, fileName, ext), repository)
     fun loop([],r) = ()
-    |  loop(x::rest,r) = (loadRMLInterface(x,r); loop(rest,r))
+    |   loop(x::rest,r) = 
+        let
+          val (f, e) = Control.splitFileExt(x) 
+        in
+          loadRMLInterface((prefix, f, e), r); 
+          loop(rest,r)
+        end
   in
     loop(currentModuleDependencies,repository);
     (module, currentModuleDependencies)
@@ -387,21 +408,29 @@ functor FrontEndFn(
      print "]\n" 
     end
 
-  fun loadTranslate(file, repository, alreadyLoaded, translateNeeded) =
-  if List.exists (fn y => y = file) (!alreadyLoaded)
-  then ()
-  else 
-  (* load it *)
-  let fun loop([],r) = ()
-    |  loop(x::rest,r) = (loadTranslate(x, r, alreadyLoaded, translateNeeded); loop(rest,r))   
+  fun loadTranslate((prefix, fileName, ext), repository, alreadyLoaded, translateNeeded) =
+  let  
+    val file = Control.joinFileExt(fileName, ext)
   in
-    let val entryMOD = Cache.getCacheEntry(repository, Cache.modCache, file)
+    if List.exists (fn y => y = file) (!alreadyLoaded)
+    then ()
+    else (* load it *)
+    let 
+      fun loop([],r) = ()
+      |   loop(x::rest,r) = 
+          let
+            val (f, e) = Control.splitFileExt(x)
+          in
+            loadTranslate((prefix, f, e), r, alreadyLoaded, translateNeeded); 
+            loop(rest,r)
+          end
+      val entryMOD = Cache.getCacheEntry(repository, Cache.modCache, file)
       val entryRML = Cache.getCacheEntry(repository, Cache.rmlCache, file)
       val entrySRZ = Cache.getCacheEntry(repository, Cache.srzCache, file)
       val _ = 
         case (entryMOD, entryRML, entrySRZ) of
           (NONE,NONE,NONE) => (* not loaded, just parse *)
-          let val srz = loadSerializedMODFile(file, repository, true (* only Interface *))
+          let val srz = loadSerializedMODFile((prefix, fileName, ext), repository, true (* only Interface *))
           in 
             case srz of
               NONE => (* last alternative *)
@@ -417,101 +446,92 @@ functor FrontEndFn(
         |  (_,_,_) => ( (* already loaded *))
       val _ = alreadyLoaded := file::(!alreadyLoaded)
     in
-      loop(getMODImports(file, repository, false),repository); ()
+      loop(getMODImports((prefix, fileName, ext), repository, false),repository); ()
     end
-  end  
+  end
 
   
-  and translate(file, SOME(module), repository, alreadyLoaded, translateNeeded) = 
-  let fun loop([],r) = ()
-    |  loop(x::rest,r) = (loadTranslate(x,r,alreadyLoaded,translateNeeded); loop(rest,r))
-    val imports = getMODImports(file, repository, true)
-    val _ = loop(imports,repository);
-  in
-    module
-  end
-  |  translate(file, NONE, repository, alreadyLoaded, translateNeeded) =
-  let fun loop([],r) = ()
-    |  loop(x::rest,r) = (loadTranslate(x,r,alreadyLoaded,translateNeeded); loop(rest,r))   
-  in
-    debug("translate: translating: "^file^"\n");    
-    let val entryMOD = Cache.getCacheEntry(repository, Cache.modCache, file)
-      val Absyn.MOD_FILE(_,parsedMODModule) = 
-        case entryMOD of
-          NONE => MODParse.parseModule(file, repository)
-        |  SOME(entryM) => Absyn.MOD_FILE(file,Cache.modM(entryM))
-      val imports = getMODImports(file, repository, false)
-      val _ = loop(imports,repository);
-      val translated = 
-          Reorder.reorderModule( 
-            MOToRML.transformMOToRML(parsedMODModule, imports, repository) )
-      val interfaceFile = Control.getFileName(file, Control.INTERFACE_FILE)
-      val serializationFile = Control.getFileName(file, Control.SERIALIZATION_FILE)
-      in 
-        (*
-        (* dump the interface *)
-        if not(!Control.dumpInterface) andalso Control.isInterfaceFileValid(file)   
-        then ()
-        else Control.withOutput AbsynPrint.printInterface translated interfaceFile;
-        Control.withOutput AbsynPrint.printModule translated (interfaceFile^".rmod");
-        *)
-        (* dump the serialization *)
-        case Control.fileType file of
+  and translate((prefix, fileName, ext), SOME(module), repository, alreadyLoaded, translateNeeded) = 
+     let 
+       val file = Control.joinFileExt(fileName, ext)
+       fun loop([],r) = ()
+       |   loop(x::rest,r) = 
+           let
+             val (f, e) = Control.splitFileExt(x)
+           in 
+             loadTranslate((prefix, f, e), r, alreadyLoaded, translateNeeded); 
+             loop(rest,r)
+           end
+       val imports = getMODImports((prefix, fileName, ext), repository, true)
+       val _ = loop(imports,repository);
+     in
+       module
+     end
+  |  translate((prefix, fileName, ext), NONE, repository, alreadyLoaded, translateNeeded) =
+     let 
+         val file = Control.joinFileExt(fileName, ext)
+         val fullFileName = Control.joinPathFileExt(prefix, fileName, ext)
+         fun loop([],r) = ()
+         |  loop(x::rest,r) = 
+            let
+              val (f, e) = Control.splitFileExt(x)
+            in
+              loadTranslate((prefix, f, e), r, alreadyLoaded, translateNeeded); 
+              loop(rest,r)
+            end
+     in
+       debug("translate: translating: "^file^"\n");    
+       let val entryMOD = Cache.getCacheEntry(repository, Cache.modCache, file)
+           val Absyn.MOD_FILE(_,parsedMODModule) = 
+               case entryMOD of
+                  NONE => MODParse.parseModule(fullFileName, repository)
+               |  SOME(entryM) => Absyn.MOD_FILE(file,Cache.modM(entryM))
+           val imports = getMODImports((prefix, fileName, ext), repository, false)
+           val _ = loop(imports,repository);
+           val translated = Reorder.reorderModule( MOToRML.transformMOToRML(parsedMODModule, imports, repository) )
+           val interfaceFile = Control.getFullFileName(!Control.oTDir, fileName, Control.INTERFACE_FILE)
+           val serializationFile = (!Control.oTDir, fileName, SOME(Control.getFileExt(Control.SERIALIZATION_FILE)))
+       in 
+         (* dump the serialization *)
+         case Control.fileType file of
             Control.MO_FILE (* dump .srz only if is .mo file and the .srz is dirty *)
-            => if Control.isSerializedFileValid(file)
-            then ()
-            else Control.withOutput AbsynPersist.serializeModule translated serializationFile
-        |  _ => ();
-        (*
-        if Control.isSerializedInterfaceValid(fileName) 
-        then ()
-        else Control.withOutput AbsynPrint.printInterface astModule interfaceFile;
-        if Control.isSerializedModuleValid(fileName) then ()
-        else Control.withOutput AbsynPrint.printModule astModule moduleFile;
-        *)
-        translated
-      end
-  end
+               => if Control.isSerializedFileValid(prefix, fileName, ext)
+                  then ()
+                  else Control.withOutput AbsynPersist.serializeModule translated serializationFile
+         |  _ => ();
+         translated
+       end
+     end
 
-  and loadSerializedMODFile (file, repository, loadInterface) = 
-  if Control.isSerializedFileValid(file)
+  and loadSerializedMODFile ((prefix, fileName, ext), repository, loadInterface) = 
+  if Control.isSerializedFileValid(prefix, fileName, ext)
   then 
-  (
-    debug("loadSerialized: reading serialization of : "^file^"\n");
-    let val Absyn.SRZ_FILE(_, Absyn.SERIALIZED(_, SOME(module))) =
+    let 
+        val fullFileName = Control.getFullFileName(!Control.oTDir, fileName, Control.SERIALIZATION_FILE)
+        val _ = debug("loadSerialized: reading serialization of : "^fullFileName^"\n")
+        val Absyn.SRZ_FILE(_, Absyn.SERIALIZED(_, SOME(module))) =
         if loadInterface 
-        then 
-          AbsynPersist.parseInterface(
-          Control.getFileName(file, Control.SERIALIZATION_FILE),
-          repository)
-        else
-          AbsynPersist.parseModule(
-          Control.getFileName(file, Control.SERIALIZATION_FILE),
-          repository) 
+        then AbsynPersist.parseInterface(fullFileName, repository)
+        else AbsynPersist.parseModule(fullFileName, repository)
      in
       SOME(module)
     end
-  )
   else NONE
 
-  and loadMODFile(file, repository, alreadyTranslated, alreadyLoaded, loadInterfaceOnly) = 
-  let val entryRML = Cache.getCacheEntry(repository, Cache.rmlCache, file)
+  and loadMODFile((prefix, fileName, ext), repository, alreadyTranslated, alreadyLoaded, loadInterfaceOnly) = 
+  let 
+    val file = Control.joinFileExt(fileName, ext)
+    val entryRML = Cache.getCacheEntry(repository, Cache.rmlCache, file)
     val entrySRZ = Cache.getCacheEntry(repository, Cache.srzCache, file)
     val entryMOD = Cache.getCacheEntry(repository, Cache.modCache, file)
     val translateNeeded : string list ref = ref []
     val _ = alreadyLoaded = ref []
     val isSRZ = ref false 
     fun apply (f,r,loadInterfaceOnly) = 
-      let val  module = loadSerializedMODFile(file, repository, loadInterfaceOnly);
+      let val  module = loadSerializedMODFile((prefix, fileName, ext), repository, loadInterfaceOnly);
         val is_SRZ = (case module of NONE    => false |  SOME(_) => true)
         val isSRZ = ref is_SRZ
-        val translatedModule = 
-            translate(
-              file, 
-              module, 
-              repository, 
-              alreadyLoaded,
-              translateNeeded);
+        val translatedModule = translate((prefix, fileName, ext), module, repository, alreadyLoaded, translateNeeded);
         val _ = alreadyTranslated := file::(!alreadyTranslated)
       in
         (* update RML cache *)
@@ -526,10 +546,7 @@ functor FrontEndFn(
                     reordered,
                     elaborated,...}),...} = entry
           in
-          Cache.insert(
-              repository, 
-              Cache.rmlCache,
-              file,
+          Cache.insert(repository, Cache.rmlCache, file,
               Cache.makeEntry(
               let val fileInfo =
                 Cache.makeFileInfo(
@@ -551,7 +568,7 @@ functor FrontEndFn(
       if loadInterfaceOnly
       then
       case (entryRML, entrySRZ) of
-        (NONE, NONE) => apply (file,repository, loadInterfaceOnly)
+        (NONE, NONE) => apply (file, repository, loadInterfaceOnly)
       |  (SOME(entryR),SOME(entryS)) => 
           if Cache.hasRML_M(entryR) 
           then Cache.rmlM(entryR) 
@@ -581,7 +598,7 @@ functor FrontEndFn(
           else apply( file, repository, loadInterfaceOnly)
       else
       case (entryRML, entrySRZ) of
-        (NONE, NONE) => apply (file,repository, loadInterfaceOnly)
+        (NONE, NONE) => apply (file, repository, loadInterfaceOnly)
       |  (SOME(entryR),SOME(entryS)) => 
           if Cache.hasRML_M(entryR) 
           then Cache.rmlM(entryR) 
@@ -597,20 +614,27 @@ functor FrontEndFn(
           then Cache.srzM(entryS)
           else apply( file, repository, loadInterfaceOnly)
     fun loop([],r) = ()
-    |  loop(x::rest,r) = 
-      if List.exists (fn y => y = x) (!alreadyTranslated)
-      then loop(rest,r)
-      else 
-      let in
-        debug ("loadMODFile: Translating Additional:"^x^"\n"); 
-        loadMODFile(x, r, alreadyTranslated, alreadyLoaded, true); loop(rest,r)
-      end
-    val currentModuleDependencies = getMODImports(file, repository, false)
+    |   loop(x::rest,r) = 
+        let
+           val (f, e) = Control.splitFileExt(x)
+        in
+          if List.exists (fn y => y = x) (!alreadyTranslated)
+          then loop(rest,r)
+          else 
+            let 
+            in
+              debug ("loadMODFile: Translating Additional:"^x^"\n"); 
+              loadMODFile((prefix, f, e), r, alreadyTranslated, alreadyLoaded, true); loop(rest,r)
+           end
+        end
+    val currentModuleDependencies = getMODImports((prefix, fileName, ext), repository, false)
+    
     fun append([]) = ()
     |  append(x::rest) = 
-      if List.exists (fn y => (x = y)) (!translateNeeded)
-      then append(rest)
-      else (translateNeeded := x :: (!translateNeeded); append(rest))
+       if List.exists (fn y => (x = y)) (!translateNeeded)
+       then append(rest)
+       else (translateNeeded := x :: (!translateNeeded); append(rest))
+    
     val _ = append(currentModuleDependencies)
     val dependencies = !translateNeeded
     (*
@@ -619,128 +643,139 @@ functor FrontEndFn(
     *)
 
   in
-    loop(dependencies,repository); 
+    loop(dependencies, repository); 
     (module, currentModuleDependencies)
   end  
   
     (* parse a module and its dependencies *)
-    fun parse repository ((prefix, ext)) =
-    let val file = OS.Path.joinBaseExt {base = prefix, ext = ext}
-    val _ = debug ("parse: Main file to parse: "^file^"\n")
-    val alreadyTranslated = ref []
-    val alreadyLoaded : string list ref = ref []    
-    val (module, currentModuleDependencies) =
-    case (Control.fileType file) of 
-      Control.RML_FILE => 
-      loadRMLFile ( file, repository )
-    |  Control.MO_FILE  => 
-      loadMODFile ( file, repository, alreadyTranslated, alreadyLoaded, false)
-    |  _ => Util.error("FrontEndFn.parse: unknown file type:"^file)
+    fun parse repository (prefix, fileName, ext) =
+    let 
+      val fullFileName = Control.joinPathFileExt(prefix, fileName, ext)
+      val _ = debug ("parse: Main file to parse: "^fullFileName^"\n")
+      val alreadyTranslated = ref []
+      val alreadyLoaded : string list ref = ref []
+      val (module, currentModuleDependencies) =
+      case (Control.fileType fullFileName) of 
+         Control.RML_FILE => loadRMLFile ( (prefix, fileName, ext), repository )
+      |  Control.MO_FILE  => loadMODFile ( (prefix, fileName, ext), repository, alreadyTranslated, alreadyLoaded, false)
+      |  _ => Util.error("FrontEndFn.parse: unknown file type:"^fullFileName)
     in
-    (* all dependencies are loaded! see about includes! *)
-    warnUnusedImports(file, currentModuleDependencies, repository);
-    
-     module
-  end
+      (* all dependencies are loaded! see about includes! *)
+      warnUnusedImports((prefix, fileName, ext), currentModuleDependencies, repository);
+      module
+    end
 
     (* parse a file only *)
-    fun parseMinimal repository (prefix, ext, onlyImports) =
-    let val file = OS.Path.joinBaseExt {base = prefix, ext = ext}
-    val _ = debug ("parseMinimal: Main file to parse: "^file^"\n")
-    val module =
-    case (Control.fileType file) of 
-      Control.RML_FILE => 
-        SOME(loadRMLSerializedOrParse 
-            AbsynPersist.parseModule 
-            RMLParse.parseModule (file, repository))
-    |  Control.MO_FILE  => 
-      let val module =
-          if onlyImports
-          then let val Absyn.MOD_FILE(_,parsedMODModule) = 
-                  MODParse.parseModule(file, repository)
-             in NONE end
-          else
-          case loadSerializedMODFile(file, repository, false) of
-            SOME(m) => SOME(m)
-          |  NONE => 
-          let val Absyn.MOD_FILE(_,parsedMODModule) = 
-                MODParse.parseModule(file, repository)
-          in
-            SOME(Reorder.reorderModule( 
-                MOToRML.transformMOToRML(
-                  parsedMODModule, [], repository) ))
-          end
+    fun parseMinimal repository ((prefix, fileName, ext), onlyImports) =
+    let 
+      val fullFileName = Control.joinPathFileExt(prefix, fileName, ext)
+      val _ = debug ("parseMinimal: Main file to parse: "^fullFileName^"\n")
+      val module =
+         case (Control.fileType fullFileName) of 
+           Control.RML_FILE => 
+             SOME(loadRMLSerializedOrParse AbsynPersist.parseModule 
+               RMLParse.parseModule (fullFileName, repository))
+        |  Control.MO_FILE  => 
+             let val module =
+                 if onlyImports
+                 then let val Absyn.MOD_FILE(_,parsedMODModule) = MODParse.parseModule(fullFileName, repository)
+                      in 
+                        NONE 
+                      end
+                 else
+                     case loadSerializedMODFile((prefix, fileName, ext), repository, false) of
+                        SOME(m) => SOME(m)
+                     |  NONE => 
+                        let 
+                          val Absyn.MOD_FILE(_,parsedMODModule) = MODParse.parseModule(fullFileName, repository)
+                        in
+                          SOME(Reorder.reorderModule( 
+                                 MOToRML.transformMOToRML(
+                                   parsedMODModule, [], repository) ))
+                        end
       in
         module
       end
-    |  _ => Util.error("FrontEndFn.parseMinimal: unknown file type:"^file)
+    |  _ => Util.error("FrontEndFn.parseMinimal: unknown file type:"^fullFileName)
     in
      module
   end
   
   fun printImports(os,imports) =
-  let fun prStr file = 
-      (
-        TextIO.output(os, Control.getFileName(file, Control.INTERFACE_FILE)); 
+  let 
+      fun prStr file = 
+      let
+        val (f, e) = Control.splitFileExt(file)
+      in
+        TextIO.output(os, Control.getFullFileName(!Control.oTDir, f, Control.INTERFACE_FILE)); 
         TextIO.output(os, " ")
-      )
+      end
   in 
     map prStr imports; ()
   end
 
-  fun dumpDepends(prefix, ext, repository) = 
-  let  val fileName = OS.Path.joinBaseExt {base = prefix, ext = ext}
-    val fileNameC = OS.Path.joinBaseExt {base = prefix, ext = SOME("c")}
-    val _ = parseMinimal repository (prefix, ext, true) (* parse ONLY the file *)
-    val imports = getMODImports(fileName, repository, false)
+  fun dumpDepends(prefix, fileName, ext, repository) = 
+  let
+    val fullFileName = Control.joinPathFileExt(prefix, fileName, ext)
+    val fullFileNameC = Control.joinPathFileExt(!Control.oTDir, fileName, SOME("c"))
+    val _ = parseMinimal repository ((prefix, fileName, ext), true) (* parse ONLY the file *)
+    val imports = getMODImports((prefix, fileName, ext), repository, false)
   in    
-    print fileNameC; print ": "; print fileName; print " ";
+    print fullFileNameC; print ": "; print fullFileName; print " ";
     Control.withOutputStream printImports imports TextIO.stdOut;
     print "\n";
     NONE
   end
 
-  fun dumpInterface(prefix, ext, repository) =   
-  let  val fileName = OS.Path.joinBaseExt {base = prefix, ext = ext}
-    val SOME(astModule) = parseMinimal repository (prefix, ext, false) (* parse ONLY the file *)
+  fun dumpInterface(prefix, fileName, ext, repository) =   
+  let  
+    val fullFileName = Control.joinPathFileExt(prefix, fileName, ext)
+    val SOME(astModule) = parseMinimal repository ((prefix, fileName, ext), false) (* parse ONLY the file *)
   in 
     Control.withOutputStream AbsynPrint.printInterface astModule TextIO.stdOut;
     NONE
   end
   
-    (* statically elaborate a module (typecheck) *)
-    fun checkModule((prefix, ext), module, repository) = 
+  (* statically elaborate a module (typecheck) *)
+  fun checkModule((prefix, fileName, ext), module, repository) = 
     if !Control.emitRdb
-    then Control.withOutputOption StatElab.checkModule (module,repository) (prefix ^ ".rdb")
+    then Control.withOutputOption StatElab.checkModule (module,repository) (!Control.oTDir, fileName, SOME("rdb"))
     else StatElab.checkModule(NONE, (module, repository))
   
-    fun processFile((prefix, ext), repository) =
-      let val fileName = OS.Path.joinBaseExt {base = prefix, ext = ext}
+  fun processFile((prefix, fileName, ext), repository) =
+    let 
+      val fullFileName = Control.joinPathFileExt(prefix, fileName, ext)
     in    
-    case(!Control.dumpDepends,   (* should we dump the dependency ? *)
-       !Control.dumpInterface) (* should we dump the interface  ? *)
-    of  (true, _) => dumpDepends(prefix, ext, repository)
-    |  (_, true) => dumpInterface(prefix, ext, repository)
-    |  (_, _)    => (* normal compilation path *)
-      let  (* do debug Instrumentation if specified so! *)
-        val astModule = parse repository (prefix, ext) (* parse everything! *)
-        (*
-        adrpo - 2006-12-27 do not instrument here anymore! 
-        val astModule = doInstrument( fileName, astModule )
-        *)
-        (* print the AST if required by -East *)
-        val _ = doAst((prefix, ext), astModule)
-        (* check the module = static elaboration *)
-        val _ = checkModule((prefix, ext), astModule, repository)
-      in
-        if !Control.onlyTypeCheck then NONE else SOME(astModule)
+      case(!Control.dumpDepends,   (* should we dump the dependency ? *)
+           !Control.dumpInterface) (* should we dump the interface  ? *)
+      of (true, _) => dumpDepends(prefix, fileName, ext, repository)
+      |  (_, true) => dumpInterface(prefix, fileName, ext, repository)
+      |  (_, _)    => (* normal compilation path *)
+        let  (* do debug Instrumentation if specified so! *)
+          val astModule = parse repository (prefix, fileName, ext) (* parse everything! *)
+          (*
+          adrpo - 2006-12-27 do not instrument here anymore! 
+          val astModule = doInstrument(fileName, astModule )
+          *)
+          (* print the AST if required by -East *)
+          val _ = doAst((prefix, fileName, ext), astModule)
+          (* check the module = static elaboration *)
+          val _ = checkModule((prefix, fileName, ext), astModule, repository)
+        in
+          if !Control.onlyTypeCheck 
+          then NONE 
+          else SOME(astModule)
+        end
       end
-      end
+    
     (* statically elaborate an entire program (typecheck) *)
     fun checkProgram(modseq, repository) = 
     if !Control.emitRdb
-    then Control.withOutputOption StatElab.checkProgram (modseq, repository) ("_all_.rdb")
-    else StatElab.checkProgram (NONE, (modseq, repository))
+    then 
+        Control.withOutputOption StatElab.checkProgram (modseq, repository) 
+        (!Control.oTDir, "program", SOME("all.rdb"))
+    else 
+        StatElab.checkProgram (NONE, (modseq, repository))
     
   fun processProgram(prefixes, repository) =
     let val modseq = map (parse repository) prefixes 

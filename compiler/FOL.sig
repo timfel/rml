@@ -83,6 +83,7 @@ signature FOL =
     val lidentCtxInfo    : longid -> info
     val dummyInfo       : info
     val dummyIdent        : ident
-    
+     
+    val varRefName : varref -> string    
 
   end (* signature FOL *)

@@ -167,6 +167,8 @@ functor TransEnvFn(structure Util : UTIL
       val te = inline2(te, "value_slots",       "valueSlots",       mk_unary_inliner  CPS.VAL_SLOTS)
       val te = inline2(te, "value_eq",          "valueEq",          mk_binary_inliner CPS.VAL_EQ)
       val te = inline2(te, "value_match",       "valueMatch",       mk_binary_inliner CPS.VAL_MATCH)
+      val te = extern2(te, "value_hash",        "valueHash")
+      val te = extern2(te, "value_hash_mod",    "valueHashMod")
 
       (* if expressions *)
       val te = extern2(te, "if_exp", "ifExp")

@@ -461,6 +461,8 @@ let val Absyn.PROGRAM(_,_,interface as
       "value_slots",       "valueSlots",
       "value_eq",          "valueEq",
       "value_match",       "valueMatch",
+      "value_hash",        "valueHash",
+      "value_hash_mod",    "valueHashMod",
 
       (* booleans *)
       "bool_and",    "boolAnd",
@@ -3893,9 +3895,8 @@ let val Absyn.PROGRAM(_,_,interface as
     
     val (interface, decs) = buildInterfaceAndDecs(modelica) 
     val Absyn.INTERFACE({modid,source,...}, infoI) = interface
-    val fileName = Absyn.Source.getFileName source
-    val (prefix,ext) = Control.pathSplit fileName
     val module = Absyn.MODULE(interface, decs, buildInfo(modelica))
+
 in
        module         
 end    

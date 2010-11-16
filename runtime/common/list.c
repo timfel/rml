@@ -4,37 +4,43 @@
 /* list_append.c */
 RML_BEGIN_LABEL(RML__list_5fappend)
 {
-    rml_uint_t nelts;
-    void *lst;
+  rml_uint_t nelts;
+  void *lst;
 
-    /* count the number of elements in the first list */
-    lst = rmlA0;
-    nelts = 0;
-    while( RML_GETHDR(lst) == RML_CONSHDR ) {
-  lst = RML_CDR(lst);
-  ++nelts;
-    }
-
-    /* cons up fresh copy of first list, tack on second list last */
-    if( nelts == 0 )
-  rmlA0 = rmlA1;
-    else {
-  void **chunk = (void**)rml_prim_alloc(3*nelts, 2);
+  /* count the number of elements in the first list */
   lst = rmlA0;
-  rmlA0 = RML_TAGPTR(chunk);
-  do {
+  nelts = 0;
+  
+  while( RML_GETHDR(lst) == RML_CONSHDR ) {
+    lst = RML_CDR(lst);
+    ++nelts;
+  }
+
+  /* cons up fresh copy of first list, tack on second list last */
+  if( nelts == 0 )
+    rmlA0 = rmlA1;
+  else 
+  {
+    void **chunk = (void**)rml_prim_alloc(3*nelts, 2);
+    RML_CHECK_POINTER(chunk, RML__list_5fappend, "RML.listAppend");
+    
+    lst = rmlA0;
+    rmlA0 = RML_TAGPTR(chunk);
+    do 
+    {
       chunk[0] = RML_IMMEDIATE(RML_CONSHDR);
       chunk[1] = RML_CAR(lst);
       chunk[2] = RML_TAGPTR(chunk + 3);
       lst = RML_CDR(lst);
       chunk += 3;
-  } while( --nelts != 0 );
-  /* set the CDR of the last copied CONS to the second list */
-  chunk[-1] = rmlA1;
-    }
+    } while( --nelts != 0 );
+    
+    /* set the CDR of the last copied CONS to the second list */
+    chunk[-1] = rmlA1;
+  }
 
-    /* return resulting list */
-    RML_TAILCALLK(rmlSC);
+  /* return resulting list */
+  RML_TAILCALLK(rmlSC);
 }
 RML_END_LABEL
 
@@ -42,22 +48,29 @@ RML_END_LABEL
 /* list-arr.c */
 RML_BEGIN_LABEL(RML__list_5farray)
 {
-    rml_uint_t nelts = 0;
+  rml_uint_t nelts = 0;
 
-    /* first compute the length of the list */
-    {
-  void *lst = rmlA0;
-  for(; RML_GETHDR(lst) == RML_CONSHDR; ++nelts, lst = RML_CDR(lst))
+  /* first compute the length of the list */
+  {
+    void *lst = rmlA0;
+    for(; RML_GETHDR(lst) == RML_CONSHDR; ++nelts, lst = RML_CDR(lst))
       ;
-    }
-    /* then allocate and initialize the vector */
-    {
-  struct rml_struct *vec = (struct rml_struct*)rml_prim_alloc(1+nelts, 1);
-  void *lst = rmlA0;
-  void **vecp = vec->data;
-  vec->header = RML_STRUCTHDR(nelts, 0);
-  rmlA0 = RML_TAGPTR(vec);
-  for(; nelts > 0; --nelts, lst = RML_CDR(lst))
+  }
+  
+  /* then allocate and initialize the vector */
+  {
+    struct rml_struct *vec = NULL;
+    void *lst = NULL;
+    void **vecp = NULL;
+
+    vec = (struct rml_struct*)rml_prim_alloc(1+nelts, 1);
+    RML_CHECK_POINTER(vec, RML__list_5farray, "RML.listArray");
+    
+    lst = rmlA0; /* re-read after alloc! */
+    vecp = vec->data;
+    vec->header = RML_STRUCTHDR(nelts, 0);
+    rmlA0 = RML_TAGPTR(vec);
+    for(; nelts > 0; --nelts, lst = RML_CDR(lst))
       *vecp++ = RML_CAR(lst);
     }
     RML_TAILCALLK(rmlSC);
@@ -68,39 +81,53 @@ RML_END_LABEL
 /* list-delete.c */
 RML_BEGIN_LABEL(RML__list_5fdelete)
 {
-    rml_sint_t nelts = RML_UNTAGFIXNUM(rmlA1);
-    if( nelts < 0 )
-  RML_TAILCALLK(rmlFC);
-    else if( nelts == 0 ) {
-  if( RML_GETHDR(rmlA0) == RML_CONSHDR )
-      rmlA0 = RML_CDR(rmlA0);
-  else
-      RML_TAILCALLK(rmlFC);
-    } else { /* nelts > 0 */
-  void **chunk = (void**)rml_prim_alloc(3*nelts, 1);
-  void *lst = rmlA0;
-  rmlA0 = RML_TAGPTR(chunk);
-  for(;;) {
-      if( RML_GETHDR(lst) == RML_CONSHDR ) {
-    if( nelts == 0 ) {
-        chunk[-1] = RML_CDR(lst);
-        break;
-    } else {
-        chunk[0] = RML_IMMEDIATE(RML_CONSHDR);
-        chunk[1] = RML_CAR(lst);
-        chunk[2] = RML_TAGPTR(chunk + 3);
-        lst = RML_CDR(lst);
-        chunk += 3;
-        --nelts;
-        continue;
-    }
-      } else  /* NIL */
+  rml_sint_t nelts = RML_UNTAGFIXNUM(rmlA1);
+  if( nelts < 0 )
     RML_TAILCALLK(rmlFC);
-  }
+  else if( nelts == 0 ) 
+  {
+    if( RML_GETHDR(rmlA0) == RML_CONSHDR )
+      rmlA0 = RML_CDR(rmlA0);
+    else
+      RML_TAILCALLK(rmlFC);
+  } 
+  else 
+  { /* nelts > 0 */
+    void **chunk = NULL;
+    void *lst = NULL;
+    
+    chunk = (void**)rml_prim_alloc(3*nelts, 1);
+    RML_CHECK_POINTER(chunk, RML__list_5fdelete, "RML.listDelete");
+    
+    lst = rmlA0;
+    rmlA0 = RML_TAGPTR(chunk);
+    for(;;) 
+    {
+      if( RML_GETHDR(lst) == RML_CONSHDR ) 
+      {
+        if( nelts == 0 ) 
+        {
+          chunk[-1] = RML_CDR(lst);
+          break;
+        } 
+        else 
+        {
+          chunk[0] = RML_IMMEDIATE(RML_CONSHDR);
+          chunk[1] = RML_CAR(lst);
+          chunk[2] = RML_TAGPTR(chunk + 3);
+          lst = RML_CDR(lst);
+          chunk += 3;
+          --nelts;
+          continue;
+        }
+      } 
+      else  /* NIL */
+        RML_TAILCALLK(rmlFC);
     }
+  }
 
-    /* return resulting list */
-    RML_TAILCALLK(rmlSC);
+  /* return resulting list */
+  RML_TAILCALLK(rmlSC);
 }
 RML_END_LABEL
 
@@ -183,8 +210,11 @@ RML_BEGIN_LABEL(RML__list_5freverse)
   while( RML_GETHDR(a1) == RML_CONSHDR ) 
   {
     rmlA1 = a1;
+    
     cons = (struct rml_struct*)rml_prim_alloc(3, 2);
-    a1 = rmlA1;
+    RML_CHECK_POINTER(cons, RML__list_5freverse, "RML.listReverse");
+    
+    a1 = rmlA1; /* re-read after alloc */
     cons->header = RML_CONSHDR;
     cons->data[0] = RML_CAR(a1);
     cons->data[1] = rmlA0;
@@ -210,9 +240,15 @@ RML_BEGIN_LABEL(RML__list_5fstring)
   }
   /* then allocate and initialize the string */
   {
-    struct rml_string *str = rml_prim_mkstring(len, 1);  /* gets len+1 bytes */
-    void *lst = rmlA0;
-    unsigned char *s = (unsigned char*)str->data;
+    struct rml_string *str = NULL;
+    void *lst = NULL;
+    unsigned char *s = NULL;
+    
+    str = rml_prim_mkstring(len, 1);  /* gets len+1 bytes */
+    RML_CHECK_POINTER(str, RML__list_5fstring, "RML.listString");
+
+    lst = rmlA0;
+    s = (unsigned char*)str->data;
     rmlA0 = RML_TAGPTR(str);
     for(; len > 0; --len, lst = RML_CDR(lst))
         *s++ = RML_UNTAGFIXNUM(RML_CAR(lst));
@@ -235,9 +271,15 @@ RML_BEGIN_LABEL(RML__string_5fchar_5flist_5fstring)
   }
   /* then allocate and initialize the string */
   {
-    struct rml_string *str = rml_prim_mkstring(len, 1);  /* gets len+1 bytes */
-    void *lst = rmlA0;
-    unsigned char *s = (unsigned char*)str->data;
+    struct rml_string *str = NULL;
+    void *lst = NULL;
+    unsigned char *s = NULL;
+
+    str = rml_prim_mkstring(len, 1);  /* gets len+1 bytes */
+    RML_CHECK_POINTER(str, RML__string_5fchar_5flist_5fstring, "RML.stringCharListString");
+
+    lst = rmlA0;
+    s = (unsigned char*)str->data;
     rmlA0 = RML_TAGPTR(str);
     for(; len > 0; --len, lst = RML_CDR(lst))
     {
@@ -263,9 +305,15 @@ RML_BEGIN_LABEL(RML__list_5fvector)
   }
   /* then allocate and initialize the vector */
   {
-    struct rml_struct *vec = (struct rml_struct*)rml_prim_alloc(1+nelts, 1);
-    void *lst = rmlA0;
-    void **vecp = vec->data;
+    struct rml_struct *vec = NULL;
+    void *lst = NULL;
+    void **vecp = NULL;
+
+    vec = (struct rml_struct*)rml_prim_alloc(1+nelts, 1);
+    RML_CHECK_POINTER(vec, RML__list_5fvector, "RML.listVector");
+    
+    lst = rmlA0; /* reread after alloc */
+    vecp = vec->data;
     vec->header = RML_STRUCTHDR(nelts, 0);
     rmlA0 = RML_TAGPTR(vec);
     for(; nelts > 0; --nelts, lst = RML_CDR(lst))
@@ -294,6 +342,8 @@ RML_BEGIN_LABEL(RML__list_5fmap)
     else 
     {
         void **chunk = (void**)rml_prim_alloc(3*nelts, 2);
+        RML_CHECK_POINTER(chunk, RML__list_5fmap, "RML.listMap");
+
         lst = rmlA0;
         rmlA0 = RML_TAGPTR(chunk);
         do {

@@ -24,7 +24,6 @@ LINK.rml=$(RMLC) $(RMLCFLAGS)
 .mo.o:
 	$(COMPILE.rml) $<
 
-
 Makefile:	$(GOROOT)/config.cache Make.mk
 	(echo include $(GOROOT)/config.cache; cat Make.mk) > Makefile
 

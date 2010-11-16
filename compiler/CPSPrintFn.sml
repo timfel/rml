@@ -103,12 +103,15 @@ functor CPSPrintFn(structure MakeString : MAKESTRING
       | binary(CPS.VAL_MATCH)      = "value_match"
 
     fun pr_te'(pp, CPS.VARte var) = pr_var(pp, var)
-      | pr_te'(pp, CPS.LAMte{tag,kind,body,...}) =
+      | pr_te'(pp, CPS.LAMte{tag,kind,body,ty,...}) =
     (PP.emit(pp, PP.BEGIN{breakType=PP.CONSISTENT, offset=2});
      prStr(pp, "(");
      pr_lamkind(pp, kind, tag);
      prBlank(pp);
      pr_exp(pp,body);
+     prBlank(pp);
+     prStr(pp, ty);
+     prBlank(pp);
      prStr(pp, ")");
      PP.emit(pp, PP.END))
       | pr_te'(pp, CPS.QUOTEte lit) =

@@ -6,6 +6,7 @@ CFLAGS=
 COFLAGS=-O2
 CPFLAGS=-pg
 CGFLAGS=-g -DRML_DEBUG
+CTFLAGS=-DRML_TRACE 
 RANLIB=ranlib
 CPP=gcc -x c -E -ansi
 AS=/usr/bin/as

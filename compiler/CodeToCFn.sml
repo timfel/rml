@@ -213,6 +213,21 @@ functor CodeToCFn(structure MakeString : MAKESTRING
 				  output(os, additionalCode)
 				end
 				else ();
+        (*
+        if !Control.doTrace
+				then
+        (
+          case gototy of 
+            Code.EClk => let
+                            val funcName = getNameFromId name
+                         in
+                           output(os, "\n\tif (rml_trace_enabled)\n\t{fprintf(stderr, \"");
+                           output(os, funcName); output(os, "\\n\"); fflush(stderr); \n\t}\n")
+                         end
+          | _ => ()
+        )
+        else ();
+        *)
 				Code.prGoto(os, prLabel, prVal, target, nargs))
       | prCode' os (Code.STORE(dst,src,code)) =
 			  (output(os, "\n\tRML_STORE("); prVal os dst; output(os, ", ");

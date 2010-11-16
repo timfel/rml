@@ -7,6 +7,7 @@ COFLAGS=-O2 -mno-stack-check
 # neither profiling nor debugging seems to be available
 CPFLAGS=
 CGFLAGS=-DRML_DEBUG
+CTFLAGS=-DRML_TRACE 
 RANLIB=echo
 CPP=/px/gnu/bin/gcc -x c -E -traditional-cpp
 AS=/px/ppc/bin/as -Q

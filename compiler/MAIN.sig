@@ -3,10 +3,10 @@
 signature MAIN =
   sig
 
-	type repository
+  type repository
 
-    val translate	: (string * string option) * repository -> unit
-    val run		    : (string * string option) list * string list * repository -> unit
-    val main		: string list-> unit 
+    val translate : (string * string * string option) * repository -> unit
+    val run       : (string * string * string option) list * string list * repository -> unit
+    val main      : string list-> unit 
 
   end (* signature MAIN *)

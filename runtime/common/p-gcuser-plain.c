@@ -10,15 +10,22 @@ void *rml_prim_gcalloc(rml_uint_t nwords, rml_uint_t nargs) {
   void **p;
   if (rml_flag_gclog)
     rml_gc_start_clock = rml_prim_clock();
-  rml_minor_collection(nargs);
+  if (rml_minor_collection(nargs) == NULL)
+  {
+    fprintf(stderr, "returning NULL (not enough memory) from rml_prim_gcalloc!\n");
+    fflush(stderr);
+    return NULL;
+  }
+  
   if (nwords > rml_young_size)
   {
     if ( (p = rml_older_alloc(nwords, nargs)) != 0) {
       rml_state_young_next = rml_young_region;
     } else {
-      fprintf(stderr, "rml_prim_gcalloc failed to get %lu words\n",
-          (unsigned long)nwords);
-      rml_exit(1);
+      fprintf(stderr, "rml_prim_gcalloc failed to get %lu words\n", (unsigned long)nwords);
+      fprintf(stderr, "returning NULL (not enough memory) from rml_prim_gcalloc!\n");
+      fflush(stderr);
+      return NULL; /* rml_exit(1); */
     }
   } else {
     p = rml_young_region;

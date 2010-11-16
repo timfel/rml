@@ -53,21 +53,28 @@ signature CPS =
     and proc = EXTERN_REL of longid * ({args:trivexp list, fc:trivexp, sc:trivexp} -> exp' option) option
        | LOCAL_REL of def
 
-    and label = LAB of {  tag   : int,
-              uses  : int ref,
-              fvars  : var list ref,
-              bvars  : var list,
-              body  : exp,
-              name  : longid,
-              pos    : info }
+    and label = LAB of 
+                {  
+                  tag   : int,
+                  uses  : int ref,
+                  fvars  : var list ref,
+                  bvars  : var list,
+                  body  : exp,
+                  name  : longid,
+                  pos    : info 
+                }
 
     and trivexp' = VARte of var
-           | LAMte of {  tag    : int,
-                fvars  : var list ref,
-                kind  : lamkind,
-                body  : exp,
-                name  : longid,
-                pos    : info }
+           | LAMte of 
+             {  
+               tag   : int,
+               fvars : var list ref,
+               kind  : lamkind,
+               body  : exp,
+               name  : longid,
+               pos   : info,
+               ty    : string (* type of continuation return, match, etc *)
+             }
            | QUOTEte of literal
 
     and trivexp    = TE of trivexp' ref
@@ -114,7 +121,7 @@ signature CPS =
 
     val newVar    : longid -> var
     val newDef    : {name:longid, args:var list, fc:var, sc:var, body:exp, pos:info} -> def
-    val newLam    : lamkind  * exp * longid * info -> trivexp
+    val newLam    : bool * lamkind  * exp * longid * info * string -> trivexp
     val newLab    : var list * exp * longid * info -> label
 
     val mkVARte    : var -> trivexp

@@ -84,8 +84,8 @@ static void **rml_alloc_core(rml_uint_t nslots, rml_uint_t do_not_exit) {
    */
   if ( !p && !do_not_exit) 
   {
-    fprintf(stderr, "malloc(%lu) failed!\n", nbytes);
-    rml_exit(1);
+    fprintf(stderr, "malloc(%lu) failed!\n", nbytes); fflush(stderr);
+    return NULL; /* rml_exit(1); */
   }
   return p;
 }
@@ -300,7 +300,7 @@ void rmldb_show_status(void) {
         rml_allocated_from_c, rml_c_heap_collect_count, rml_c_heap_region_total_size);
     fprintf(stderr, "[HEAP: \t%lu strings totaling %lu words where shared]\n",
         rml_total_shared_strings, rml_total_shared_strings_words);
-    fprintf(stderr, "[HEAP:\t%#.2f seconds waisted while doing GC]\n", rml_gc_total_time);
+    fprintf(stderr, "[HEAP:\t%#.2f seconds wasted while doing GC]\n", rml_gc_total_time);
     fprintf(stderr, "[STACK:\t%lu words currently in use (%lu words max, %lu words total)]\n",
         (unsigned long)(&rml_stack[rml_stack_size] - (void**)rml_state_SP),
         (unsigned long)(&rml_stack[rml_stack_size] - rmlSPMIN),
@@ -355,7 +355,7 @@ void rml_exit(int status) {
         rml_c_heap_region_total_size);
     fprintf(stderr, "[HEAP: \t%lu strings totaling %lu words where shared]\n",
         rml_total_shared_strings, rml_total_shared_strings_words);
-    fprintf(stderr, "[HEAP:\t%#.2f seconds waisted while doing GC]\n",
+    fprintf(stderr, "[HEAP:\t%#.2f seconds wasted while doing GC]\n",
         rml_gc_total_time);
     fprintf(
         stderr,
@@ -579,9 +579,9 @@ static void **rml_collect(void **scan, char *region_low, rml_uint_t region_nbyte
 
 /* Do a major collection. */
 
-static void rml_major_collection(rml_uint_t nwords, rml_uint_t nliveargs) 
+static void* rml_major_collection(rml_uint_t nwords, rml_uint_t nliveargs) 
 {
-  void **next =0, **scan = 0;
+  void **next =0, **scan = 0, **rr = 0; 
   rml_uint_t current_inuse = 0;
   rml_uint_t used_before = rml_current_next - rml_current_region;
 
@@ -618,7 +618,14 @@ static void rml_major_collection(rml_uint_t nwords, rml_uint_t nliveargs)
         rml_heap_expansions_count++;
         fprintf(stderr, " keep heap size ..."); fflush(stderr);
       }
-      rml_reserve_region = rml_alloc_core(rml_older_size, RML_EXIT_ON_FAILURE);
+      rr = rml_alloc_core(rml_older_size, RML_EXIT_ON_FAILURE);
+      if (rr == NULL) 
+      {
+        fprintf(stderr, "returning NULL (not enough memory) from rml_major_collection!\n");
+        fflush(stderr);
+        return NULL;
+      }
+      rml_reserve_region = rr;
     }
     else 
     {
@@ -629,7 +636,14 @@ static void rml_major_collection(rml_uint_t nwords, rml_uint_t nliveargs)
         fprintf(stderr, " expanding heap (A) ..."); fflush(stderr);
       }
       rml_older_size += rml_c_heap_region_total_size + nwords + rml_young_size;
-      rml_reserve_region = rml_alloc_core(rml_older_size, RML_EXIT_ON_FAILURE);
+      rr = rml_alloc_core(rml_older_size, RML_EXIT_ON_FAILURE);
+      if (rr == NULL) 
+      {
+        fprintf(stderr, "returning NULL (not enough memory) from rml_major_collection!\n");
+        fflush(stderr);
+        return NULL;
+      }
+      rml_reserve_region = rr;
     }
   }
   if (rml_c_heap_region_total_size != 0) {
@@ -690,14 +704,29 @@ static void rml_major_collection(rml_uint_t nwords, rml_uint_t nliveargs)
     
     /* expand the older region */
     rml_free_core(rml_reserve_region, rml_older_size);
-    rml_reserve_region = rml_alloc_core(new_size, RML_NO_EXIT_ON_FAILURE);
+    rr = rml_alloc_core(new_size, RML_NO_EXIT_ON_FAILURE);
+    if (rr == NULL) 
+    {
+      fprintf(stderr, "returning NULL (not enough memory) from rml_major_collection!\n");
+      fflush(stderr);
+      return NULL;
+    }
+    rml_reserve_region = rr;
+
     if ( !rml_reserve_region ) /* we couldn't allocate that much, try again, with less memory */
     {
       if (rml_flag_gclog && !rml_flag_bench) {
         fprintf(stderr, " (LESS %50) "); fflush(stderr);
       }
       new_size = current_inuse + rml_young_size; /* try to allocate less */
-      rml_reserve_region = rml_alloc_core(new_size, RML_EXIT_ON_FAILURE);
+      rr = rml_alloc_core(new_size, RML_EXIT_ON_FAILURE);
+      if (rr == NULL) 
+      {
+        fprintf(stderr, "returning NULL (not enough memory) from rml_major_collection!\n");
+        fflush(stderr);
+        return NULL;
+      }
+      rml_reserve_region = rr;
     }
     else
     {
@@ -705,7 +734,6 @@ static void rml_major_collection(rml_uint_t nwords, rml_uint_t nliveargs)
           fprintf(stderr, " (MORE 50%) "); fflush(stderr);
       }
     }
-    
     
     if (rml_c_heap_region_total_size != 0) {
        rml_c_heap_collect_flag = 1;
@@ -759,7 +787,15 @@ static void rml_major_collection(rml_uint_t nwords, rml_uint_t nliveargs)
     /* free the reserve */
     rml_free_core(rml_reserve_region, rml_older_size);
     /* allocate the reserve */
-    rml_reserve_region = rml_alloc_core(new_size, RML_EXIT_ON_FAILURE);  
+    rr = rml_alloc_core(new_size, RML_EXIT_ON_FAILURE);
+    if (rr == NULL) 
+    {
+      fprintf(stderr, "returning NULL (not enough memory) from rml_major_collection!\n");
+      fflush(stderr);
+      return NULL;
+    }
+    rml_reserve_region = rr;
+
     /* collect */
     next = rml_collect(rml_reserve_region, (char*)rml_current_region, (char*)rml_current_next - (char*)rml_current_region, nliveargs);
     assert(next-rml_reserve_region < new_size);
@@ -787,11 +823,13 @@ static void rml_major_collection(rml_uint_t nwords, rml_uint_t nliveargs)
     fprintf(stderr, " used: %.3g%%]", (((double)current_inuse*100.0)/(double)rml_older_size));
     fflush(stderr);
   }
+
+  return rml_current_next;
 }
 
 /* Do a minor collection. */
 
-void rml_minor_collection(rml_uint_t nliveargs) {
+void* rml_minor_collection(rml_uint_t nliveargs) {
   void **next;
   rml_uint_t current_nfree = rml_older_size - (rml_current_next - rml_current_region);
   /* increase the minor collections */
@@ -831,7 +869,14 @@ void rml_minor_collection(rml_uint_t nliveargs) {
 
   /* check if a major collection should be done */
   if (rml_c_heap_region_total_size || (current_nfree < rml_young_size))
-    rml_major_collection(0, nliveargs);
+    if (rml_major_collection(0, nliveargs) == NULL)
+    {
+      fprintf(stderr, "returning NULL (not enough memory) from rml_minor_collection!\n");
+      fflush(stderr);
+      return NULL;
+    }
+
+  return rml_current_next;
 }
 
 /* If a minor collection doesn't give us enough memory,
@@ -845,7 +890,13 @@ void **rml_older_alloc(rml_uint_t nwords, rml_uint_t nargs) {
     rml_current_next = next + nwords;
     return next;
   } else {
-    rml_major_collection(nwords, nargs);
+    if (rml_major_collection(nwords, nargs) == NULL) 
+    {
+      fprintf(stderr, "returning NULL (not enough memory) from rml_older_alloc!\n");
+      fflush(stderr);
+      return NULL;
+    }
+
     next = rml_current_next;
     nfree = rml_older_size - (next - rml_current_region);
     if (nfree >= nwords + rml_young_size) /* RML_YOUNG_SIZE ) */
@@ -853,7 +904,9 @@ void **rml_older_alloc(rml_uint_t nwords, rml_uint_t nargs) {
       rml_current_next = next + nwords;
       return next;
     }
-    return 0;
+    fprintf(stderr, "returning NULL (not enough memory) from rml_older_alloc!\n");
+    fflush(stderr);
+    return NULL;
   }
 }
 

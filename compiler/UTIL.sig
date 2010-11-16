@@ -14,4 +14,10 @@ signature UTIL =
     val member		: ''a * ''a list -> bool
     val maybeCons	: ''a * ''a list -> ''a list
 
+    val counterReset: unit -> unit
+    val counterValueSCIncrease: unit -> int
+    val counterValueFCIncrease: unit -> int
+    val counterValueSC: unit -> int
+    val counterValueFC: unit -> int
+
   end (* signature UTIL *)

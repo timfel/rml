@@ -275,7 +275,8 @@ functor FOLToCPSFn(
                    val t_sc = CPS.mkVARte v_sc
                    and tenv' = List.foldl (fn((var,var'),tenv) => bind_var(tenv, var, CPS.mkVARte var'))
                                           tenv (ListPair.zip(vars, vars'))
-                   val lam_sc = CPS.newLam(CPS.SClk{v_tvs=vars'}, app_gc gc tenv' t_fc, id, cvInfo info)
+                   val lam_sc = CPS.newLam(true, CPS.SClk{v_tvs=vars'}, app_gc gc tenv' t_fc, id, cvInfo info, 
+                                  if !Control.doTrace then ("ExitCall_" ^ (FOL.varRefName q)) else (""))
                in
                  CPS.mkLETe(v_sc, lam_sc, CPS.mkAppPVe{pv=Q q menv tenv, args=t_star, fc=t_fc, sc=t_sc, name=id, pos=cvInfo info})
                end))
@@ -311,7 +312,8 @@ functor FOLToCPSFn(
             val v_tp = CPS.newVar(mkID("AP")) (*id*)
             and v_fc' = CPS.newVar(mkID("FCnew")) (*id*)
             val gc' = GC(fn _ => fn fc' => CPS.mkAppFCe{fc=t_fc, name=id, pos=cvInfo info})
-            and lam_fc' = CPS.newLam(CPS.FClk, CPS.mkRESTOREe(CPS.mkVARte v_tp, app_gc gc tenv t_fc), id, cvInfo info)
+            and lam_fc' = CPS.newLam(false, CPS.FClk, CPS.mkRESTOREe(CPS.mkVARte v_tp, app_gc gc tenv t_fc), id, cvInfo info, 
+                              if !Control.doTrace then ("Not") else (""))
             in
               CPS.mkPRIMe(v_tp, CPS.MARKERp, CPS.mkLETe(v_fc', lam_fc', C conj menv tenv (CPS.mkVARte v_fc') gc' id)) 
             end
@@ -344,9 +346,10 @@ functor FOLToCPSFn(
          | FOL.ORELSE(disj1, disj2, info)    =>
             let val v_tp = CPS.newVar(mkID("AP")) (*id*) 
             and v_fc' = CPS.newVar(mkID("FCNew")) (*id*)
-            val lam_fc' = CPS.newLam(CPS.FClk,
+            val lam_fc' = CPS.newLam(false, CPS.FClk,
                             CPS.mkRESTOREe(CPS.mkVARte v_tp,
-                            D disj2 menv tenv t_fc t_sc id), id, cvInfo info)
+                            D disj2 menv tenv t_fc t_sc id), id, cvInfo info, 
+                            if !Control.doTrace then ("NextCaseOrExit") else (""))
             in
               CPS.mkPRIMe(v_tp, CPS.MARKERp, CPS.mkLETe(v_fc', lam_fc', D disj1 menv tenv (CPS.mkVARte v_fc') t_sc id))
             end
@@ -355,7 +358,8 @@ functor FOLToCPSFn(
          | FOL.COND(conj1, disj2, disj3, info) =>
             let val v_tp = CPS.newVar(mkID("AP")) (*id*)
             and v_fc' = CPS.newVar(mkID("FCNew")) (*id*)
-            val lam_fc' = CPS.newLam(CPS.FClk, CPS.mkRESTOREe(CPS.mkVARte v_tp, D disj3 menv tenv t_fc t_sc id), id, cvInfo info)
+            val lam_fc' = CPS.newLam(false, CPS.FClk, CPS.mkRESTOREe(CPS.mkVARte v_tp, D disj3 menv tenv t_fc t_sc id), id, cvInfo info, 
+                             if !Control.doTrace then ("NextCase") else (""))
             in
               CPS.mkPRIMe(
                 v_tp, CPS.MARKERp, 
@@ -484,7 +488,10 @@ functor FOLToCPSFn(
       let val final_tenv = ref(StrDict.empty: tenv)
           fun loop([], tenv) = (final_tenv := tenv; tenv)
           |   loop(FOL.REL(id, formals, disj, info)::rels, tenv) =
-            let (* variable holding the failure continuation *)
+            let 
+                (* reset the counter at function enter *)
+                val _ = Util.counterReset()
+                (* variable holding the failure continuation *)
                 val v_fc = CPS.newVar(mkID("FC")) 
                           (* CPS.newVar(ConRep.LONGID{module=SOME(cvId modname), name=cvId id}) *)
                 (* variable holding the success continuation *)
@@ -505,7 +512,7 @@ functor FOLToCPSFn(
                   let val tenv' = 
                             List.foldl (fn((var,var'),tenv) => bind_var(tenv,var,CPS.mkVARte var')) 
                             (!final_tenv)
-                            (ListPair.zip(formals,v_star))
+                            (ListPair.zip(formals,v_star))                  
                   val body = D disj menv tenv' t_fc t_sc (CPS.makeLongIdent(SOME(cvId modname),  cvId id))
                   in
                     rBody := CPS.getExp body

@@ -44,12 +44,16 @@ static void rml_prim_argv(int argc, char **argv)
       char *s = argv[argc];
       rml_uint_t len = strlen(s);
       struct rml_string *str = rml_prim_mkstring(len, 1);
+      /* RML_CHECK_POINTER(str, rml_prim_argv, "RML.rml_prim_argv"); */
+
       memcpy(str->data, s, len);
       str->data[len] = '\0';
       rmlA1 = RML_TAGPTR(str);
     }
     {
       struct rml_struct *cons = (struct rml_struct*)rml_prim_alloc(3, 2);
+      /* RML_CHECK_POINTER(cons, rml_prim_argv, "RML.rml_prim_argv"); */
+
       cons->header = RML_CONSHDR;
       cons->data[0] = rmlA1;
       cons->data[1] = rmlA0;

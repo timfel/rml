@@ -10,6 +10,7 @@ MLYACC=
 HEAP_SUFFIX=
 DEBUGLIB=librml_g.a
 PROFLIB=librml_p.a
+TRACLIB=librml_t.a
 
 if [ -r ./config.cache ]; then
   . ./config.cache
@@ -52,6 +53,12 @@ while [ "$#" != 0 ]; do
 	;;
     --enable-profile)
 	PROFLIB=librml_p.a
+	;;
+    --disable-tracing)
+	TRACLIB=
+	;;
+    --enable-tracing)
+	TRACLIB=librml_t.a
 	;;
     *)
 	echo ./configure: bad option "'$arg'"
@@ -163,6 +170,7 @@ esac
 echo HEAP_SUFFIX=$HEAP_SUFFIX >> ./config.cache
 echo DEBUGLIB=$DEBUGLIB >> ./config.cache
 echo PROFLIB=$PROFLIB >> ./config.cache
+echo TRACLIB=$TRACLIB >> ./config.cache
 
 echo ./configure: updated config.cache
 if [ ! -z "$makeconfigureneeded" ]; then

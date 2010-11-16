@@ -92,22 +92,16 @@ functor PlainFn(
     fun lvarString(LVAR{tag,name}) = "tmp" ^ (MakeString.icvt tag) ^ " " ^ ConRep.fixName(name)
 
     fun prGoto(os, prLabel, prValue, target, nargs) =
-      let fun continue() =
-      (TextIO.output(os, ",");
-       TextIO.output(os, Int.toString nargs);
-       TextIO.output(os, ");"))
-    fun prGotoLabel label =
-      (TextIO.output(os, "\n\tRML_TAILCALLQ(");
-       prLabel os label;
-       continue())
+      let 
+       fun continue() = 
+         (TextIO.output(os, ","); TextIO.output(os, Int.toString nargs); TextIO.output(os, ");"))
+       fun prGotoLabel label =
+         (TextIO.output(os, "\n\tRML_TAILCALLQ("); prLabel os label; continue())
       in
-    case target
-      of LOCALg label => prGotoLabel label
-       | EXTERNg label => prGotoLabel label
-       | VALUEg value =>
-        (TextIO.output(os, "\n\tRML_TAILCALL(");
-         prValue os value;
-         continue())
+        case target
+        of LOCALg label => prGotoLabel label
+         | EXTERNg label => prGotoLabel label
+         | VALUEg value => (TextIO.output(os, "\n\tRML_TAILCALL("); prValue os value; continue())
       end
 
     fun mklab(str, name, info) = LABEL(Mangle.encode str, name, info)

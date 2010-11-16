@@ -5,6 +5,7 @@ COFLAGS=-O2 -Olimit 1500
 # got no libprof.a
 CPFLAGS=
 CGFLAGS=-g -DRML_DEBUG
+CTFLAGS=-DRML_TRACE 
 RANLIB=echo
 CPP=/usr/lib/acpp
 AS=/usr/bin/as -nocpp

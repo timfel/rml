@@ -8,7 +8,7 @@ signature FRONTEND =
    
   type repository
   
-  val processFile    :  (string * string option) * repository -> Absyn.module option
-  val processProgram : 	(string * string option) list *	repository -> Absyn.module list 
+  val processFile    :  (string * string * string option) * repository -> Absyn.module option
+  val processProgram :   (string * string * string option) list * repository -> Absyn.module list 
   
   end (* signature FRONTEND *)

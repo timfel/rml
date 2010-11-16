@@ -153,6 +153,8 @@ functor StatObjFn(
       val VE = bindRel2(VE, "value_slots",       "valueSlots",       [tau_alpha], [tau_int])
       val VE = bindRel2(VE, "value_eq",          "valueEq",          [tau_alpha, tau_alpha], [tau_bool])
       val VE = bindRel2(VE, "value_match",       "valueMatch",       [tau_alpha, tau_alpha], [tau_bool])
+      val VE = bindRel2(VE, "value_hash",        "valueHash",        [tau_alpha], [tau_int])
+      val VE = bindRel2(VE, "value_hash_mod",    "valueHashMod",     [tau_alpha, tau_int], [tau_int])
       
       (* if expressions *)
       val VE = bindRel2(VE, "if_exp", "ifExp", [tau_bool, tau_alpha, tau_alpha], [tau_alpha])

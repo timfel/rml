@@ -38,8 +38,8 @@ functor MODParseFn(structure Absyn : ABSYN
     fun parse(startToken, file, repository, isInterface) =
   let val f = if Control.fileExists(file) then 
                 file (* If the file is in current dir, use it *)
-              else  (* otherwise prepend includ path and check *)
-                prepathFile(file, rev (!Control.idirs))
+              else  (* otherwise prepend include path and check *)
+                prepathFile(file, rev (!Control.iDirs))
       val _ = debug("\nMODPraseFn.parse File: "^f^"\n")
       val is = TextIO.openIn f
   in

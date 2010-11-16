@@ -67,6 +67,8 @@ RML_END_LABEL
 RML_BEGIN_LABEL(RML__int_5fstring_5fchar)
 {
 	struct rml_string *strnew = rml_prim_mkstring(1, 1);
+  RML_CHECK_POINTER(strnew, RML__int_5fstring_5fchar, "RML.intStringChar");
+
 	strnew->data[0] = (rml_uint_t)RML_UNTAGFIXNUM(rmlA0);
 	strnew->data[1] = '\0';
 	rmlA0 = RML_TAGPTR(strnew);
@@ -165,7 +167,10 @@ RML_BEGIN_LABEL(RML__int_5fstring)
     struct rml_string *str;
 
     (void)sprintf(buf, "%ld", (long)RML_UNTAGFIXNUM(rmlA0));
+    
     str = rml_prim_mkstring(strlen(buf), 0);
+    RML_CHECK_POINTER(str, RML__int_5fstring, "RML.intString");
+
     (void)strcpy(str->data, buf);	/* this also sets the ending '\0' */
     rmlA0 = RML_TAGPTR(str);
     RML_TAILCALLK(rmlSC);

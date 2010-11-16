@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <string.h>
 #include "rml.h"
 
@@ -32,6 +33,9 @@ struct rml_string *rml_prim_mkstring(rml_uint_t nbytes, rml_uint_t nliveargs)
   rml_uint_t header = RML_STRINGHDR(nbytes);
   rml_uint_t nwords = RML_HDRSLOTS(header) + 1;
   struct rml_string *p = (struct rml_string*)rml_prim_alloc(nwords, nliveargs);
+  if (!p) 
+    return NULL;
+
   p->header = header;
   return p;
 }
@@ -50,7 +54,10 @@ RML_BEGIN_LABEL(RML__string_5fappend)
 {
   rml_uint_t len0 = RML_HDRSTRLEN(RML_GETHDR(rmlA0));
   rml_uint_t len1 = RML_HDRSTRLEN(RML_GETHDR(rmlA1));
+  
   struct rml_string *str = rml_prim_mkstring(len0 + len1, 2);
+  RML_CHECK_POINTER(str, RML__string_5fappend, "RML.stringAppend");
+
   (void)memcpy(&str->data[0], RML_STRINGDATA(rmlA0), len0);
   (void)memcpy(&str->data[len0], RML_STRINGDATA(rmlA1), len1+1);	/* +1 to copy terminating '\0' */
   rmlA0 = RML_TAGPTR(str);
@@ -74,6 +81,8 @@ RML_BEGIN_LABEL(RML__string_5fappend_5flist)
 
   /* allocate the string */
   str = rml_prim_mkstring(len, 1);
+  RML_CHECK_POINTER(str, RML__string_5fappend_5flist, "RML.stringAppendList");
+
   if (len == 0) /* if the list is empty, return empty string! */
   {
     str->data[0] = '\0';     /* set the end to 0 */
@@ -124,11 +133,19 @@ RML_BEGIN_LABEL(RML__string_5flist)
   * and then initialize it.
   */
   rml_uint_t nelts = RML_HDRSTRLEN(RML_GETHDR(rmlA0));
-  void **consp = (void**)rml_prim_alloc(3*nelts, 1);
-  unsigned char *s = (unsigned char*)RML_STRINGDATA(rmlA0) + nelts;
-  void *a0 = RML_TAGPTR(&rml_prim_nil);
+  void **consp = NULL;
+  unsigned char *s = NULL;
+  void *a0 = NULL;
+
+  consp = (void**)rml_prim_alloc(3*nelts, 1);
+  RML_CHECK_POINTER(consp, RML__string_5flist, "RML.stringList");
+
+  s = (unsigned char*)RML_STRINGDATA(rmlA0) + nelts;
+  a0 = RML_TAGPTR(&rml_prim_nil);
+  
   /* XXX: we should build the list in address order */
-  for(; nelts > 0; a0 = RML_TAGPTR(consp), consp += 3, --nelts) {
+  for(; nelts > 0; a0 = RML_TAGPTR(consp), consp += 3, --nelts) 
+  {
     consp[0] = RML_IMMEDIATE(RML_CONSHDR);
     consp[1] = RML_IMMEDIATE(RML_TAGFIXNUM((rml_uint_t)*--s));
     consp[2] = a0;
@@ -148,10 +165,16 @@ RML_BEGIN_LABEL(RML__string_5flist_5fstring_5fchar)
   void *a0 = RML_TAGPTR(&rml_prim_nil);
   rml_uint_t strheader = RML_STRINGHDR(1);
   rml_uint_t strnwords = RML_HDRSLOTS(strheader)+1;
-  struct rml_string *p;
-  void **consp = (void**)rml_prim_alloc((3+strnwords)*nelts, 1);
-  void **strStartAddr = consp+(3*nelts); /* where the list ends the strings start */
-  unsigned char *s = (unsigned char*)RML_STRINGDATA(rmlA0) + nelts;
+  struct rml_string *p = NULL;
+  void **consp = NULL;
+  void **strStartAddr = NULL;
+  unsigned char *s = NULL;
+
+  consp = (void**)rml_prim_alloc((3+strnwords)*nelts, 1);
+  RML_CHECK_POINTER(consp, RML__string_5flist_5fstring_5fchar, "RML.stringListStringChar");
+  
+  strStartAddr = consp+(3*nelts); /* where the list ends the strings start */
+  s = (unsigned char*)RML_STRINGDATA(rmlA0) + nelts;
   /* XXX: we should build the list in address order */
   for(; nelts > 0; a0 = RML_TAGPTR(consp), consp += 3, strStartAddr +=2, --nelts) 
   {
@@ -192,9 +215,14 @@ RML_BEGIN_LABEL(RML__string_5fnth_5fstring_5fchar)
   } 
   else 
   {
-    struct rml_string *strnew = rml_prim_mkstring(1, 2);
+    struct rml_string *strnew = NULL;
+    unsigned char *snew = NULL;
+    
+    strnew = rml_prim_mkstring(1, 2);
+    RML_CHECK_POINTER(strnew, RML__string_5fnth_5fstring_5fchar, "RML.stringNthStringChar");
+
     /* re-read after alloc, it may have been moved */
-    unsigned char *snew = (unsigned char*)strnew->data;
+    snew = (unsigned char*)strnew->data;
     *snew++ = ((unsigned char*)RML_STRINGDATA(rmlA0))[i];
     *snew = '\0';
     rmlA0 = RML_TAGPTR(strnew);
@@ -226,9 +254,14 @@ RML_BEGIN_LABEL(RML__string_5fget_5fstring_5fchar)
   } 
   else 
   {
-    struct rml_string *strnew = rml_prim_mkstring(1, 2);
+    struct rml_string *strnew = NULL;
+    unsigned char *snew = NULL;
+    
+    strnew = rml_prim_mkstring(1, 2);
+    RML_CHECK_POINTER(strnew, RML__string_5fget_5fstring_5fchar, "RML.stringGetStringChar");
+    
     /* re-read after alloc, it may have been moved */
-    unsigned char *snew = (unsigned char*)strnew->data;
+    snew = (unsigned char*)strnew->data;
     *snew++ = ((unsigned char*)RML_STRINGDATA(rmlA0))[i-1];
     *snew = '\0';
     rmlA0 = RML_TAGPTR(strnew);
@@ -251,11 +284,17 @@ RML_BEGIN_LABEL(RML__string_5fsetnth)
   else 
   {
     /* first copy the old string */
-    struct rml_string *strnew = rml_prim_mkstring(len, 3);
+    struct rml_string *strnew = NULL;
+    unsigned char *sold = NULL;
+    unsigned char *snew = NULL;
+
+    strnew = rml_prim_mkstring(len, 3);
+    RML_CHECK_POINTER(strnew, RML__string_5fsetnth, "RML.stringSetNth");
+
     /* re-read after alloc, it may have been moved */
     strold = rmlA0;
-    unsigned char *sold = (unsigned char*)RML_STRINGDATA(strold);
-    unsigned char *snew = (unsigned char*)strnew->data;
+    sold = (unsigned char*)RML_STRINGDATA(strold);
+    snew = (unsigned char*)strnew->data;
     rmlA0 = RML_TAGPTR(strnew);
     for(; len > 0; --len)
       *snew++ = *sold++;
@@ -281,11 +320,17 @@ RML_BEGIN_LABEL(RML__string_5fupdate)
   else 
   {
     /* first copy the old string */
-    struct rml_string *strnew = rml_prim_mkstring(len, 3);
+    struct rml_string *strnew = NULL;
+    unsigned char *sold = NULL;
+    unsigned char *snew = NULL;
+
+    strnew = rml_prim_mkstring(len, 3);
+    RML_CHECK_POINTER(strnew, RML__string_5fupdate, "RML.stringUpdate");
+
     /* re-read after alloc, it may have been moved */
     strold = rmlA0;
-    unsigned char *sold = (unsigned char*)RML_STRINGDATA(strold);
-    unsigned char *snew = (unsigned char*)strnew->data;
+    sold = (unsigned char*)RML_STRINGDATA(strold);
+    snew = (unsigned char*)strnew->data;
     rmlA0 = RML_TAGPTR(strnew);
     for(; len > 0; --len)
       *snew++ = *sold++;
@@ -311,11 +356,17 @@ RML_BEGIN_LABEL(RML__string_5fsetnth_5fstring_5fchar)
   else 
   {
     /* first copy the old string */
-    struct rml_string *strnew = rml_prim_mkstring(len, 3);
+    struct rml_string *strnew = NULL;
+    unsigned char *sold = NULL;
+    unsigned char *snew = NULL;
+    
+    strnew = rml_prim_mkstring(len, 3);
+    RML_CHECK_POINTER(strnew, RML__string_5fsetnth_5fstring_5fchar, "RML.stringSetNthStringChar");
+
     /* re-read after alloc, it may have been moved */
     strold = rmlA0;
-    unsigned char *sold = (unsigned char*)RML_STRINGDATA(strold);
-    unsigned char *snew = (unsigned char*)strnew->data;
+    sold = (unsigned char*)RML_STRINGDATA(strold);
+    snew = (unsigned char*)strnew->data;
     rmlA0 = RML_TAGPTR(strnew);
     for(; len > 0; --len)
       *snew++ = *sold++;
@@ -341,11 +392,17 @@ RML_BEGIN_LABEL(RML__string_5fupdate_5fstring_5fchar)
   else 
   {
     /* first copy the old string */
-    struct rml_string *strnew = rml_prim_mkstring(len, 3);
+    struct rml_string *strnew = NULL;
+    unsigned char *sold = NULL;
+    unsigned char *snew = NULL;
+    
+    strnew = rml_prim_mkstring(len, 3);
+    RML_CHECK_POINTER(strnew, RML__string_5fupdate_5fstring_5fchar, "RML.stringUpdateStringChar");
+
     /* re-read after alloc, it may have been moved */
     strold = rmlA0;
-    unsigned char *sold = (unsigned char*)RML_STRINGDATA(strold);
-    unsigned char *snew = (unsigned char*)strnew->data;
+    sold = (unsigned char*)RML_STRINGDATA(strold);
+    snew = (unsigned char*)strnew->data;
     rmlA0 = RML_TAGPTR(strnew);
     for(; len > 0; --len)
       *snew++ = *sold++;

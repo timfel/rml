@@ -21,6 +21,7 @@ YSIZEDEP=p-gccore.c p-gcuser.c
 $(YSIZEDEP:.c=.o):	$(p-gccore.h)
 $(YSIZEDEP:.c=.g.o):	$(p-gccore.h)
 $(YSIZEDEP:.c=.p.o):	$(p-gccore.h)
+$(YSIZEDEP:.c=.t.o):	$(p-gccore.h)
 
 # Specifics for the mask runtime
 XCSRC=p-mask.c

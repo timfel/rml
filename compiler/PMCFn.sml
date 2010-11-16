@@ -160,8 +160,8 @@ functor PMCFn(
     fun stateIncRef(STATE{uses,...}) = uses := !uses + 1
     fun stateFvs(STATE{fvs,...}) = fvs
     fun stateEq(STATE{label=lab1,...},STATE{label=lab2,...}) = 
-        if !Control.doDebug 
-        then false (* do not share if in debug mode *)
+        if !Control.doDebug (* orelse !Control.doTrace *)
+        then false (* do not share if in debug or trace mode *)
         else lab1=lab2 (*Ref.=*)
     fun stateLt(STATE{label=ref(CPS.LAB{tag=tag1,...}),...},
         STATE{label=ref(CPS.LAB{tag=tag2,...}),...}) = tag1 < tag2
@@ -289,7 +289,8 @@ functor PMCFn(
       | cnvDefn t_fc (ORELSEq(q1,q2)) =
       let val var = CPS.newVar(CPS.dummyLongIdent) (* lid *)
       in
-        CPS.mkLETe(var, CPS.newLam(CPS.FClk, cnvState t_fc q2, lid, info), cnvState (CPS.mkVARte var) q1)
+        CPS.mkLETe(var, CPS.newLam(false, CPS.FClk, cnvState t_fc q2, lid, info, 
+           if !Control.doTrace then ("NextCaseOrExit") else ("")), cnvState (CPS.mkVARte var) q1)
       end
       | cnvDefn t_fc (FETCHq(occ,bnds,body)) =
       let val node = occTE occ
@@ -310,7 +311,9 @@ functor PMCFn(
         | loop((q as STATE{uses,...})::qs, joins) =
           loop(qs, if !uses > 1 then q::joins else joins)
       in
-        loop(qs, []) (* TODO! do not join! *)
+        if !Control.doDebug orelse !Control.doTrace
+        then loop(qs, []) (* TODO! FIXME! do not join in trace/debug mode *)
+        else loop(qs, [])
       end
 
     fun cnvJoins qs =

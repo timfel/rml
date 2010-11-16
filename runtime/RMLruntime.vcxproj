@@ -144,6 +144,7 @@
     <ClCompile Include="..\config\tools\repchk.c" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\install.sh" />
     <None Include="plain\Make.mk" />
     <None Include="plain\Makefile" />
     <None Include="diff\Make.mk" />
@@ -249,6 +250,7 @@
     <ClInclude Include="..\config\x86-cygwin-gcc\labtab.h" />
     <ClInclude Include="..\x86-cygwin-gcc\include\plain\rml.h" />
     <ClInclude Include="..\config\tools\mingw-config.h" />
+    <ClInclude Include="plain\rml.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

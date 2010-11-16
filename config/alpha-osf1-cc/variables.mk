@@ -4,6 +4,7 @@ CFLAGS=-std1
 COFLAGS=-O2 -Olimit 1500
 CPFLAGS=-pg -g3
 CGFLAGS=-g -DRML_DEBUG
+CTFLAGS=-DRML_TRACE 
 RANLIB=echo
 CPP=/usr/lib/cpp
 AS=/usr/bin/as -nocpp

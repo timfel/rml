@@ -103,3 +103,62 @@ inline void *rml_prim_equal(void *p, void *q)
              }
   }
 }
+
+
+inline long long unsigned rml_prim_hash(void *p)
+{
+  long long unsigned hash = 0;
+  void **pp = NULL;
+  rml_uint_t phdr = 0;
+  rml_uint_t slots = 0;
+  
+tail_recur:
+  if( RML_ISIMM(p) ) 
+  {    
+    return hash + (long long unsigned)RML_UNTAGFIXNUM(p);
+  } 
+  
+  phdr = RML_GETHDR(p);
+  hash += (long long unsigned)phdr;
+
+  if( phdr == RML_REALHDR ) 
+  {
+    return hash + (long long unsigned)rml_prim_get_real(p);
+  } 
+  
+  if( RML_HDRISSTRING(phdr) ) 
+  {
+    return hash + (long long unsigned)rml_djb2_hash(RML_STRINGDATA(p));
+  }
+  
+  if( RML_HDRISSTRUCT(phdr) ) 
+  {
+    slots = RML_HDRSLOTS(phdr);
+    pp = RML_STRUCTDATA(p);    
+    
+    while ( --slots > 0)
+    {
+       hash += rml_prim_hash(*pp++);
+    }
+    p = *pp;
+    goto tail_recur;
+  }
+  return hash;
+}
+
+
+RML_BEGIN_LABEL(RML__value_5fhash)
+{
+  rml_uint_t hash = (rml_uint_t)rml_prim_hash(rmlA0);
+  rmlA0 = RML_PRIM_INT_ABS(RML_IMMEDIATE(RML_TAGFIXNUM(hash)));
+  RML_TAILCALLK(rmlSC);
+}
+RML_END_LABEL
+
+RML_BEGIN_LABEL(RML__value_5fhash_5fmod)
+{
+  rml_uint_t hash = (rml_uint_t)(rml_prim_hash(rmlA0) % ((long long unsigned)(RML_UNTAGFIXNUM(rmlA1))));
+  rmlA0 = RML_PRIM_INT_ABS(RML_IMMEDIATE(RML_TAGFIXNUM(hash)));
+  RML_TAILCALLK(rmlSC);
+}
+RML_END_LABEL

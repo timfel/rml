@@ -91,9 +91,14 @@ RML_BEGIN_LABEL(RML__reference_5fupdate)
   else 
   {
     /* first copy the old reference */
-    struct rml_struct *vec_new = (struct rml_struct*)rml_prim_alloc(1+nelts, 3);
-    void **vecp = vec_new->data;
+    struct rml_struct *vec_new = NULL;
+    void **vecp = NULL;
     rml_uint_t idx = 0;
+    
+    vec_new = (struct rml_struct*)rml_prim_alloc(1+nelts, 3);
+    RML_CHECK_POINTER(vec_new, RML__reference_5fupdate, "RML.referenceUpdate");
+    
+    vecp = vec_new->data;    
     /* re-read after alloc, it may have been moved */
     vec = rmlA0;
     vec_new->header = RML_GETHDR(rmlA0); /* set the old header */
@@ -178,9 +183,14 @@ RML_BEGIN_LABEL(RML__reference_5fsetnth)
   else 
   {
     /* first copy the old reference */
-    struct rml_struct *vec_new = (struct rml_struct*)rml_prim_alloc(1+nelts, 3);
-    void **vecp = vec_new->data;
+    struct rml_struct *vec_new = NULL;
+    void **vecp = NULL;
     rml_uint_t idx = 0;
+
+    vec_new = (struct rml_struct*)rml_prim_alloc(1+nelts, 3);
+    RML_CHECK_POINTER(vec_new, RML__reference_5fsetnth, "RML.referenceSetNth");
+    
+    vecp = vec_new->data;
     /* re-read after alloc, it may have been moved */
     vec = rmlA0;
     vec_new->header = RML_GETHDR(rmlA0); /* set the old header */

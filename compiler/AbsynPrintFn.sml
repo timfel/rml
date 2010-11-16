@@ -247,11 +247,11 @@ functor AbsynPrintFn(structure MakeString : MAKESTRING
        prStr(os, "end\n"))
 
     fun print_spec_with os (Absyn.WITHspec(str, _, _)) = 
-        (prStr(os, Control.getFileName(str, Control.INTERFACE_FILE)); prStr(os, " "))
+        (prStr(os, Control.getFullFileName(!Control.oTDir, str, Control.INTERFACE_FILE)); prStr(os, " "))
       | print_spec_with os (_) = ()
 
     fun print_dec_with os (Absyn.WITHdec(str, _, _)) = 
-        (prStr(os, Control.getFileName(str, Control.INTERFACE_FILE)); prStr(os, " "))
+        (prStr(os, Control.getFullFileName(!Control.oTDir, str, Control.INTERFACE_FILE)); prStr(os, " "))
       | print_dec_with os (_) = ()
        
     fun printDependencies(os, Absyn.MODULE(Absyn.INTERFACE({modid,specs,...}, _), dec_star, _)) =

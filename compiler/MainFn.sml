@@ -59,34 +59,37 @@ functor MainFn(
     type repository = Cache.repository
     
     (* function that does the rml to sml translation *)
-    fun doSml((prefix, ext), cpsModule) =
-      (Control.withOutput CPSToSML.emitModule ((prefix, ext), cpsModule) (prefix ^ ".sml");
-       Control.withOutput CPSToSML.emitInterface cpsModule (prefix ^ ".sig"))
+    fun doSml((prefix, fileName, ext), cpsModule) =
+      (Control.withOutput CPSToSML.emitModule ((prefix, fileName, ext), cpsModule) (prefix, fileName, SOME("sml"));
+       Control.withOutput CPSToSML.emitInterface cpsModule (prefix, fileName, SOME("sig")))
 
     (* generates code according to Switch runtime *)
-    fun doSwitch((prefix, ext), switchModule) =
+    fun doSwitch((prefix, fileName, ext), switchModule) =
       let val switchModule = 
               if !optCode 
               then SwitchOptim.optimize switchModule
               else switchModule
-          val cFile = prefix ^ ".c" and hFile = prefix ^ ".h"
+          val cFile = (!Control.oCDir, fileName, SOME("c"))
+          val hFile = (!Control.oCDir, fileName, SOME("h"))
       in
         case !cgScheme of 
          DIFF =>
-             (Control.withOutput DiffToC.emitModule ((prefix, ext), switchModule) cFile;
+             (Control.withOutput DiffToC.emitModule ((prefix, fileName, ext), switchModule) cFile;
               Control.withOutput DiffToC.emitInterface switchModule hFile)
        | _ =>
-             (Control.withOutput MaskToC.emitModule ((prefix, ext), switchModule) cFile;
+             (Control.withOutput MaskToC.emitModule ((prefix, fileName, ext), switchModule) cFile;
               Control.withOutput MaskToC.emitInterface switchModule hFile)
       end
 
     (* generates code according to Plain runtime *)
-    fun doPlain((prefix, ext), plainModule) =
+    fun doPlain((prefix, fileName, ext), plainModule) =
       let val plainModule = if !optCode then PlainOptim.optimize plainModule
-          else plainModule
+                                        else plainModule
+          val cFile = (!Control.oCDir, fileName, SOME("c"))
+          val hFile = (!Control.oCDir, fileName, SOME("h"))
       in
-    Control.withOutput PlainToC.emitModule ((prefix, ext), plainModule) (prefix ^ ".c");
-    Control.withOutput PlainToC.emitInterface plainModule (prefix ^ ".h")
+        Control.withOutput PlainToC.emitModule ((prefix, fileName, ext), plainModule) cFile;
+        Control.withOutput PlainToC.emitInterface plainModule hFile
       end
       
     (* dump the FOL representation *)
@@ -97,18 +100,18 @@ functor MainFn(
     (FOLPrint.printModule(folOs, folModule); folModule)
       
     (* generate the FOL representation *)
-    fun doFol((prefix, ext), folModule) =
+    fun doFol((prefix, fileName, ext), folModule) =
       if !Control.emitFol 
-      then if !optFol then
-      Control.withOutput folPrintOptim 
-        (Control.withOutput folPrint folModule (prefix ^ ".fol")) 
-        (prefix ^ ".optim.fol")
-       else
-      Control.withOutput folPrint folModule (prefix ^ ".fol")
-      else if !optFol then 
-      FOLOptim.optimize(NONE, folModule)
-       else 
-      folModule
+      then if !optFol 
+           then
+             Control.withOutput folPrintOptim 
+              (Control.withOutput folPrint folModule (!Control.oTDir, fileName, SOME("fol"))) 
+               (!Control.oTDir, fileName, SOME("optim.fol"))
+           else
+             Control.withOutput folPrint folModule (!Control.oTDir, fileName, SOME("fol"))
+      else if !optFol 
+           then FOLOptim.optimize(NONE, folModule)
+           else folModule
 
     (* dump the CPS representation *)
     fun cpsPrint(cpsOs, cpsModule) =
@@ -117,39 +120,40 @@ functor MainFn(
       else (CPSPrint.printModule(cpsOs, cpsModule); cpsModule)
     
     (* generate the CPS representation *)
-    fun doCps((prefix, ext), cpsModule) =
+    fun doCps((prefix, fileName, ext), cpsModule) =
       if !Control.emitCps 
-      then Control.withOutput cpsPrint cpsModule (prefix ^ ".cps")
-      else  if !optCps 
-      then CPSOptim.optimize(NONE, cpsModule)
-      else cpsModule
+      then Control.withOutput cpsPrint cpsModule (prefix, fileName, SOME("cps"))
+      else if !optCps 
+           then CPSOptim.optimize(NONE, cpsModule)
+           else cpsModule
            
     (* function that translates a RML file into C representation (actual compilation) *)
-    fun translate ( (prefix, ext), repository )=
-      let  val fileName = OS.Path.joinBaseExt {base = prefix, ext = ext}
+    fun translate ( (prefix, fileName, ext), repository )=
+    let
+      val _ = Control.iDirs := prefix::(!Control.iDirs)
       val repository = Cache.new(
-                  Cache.new(
-                    Cache.new(
-                      ref StrDict.empty, Cache.rmlCache), 
-                    Cache.modCache), 
-                   Cache.srzCache)       
-      val astModule = FrontEnd.processFile((prefix,ext), repository)
-    in        
-    case astModule of
-      SOME(astModule) =>
+                        Cache.new(
+                         Cache.new(
+                          ref StrDict.empty, Cache.rmlCache), 
+                          Cache.modCache), 
+                          Cache.srzCache)       
+      val astModule = FrontEnd.processFile((prefix, fileName, ext), repository)
+    in
+      case astModule of
+        SOME(astModule) =>
         let (* print the FOL ast if required by -Efol *)
-          val folModule = doFol((prefix, ext), AbsynToFOL.translate astModule)
-          (* print the CPS ast if required by -Ecps *)
-          val cpsModule = doCps((prefix, ext), FOLToCPS.translate folModule)
+            val folModule = doFol((prefix, fileName, ext), AbsynToFOL.translate astModule)
+            (* print the CPS ast if required by -Ecps *)
+            val cpsModule = doCps((prefix, fileName, ext), FOLToCPS.translate folModule)
         in
           case !cgScheme (* what backend should we use for codegen *)
-          of PLAIN => doPlain((prefix, ext), CPSToPlain.translate cpsModule)
-          |  MASK  => doSwitch((prefix, ext), CPSToSwitch.translate cpsModule)
-          |  DIFF  => doSwitch((prefix, ext), CPSToSwitch.translate cpsModule)
-          |  SML   => doSml((prefix, ext), cpsModule)
+          of PLAIN => doPlain((prefix, fileName, ext), CPSToPlain.translate cpsModule)
+          |  MASK  => doSwitch((prefix, fileName, ext), CPSToSwitch.translate cpsModule)
+          |  DIFF  => doSwitch((prefix, fileName, ext), CPSToSwitch.translate cpsModule)
+          |  SML   => doSml((prefix, fileName, ext), cpsModule)
         end
-    |  NONE => ()
-      end
+      |  NONE => ()
+    end
 
   fun helpBuiltin() =
   (
@@ -181,7 +185,7 @@ functor MainFn(
        sayErr "-f{no-}dfa-statistics\n  print the pattern-match generated DFA statistics; default to 'no'\n";
        sayErr "-W{no-}non-exhaustive\n  warn of non-exhaustive pattern matching; default to 'no'\n";
        sayErr "-fdump-interface\n  dump the interface to the standard output\n";
-       sayErr "-fdump-depends\n  dump the dependencies to the standard output\n";
+       sayErr "-fdump-depends\n  dump the dependencies to the standard output\n";       
        sayErr "-O\n  enable all optimizations; default to 'yes'\n";
        sayErr "-O0\n  disable all optimizations; default to 'no'\n";
        sayErr "-O{,no-}code\n  enable the optimization of code; default to 'yes'\n";
@@ -192,7 +196,10 @@ functor MainFn(
        sayErr "-v\n  print the version and exit\n";
        sayErr "-builtin\n  print the defined builtin relations/functions and exit\n";
        sayErr "-help|--help|-h\n  print the help and exit\n";
-       sayErr "-Idir\n  add directory dir to the list of directories to be searched for source files\n"
+       sayErr "-Idir\n  add directory dir to the list of directories to be searched for source files\n";
+       sayErr "-oHdir\n  specify where to generate the .h files; default to '.' (current directory)\n";
+       sayErr "-oCdir\n  specify where to generate the .c files; default to '.' (current directory)\n";
+       sayErr "-oTdir\n  specify where to generate the temporary .srz,.rdb files; default to '.' (current directory)\n"
     )
 
     fun usage msg = (* check the compiler line arguments (parameters) *)
@@ -293,19 +300,28 @@ functor MainFn(
        | "-h"     => help()
        | _ =>
            if String.isPrefix "-I" arg 
-           then Control.idirs := String.substring(arg, 2, String.size arg - 2)::(!Control.idirs)
-           else let val size = String.size arg
+           then Control.iDirs := String.substring(arg, 2, String.size arg - 2)::(!Control.iDirs)
+           else 
+             if String.isPrefix "-oH" arg
+             then Control.oHDir := String.substring(arg, 3, String.size arg - 3)
+             else 
+               if String.isPrefix "-oC" arg
+               then Control.oCDir := String.substring(arg, 3, String.size arg - 3)
+               else
+                if String.isPrefix "-oT" arg
+                then Control.oCDir := String.substring(arg, 3, String.size arg - 3)
+                else 
+                let val size = String.size arg
                     val srtPfx = "-fswitch-rewrite-threshold="
                     val srtPfxSize = String.size srtPfx
                 in
-                  if size > srtPfxSize andalso
-                     String.substring(arg,0,srtPfxSize) = srtPfx 
+                  if size > srtPfxSize andalso String.substring(arg,0,srtPfxSize) = srtPfx 
                   then
                      case Int.fromString(String.substring(arg,srtPfxSize,size-srtPfxSize))
                      of SOME i => Control.switchRewriteThreshold := i
                      |  NONE => usage("rml: invalid argument '" ^ arg ^ "'\n")
                   else usage("rml: invalid argument '" ^ arg ^ "'\n")
-      end
+                end
 
     (* function that processes a rml file (compilation) *)
     fun compiler (argv, repository) =
@@ -320,7 +336,7 @@ functor MainFn(
         |  Control.UNKNOWN_FILE => ()
         |  _ => usage("rml: invalid argument '" ^ arg ^ "'. You cannot mix .rml and .mo files\n");
         Control.currentlyCompiling := Control.RML_FILE;
-        translate (Control.pathSplit arg, repository)
+        translate (Control.pathFileExtSplit arg, repository)
         )
       |    Control.MO_FILE  => 
         (
@@ -329,11 +345,11 @@ functor MainFn(
         |  Control.UNKNOWN_FILE => ()
         |  _ => usage("rml: invalid argument '" ^ arg ^ "'. You cannot mix .rml and .mo files\n");
         Control.currentlyCompiling := Control.MO_FILE;        
-        translate (Control.pathSplit arg, repository)
+        translate (Control.pathFileExtSplit arg, repository)
         )
       |    _ => usage("rml: invalid argument '" ^ arg ^ "'\n")
       in
-    List.app process argv
+       List.app process argv
       end
 
     (* function to run the interpreter *)
@@ -344,47 +360,51 @@ functor MainFn(
                   ref StrDict.empty, Cache.rmlCache), 
                 Cache.modCache), 
                Cache.srzCache)
-    val modseq = FrontEnd.processProgram(prefixes, repository)
-      in
+        val modseq = FrontEnd.processProgram(prefixes, repository)
+    in
       Interp.run(modseq, argv)
-      end
+    end
 
     (* the main loop of the interpreter *)
     fun interpreter (argv, repository) =
-      let fun revRun([], _) = ()
-      | revRun(prefixes, argv) = run(rev prefixes, argv, repository)
-    fun loop([], prefixes) = revRun(prefixes, [])
-      | loop("--"::argv, prefixes) = revRun(prefixes, argv)
-      | loop(arg::argv, prefixes) =
-    if String.sub(arg, 0) = #"-" then
-      (option arg; loop(argv, prefixes))
-    else
-    let val (base,ext) = Control.pathSplit(arg)
+    let       
+       fun revRun([], _) = ()
+       |   revRun(prefixes, argv) = run(rev prefixes, argv, repository)
+
+       fun loop([], prefixes) = revRun(prefixes, [])
+       |   loop("--"::argv, prefixes) = revRun(prefixes, argv)
+       |   loop(arg::argv, prefixes) =
+           if String.sub(arg, 0) = #"-" 
+           then (option arg; loop(argv, prefixes))
+           else
+           let 
+              val (prefix,fileName,ext) = Control.pathFileExtSplit(arg)
+              val _ = Control.iDirs := prefix::(!Control.iDirs)
+           in
+              case (Control.fileType arg) of 
+              Control.RML_FILE => 
+              (
+               case (!Control.currentlyCompiling) of
+                  Control.RML_FILE => ()
+               |  Control.UNKNOWN_FILE => ()
+               |  _ => usage("rml: invalid argument '" ^ arg ^ "'. You cannot mix .rml and .mo files\n");
+               Control.currentlyCompiling := Control.RML_FILE;
+               loop(argv, (prefix,fileName,ext)::prefixes)
+              )
+            |    Control.MO_FILE  => 
+              (
+                case (!Control.currentlyCompiling) of
+                   Control.MO_FILE => ()
+                |  Control.UNKNOWN_FILE => ()
+                |  _ => usage("rml: invalid argument '" ^ arg ^ "'. You cannot mix .rml and .mo files\n");
+                Control.currentlyCompiling := Control.MO_FILE;
+                loop(argv, (prefix,fileName,ext)::prefixes)
+              )
+            |    _ => usage("rml: invalid argument '" ^ arg ^ "'\n")
+           end
     in
-        case (Control.fileType arg) of 
-        Control.RML_FILE => 
-        (
-        case (!Control.currentlyCompiling) of
-          Control.RML_FILE => ()
-        |  Control.UNKNOWN_FILE => ()
-        |  _ => usage("rml: invalid argument '" ^ arg ^ "'. You cannot mix .rml and .mo files\n");
-        Control.currentlyCompiling := Control.RML_FILE;
-        loop(argv, (base,ext)::prefixes)
-        )
-      |    Control.MO_FILE  => 
-        (
-        case (!Control.currentlyCompiling) of
-          Control.MO_FILE => ()
-        |  Control.UNKNOWN_FILE => ()
-        |  _ => usage("rml: invalid argument '" ^ arg ^ "'. You cannot mix .rml and .mo files\n");
-        Control.currentlyCompiling := Control.MO_FILE;
-        loop(argv, (base,ext)::prefixes)
-        )
-      |    _ => usage("rml: invalid argument '" ^ arg ^ "'\n")
+        loop(argv, [])
     end
-      in
-    loop(argv, [])
-      end
 
     (* the main function *)
     fun main argv =
@@ -397,8 +417,8 @@ functor MainFn(
     fun loop("-i"::argv) = interpreter (argv, repository)
       | loop("-v"::argv) = (version(); loop argv)
       | loop argv = compiler (argv, repository)
-      in
-      loop argv
-      end
+        in
+          loop argv
+        end
 
   end (* functor MainFn *)

@@ -8,9 +8,9 @@ structure Control: CONTROL =
     
   fun bug  s = Util.bug("Control."^s)
         
-    type serializationInfo = 
+  type serializationInfo = 
              {
-        file:    string, (* which filename was serialized *)
+                file:    string, (* which filename was serialized *)
                 date:    string, (* date as string when it was serialized *)
                 version: int     (* version of the serialized file *) 
              }
@@ -84,11 +84,17 @@ structure Control: CONTROL =
   (* print import loadinging order  *)
     val importLoadOrder = ref false
 
-    (* what are we currently compiling? *)    
-    val currentlyCompiling = ref UNKNOWN_FILE
+  (* what are we currently compiling? *)    
+  val currentlyCompiling = ref UNKNOWN_FILE
 
   (* list of search paths *)
-  val idirs = ref [""]
+  val iDirs = ref [""]
+  (* output path for H files *)
+  val oHDir = ref "."
+  (* output path for C files *)
+  val oCDir = ref "."
+  (* output path for temp files *)
+  val oTDir = ref "."
     
   (* this one helps in selecting messages depending on what we are currently compiling *)
   fun selectCompilerMessage(strRML, strMMC) =
@@ -104,6 +110,8 @@ structure Control: CONTROL =
     in
       base
     end
+
+  fun fileName (file) = OS.Path.file file
 
   fun fileType (file) =
     let val {base,ext} = OS.Path.splitBaseExt file
@@ -129,13 +137,44 @@ structure Control: CONTROL =
     |   getFileExt(INTERFACE_FILE)     = "sig"
     |   getFileExt(SERIALIZATION_FILE) = "srz"
     |   getFileExt(_)                  = "unknown"
+
+  fun joinFileExt(file, ext) = 
+  let
+    val fileName = OS.Path.joinBaseExt {base = file, ext = ext}
+  in
+    fileName
+  end  
+  
+  fun joinPathFileExt(prefix, file, ext) = 
+  let
+    val fileName = OS.Path.joinBaseExt {base = file, ext = ext}
+    val fullFile = 
+          case prefix of 
+            ""  => fileName 
+          | "." => fileName 
+          |  _  => OS.Path.joinDirFile {dir = prefix, file = fileName}
+    val fullFile = OS.Path.toUnixPath(fullFile)
+  in
+    fullFile
+  end  
     
-  fun pathSplit (file) =
-    let val {base,ext} = OS.Path.splitBaseExt file
+  fun pathFileExtSplit (file) =
+    let 
+       val {base,ext} = OS.Path.splitBaseExt file
+       val file = fileName base
+       val prefix = OS.Path.dir base
+    in
+     (prefix, file, ext)
+    end
+      
+  fun splitFileExt (file) =
+    let 
+       val {base,ext} = OS.Path.splitBaseExt file
     in
      (base, ext)
     end
-    
+
+
   fun fileExists(file) = (* see if there exists a file *)
     if OS.FileSys.access(file, []) 
     then true
@@ -150,17 +189,20 @@ structure Control: CONTROL =
        | _ => false
     end
       
-  fun getFileName(file, ftype) = 
-    let val (base,ext) = pathSplit file
+  fun getFullFileName(prefix, file, ftype) = 
+    let 
+      val fullFileName = joinPathFileExt(prefix, file, SOME(getFileExt(ftype)))
     in
-      base ^ "." ^ getFileExt(ftype)
+      fullFileName      
     end
   
-  fun fileCheckSerializationInfo(file) =
-    let val serializationFile = getFileName(file, SERIALIZATION_FILE)
+  fun fileCheckSerializationInfo(prefix, fileName, ext) =
+    let 
+       val serializationFile = getFullFileName(!oTDir, fileName, SERIALIZATION_FILE)
+       val file = joinFileExt(fileName, ext)
     in
       if fileExists(serializationFile)
-      then let val {file=serializedFile,date=date_str,version=version} = getSerializationInfo(serializationFile)
+      then let val {file=serializedFile, date=date_str, version=version} = getSerializationInfo(serializationFile)
            in
              if (serializedFile = file) andalso (version = serializationFileVersion)
              then true
@@ -169,18 +211,21 @@ structure Control: CONTROL =
       else false
     end
     
-  fun isSerializedFileValid(file) = 
-  let val serializationFile = getFileName(file, SERIALIZATION_FILE)
+  fun isSerializedFileValid(prefix, fileName, ext) = 
+  let 
+     val serializationFile = getFullFileName(!oTDir, fileName, SERIALIZATION_FILE)
+     val file = joinPathFileExt(prefix, fileName, ext)
   in
     if fileExists(file) andalso 
        fileExists(serializationFile) andalso
        fileNewer(serializationFile, file) andalso 
-       fileCheckSerializationInfo(file) 
+       fileCheckSerializationInfo(prefix, fileName, ext) 
     then true
     else false 
   end
   
-    datatype 'a outcome = OK of 'a | ERR of exn
+  datatype 'a outcome = OK of 'a | ERR of exn
+  
   (* this function reads the first line of the text file given *)
   fun readFirstLine(file) = 
   (
@@ -194,63 +239,99 @@ structure Control: CONTROL =
   )
   
   (* this function sees if the interface (.sig) of the file is the actual interface of this file *)
-  fun fileCheckInterfaceFile(file) =
-  let val interfaceFile = getFileName(file, INTERFACE_FILE)
+  fun fileCheckInterfaceFile(prefix, fileName, ext) =
+  let 
+     val interfaceFile = getFullFileName(!oTDir, fileName, INTERFACE_FILE)
   in
     if fileExists(interfaceFile) andalso 
-       readFirstLine(file) = "(*interfaceOf["^file^"]*)"
+       readFirstLine(interfaceFile) = "(*interfaceOf["^fileName^"]*)"
     then true
     else false
   end
   
-  fun isInterfaceFileValid(file) = 
-  let val interfaceFile = getFileName(file, INTERFACE_FILE)
+  fun isInterfaceFileValid(prefix, fileName, ext) = 
+  let 
+    val interfaceFile = getFullFileName(!oTDir, fileName, INTERFACE_FILE)
+    val file = joinPathFileExt(prefix, fileName, ext)
   in
-    if fileExists(file) andalso 
-       fileExists(interfaceFile) andalso
+    if fileExists(file) andalso (* fileExists(interfaceFile) andalso *)
        fileNewer(interfaceFile, file) andalso 
-       fileCheckInterfaceFile(file) 
+       fileCheckInterfaceFile(prefix, fileName, ext) 
     then true
     else false 
   end  
   
-  fun joinBaseExt(prefix, ext) = OS.Path.joinBaseExt {base = prefix, ext = ext}
+  (* datatype for the result if is ok or if is error *)
+  datatype 'a outcome = OK of 'a | ERR of exn
 
-    (* datatype for the result if is ok or if is error *)
-    datatype 'a outcome = OK of 'a | ERR of exn
+  fun getTempFile(file) =
+  let
+     val tempFile = OS.FileSys.tmpName() 
+                     handle exn => (
+                                    case exn of 
+                                    OS.SysErr(s, _) => 
+                                      bug("getTempFile Error: " ^ s ^ "! Could not create temporary file for file: " ^ file);
+                                      raise exn
+                                   )
+
+  in
+    tempFile    
+  end
+
+  fun renameFile(old, new) =
+  let
+  in
+      OS.FileSys.rename{old = old, new = new}
+                           handle exn => (
+                                    case exn of 
+                                    OS.SysErr(s, _) => 
+                                      bug("renameFile Error: " ^ s ^ "! Could not rename file: " ^ old ^ " to: " ^ new);
+                                      raise exn
+                                   )
+  end
     
-    (* function to write files with error handling *)
-    fun withOutputOption f arg2 file =
-      let val os = TextIO.openOut file
-    val outcome = (OK(f(SOME(os), arg2))) handle exn => ERR exn
-      in
+  (* function to write files with error handling *)
+  fun withOutputOption f arg2 (prefix, fileName, ext) =
+    let 
+      val fullFileName = joinPathFileExt(prefix, fileName, ext)
+      val tempFile = getTempFile(fullFileName)
+      val os = TextIO.openOut tempFile
+      val outcome = (OK(f(SOME(os), arg2))) handle exn => ERR exn
+    in
       TextIO.closeOut os;
-      case outcome of (OK result) => result | (ERR exn) => raise exn
-      end
+      case outcome 
+        of (OK result) => (renameFile(tempFile, fullFileName); result)
+      | (ERR exn) => (renameFile(tempFile, fullFileName); raise exn)
+    end
 
-    (* function to write files with error handling *)
-    fun withOutput f arg2 file =
-      let val os = TextIO.openOut file
-    val outcome = (OK(f(os, arg2))) handle exn => ERR exn
-      in
+  (* function to write files with error handling *)
+  fun withOutput f arg2 (prefix, fileName, ext) =
+    let 
+      val fullFileName = joinPathFileExt(prefix, fileName, ext)
+      val tempFile = getTempFile(fullFileName)
+      val os = TextIO.openOut tempFile
+      val outcome = (OK(f(os, arg2))) handle exn => ERR exn
+    in
       TextIO.closeOut os;
-      case outcome of (OK result) => result | (ERR exn) => raise exn
-      end
+      case outcome 
+        of (OK result) => (renameFile(tempFile, fullFileName); result)
+      | (ERR exn) => (renameFile(tempFile, fullFileName); raise exn)
+    end
       
-    (* function to write files with error handling *)
-    fun withOutputStream f arg2 os =
-      let 
-    val outcome = (OK(f(os, arg2))) handle exn => ERR exn
-      in
+  (* function to write files with error handling *)
+  fun withOutputStream f arg2 os =
+    let 
+      val outcome = (OK(f(os, arg2))) handle exn => ERR exn
+    in
       case outcome of (OK result) => result | (ERR exn) => raise exn
-      end
+    end
       
-    (* function to write files with error handling *)
-    fun withOut f arg2 =
-      let val outcome = (OK(f(TextIO.stdErr, arg2))) handle exn => ERR exn
-      in
+  (* function to write files with error handling *)
+  fun withOut f arg2 =
+    let 
+      val outcome = (OK(f(TextIO.stdErr, arg2))) handle exn => ERR exn
+    in
       case outcome of (OK result) => result | (ERR exn) => raise exn
-      end        
-      
-                  
+    end
+           
   end (* structure Control *)

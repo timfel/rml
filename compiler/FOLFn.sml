@@ -94,6 +94,10 @@ functor FOLFn(
 
     fun newvar(src) = VAR({name="$"^Int.toString(Util.tick()), uses=ref 0, inst=ref NONE}, src)
 
+    fun varRefName( GVAR(LONGID(SOME(IDENT(id1, _)), IDENT(id2, _), _)) ) = id1 ^ "__" ^ id2
+    |   varRefName( GVAR(LONGID(NONE, IDENT(id2, _), _)) ) = id2
+    |   varRefName( BVAR(VAR({name,...},_)) ) = name
+
     fun deref(var as VAR({inst,name,...}, id)) =
     (
       debug("deref: Dereferencing: "^name^":"^identName(id)^"\n");

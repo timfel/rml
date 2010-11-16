@@ -5,6 +5,7 @@ CFLAGS=-qnoansialias -qnoroconst -qro -qmaxmem=32768
 COFLAGS=-O2 -qassert=addr
 CPFLAGS=-pg
 CGFLAGS=-g -DRML_DEBUG
+CTFLAGS=-DRML_TRACE 
 RANLIB=echo
 CPP=/usr/ccs/lib/cpp
 AS=/usr/ccs/bin/as

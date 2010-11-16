@@ -50,6 +50,44 @@ typedef void *rml_labptr_t;
 #define RML_TAILCALLK(KONT)  RML_TAILCALL(RML_FETCH((KONT)),1)
 
 extern void *rml_prim_gcalloc(rml_uint_t, rml_uint_t);
-#define RML_ALLOC(VAR,NWORDS,NARGS,UNUSEDLABEL) do{ (VAR) = (void*)rml_young_next; if((rml_young_next = (void**)(VAR)+(NWORDS)) >= rml_young_limit) (VAR) = rml_prim_gcalloc((NWORDS),(NARGS));} while(0)
+#define RML_ALLOC_TRACE(VAR,NWORDS,NARGS,UNUSEDLABEL,LABEL_STRING) \
+  do{\
+    void* x =  (void*)rml_young_next; \
+    (VAR) = (void*)rml_young_next; \
+    if((rml_young_next = (void**)(VAR)+(NWORDS)) >= rml_young_limit) \
+      x = rml_prim_gcalloc((NWORDS),(NARGS)); \
+    if (x == NULL) { \
+      rml_trace_enabled = 1; \
+      fprintf(stderr, "NOT ENOUGH MEMORY function: %s address: %p trace: %d\n", \
+        LABEL_STRING, UNUSEDLABEL, rml_trace_enabled); fflush(stderr); RML_TAILCALLK(rmlFC); \
+    } \
+    else { \
+      (VAR) = x; \
+    } \
+  } while(0)
+
+#define RML_ALLOC(VAR,NWORDS,NARGS) \
+  do{\
+    (VAR) = (void*)rml_young_next; \
+    if((rml_young_next = (void**)(VAR)+(NWORDS)) >= rml_young_limit) \
+      (VAR) = rml_prim_gcalloc((NWORDS),(NARGS)); \
+  } while(0)
+
+#ifdef RML_TRACE /* we have RML_TRACE defined */
+
+#define RML_CHECK_POINTER(VAR, UNUSEDLABEL, LABEL_STRING) \
+  if ((VAR) == NULL) { \
+    rml_trace_enabled = 1; \
+    fprintf(stderr, "NOT ENOUGH MEMORY function: %s address: %p trace: %d\n", \
+      LABEL_STRING, UNUSEDLABEL, rml_trace_enabled); fflush(stderr); RML_TAILCALLK(rmlFC); \
+  }
+
+#else /* nothing */
+
+#define RML_CHECK_POINTER(VAR, UNUSEDLABEL, LABEL_STRING) 
+
+#endif
+
+
 
 
