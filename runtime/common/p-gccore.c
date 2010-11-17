@@ -85,7 +85,11 @@ static void **rml_alloc_core(rml_uint_t nslots, rml_uint_t do_not_exit) {
   if ( !p && !do_not_exit) 
   {
     fprintf(stderr, "malloc(%lu) failed!\n", nbytes); fflush(stderr);
-    return NULL; /* rml_exit(1); */
+#ifdef RML_TRACE /* we have RML_TRACE defined */
+    return NULL; 
+#else /* exit if RML_TRACE is not defined! */
+    rml_exit(1);
+#endif
   }
   return p;
 }
