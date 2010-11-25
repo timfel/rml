@@ -275,7 +275,7 @@ structure Control: CONTROL =
                                    )
 
   in
-    tempFile    
+    fileName tempFile (* take just the file name without the tmp *)
   end
 
   fun renameFile(old, new) =
@@ -284,7 +284,7 @@ structure Control: CONTROL =
       OS.FileSys.rename{old = old, new = new}
                            handle exn => (
                                     case exn of 
-                                    OS.SysErr(s, _) => 
+                                    OS.SysErr(s, _) =>
                                       bug("renameFile Error: " ^ s ^ "! Could not rename file: " ^ old ^ " to: " ^ new);
                                       raise exn
                                    )
