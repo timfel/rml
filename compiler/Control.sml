@@ -264,18 +264,25 @@ structure Control: CONTROL =
   (* datatype for the result if is ok or if is error *)
   datatype 'a outcome = OK of 'a | ERR of exn
 
-  fun getTempFile(file) =
+  fun getTempFileName(file) =
   let
      val tempFile = OS.FileSys.tmpName() 
                      handle exn => (
                                     case exn of 
                                     OS.SysErr(s, _) => 
-                                      bug("getTempFile Error: " ^ s ^ "! Could not create temporary file for file: " ^ file);
+                                      bug("getTempFileName Error: " ^ s ^ "! Could not create temporary file for file: " ^ file);
                                       raise exn
                                    )
-
+    val fileNameOnly = fileName tempFile (* take just the file name without the tmp *)
+    val _ = OS.FileSys.remove(tempFile) (* remove the file *)
+                         handle exn => (
+                                    case exn of 
+                                    OS.SysErr(s, _) => 
+                                      bug("getTempFileName Error: " ^ s ^ "! Could not remove temporary file: " ^ tempFile);
+                                      raise exn
+                                   )
   in
-    fileName tempFile (* take just the file name without the tmp *)
+    fileNameOnly
   end
 
   fun renameFile(old, new) =
@@ -294,7 +301,7 @@ structure Control: CONTROL =
   fun withOutputOption f arg2 (prefix, fileName, ext) =
     let 
       val fullFileName = joinPathFileExt(prefix, fileName, ext)
-      val tempFile = getTempFile(fullFileName)
+      val tempFile = getTempFileName(fullFileName)
       val os = TextIO.openOut tempFile
       val outcome = (OK(f(SOME(os), arg2))) handle exn => ERR exn
     in
@@ -308,7 +315,7 @@ structure Control: CONTROL =
   fun withOutput f arg2 (prefix, fileName, ext) =
     let 
       val fullFileName = joinPathFileExt(prefix, fileName, ext)
-      val tempFile = getTempFile(fullFileName)
+      val tempFile = getTempFileName(fullFileName)
       val os = TextIO.openOut tempFile
       val outcome = (OK(f(os, arg2))) handle exn => ERR exn
     in
