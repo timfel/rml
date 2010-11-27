@@ -277,7 +277,7 @@ structure Control: CONTROL =
     val _ = OS.FileSys.remove(tempFile) (* remove the file *)
                          handle exn => (
                                     case exn of 
-                                    OS.SysErr(s, _) => 
+                                    OS.SysErr(s, _) => ()
                                       (* 
                                       bug("getTempFileName Error: " ^ s ^ "! Could not remove temporary file: " ^ tempFile);
                                       raise exn 
