@@ -278,8 +278,10 @@ structure Control: CONTROL =
                          handle exn => (
                                     case exn of 
                                     OS.SysErr(s, _) => 
+                                      (* 
                                       bug("getTempFileName Error: " ^ s ^ "! Could not remove temporary file: " ^ tempFile);
-                                      raise exn
+                                      raise exn 
+                                      *)
                                    )
   in
     fileNameOnly
