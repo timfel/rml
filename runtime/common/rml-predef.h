@@ -47,7 +47,7 @@ extern RML_FORWARD_LABEL(RML__value_5fhash_5fmod);
 #define RML__valueEq          RML__value_5eq
 #define RML__valueMatch       RML__value_5match
 #define RML__valueHash        RML__value_5hash
-#define RML__valueHashMod     RML__value_5hash_5fmod
+#define RML__valueHashMod     RML__value_5fhash_5fmod
 
 /* booleans */
 extern RML_FORWARD_LABEL(RML__bool_5fand);

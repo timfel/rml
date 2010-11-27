@@ -112,9 +112,9 @@ inline long long unsigned rml_prim_hash(void *p)
   rml_uint_t phdr = 0;
   rml_uint_t slots = 0;
   
-tail_recur:
+rml_prim_hash_tail_recur:
   if( RML_ISIMM(p) ) 
-  {    
+  {
     return hash + (long long unsigned)RML_UNTAGFIXNUM(p);
   } 
   
@@ -134,14 +134,17 @@ tail_recur:
   if( RML_HDRISSTRUCT(phdr) ) 
   {
     slots = RML_HDRSLOTS(phdr);
-    pp = RML_STRUCTDATA(p);    
-    
+    pp = RML_STRUCTDATA(p);
+
+    if (slots == 0) 
+      return hash;
+
     while ( --slots > 0)
     {
        hash += rml_prim_hash(*pp++);
     }
     p = *pp;
-    goto tail_recur;
+    goto rml_prim_hash_tail_recur;
   }
   return hash;
 }
@@ -157,8 +160,12 @@ RML_END_LABEL
 
 RML_BEGIN_LABEL(RML__value_5fhash_5fmod)
 {
-  rml_uint_t hash = (rml_uint_t)(rml_prim_hash(rmlA0) % ((long long unsigned)(RML_UNTAGFIXNUM(rmlA1))));
+  rml_uint_t hash = 0;
+  // printf("hash mod: %d \n", RML_UNTAGFIXNUM(rmlA1)); fflush(stdout);
+  hash = (rml_uint_t)(rml_prim_hash(rmlA0) % ((long long unsigned)(RML_UNTAGFIXNUM(rmlA1)))); 
+  // printf("hash1: %d \n", hash); fflush(stdout);
   rmlA0 = RML_PRIM_INT_ABS(RML_IMMEDIATE(RML_TAGFIXNUM(hash)));
+  // printf("hash2: %d \n", RML_UNTAGFIXNUM(rmlA0)); fflush(stdout);
   RML_TAILCALLK(rmlSC);
 }
 RML_END_LABEL
