@@ -37,16 +37,16 @@ extern RML_FORWARD_LABEL(RML__reference_5fshare);
 /* values */
 extern RML_FORWARD_LABEL(RML__value_5fconstructor);
 extern RML_FORWARD_LABEL(RML__value_5fslots);
-extern RML_FORWARD_LABEL(RML__value_5eq);
-extern RML_FORWARD_LABEL(RML__value_5match);
+extern RML_FORWARD_LABEL(RML__value_5feq);
+extern RML_FORWARD_LABEL(RML__value_5fmatch);
 extern RML_FORWARD_LABEL(RML__value_5fhash);
 extern RML_FORWARD_LABEL(RML__value_5fhash_5fmod);
 /* java named */
 #define RML__valueConstructor RML__value_5fconstructor
 #define RML__valueSlots       RML__value_5fslots
-#define RML__valueEq          RML__value_5eq
-#define RML__valueMatch       RML__value_5match
-#define RML__valueHash        RML__value_5hash
+#define RML__valueEq          RML__value_5feq
+#define RML__valueMatch       RML__value_5fmatch
+#define RML__valueHash        RML__value_5fhash
 #define RML__valueHashMod     RML__value_5fhash_5fmod
 
 /* booleans */
