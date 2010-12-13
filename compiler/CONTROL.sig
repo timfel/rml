@@ -81,7 +81,7 @@ signature CONTROL =
   (* this one helps in selecting messages depending on what we are currently compiling *)
   val selectCompilerMessage: string * string -> string    
   
-  val fileName:   string -> string
+  val getFileName:   string -> string
   val fileBase:   string -> string
   val fileType:   string -> filetype
   val getFileExt: filetype -> string

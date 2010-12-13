@@ -111,7 +111,7 @@ structure Control: CONTROL =
       base
     end
 
-  fun fileName (file) = OS.Path.file file
+  fun getFileName (file) = OS.Path.file file
 
   fun fileType (file) =
     let val {base,ext} = OS.Path.splitBaseExt file
@@ -161,7 +161,7 @@ structure Control: CONTROL =
   fun pathFileExtSplit (file) =
     let 
        val {base,ext} = OS.Path.splitBaseExt file
-       val file = fileName base
+       val file = getFileName base
        val prefix = OS.Path.dir base
     in
      (prefix, file, ext)
@@ -264,6 +264,21 @@ structure Control: CONTROL =
   (* datatype for the result if is ok or if is error *)
   datatype 'a outcome = OK of 'a | ERR of exn
 
+  fun removeFile(file) =
+  let
+    val x = OS.FileSys.remove(file) (* remove the file *)
+                         handle exn => (
+                                    case exn of 
+                                    OS.SysErr(s, _) => ()
+                                      (* 
+                                      bug("removeFile Error: " ^ s ^ "! Could not remove temporary file: " ^ file);
+                                      raise exn 
+                                      *)
+                                   )
+  in
+    x
+  end 
+
   fun getTempFileName(file) =
   let
      val tempFile = OS.FileSys.tmpName() 
@@ -273,18 +288,8 @@ structure Control: CONTROL =
                                       bug("getTempFileName Error: " ^ s ^ "! Could not create temporary file for file: " ^ file);
                                       raise exn
                                    )
-    val fileNameOnly = fileName tempFile (* take just the file name without the tmp *)
-    val _ = OS.FileSys.remove(tempFile) (* remove the file *)
-                         handle exn => (
-                                    case exn of 
-                                    OS.SysErr(s, _) => ()
-                                      (* 
-                                      bug("getTempFileName Error: " ^ s ^ "! Could not remove temporary file: " ^ tempFile);
-                                      raise exn 
-                                      *)
-                                   )
   in
-    fileNameOnly
+    tempFile
   end
 
   fun renameFile(old, new) =
@@ -305,28 +310,50 @@ structure Control: CONTROL =
   fun withOutputOption f arg2 (prefix, fileName, ext) =
     let 
       val fullFileName = joinPathFileExt(prefix, fileName, ext)
-      val tempFile = getTempFileName(fullFileName)
+      val tempFileFull = getTempFileName(fullFileName) (* get the temp file name, i.e. /tmp/fileXAXYUA *)
+      val tempFile = getFileName(tempFileFull) (* get only the name of the temp file *)
       val os = TextIO.openOut tempFile
       val outcome = (OK(f(SOME(os), arg2))) handle exn => ERR exn
     in
       TextIO.closeOut os;
       case outcome 
-        of (OK result) => (renameFile(tempFile, fullFileName); result)
-      | (ERR exn) => (renameFile(tempFile, fullFileName); raise exn)
+        of (OK result) => 
+        (
+          renameFile(tempFile, fullFileName);  (* rename the file *)
+          removeFile(tempFileFull); (* remove the file in temp *)
+          result (* return the result *)
+        )
+      | (ERR exn) => 
+        (
+          renameFile(tempFile, fullFileName);  (* rename the file *)
+          removeFile(tempFileFull); (* remove the file in temp *)
+          raise exn (* return the exception *)
+        )
     end
 
   (* function to write files with error handling *)
   fun withOutput f arg2 (prefix, fileName, ext) =
     let 
       val fullFileName = joinPathFileExt(prefix, fileName, ext)
-      val tempFile = getTempFileName(fullFileName)
+      val tempFileFull = getTempFileName(fullFileName) (* get the temp file name, i.e. /tmp/fileXAXYUA *)
+      val tempFile = getFileName(tempFileFull) (* get only the name of the temp file *)
       val os = TextIO.openOut tempFile
       val outcome = (OK(f(os, arg2))) handle exn => ERR exn
     in
       TextIO.closeOut os;
       case outcome 
-        of (OK result) => (renameFile(tempFile, fullFileName); result)
-      | (ERR exn) => (renameFile(tempFile, fullFileName); raise exn)
+        of (OK result) => 
+        (
+          renameFile(tempFile, fullFileName);  (* rename the file *)
+          removeFile(tempFileFull); (* remove the file in temp *)
+          result (* return the result *)
+        )
+      | (ERR exn) => 
+        (
+          renameFile(tempFile, fullFileName);  (* rename the file *)
+          removeFile(tempFileFull); (* remove the file in temp *)
+          raise exn (* return the exception *)
+        )
     end
       
   (* function to write files with error handling *)
