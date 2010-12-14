@@ -183,6 +183,7 @@ local
       structure TextIO = gs_5
       structure Time = gs_79
       structure Util = gs_12
+      structure OS = gs_16
       Source.sml
    in
       structure gs_81 = Source

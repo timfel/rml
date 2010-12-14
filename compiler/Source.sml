@@ -12,8 +12,8 @@ structure Source : SOURCE =
     
     val dummy = SOURCE(ref(ArraySourceMap.new("",getCurrentDate())))
 
-  val debugFlag = false
-  fun debug s = if (debugFlag) then Util.outStdErr ("Source."^s) else ()  
+    val debugFlag = false
+    fun debug s = if (debugFlag) then Util.outStdErr ("Source."^s) else ()  
 
     (* The pos of an imaginary newline before a file's very
      * first character. This is necessary to adjust for the
@@ -42,15 +42,39 @@ structure Source : SOURCE =
       sayErr1 #".";
       sayErr(Int.toString column)
     end
+
+    fun getFileName (file) = OS.Path.file file
+
+    fun pathFileExtSplit (file) =
+    let 
+       val {base,ext} = OS.Path.splitBaseExt file
+       val file = getFileName base
+       val prefix = OS.Path.dir base
+    in
+     (prefix, file, ext)
+    end
+
+    fun joinFileExt(file, ext) = 
+    let
+      val fileName = OS.Path.joinBaseExt {base = file, ext = ext}
+    in
+      fileName
+    end
       
     fun sayMsg (SOURCE(ref(sourcemap))) (msg,leftPos,rightPos) =
-      (sayFile (ArraySourceMap.getFileName(sourcemap));
+    let
+      val fileName = ArraySourceMap.getFileName(sourcemap)
+      val (prefix, file, ext) = pathFileExtSplit(fileName)
+      val fileName = joinFileExt(file, ext)
+    in
+      (sayFile (fileName);
        sayPos(sourcemap, leftPos);
        sayErr1 #"-";
        sayPos(sourcemap, rightPos);
        sayErr1 #" ";
        sayErr msg; sayErr1 #"\n")
-       
+    end
+     
     fun getLC({line, column}) = (line, column)
        
     fun getLoc((SOURCE(ref(sourcemap))), spos, epos) =
