@@ -497,7 +497,11 @@ functor FrontEndFn(
             Control.MO_FILE (* dump .srz only if is .mo file and the .srz is dirty *)
                => if Control.isSerializedFileValid(prefix, fileName, ext)
                   then ()
-                  else Control.withOutput AbsynPersist.serializeModule translated serializationFile
+                  else 
+                  (
+                    debug("translate: dumping serialization of: " ^ (Control.joinPathFileExt serializationFile) ^ "\n");
+                    Control.withOutput AbsynPersist.serializeModule translated serializationFile
+                  )
          |  _ => ();
          translated
        end
@@ -508,7 +512,7 @@ functor FrontEndFn(
   then 
     let 
         val fullFileName = Control.getFullFileName(!Control.oTDir, fileName, Control.SERIALIZATION_FILE)
-        val _ = debug("loadSerialized: reading serialization of : "^fullFileName^"\n")
+        val _ = debug("loadSerialized: reading serialization of: "^fullFileName^"\n")
         val Absyn.SRZ_FILE(_, Absyn.SERIALIZED(_, SOME(module))) =
         if loadInterface 
         then AbsynPersist.parseInterface(fullFileName, repository)

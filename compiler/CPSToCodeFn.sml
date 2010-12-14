@@ -463,11 +463,15 @@ let
   fun getName(CPS.ConRep.LONGID{name,...}) = name
 
   fun getBugLoc(CPS.ConRep.INFO(sp,ep)) =
-  let val {fileName, sline, scolumn, eline, ecolumn} = CPS.Source.getLoc(source, sp, ep)
+  let 
+     val {fileName, sline, scolumn, eline, ecolumn} = CPS.Source.getLoc(source, sp, ep)
+     val (prefix, file, ext) = Control.pathFileExtSplit(fileName)
+     val fileName = Control.joinFileExt(file, ext)
   in
    ("\n"^fileName^":"^(Int.toString sline)^"."^(Int.toString scolumn)^"-"^
                       (Int.toString eline)^"."^(Int.toString ecolumn)^" ")
   end
+    
     fun warnAt(info, msg) = Util.outStdErr(getBugLoc(info)^"Warning: "^msg^"\n")
 
     fun trans_def(CPS.DEF{name,uses,v_tvs,v_fc,v_sc,body,pos,...}) =

@@ -275,7 +275,10 @@ functor InstrumentFn(structure Absyn : ABSYN
             relIdent as Absyn.IDENT(stringIdent, _), 
             Absyn.INFO(sp, ep), 
             strGoal) =
-    let val {fileName, sline, scolumn, eline, ecolumn} = Absyn.Source.getLoc(source, sp, ep)
+    let 
+       val {fileName, sline, scolumn, eline, ecolumn} = Absyn.Source.getLoc(source, sp, ep)
+       val (prefix, file, ext) = Control.pathFileExtSplit(fileName)
+       val fileName = Control.joinFileExt(file, ext)
     in
     [Absyn.LITexp(Absyn.SCONlit(fileName, Absyn.dummyInfo), Absyn.dummyInfo),
      Absyn.LITexp(Absyn.ICONlit(sline, Absyn.dummyInfo), Absyn.dummyInfo),

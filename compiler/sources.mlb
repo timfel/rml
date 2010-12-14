@@ -53,6 +53,11 @@ local
       structure gs_5 = TextIO
    end
    local
+      open l4
+   in
+      structure gs_5000 = IO
+   end
+   local
       ORD_KEY.sig
    in
       signature gs_6 = ORD_KEY
@@ -84,6 +89,7 @@ local
    local
       signature ABSYN = gs_10
       structure TextIO = gs_5
+      structure IO = gs_5000
       ABSYN_PERSIST.sig
    in
       signature gs_11 = ABSYN_PERSIST
@@ -783,8 +789,10 @@ local
       signature STREAM = gs_51
       signature TOKEN = gs_52
       structure TextIO = gs_5
+      structure IO = gs_5000
       structure Time = gs_79
       structure Util = gs_12
+      structure OS = gs_16
       PERSISTENTParseFn.sml
    in
       functor gs_123 = PERSISTENTParseFn
@@ -1264,6 +1272,7 @@ local
       structure Real = gs_72
       signature UTIL = gs_3
       structure Vector = gs_23
+      structure Control = gs_128
       CPSToCodeFn.sml
    in
       functor gs_156 = CPSToCodeFn
@@ -2003,8 +2012,10 @@ local
       signature STREAM = gs_51
       signature TOKEN = gs_52
       structure TextIO = gs_5
+      structure IO = gs_5000
       structure Time = gs_79
       structure Util = gs_12
+      structure OS = gs_16
       RMLParseFn.sml
    in
       functor gs_224 = RMLParseFn
@@ -2080,6 +2091,7 @@ local
       signature STREAM = gs_51
       signature TOKEN = gs_52
       structure TextIO = gs_5
+      structure IO = gs_5000
       structure Time = gs_79
       signature UTIL = gs_3
       structure OS = gs_16

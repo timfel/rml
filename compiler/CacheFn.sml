@@ -114,9 +114,9 @@ functor CacheFn(
     end
     
     fun getEntry(repository, mainKey, file) = 
-    let val (prefix, k, ext) = pathFileExtSplit(file)
+    let (* val (prefix, k, ext) = pathFileExtSplit(file) *)
     in
-      case getCacheEntry(repository, mainKey, k) of
+      case getCacheEntry(repository, mainKey, file) of
          SOME(entry) => entry
       |  NONE => bug("getEntry: could not find file: "^file^" in cache: "^mainKey^"!")
     end

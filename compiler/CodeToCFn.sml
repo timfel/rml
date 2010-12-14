@@ -49,9 +49,11 @@ functor CodeToCFn(structure MakeString : MAKESTRING
 		end
 
 	fun getInfo(Code.ConRep.INFO(sp, ep)) = 
-	let val {fileName, sline, scolumn, eline, ecolumn} = Code.Source.getLoc(!currentSource, sp, ep)
+	let 
+     val {fileName, sline, scolumn, eline, ecolumn} = Code.Source.getLoc(!currentSource, sp, ep)
+     val (prefix, file, ext) = Control.pathFileExtSplit(fileName)
+     val fileName = Control.joinFileExt(file, ext)
 	in
-		(* print ("CodeToC.getInfo:"^Code.Source.getFileName(!currentSource)^"\n"); *)
 		(fileName, sp, ep, sline, scolumn, eline, ecolumn)
 	end 
 

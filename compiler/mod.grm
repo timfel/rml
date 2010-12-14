@@ -63,15 +63,21 @@ fun getInfoAsString(fileName, sline, scolumn, eline, ecolumn) =
     end
 
 fun splitInfo lexArg (Absyn.INFO(left, right)) = 
-    let val {fileName, sline, scolumn, eline, ecolumn} = LexArg.getLoc lexArg (left, right)
+    let 
+       val {fileName, sline, scolumn, eline, ecolumn} = LexArg.getLoc lexArg (left, right)
+       val (prefix, file, ext) = Control.pathFileExtSplit(fileName)
+       val fileName = Control.joinFileExt(file, ext)
     in
         (fileName, sline, scolumn, eline, ecolumn)
     end
 
 fun getErrInfoAsString lexArg ((left,_,_), (right,_,_)) =
-    let val {fileName, sline, scolumn, eline, ecolumn} = LexArg.getLoc lexArg (left, right)
+    let 
+       val {fileName, sline, scolumn, eline, ecolumn} = LexArg.getLoc lexArg (left, right)
+       val (prefix, file, ext) = Control.pathFileExtSplit(fileName)
+       val fileName = Control.joinFileExt(file, ext)
     in
-        getInfoAsString(fileName, sline, scolumn, eline, ecolumn)
+       getInfoAsString(fileName, sline, scolumn, eline, ecolumn)
     end
 
 fun printErrInfo lexArg (left, right) =
@@ -198,11 +204,12 @@ fun makeELEMENT(isFinal,
 
     fun addImports ([], _, lexArg) = ()
     |    addImports ((imp, (x as (sp,sl,sc), y as (ep,el,ec)))::rest, v, lexArg) =
-    let val {fileName, sline, scolumn, eline, ecolumn} = LexArg.getLoc lexArg (sp, ep)
-    in
-        LexArg.addImport(lexArg, imp, (sp,sline,scolumn), (ep, eline, ecolumn), v);
-        addImports(rest, v, lexArg)
-    end
+         let 
+            val {fileName, sline, scolumn, eline, ecolumn} = LexArg.getLoc lexArg (sp, ep)
+         in
+           LexArg.addImport(lexArg, imp, (sp,sline,scolumn), (ep, eline, ecolumn), v);
+           addImports(rest, v, lexArg)
+         end
     
     fun addRestrictions ([], _, lexArg) = ()
     |    addRestrictions ((restr, r)::rest, v, lexArg) =

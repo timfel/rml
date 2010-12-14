@@ -7,6 +7,10 @@ structure Control: CONTROL =
     structure Util = Util
     
   fun bug  s = Util.bug("Control."^s)
+
+  val debugFlag = false
+  fun debug s = if (debugFlag) then Util.outStdErr("Control."^s) else ()  
+
         
   type serializationInfo = 
              {
@@ -26,7 +30,7 @@ structure Control: CONTROL =
             | SERIALIZATION_FILE 
 
     (* version of the serialized files. if we change their format we can discard them easy *)
-  val serializationFileVersion = 5
+  val serializationFileVersion = 6
   fun getSerializationInfo(file) = PERSISTENTParse.parseSerializationInfo(file)
     
     (* flag to write the symboltable or not*)
@@ -176,13 +180,32 @@ structure Control: CONTROL =
 
 
   fun fileExists(file) = (* see if there exists a file *)
+  let
+  in
+    (
     if OS.FileSys.access(file, []) 
     then true
     else false
+    ) handle exn => (
+                      case exn of 
+                        OS.SysErr(s, _) => 
+                         bug("fileExists Error: " ^ s ^ "! Could not access file: " ^ file);
+                         raise exn 
+                    )
+
+  end
       
   fun fileNewer(file1, file2) = (* see if file1 is newer than file2 *)
-    let val timeFile1 = OS.FileSys.modTime file1
-        val timeFile2 = OS.FileSys.modTime file2
+    let val timeFile1 = (OS.FileSys.modTime file1)
+                        handle exn => 
+                          (case exn of OS.SysErr(s, _) => 
+                                bug("fileNewer Error: " ^ s ^ "! Could not access file: " ^ file1);
+                                raise exn)
+        val timeFile2 = (OS.FileSys.modTime file2)
+                        handle exn => 
+                          (case exn of OS.SysErr(s, _) => 
+                                bug("fileNewer Error: " ^ s ^ "! Could not access file: " ^ file2);
+                                raise exn)
     in
       case Time.compare(timeFile1, timeFile2) of
          GREATER => true
@@ -203,6 +226,8 @@ structure Control: CONTROL =
     in
       if fileExists(serializationFile)
       then let val {file=serializedFile, date=date_str, version=version} = getSerializationInfo(serializationFile)
+               val (p, f, e) = pathFileExtSplit(serializedFile)
+               val serializedFile = joinFileExt(f, e)
            in
              if (serializedFile = file) andalso (version = serializationFileVersion)
              then true
@@ -210,11 +235,39 @@ structure Control: CONTROL =
            end
       else false
     end
+
+  fun getIncludesAsString([]) = ""
+  |   getIncludesAsString(p::paths) = "-I" ^ p ^ " " ^ getIncludesAsString(paths)
+
+  fun findFileInInclude(prefix, fileName, ext) =
+  let 
+    val _ = debug("fileExistsInInclude: Searching for file: prefix: " ^ prefix ^ " fileName: " ^ fileName ^ "\n");
+    val file = joinFileExt(fileName, ext)
+    val fullFileName = joinPathFileExt(prefix, fileName, ext)
+    val _ = debug("fileExistsInInclude: Searching for file: " ^ file ^ "\n")
+    fun prepathFile(file, paths) =
+      case paths of
+         nil => bug("findFileInInclude Error: could not find file: " ^ 
+                    file ^ 
+                    " in any of the given includes: " ^ 
+                    getIncludesAsString(!iDirs))
+      |    _ => let 
+                   val _ = debug("fileExistsInInclude.prePathFile: Searching for file: prefix: " ^ (hd paths) ^ " fileName: " ^ file ^ "\n");
+                   val fp = OS.Path.joinDirFile{dir = (hd paths), file = file}
+                in
+                  if fileExists(fp) then fp
+                  else prepathFile(file, tl paths)
+                end
+  in
+    if fileExists(fullFileName) 
+    then fullFileName
+    else prepathFile(file, !iDirs)
+  end
     
   fun isSerializedFileValid(prefix, fileName, ext) = 
   let 
      val serializationFile = getFullFileName(!oTDir, fileName, SERIALIZATION_FILE)
-     val file = joinPathFileExt(prefix, fileName, ext)
+     val file = findFileInInclude(prefix, fileName, ext)
   in
     if fileExists(file) andalso 
        fileExists(serializationFile) andalso
@@ -244,7 +297,7 @@ structure Control: CONTROL =
      val interfaceFile = getFullFileName(!oTDir, fileName, INTERFACE_FILE)
   in
     if fileExists(interfaceFile) andalso 
-       readFirstLine(interfaceFile) = "(*interfaceOf["^fileName^"]*)"
+       readFirstLine(interfaceFile) = "(*interfaceOf[" ^ joinFileExt(fileName, ext) ^ "]*)"
     then true
     else false
   end

@@ -234,17 +234,31 @@ functor AbsynPrintFn(structure MakeString : MAKESTRING
       (prStr(os, "relation "); print_relbind_star(os, relbind_star))
 
     fun printModule(os, Absyn.MODULE(Absyn.INTERFACE({modid,specs,source}, _), dec_star, _)) =
-      (prStr(os,"(*moduleOf["); prStr(os, Absyn.Source.getFileName(source)); prStr(os, "]*)\n");
+    let
+       val fullFileName = Absyn.Source.getFileName(source)
+       val (p, f, e) = Control.pathFileExtSplit(fullFileName)
+       val fileName = Control.joinFileExt(f, e)
+    in
+       prStr(os,"(*moduleOf["); prStr(os, fileName); prStr(os, "]*)\n");
+       prStr(os,"(*fullFileName["); prStr(os, fullFileName); prStr(os, "]*)\n");
        prStr(os, "module "); print_ident(os, modid); prStr(os, ":\n");
        List.app (print_spec os) specs;
        prStr(os, "end\n");
-       List.app (print_dec os) dec_star)
+       List.app (print_dec os) dec_star
+    end
 
     fun printInterface(os, Absyn.MODULE(Absyn.INTERFACE({modid,specs,source}, _), dec_star, _)) =
-      (prStr(os,"(*interfaceOf["); prStr(os, Absyn.Source.getFileName(source)); prStr(os, "]*)\n");
-       prStr(os, "module "); print_ident(os, modid); prStr(os, ":\n");
-       List.app (print_spec os) specs;
-       prStr(os, "end\n"))
+    let
+       val fullFileName = Absyn.Source.getFileName(source)
+       val (p, f, e) = Control.pathFileExtSplit(fullFileName)
+       val fileName = Control.joinFileExt(f, e)
+    in
+      prStr(os,"(*interfaceOf["); prStr(os, fileName); prStr(os, "]*)\n");
+      prStr(os,"(*fullFileName["); prStr(os, fullFileName); prStr(os, "]*)\n");
+      prStr(os, "module "); print_ident(os, modid); prStr(os, ":\n");
+      List.app (print_spec os) specs;
+      prStr(os, "end\n")
+    end
 
     fun print_spec_with os (Absyn.WITHspec(str, _, _)) = 
         (prStr(os, Control.getFullFileName(!Control.oTDir, str, Control.INTERFACE_FILE)); prStr(os, " "))

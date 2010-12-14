@@ -53,6 +53,8 @@ struct
     fun getLoc (sp, ep) = 
     let 
       val {fileName, sline, scolumn, eline, ecolumn} = Absyn.Source.getLoc(!currentSource, sp, ep)
+      val (prefix, file, ext) = Control.pathFileExtSplit(fileName)
+      val fileName = Control.joinFileExt(file, ext)
     in
         (fileName, sline, scolumn, eline, ecolumn)
     end
@@ -1959,7 +1961,7 @@ end
             let val tau = TyScheme.instFree(sigma, SOME(Absyn.identName var))
             val sigma' = TyScheme.genAll tau
             val Absyn.INFO(sp, ep) = Absyn.identCtxInfo var
-            val (file, sl, sc, el, ec) = getLoc(sp, ep)            
+            val (file, sl, sc, el, ec) = getLoc(sp, ep)
           in
             case vk of 
              StatObj.REL => 

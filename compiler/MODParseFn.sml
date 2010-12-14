@@ -21,7 +21,10 @@ functor MODParseFn(structure Absyn : ABSYN
   
   structure Absyn = Cache.Absyn
   type repository = Cache.repository
-    
+  
+  structure Util = Util
+  fun bug  s = Util.bug("MODParseFn."^s)
+
   val debugFlag = false
   fun debug s = if (debugFlag) then Util.outStdErr("MODParseFn."^s) else ()  
   
@@ -36,12 +39,29 @@ functor MODParseFn(structure Absyn : ABSYN
              end
     
     fun parse(startToken, file, repository, isInterface) =
-  let val f = if Control.fileExists(file) then 
+     let val f = if Control.fileExists(file) then 
                 file (* If the file is in current dir, use it *)
-              else  (* otherwise prepend include path and check *)
-                prepathFile(file, rev (!Control.iDirs))
+                else  (* otherwise prepend include path and check *)
+                    prepathFile(file, rev (!Control.iDirs))
       val _ = debug("\nMODPraseFn.parse File: "^f^"\n")
-      val is = TextIO.openIn f
+         val is = (TextIO.openIn f)
+                    handle exn => (
+                                    case exn of 
+                                    IO.Io({name, function, cause})
+                                    => 
+                                    ( 
+                                     bug("parse Error: name = " ^ 
+                                         name ^ 
+                                         " function: " ^ 
+                                         function ^ 
+                                         "! Could not open file: " ^ f);
+                                     
+                                     case cause of
+                                     OS.SysErr(s, _) => 
+                                      bug("parse Error: " ^ s ^ "! Could not open file: " ^ f);
+                                      raise exn
+                                    ) 
+                                  )
   in
   (let val (lexarg, inputf) = LexArg.new(file, is)
        val pos = (2,0,0)  (*XXX: ML-Lex*)

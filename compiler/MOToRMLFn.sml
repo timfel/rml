@@ -26,11 +26,14 @@ let val Absyn.PROGRAM(_,_,interface as
         Absyn.INTERFACE({modid=current_modid,source,...}, infoI), info) = modelica
     
     fun getBugLoc(Absyn.INFO(sp, ep)) =
-    let val {fileName, sline, scolumn, eline, ecolumn} = Absyn.Source.getLoc (source, sp, ep)
+    let 
+       val {fileName, sline, scolumn, eline, ecolumn} = Absyn.Source.getLoc (source, sp, ep)
+       val (prefix, file, ext) = Control.pathFileExtSplit(fileName)
+       val fileName = Control.joinFileExt(file, ext)
     in
-        ("\n"^fileName^":"^
-        (Int.toString sline)^"."^(Int.toString scolumn)^"-"^
-        (Int.toString eline)^"."^(Int.toString ecolumn)^" ")    
+       ("\n"^fileName^":"^
+       (Int.toString sline)^"."^(Int.toString scolumn)^"-"^
+       (Int.toString eline)^"."^(Int.toString ecolumn)^" ")    
     end
     
     exception MetaModelicaToRMLTranslation
@@ -63,7 +66,10 @@ let val Absyn.PROGRAM(_,_,interface as
         Absyn.INFO(loc1,loc4)
 
     fun getStringLoc(Absyn.INFO(sp, ep)) =
-    let val {fileName, sline, scolumn, eline, ecolumn} = Absyn.Source.getLoc (source, sp, ep)
+    let 
+       val {fileName, sline, scolumn, eline, ecolumn} = Absyn.Source.getLoc (source, sp, ep)
+       val (prefix, file, ext) = Control.pathFileExtSplit(fileName)
+       val fileName = Control.joinFileExt(file, ext)
     in
         " file: "^fileName^":"^
         (Int.toString sline)^"."^
@@ -73,7 +79,10 @@ let val Absyn.PROGRAM(_,_,interface as
     end
 
     fun prLoc(Absyn.INFO(sp, ep)) =
-    let val {fileName, sline, scolumn, eline, ecolumn} = Absyn.Source.getLoc (source, sp, ep)
+    let 
+       val {fileName, sline, scolumn, eline, ecolumn} = Absyn.Source.getLoc (source, sp, ep)
+       val (prefix, file, ext) = Control.pathFileExtSplit(fileName)
+       val fileName = Control.joinFileExt(file, ext)
     in
         debug (" file: "^fileName^":"^
         (Int.toString sline)^"."^(Int.toString scolumn)^"."^(Int.toString eline)^"."^(Int.toString ecolumn)^
