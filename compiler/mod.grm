@@ -1190,7 +1190,7 @@ element_list:
     element SEMICOLON element_list                     (* 083 *)
         ( Absyn.ELEMENTITEM(
                 element,
-                makeInfo lexArg (elementleft, SEMICOLONright))::element_list )         
+                makeInfo lexArg (elementleft, SEMICOLONright))::element_list )
     | annotation SEMICOLON element_list                (* Ignore annotations *)
         ( element_list )
     | (* empty *)                                      (* 084 *)
@@ -1469,7 +1469,9 @@ equation_clause:
 
 equation_annotation_list:
      equation SEMICOLON equation_annotation_list       (* 123 *)
-        ( equation::equation_annotation_list )        
+        ( equation::equation_annotation_list )
+    | annotation SEMICOLON equation_annotation_list       (* 123 *)
+        ( equation_annotation_list )
     | (* empty *)                                      (* 124 *)
         ( [] )
     
@@ -1511,7 +1513,7 @@ algorithm_clause:
     )    
 
 algorithm_annotation_list:
-    algorithm SEMICOLON algorithm_annotation_list      (* 130 *)
+      algorithm SEMICOLON algorithm_annotation_list      (* 130 *)
         ( algorithm::algorithm_annotation_list )
     | annotation SEMICOLON algorithm_annotation_list   (* ignore annotations *)
         ( algorithm_annotation_list )
