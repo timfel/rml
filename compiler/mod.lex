@@ -251,8 +251,8 @@ escseq={ddigit}{3}|"^"{cntrl}|{echar};
 pchar=[\ -!#-[^-~\128-\255]|"]";
 cdesc={pchar}|\\{escseq}|"\\";
 
-alpha=[A-Za-z];
-alnum={alpha}|[_0-9];
+alpha=[A-Za-z_];
+alnum={alpha}|[0-9];
 id={alpha}{alnum}*;
 
 %%
