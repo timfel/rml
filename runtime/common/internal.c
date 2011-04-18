@@ -63,7 +63,7 @@ void rmldb_var_print(void *p)
     if (!p) { printf ("NIL"); fflush(stdout); return; }
     if( RML_ISIMM(p) ) 
     {
-        printf ("%d", RML_UNTAGFIXNUM(p));    
+        printf ("%ld", (long)RML_UNTAGFIXNUM(p));    
     } 
     else 
     {
@@ -86,12 +86,12 @@ void rmldb_var_print(void *p)
                     void **pp = NULL;
                     if (slots == 0)
                     {
-                        printf ("{S(%d)[%d]=NIL}", constr, slots);
+		        printf ("{S(%ld)[%ld]=NIL}", (long)constr, (long)slots);
                         fflush(stdout);
                         return;
                     }
                     
-                    printf ("S(%d)[%d](", constr, slots);
+                    printf ("S(%ld)[%ld](", (long)constr, (long)slots);
 
                     pp = RML_STRUCTDATA(p);
                     fflush(stdout);

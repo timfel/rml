@@ -586,21 +586,21 @@ static void **rml_collect(void **scan, char *region_low, rml_uint_t region_nbyte
 static void* rml_major_collection(rml_uint_t nwords, rml_uint_t nliveargs) 
 {
   void **next =0, **scan = 0, **rr = 0; 
-  rml_uint_t current_inuse = 0;
-  rml_uint_t used_before = rml_current_next - rml_current_region;
+  long current_inuse = 0;
+  long used_before = (long)(rml_current_next - rml_current_region);
 
   ++rml_majorgc_count;
   if (rml_flag_gclog && !rml_flag_bench) 
   {
-    fprintf(stderr, "\n[major collection: N: %lu, F: %lu, O: %lu Y: %lu, O/Y: %lu, W: %lu, C: %lu, L: %lu]",
-      (unsigned long)rml_c_heap_region_total_size + nwords + rml_young_size,
-      (unsigned long)rml_older_size - (rml_current_next - rml_current_region),
-      (unsigned long)rml_older_size,
-      (unsigned long)rml_young_size,
-      (unsigned long)rml_older_size/rml_young_size,
-      (unsigned long)nwords,
-      (unsigned long)rml_c_heap_region_total_size,
-      (unsigned long)nliveargs
+    fprintf(stderr, "\n[major collection: N: %ld, F: %ld, O: %ld Y: %ld, O/Y: %ld, W: %ld, C: %ld, L: %ld]",
+      (long)(rml_c_heap_region_total_size + nwords + rml_young_size),
+      (long)(rml_older_size - (rml_current_next - rml_current_region)),
+      (long)rml_older_size,
+      (long)rml_young_size,
+      (long)(rml_older_size/rml_young_size),
+      (long)nwords,
+      (long)rml_c_heap_region_total_size,
+      (long)nliveargs
       ); 
     fprintf(stderr, "\n[major collection #%lu..", rml_majorgc_count); 
     fflush(stderr);
@@ -613,8 +613,8 @@ static void* rml_major_collection(rml_uint_t nwords, rml_uint_t nliveargs)
    * see if we have enough space to add 
    * external C heap data + the young gen + what we need to allocate now (nwords)
    */
-    if ((rml_c_heap_region_total_size + nwords + rml_young_size)
-        < (rml_older_size - (rml_current_next - rml_current_region)))
+    if (((long)rml_c_heap_region_total_size + (long)nwords + (long)rml_young_size)
+        < ((long)rml_older_size - ((long)rml_current_next - (long)rml_current_region)))
     {
       /* we have enough space */
       if (rml_flag_gclog && !rml_flag_bench) 
@@ -675,9 +675,9 @@ static void* rml_major_collection(rml_uint_t nwords, rml_uint_t nliveargs)
   if (rml_flag_gclog && !rml_flag_bench) 
   {
      rml_heap_expansions_count++;
-     fprintf(stderr, " AC O/U: %.3g CO: %lu O/Y: %.3g U/Y: %.3g", 
+     fprintf(stderr, " AC O/U: %.3g CO: %ld O/Y: %.3g U/Y: %.3g", 
        (double)rml_older_size/(double)current_inuse,
-       (unsigned long)used_before-current_inuse,
+       (long)(used_before-current_inuse),
        (double)rml_older_size/(double)rml_young_size,
        (double)current_inuse/(double)rml_young_size
        );
@@ -694,7 +694,7 @@ static void* rml_major_collection(rml_uint_t nwords, rml_uint_t nliveargs)
   current_inuse += nwords + rml_c_heap_region_total_size;
 
   /* do a heap expansion if needed */
-  if ( ((100.0*(double)current_inuse)/(double)rml_older_size) > 90 ) /* current_inuse > 90/100 * rml_older_size */
+  if ( (100.0*((double)current_inuse)/(double)rml_older_size) > 90.0 ) /* current_inuse > 90/100 * rml_older_size */
   {
     rml_uint_t new_size = 0;
 
@@ -720,7 +720,7 @@ static void* rml_major_collection(rml_uint_t nwords, rml_uint_t nliveargs)
     if ( !rml_reserve_region ) /* we couldn't allocate that much, try again, with less memory */
     {
       if (rml_flag_gclog && !rml_flag_bench) {
-        fprintf(stderr, " (LESS %50) "); fflush(stderr);
+        fprintf(stderr, " (LESS %%50) "); fflush(stderr);
       }
       new_size = current_inuse + rml_young_size; /* try to allocate less */
       rr = rml_alloc_core(new_size, RML_EXIT_ON_FAILURE);
@@ -735,7 +735,7 @@ static void* rml_major_collection(rml_uint_t nwords, rml_uint_t nliveargs)
     else
     {
       if (rml_flag_gclog && !rml_flag_bench) {
-          fprintf(stderr, " (MORE 50%) "); fflush(stderr);
+          fprintf(stderr, " (MORE 50%%) "); fflush(stderr);
       }
     }
     
@@ -760,8 +760,8 @@ static void* rml_major_collection(rml_uint_t nwords, rml_uint_t nliveargs)
     current_inuse = rml_current_next - rml_current_region;
   } 
   else if ( /* do a heap shrink if only 15% is used and it was an expansion */
-           (100.0*(double)current_inuse)/(double)rml_older_size <= 20 && /* less than 20% used */
-           rml_young_size * 4 < rml_older_size  /* older is at least 4 times the young */
+           100.0*((double)current_inuse/(double)rml_older_size) <= 20.0 && /* less than 20% used */
+	   (double)rml_young_size * 4.0 < (double)rml_older_size  /* older is at least 4 times the young */
           )
   {
     rml_uint_t new_size = 0;
@@ -860,9 +860,9 @@ void* rml_minor_collection(rml_uint_t nliveargs) {
   }
 
   if (rml_flag_gclog && !rml_flag_bench) {
-    fprintf(stderr, "\nminor collection #%d collected: %lu",
-      rml_minorgc_count,
-      (unsigned long)(current_nfree - (rml_older_size - (next - rml_current_region)))
+    fprintf(stderr, "\nminor collection #%ld collected: %ld",
+      (long)rml_minorgc_count,
+      (long)(current_nfree - (rml_older_size - (next - rml_current_region)))
       );
     fflush(stderr);
   }
@@ -1050,7 +1050,7 @@ void *alloc_words(unsigned nwords) {
 }
 
 void print_icon(FILE *fp, void *icon) {
-  fprintf(fp, "%d", RML_UNTAGFIXNUM(icon));
+  fprintf(fp, "%ld", (long)RML_UNTAGFIXNUM(icon));
 }
 
 void print_rcon(FILE *fp, void *rcon) {
@@ -1058,7 +1058,7 @@ void print_rcon(FILE *fp, void *rcon) {
 }
 
 void print_scon(FILE *fp, void *scon) {
-  fprintf(fp, "%.*s", RML_HDRSTRLEN(RML_GETHDR(scon)), RML_STRINGDATA(scon));
+  fprintf(fp, "%.*s", (int)RML_HDRSTRLEN(RML_GETHDR(scon)), RML_STRINGDATA(scon));
 }
 
 void *mk_rcon(double d) {

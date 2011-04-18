@@ -49,8 +49,8 @@ static void socket_input (buf, result, max)
 		*result = YY_NULL;
 		/* exit if the other part closed the socket */
 		if (rmldb_socket_debug)
-	      	fprintf (stderr, "%s Error! Receiving from socket failed: %s. Received: %d bytes.\n", 
-	      		RMLDB_SOCKET_PROMPT, strerror(_rmldb_socket_errorno), nb_bytes);
+	      	fprintf (stderr, "%s Error! Receiving from socket failed: %s. Received: %ld bytes.\n", 
+	      		RMLDB_SOCKET_PROMPT, strerror(_rmldb_socket_errorno), (long)nb_bytes);
 		if (nb_bytes == -1 ) exit (1);
 	}   
 	else 

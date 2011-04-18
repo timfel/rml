@@ -1482,8 +1482,8 @@ void rmldb_var_show(void *p, rmldb_type_t* type, int depth)
 				char *con_name = NULL;
 				con_name = rmldb_get_con_name(type, RML_UNTAGFIXNUM(p));
 				if (con_name) 
-					printf ("%d:enum:%s", RML_UNTAGFIXNUM(p),con_name);
-				else printf ("%d:int", RML_UNTAGFIXNUM(p));
+				  printf ("%ld:enum:%s", (long)RML_UNTAGFIXNUM(p),con_name);
+				else printf ("%ld:int", (long)RML_UNTAGFIXNUM(p));
 			}
 			else
 				if(type->kind==RMLDB_eRELty)
@@ -1494,9 +1494,9 @@ void rmldb_var_show(void *p, rmldb_type_t* type, int depth)
 					fprintf(stdout,"\n");
 				}
 				else
-					printf ("%d:int", RML_UNTAGFIXNUM(p));
+				  printf ("%ld:int", (long)RML_UNTAGFIXNUM(p));
 		}
-		else printf ("%d:int", RML_UNTAGFIXNUM(p));
+		else printf ("%ld:int", (long)RML_UNTAGFIXNUM(p));
 	} 
 	else 
 	{
@@ -1621,9 +1621,9 @@ void rmldb_var_show(void *p, rmldb_type_t* type, int depth)
 						if (con_name) 
 						{
 							if (slots == 0)
-								printf ("%s[%d]", con_name, slots);
+							  printf ("%s[%ld]", con_name, (long)slots);
 							else
-								printf ("%s[%d](", con_name, slots);
+							  printf ("%s[%ld](", con_name, (long)slots);
 						}
 					}
 					else 
@@ -1649,7 +1649,7 @@ void rmldb_var_show(void *p, rmldb_type_t* type, int depth)
 									suffix = RMLDB_TYPE_SUFFIX_OPTION;
 								}
 							else if (!remeber)/* fall to the most miserable case */ 
-									printf ("S(%d)[%d](", constr, slots);
+							  printf ("S(%ld)[%ld](", (long)constr, (long)slots);
 						}
 					}
 					void **pp = RML_STRUCTDATA(p);
@@ -1664,7 +1664,7 @@ void rmldb_var_show(void *p, rmldb_type_t* type, int depth)
 						/* treat here vectors separately */
 						if (suffix == RMLDB_TYPE_SUFFIX_VECTOR)
 						{
-							printf ("VECTOR[%d]{", slots);
+						  printf ("VECTOR[%ld]{", (long)slots);
 							for (i = 0; i < slots; i++)
 							{
 								/* tree like display please */
@@ -1683,7 +1683,7 @@ void rmldb_var_show(void *p, rmldb_type_t* type, int depth)
 						/* treat here arrays separately */
 						if (suffix == RMLDB_TYPE_SUFFIX_ARRAY)
 						{
-							printf ("ARRAY[%d]{", slots);
+						  printf ("ARRAY[%ld]{", (long)slots);
 							for (i = 0; i < slots; i++)
 							{
 								/* tree like display please */
@@ -1865,10 +1865,10 @@ void rmldb_var_send(void *p, rmldb_type_t* type, int depth, int structDepth)
 				con = rmldb_get_con(type, RML_UNTAGFIXNUM(p));
 				if (con)
 				{
-					snprintf(line, RMLDB_MAX_LINE, "%d|en|%s|%d:enum:%s|", 
+					snprintf(line, RMLDB_MAX_LINE, "%d|en|%s|%ld:enum:%s|", 
                         depth, 
                         rmldb_get_named_type(type, componentName, "->"), 
-                        RML_UNTAGFIXNUM(p), 
+						 (long)RML_UNTAGFIXNUM(p), 
                         con->name);
 					_rmldb_socket_out(line);
 					rmldb_type_to_sock(con->type_db->type, 0);
@@ -1876,10 +1876,10 @@ void rmldb_var_send(void *p, rmldb_type_t* type, int depth, int structDepth)
 				}
 				else 
 				{
-					snprintf(line, RMLDB_MAX_LINE, "%d|in|%s|%d|int", 
+					snprintf(line, RMLDB_MAX_LINE, "%d|in|%s|%ld|int", 
                         depth, 
                         rmldb_get_named_type(type, componentName, "->"), 
-                        RML_UNTAGFIXNUM(p));
+						 (long)RML_UNTAGFIXNUM(p));
 					_rmldb_socket_outln(line);
 				}
 			}
@@ -1897,20 +1897,20 @@ void rmldb_var_send(void *p, rmldb_type_t* type, int depth, int structDepth)
 				}
 				else
 				{
-					snprintf(line, RMLDB_MAX_LINE, "%d|in|%s|%d|int", 
+					snprintf(line, RMLDB_MAX_LINE, "%d|in|%s|%ld|int", 
                         depth, 
                         rmldb_get_named_type(type, componentName, "->"), 
-                        RML_UNTAGFIXNUM(p));
+						 (long)RML_UNTAGFIXNUM(p));
 					_rmldb_socket_outln(line);
 				}
             }
 		}
 		else 
 		{
-			snprintf(line, RMLDB_MAX_LINE, "%d|in|%s|%d|int", 
+			snprintf(line, RMLDB_MAX_LINE, "%d|in|%s|%ld|int", 
                 depth, 
                 rmldb_get_named_type(type, componentName, "->"), 
-                RML_UNTAGFIXNUM(p));
+				 (long)RML_UNTAGFIXNUM(p));
 			_rmldb_socket_outln(line);
 		}
 	} 
@@ -1980,10 +1980,10 @@ void rmldb_var_send(void *p, rmldb_type_t* type, int depth, int structDepth)
 					if (type && (type->kind == RMLDB_eTUPLEty || type->kind == RMLDB_eLISTty))
 					{
 						int i;
-						snprintf(line, RMLDB_MAX_LINE, "%d|tu|%s|TUPLE[%d](%d)|", 
+						snprintf(line, RMLDB_MAX_LINE, "%d|tu|%s|TUPLE[%ld](%d)|", 
                             depth, 
                             rmldb_get_named_type(type, componentName, "[tuple]"), 
-                            slots, 
+							 (long)slots, 
                             type->kind);
 						_rmldb_socket_out(line);
 						rmldb_type_to_sock(type, 0);
@@ -2070,10 +2070,10 @@ void rmldb_var_send(void *p, rmldb_type_t* type, int depth, int structDepth)
 					/* treat here vectors separately */
 					if (suffix == RMLDB_TYPE_SUFFIX_VECTOR)
 					{
-						snprintf(line, RMLDB_MAX_LINE, "%d|ve|%s|VECTOR[%d]|", 
+						snprintf(line, RMLDB_MAX_LINE, "%d|ve|%s|VECTOR[%ld]|", 
                             depth, 
                             rmldb_get_named_type(type, componentName, "[vector]"), 
-                            slots);
+							 (long)slots);
 						_rmldb_socket_out(line);
 						rmldb_type_to_sock(type, 0);
 						_rmldb_socket_outln("");
@@ -2094,10 +2094,10 @@ void rmldb_var_send(void *p, rmldb_type_t* type, int depth, int structDepth)
 					/* treat here arrays separately */
 					if (suffix == RMLDB_TYPE_SUFFIX_ARRAY)
 					{
-						snprintf(line, RMLDB_MAX_LINE, "%d|ar|%s|ARRAY[%d]|", 
+						snprintf(line, RMLDB_MAX_LINE, "%d|ar|%s|ARRAY[%ld]|", 
                             depth, 
                             rmldb_get_named_type(type, componentName, "[array]"), 
-                            slots);
+							 (long)slots);
 						_rmldb_socket_out(line);
 						rmldb_type_to_sock(type, 0);
 						_rmldb_socket_outln("");
@@ -2238,22 +2238,22 @@ void rmldb_var_send(void *p, rmldb_type_t* type, int depth, int structDepth)
 						con = rmldb_get_con(type, constr);
 						if (con)
 						{
-							snprintf(line, RMLDB_MAX_LINE, "%d|da|%s|%s[%d]|", 
+							snprintf(line, RMLDB_MAX_LINE, "%d|da|%s|%s[%ld]|", 
                                 depth,
                                 rmldb_get_named_type(type, componentName, "[record]"), 
                                 con->name, 
-                                slots);
+								 (long)slots);
 							_rmldb_socket_out(line);
 							rmldb_type_to_sock(con->type_db->type, 0);
 							_rmldb_socket_outln("");
 						}
 						else
 						{
-							snprintf(line, RMLDB_MAX_LINE, "%d|da|%s|UNKNOWN-STRUCTURE[%d,%d]|", 
+							snprintf(line, RMLDB_MAX_LINE, "%d|da|%s|UNKNOWN-STRUCTURE[%ld,%ld]|", 
                                 depth, 
                                 rmldb_get_named_type(type, componentName, "[structure]"), 
-                                constr, 
-                                slots);
+								 (long)constr, 
+								 (long)slots);
 							_rmldb_socket_out(line);
 							rmldb_type_to_sock(type, 0);
 							_rmldb_socket_outln("");
@@ -2261,11 +2261,11 @@ void rmldb_var_send(void *p, rmldb_type_t* type, int depth, int structDepth)
 					}
 					else
 					{
-							snprintf(line, RMLDB_MAX_LINE, "%d|da|%s|UNKNOWN-STRUCTURE[%d,%d]|", 
+							snprintf(line, RMLDB_MAX_LINE, "%d|da|%s|UNKNOWN-STRUCTURE[%ld,%ld]|", 
                                 depth,
                                 rmldb_get_named_type(type, componentName, "[structure]"),
-                                constr, 
-                                slots);
+								 (long)constr, 
+								 (long)slots);
 							_rmldb_socket_out(line);
 							rmldb_type_to_sock(type, 0);
 							_rmldb_socket_outln("");
@@ -2434,7 +2434,7 @@ void RML__call_debug(char* fileName, int sp, int ep, int sl, int sc, int el, int
 					el,		/* end line */
 					ec,     /* end column */
 					strrel,     /* relation */
-					strgoal     /* goal (term) */
+		     (char*)strgoal     /* goal (term) */
 					);	
 		rmldb_current_execution_loc.file = fileName;
 		rmldb_current_execution_loc.relation = relation;
