@@ -761,7 +761,7 @@ static void* rml_major_collection(rml_uint_t nwords, rml_uint_t nliveargs)
   } 
   else if ( /* do a heap shrink if only 15% is used and it was an expansion */
            100.0*((double)current_inuse/(double)rml_older_size) <= 20.0 && /* less than 20% used */
-	   (double)rml_young_size * 4.0 < (double)rml_older_size  /* older is at least 4 times the young */
+           (double)rml_young_size * 4.0 < (double)rml_older_size  /* older is at least 4 times the young */
           )
   {
     rml_uint_t new_size = 0;
@@ -778,10 +778,10 @@ static void* rml_major_collection(rml_uint_t nwords, rml_uint_t nliveargs)
 
     if (rml_flag_gclog && !rml_flag_bench) {
       rml_heap_shrinkings_count++;
-      fprintf(stderr, " shrinking heap [ratio: %lu, before: %.3g%%, after: %.3g%%] ...", 
-        (unsigned long)ratio,
-        (((double)current_inuse*100.0)/(double)rml_older_size),
-        (((double)current_inuse*100.0)/(double)new_size)
+      fprintf(stderr, " shrinking heap [ratio: %ld, before: %.3g%%, after: %.3g%%] ...", 
+        (long)ratio,
+        100.0*((double)current_inuse/(double)rml_older_size),
+        100.0*((double)current_inuse/(double)new_size)
         ); 
       fflush(stderr);
     }
@@ -824,7 +824,7 @@ static void* rml_major_collection(rml_uint_t nwords, rml_uint_t nliveargs)
   /* done with the major collection */
   if (rml_flag_gclog && !rml_flag_bench)
   {
-    fprintf(stderr, " used: %.3g%%]", (((double)current_inuse*100.0)/(double)rml_older_size));
+    fprintf(stderr, " used: %.3g%%]", 100.0*((double)current_inuse/(double)rml_older_size));
     fflush(stderr);
   }
 
