@@ -1,5 +1,6 @@
 /* arr-add.c */
 #include <stdio.h>
+#include <string.h>
 #include "rml.h"
 /* use this define to have array behave as vectors
 #define NON_DESTRUCTIVE_ARRAY_IMPLEMENTATION
@@ -363,9 +364,11 @@ RML_BEGIN_LABEL(RML__array_5fcopy)
     vec = rmlA0;
     vec_new->header = RML_STRUCTHDR(nelts, 0);
     rmlA0 = RML_TAGPTR(vec_new);
-    /* copy the old vector */
+    /* copy the old vector 
     for(i = 0; i < nelts; i++)
       *vecp++ = RML_STRUCTDATA(vec)[i];
+    */
+    memcpy(vecp, RML_STRUCTDATA(vec), (1+nelts)*sizeof(void*));
   }
   RML_TAILCALLK(rmlSC);
 }
