@@ -903,10 +903,6 @@ let val Absyn.PROGRAM(_,_,interface as
         Absyn.CONSty([], Absyn.LONGID(SOME(caseType(ident1)), caseType(ident2), info), info)
     | getTypeFromPath(Absyn.PATHIDENT(ident as Absyn.IDENT(_, info), _)) = 
         Absyn.CONSty([], Absyn.LONGID(NONE, caseType(ident), info), info)
-    (*
-    | getTypeFromPath(Absyn.TYPEVARIABLE(ident as Absyn.IDENT(_, info), _)) = 
-        Absyn.VARty(caseType(ident), info)
-    *)
     | getTypeFromPath(Absyn.QUALIFIED(_, _, info)) = 
         errorAtFunction(info, "only one DOT in path is allowed","getTypeFromPath")
       
@@ -1126,8 +1122,48 @@ let val Absyn.PROGRAM(_,_,interface as
             case x of 
                 TyB(y) => Absyn.TYPEdec([y], Absyn.dummyInfo)::getTypsDec(rest)
             |    _ => getTypsDec(rest)
+
+
+    fun findTyVar([], lid) = NONE
+    |   findTyVar(x::rest, lid) =
+        if (Absyn.identName(x) = "'" ^ Absyn.lidentName(lid))
+        then SOME(x)
+        else findTyVar(rest, lid)
+
+    fun fixTypeVar(ty, tyVarLst) = 
+        let 
+         val [x] = fixTypeVars([ty], tyVarLst)
+        in
+          x
+        end
+
+    (* in uniontype we have:
+       the name of the type variable without its type variable,
+       so here we add it.
+     *)
+    and fixTypeVars([],  _) = []
+    |   fixTypeVars(Absyn.CONSty([], lid,  info)::rest, tyVarlst) = 
+        (case (findTyVar(tyVarlst, lid)) of
+          SOME(x) => Absyn.CONSty([Absyn.VARty(x, info)], lid,  info)
+        | NONE => Absyn.CONSty([], lid,  info))
+        ::fixTypeVars(rest, tyVarlst)
+    |   fixTypeVars(Absyn.CONSty(lst, lid,  info)::rest, tyVarlst) = 
+        Absyn.CONSty(fixTypeVars(lst, tyVarlst), lid,  info)::fixTypeVars(rest, tyVarlst)
+    |   fixTypeVars(Absyn.TUPLEty(lst, info)::rest, tyVarlst) = 
+        Absyn.TUPLEty(fixTypeVars(lst, tyVarlst), info)::fixTypeVars(rest, tyVarlst)
+    |   fixTypeVars(Absyn.RELty(input, output, info)::rest, tyVarlst) = 
+        Absyn.RELty(fixTypeVars(input, tyVarlst), fixTypeVars(output, tyVarlst), info)::fixTypeVars(rest, tyVarlst)
+    |   fixTypeVars(Absyn.NAMEDty(id, ty, info)::rest, tyVarlst) = 
+        Absyn.NAMEDty(id, fixTypeVar(ty, tyVarlst), info)::fixTypeVars(rest, tyVarlst)
+
+    fun fixTypeVariables([], _) = []
+    |   fixTypeVariables(Absyn.CTORcb(id, tys, info)::rest, tyVarLst) =
+        Absyn.CTORcb(id, fixTypeVars(tys, tyVarLst), info)::fixTypeVariables(rest, tyVarLst)
+    |   fixTypeVariables(x::rest, tyVarLst) =
+        x::fixTypeVariables(rest, tyVarLst)
+
            
-    (* this one looks inside uniontype for constructors/types/type variables *)            
+    (* this one looks inside uniontype for constructors/types/type variables *)        
     fun buildConstructors([], uid) = []
     |    buildConstructors(Absyn.PUBLIC(elementItems, _)::rest, uid) = 
             sweepRecords(elementItems, uid) @ buildConstructors(rest, uid)
@@ -1155,6 +1191,11 @@ let val Absyn.PROGRAM(_,_,interface as
                      getCons(contytyvar_list),
                      getTyVars(contytyvar_list),
                      buildConstantsForConstantConstructors(contytyvar_list, isPublic)) 
+            (* in uniontype we have:
+              the name of the type variable without its type variable,
+              so here we add it.
+             *)
+            val cons = fixTypeVariables(cons, tyvars)
         in
             debug("buildDatatype: specs\n");
             (
@@ -3346,7 +3387,7 @@ let val Absyn.PROGRAM(_,_,interface as
         TyB(Absyn.TYPBIND(tyv, id, (fixTypeScope (ident, ftypeident)) ty, cId))
     )
     (* TODO! search into UNIONTYPE/RECORS for functionames in ty and fix it! *)
-    |    fixFuncTypeScope(ident, ftypeident) (x) = 
+    |   fixFuncTypeScope(ident, ftypeident) (x) = 
         let
         in
         case x of
