@@ -43,6 +43,7 @@ signature CONTROL =
 
   (* options for TypeCheck / StatElab *)
   val allowImplicitLet: bool ref
+  val relaxedTypeCheck: bool ref
 
   (* options for FOLToCPS *)
   val warnNonExhaustive: bool ref

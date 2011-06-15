@@ -1330,7 +1330,7 @@ type_specifier:
    | type_specifier LBRACK COLON RBRACK                (* 101 *)
       ( Absyn.TCOMPLEX(
             Absyn.PATHIDENT(
-                Absyn.IDENT("ARRAY",makeInfo lexArg (type_specifierleft, RBRACKright)),
+                Absyn.IDENT("$ARRAY",makeInfo lexArg (type_specifierleft, RBRACKright)),
                 makeInfo lexArg (type_specifierleft, RBRACKright)), 
             [type_specifier],  
             makeInfo lexArg (type_specifierleft, RBRACKright)))  
@@ -2518,13 +2518,13 @@ name_path:
     | TUPLE                                            (* 269 *)
     ( Absyn.PATHIDENT(        
         Absyn.IDENT(
-            "TUPLE", 
+            "$TUPLE", 
             makeInfo lexArg (TUPLEleft, TUPLEright)),
          makeInfo lexArg (TUPLEleft, TUPLEright)) )
     | LIST                                             (* 270 *)
     ( Absyn.PATHIDENT(        
         Absyn.IDENT(
-            "LIST", 
+            "$LIST", 
             makeInfo lexArg (LISTleft, LISTright)),
          makeInfo lexArg (LISTleft, LISTright)) )
 

@@ -278,6 +278,17 @@ structure Ty : TY =
       if admitsEq(ty, false) then ()
       else tyErr(ty, "does not admit equality")
 
+    (* checks if the type variables is inside a NAMED only *)
+    fun checkEqualTyVar(tyvar1, ty2) =
+      let fun check ty =
+        case deref ty of 
+          VAR(tyvar, vname) => ()
+        | NAMED(id_str, t, vname)   => check(t)
+        | _ => tyErrInst(tyvar1, ty2, "the type variable is explicit")
+      in
+        check ty2
+      end
+
     (* occurs-check *)
 
     fun mustNotOccurIn(tyvar1, ty2) =
@@ -333,8 +344,19 @@ structure Ty : TY =
         loop tylist
     end
     
+    (* adrpo 2011-06-15 first added the first two cases, 
+                        then DISABLED this check!
+                        TODO! FIXME! check if this is correct! *)
     fun bindTyvar(tyvar1 as RIGID _, ty2) =
-         tyErrInst(tyvar1, ty2, "the type variable is explicit")
+         if !Control.relaxedTypeCheck
+         then ()
+         else checkEqualTyVar(tyvar1, ty2)
+    (*
+    |   bindTyvar(tyvar1 as RIGID _, ty2) =
+         if !Control.relaxedTypeCheck
+         then ()
+         else tyErrInst(tyvar1, ty2, "the type variable is explicit")
+    *)
     |   bindTyvar(tyvar1 as FREE{eq,subst,...}, ty2) =
          (mustNotOccurIn(tyvar1, ty2);
           if eq andalso not(admitsEq(ty2, false)) 

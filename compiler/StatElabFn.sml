@@ -15,6 +15,7 @@ functor StatElabFn(
   sharing type Instrument.Absyn.exp = Cache.Absyn.exp
   sharing type AbsynPrint.Absyn.goal = Cache.Absyn.goal
   sharing type StatObj.Absyn.IdentDict.Key.ord_key = Cache.Absyn.ident
+  sharing type AbsynPrint.Absyn.ty = Cache.Absyn.ty
 ) : STAT_ELAB =
 
 struct
@@ -142,10 +143,18 @@ struct
           idError("this is the other binding of ", namethere, ctxInfoThere)
         )
 
-    fun lidError(msg, Absyn.LONGID(SOME(Absyn.IDENT(name1,_)), Absyn.IDENT(name2,_), ctxInfo)) 
-          = idError(msg, name1^"."^name2, ctxInfo)
-    |   lidError(msg, Absyn.LONGID(NONE, Absyn.IDENT(name,_), ctxInfo)) 
-          = idError(msg, name, ctxInfo)
+    fun lidError(msg, Absyn.LONGID(SOME(Absyn.IDENT(name1,_)), Absyn.IDENT(name2,_), ctxInfo), ty, nr1, nr2) 
+          = (sayIdError(msg, name1^"."^name2, ctxInfo); 
+             sayErr "expected: "; sayErr(Int.toString nr1); sayErr " arguments in type:\n  "; 
+             AbsynPrint.print_ty(TextIO.stdErr, ty); sayErr "\nbut got:  ";
+             sayErr(Int.toString nr2); sayErr " arguments!";
+             sayErr "\n"; raise StaticElaborationError)
+    |   lidError(msg, Absyn.LONGID(NONE, Absyn.IDENT(name,_), ctxInfo), ty, nr1, nr2) 
+          = (sayIdError(msg, name, ctxInfo); 
+             sayErr "expected: "; sayErr(Int.toString nr1); sayErr " arguments in type:\n  "; 
+             AbsynPrint.print_ty(TextIO.stdErr, ty); sayErr "\nbut got:  ";
+             sayErr(Int.toString nr2); sayErr " arguments!";
+             sayErr "\n"; raise StaticElaborationError)
 
     (* Add context to type errors *)
     fun sayTyErrExplain(Ty.TY_ERROR(ty, why)) =
@@ -354,14 +363,16 @@ fun elab_module(os, main_module, repository) =
                  then Ty.VAR(tyvarRigid tyvar, NONE)
                  else idUnboundError("type variable", tyvar)
              | NONE => Ty.VAR(tyvarRigid tyvar, NONE))
-        |  elab(Absyn.CONSty(tyseq, longtycon, _)) =
+        |  elab(ttt as Absyn.CONSty(tyseq, longtycon, _)) =
              let 
                val tyfcn = lookup_longtycon(ME, TE, longtycon)
                val _ = checkUniqueNamedArgsInTys(tyseq) (* adrpo added *)
+               val expectedArguments = TyFcn.arity tyfcn
+               val gotArguments = length tyseq
              in
-               if length tyseq = TyFcn.arity tyfcn 
+               if gotArguments = expectedArguments
                then TyFcn.apply(tyfcn, map elab tyseq)
-               else lidError("wrong number of arguments to type function ", longtycon)
+               else lidError("wrong number of arguments to type function ", longtycon, ttt, expectedArguments, gotArguments)
              end
         |  elab(Absyn.TUPLEty(tyseq, _)) =
              (
@@ -1692,8 +1703,8 @@ fun elab_module(os, main_module, repository) =
           else  if global then (d)
           else
           let val tau = TyScheme.instFree(sigma, SOME(Absyn.identName var))
-                val sigma' = TyScheme.genAll tau
-                val tau = TyScheme.instFree(sigma, SOME(Absyn.identName var))
+              val sigma' = TyScheme.genAll tau
+              val tau = TyScheme.instFree(sigma, SOME(Absyn.identName var))
           in
             case vk of 
                 StatObj.VAR => 

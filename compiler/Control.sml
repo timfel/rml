@@ -52,6 +52,7 @@ structure Control: CONTROL =
 
     (* options for TypeCheck / StatElab *)
     val allowImplicitLet = ref false
+    val relaxedTypeCheck = ref false;
 
     (* options for FOLToCPS *)
     val warnNonExhaustive  = ref false

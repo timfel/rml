@@ -175,6 +175,7 @@ functor MainFn(
        sayErr "-E{plain,diff,mask,sml}\n  generates code for the specified runtime; default to 'plain'\n";
        sayErr "-W{no-}show-warnings\n  disables/enables showing of warnings; default to 'no-show-warnings'\n";
        sayErr "-f{no-}implicit-let\n  should implicit let be allowed? x = y instead of let x = y; x shoud be unbound; default to 'no'\n";
+       sayErr "-f{no-}relaxed-typecheck\n  relaxed typechecking: this means that type var 'a can be bound to SOME(type var 'b); default to 'no'; use if you get 'type variable is explicit error'\n";
        sayErr "-f{no-}reorder\n  should a reorder phase be applied after parsing? default to 'yes'\n";
        sayErr "-fswitch-rewrite-threshold=<integer>\n  if there are less than <integer> cases in a switch rewrite to if; default to '3'\n";
        sayErr "-f{no-}typecheck-only\n  only perform typecheck and do not generate code; default to 'no'\n";
@@ -242,6 +243,8 @@ functor MainFn(
        | "-Esml"     => cgScheme := SML
        | "-fimplicit-let"      => Control.allowImplicitLet := true
        | "-fno-implicit-let"   => Control.allowImplicitLet := false
+       | "-frelaxed-typecheck" => Control.relaxedTypeCheck := true
+       | "-fno-relaxed-typecheck" => Control.relaxedTypeCheck := false
        | "-freorder"           => Control.doReorder := true
        | "-fno-reorder"        => Control.doReorder := false
        | "-ftypecheck-only"    => Control.onlyTypeCheck := true

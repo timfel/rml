@@ -8,5 +8,6 @@ signature ABSYN_PRINT =
     val printModule	   : TextIO.outstream * Absyn.module -> unit
     val printInterface : TextIO.outstream * Absyn.module -> unit
     val printDependencies : TextIO.outstream * Absyn.module -> unit
+    val print_ty : TextIO.outstream * Absyn.ty -> unit
         
   end (* signature ABSYN_PRINT *)

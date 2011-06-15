@@ -198,17 +198,38 @@ let val Absyn.PROGRAM(_,_,interface as
 
     fun getTyBindings(specs, decs) =
     (
-    List.concat ((List.map getBindingFromDec  decs) @ (List.map getBindingFromSpec specs))
+    List.concat ((List.map getBindingFromDec decs) @ (List.map getBindingFromSpec specs))
     )
     
     fun getTyBinding(lid, bindtylist) = 
         let fun loop(lid, []) = NONE
-            |    loop(lid, Absyn.TYPBIND(tyvars, ident, ty, _)::rest) =
+            |   loop(lid, Absyn.TYPBIND(tyvars, ident, ty, _)::rest) =
                 if (Absyn.lidentName lid = Absyn.identName ident)
                 then SOME(ty)
                 else loop(lid, rest)
     in
       loop(lid, bindtylist)
+    end
+
+    fun getDataBindingFromDec (Absyn.DATAdec ([x], _, _)) = [x]
+    |    getDataBindingFromDec (_) = []  
+
+    fun getDataBindingFromSpec(Absyn.DATAspec([x], _, _)) = [x] 
+    |    getDataBindingFromSpec (_) = []  
+
+    fun getDataBindings(specs, decs) =
+    (
+    List.concat ((List.map getDataBindingFromDec decs) @ (List.map getDataBindingFromSpec specs))
+    )
+
+    fun getDataBinding(lid, databindlist) = 
+        let fun loop(lid, []) = []
+            |   loop(lid, Absyn.DATBIND(tyvars, ident, _, info)::rest) =
+                if (Absyn.lidentName lid = Absyn.identName ident)
+                then (map (fn x => Absyn.VARty(x, info)) tyvars)
+                else loop(lid, rest)
+    in
+      loop(lid, databindlist)
     end
 
     fun getSeq(lst, getfn, bindtylist) =
@@ -339,7 +360,7 @@ let val Absyn.PROGRAM(_,_,interface as
             | _        => Absyn.CONSty(setTyseq(tys, bindtylist), lid, info)
              
         )    
-        | Absyn.NAMEDty(id, ty, _) => setTypeDispatch(ty,bindtylist)
+        | Absyn.NAMEDty(id, ty, i) => Absyn.NAMEDty(id, setTypeDispatch(ty,bindtylist), i)
     
     fun getPathLastIdent(Absyn.QUALIFIED(_, x, _)) = getPathLastIdent(x)
     |    getPathLastIdent(Absyn.PATHIDENT(id, _)) = id
@@ -860,11 +881,39 @@ let val Absyn.PROGRAM(_,_,interface as
       
     fun getComplexType(path, ty) = 
         case path of 
-            Absyn.PATHIDENT(Absyn.IDENT("TUPLE", _), _) => 
+            Absyn.PATHIDENT(Absyn.IDENT("$TUPLE", _), _) => 
             (
                 ty
             )
-         |  Absyn.PATHIDENT(Absyn.IDENT("LIST", info), _) => 
+         |  Absyn.PATHIDENT(Absyn.IDENT("Tuple", _), _) => 
+            (
+                ty
+            )
+         |  Absyn.PATHIDENT(Absyn.IDENT("tuple", _), _) => 
+            (
+                ty
+            )
+         |  Absyn.PATHIDENT(Absyn.IDENT("$LIST", info), _) => 
+            (
+                    Absyn.CONSty(
+                        [ty], 
+                        Absyn.LONGID(
+                            NONE, 
+                            Absyn.IDENT("list", info), 
+                            info),
+                        info)
+            )
+         |  Absyn.PATHIDENT(Absyn.IDENT("list", info), _) => 
+            (
+                    Absyn.CONSty(
+                        [ty], 
+                        Absyn.LONGID(
+                            NONE, 
+                            Absyn.IDENT("list", info), 
+                            info),
+                        info)
+            )
+         |  Absyn.PATHIDENT(Absyn.IDENT("List", info), _) => 
             (
                     Absyn.CONSty(
                         [ty], 
@@ -884,7 +933,17 @@ let val Absyn.PROGRAM(_,_,interface as
                             info),
                         info)
             )
-         |  Absyn.PATHIDENT(Absyn.IDENT("ARRAY", info), _) => 
+         |  Absyn.PATHIDENT(Absyn.IDENT("option", info), _) => 
+            (
+                    Absyn.CONSty(
+                        [ty], 
+                        Absyn.LONGID(
+                            NONE, 
+                            Absyn.IDENT("option", info), 
+                            info),
+                        info)
+            )
+         |  Absyn.PATHIDENT(Absyn.IDENT("$ARRAY", info), _) => 
             (
                     Absyn.CONSty(
                         [ty], 
@@ -894,9 +953,34 @@ let val Absyn.PROGRAM(_,_,interface as
                             info),
                         info)
             )
-         | x =>  
+         |  Absyn.PATHIDENT(Absyn.IDENT("array", info), _) => 
             (
-                    Absyn.CONSty([ty], path2Ident x, Absyn.lidentCtxInfo(path2Ident x))
+                    Absyn.CONSty(
+                        [ty], 
+                        Absyn.LONGID(
+                            NONE, 
+                            Absyn.IDENT("array", info), 
+                            info),
+                        info)
+            )
+         |  Absyn.PATHIDENT(Absyn.IDENT("Array", info), _) => 
+            (
+                    Absyn.CONSty(
+                        [ty], 
+                        Absyn.LONGID(
+                            NONE, 
+                            Absyn.IDENT("array", info), 
+                            info),
+                        info)
+            )
+         | x => (* USER DEFINED!!!, not a TUPLE!!! *)
+            (
+               let val t = case(ty) of
+                             Absyn.TUPLEty(tlst, _) => tlst
+                           | _ => [ty]
+               in
+                 Absyn.CONSty(t, path2Ident x, Absyn.lidentCtxInfo(path2Ident x))
+               end
             )         
                 
     fun getTypeFromPath(Absyn.QUALIFIED(ident1, Absyn.PATHIDENT(ident2, _), info)) = 
@@ -1106,10 +1190,9 @@ let val Absyn.PROGRAM(_,_,interface as
            val valSpec = Absyn.VALspec(name, ty, info)
            val (valDecs, valSpecs) = buildConstantsForConstantConstructors(rest, isPublic)
         in
-          (valDec::valDecs, if isPublic then valSpec::valSpecs else valSpecs) 
+          (valDec::valDecs, if isPublic then valSpec::valSpecs else valSpecs)
         end
-    |   buildConstantsForConstantConstructors(_::rest, isPublic) = 
-          buildConstantsForConstantConstructors(rest, isPublic)
+    |   buildConstantsForConstantConstructors(_::rest, isPublic) = buildConstantsForConstantConstructors(rest, isPublic)
             
     fun getTypsSpec([]) = []
     |    getTypsSpec(x::rest) = 
@@ -1156,12 +1239,22 @@ let val Absyn.PROGRAM(_,_,interface as
     |   fixTypeVars(Absyn.NAMEDty(id, ty, info)::rest, tyVarlst) = 
         Absyn.NAMEDty(id, fixTypeVar(ty, tyVarlst), info)::fixTypeVars(rest, tyVarlst)
 
-    fun fixTypeVariables([], _) = []
-    |   fixTypeVariables(Absyn.CTORcb(id, tys, info)::rest, tyVarLst) =
-        Absyn.CTORcb(id, fixTypeVars(tys, tyVarLst), info)::fixTypeVariables(rest, tyVarLst)
-    |   fixTypeVariables(x::rest, tyVarLst) =
-        x::fixTypeVariables(rest, tyVarLst)
+    fun fixTypeVariablesInCons([], _) = []
+    |   fixTypeVariablesInCons(Absyn.CTORcb(id, tys, info)::rest, tyVarLst) =
+        Absyn.CTORcb(id, fixTypeVars(tys, tyVarLst), info)::fixTypeVariablesInCons(rest, tyVarLst)
+    |   fixTypeVariablesInCons(x::rest, tyVarLst) =
+        x::fixTypeVariablesInCons(rest, tyVarLst)
 
+    fun fixCONBIND([], _) = []
+    |   fixCONBIND(Absyn.CTORcb(id, tys, info)::rest, bindlist) =
+        Absyn.CTORcb(id, setTyseq(tys, bindlist), info)::fixCONBIND(rest, bindlist)
+    |   fixCONBIND(x::rest, bindlist) =
+        x::fixCONBIND(rest, bindlist)
+
+    fun getCONBINDTyVar([], _) = []
+    |   getCONBINDTyVar(Absyn.CTORcb(id, tys, info)::rest, bindlist) =
+        getTyseq(tys, bindlist) @ getCONBINDTyVar(rest, bindlist)
+    |   getCONBINDTyVar(x::rest, bindlist) = getCONBINDTyVar(rest, bindlist)
            
     (* this one looks inside uniontype for constructors/types/type variables *)        
     fun buildConstructors([], uid) = []
@@ -1185,17 +1278,11 @@ let val Absyn.PROGRAM(_,_,interface as
                                     "only public and protected elements are allowed in uniontypes", 
                                     "buildDatatype")                
             val contytyvar_list = buildConstructors(classparts, ident)
-            val (tyspecs, tydecs, cons, tyvars, (valdecs, valspecs)) = 
-                    (getTypsSpec(contytyvar_list),
-                     getTypsDec(contytyvar_list),
-                     getCons(contytyvar_list),
-                     getTyVars(contytyvar_list),
-                     buildConstantsForConstantConstructors(contytyvar_list, isPublic)) 
-            (* in uniontype we have:
-              the name of the type variable without its type variable,
-              so here we add it.
-             *)
-            val cons = fixTypeVariables(cons, tyvars)
+            val tyspecs = getTypsSpec(contytyvar_list)
+            val tydecs = getTypsDec(contytyvar_list)
+            val cons = getCons(contytyvar_list)
+            val tyvars = getTyVars(contytyvar_list)
+            val (valdecs, valspecs) = buildConstantsForConstantConstructors(contytyvar_list, isPublic)
         in
             debug("buildDatatype: specs\n");
             (
@@ -3458,12 +3545,11 @@ let val Absyn.PROGRAM(_,_,interface as
     fun buildRecord  (ident, eX, isPublic, specs, decs) = 
     let val info = Absyn.identCtxInfo ident
         val contytyvar_list = buildConstructors([Absyn.PUBLIC([eX],info)], ident)
-        val (tyspecs, tydecs, cons, tyvars, (valdecs, valspecs)) = 
-                (getTypsSpec(contytyvar_list),
-                    getTypsDec(contytyvar_list),
-                    getCons(contytyvar_list),
-                    getTyVars(contytyvar_list),
-                    buildConstantsForConstantConstructors(contytyvar_list, isPublic))
+        val tyspecs = getTypsSpec(contytyvar_list)
+        val tydecs = getTypsDec(contytyvar_list)
+        val cons = getCons(contytyvar_list)
+        val tyvars = getTyVars(contytyvar_list)
+        val (valdecs, valspecs) = buildConstantsForConstantConstructors(contytyvar_list, isPublic)
     in
         debug("buildRecord: specs\n");
         (
@@ -3493,8 +3579,8 @@ let val Absyn.PROGRAM(_,_,interface as
                     _)) = 
         (debug ("sweepTypes\n");
          let val Absyn.IDENT(idstr, tmpInfo) = identclass
-              val varty = Absyn.IDENT("'"^idstr, tmpInfo)
-              val tyvar = Absyn.VARty(varty,tmpInfo)
+             val varty = Absyn.IDENT("'"^idstr, tmpInfo)
+             val tyvar = Absyn.VARty(varty,tmpInfo)
              val tybind = Absyn.TYPBIND([varty],identclass,tyvar,tmpInfo)
          in 
            TyV(varty)::[TyB(tybind)]
@@ -3736,7 +3822,22 @@ let val Absyn.PROGRAM(_,_,interface as
                 setTyVar(ty, bindlist), 
                 infoTB)], 
                 infoTS)::fixSpecsWithTyVar(rest, bindlist)
-    |    fixSpecsWithTyVar(x::rest, bindlist) = x::fixSpecsWithTyVar(rest, bindlist)
+    |   fixSpecsWithTyVar(
+            Absyn.DATAspec(
+                [Absyn.DATBIND(tyvarlist1, lid1, conlst, infoDB)], 
+                zz,
+                infoTS)::rest, bindlist) =
+        Absyn.DATAspec(
+            [Absyn.DATBIND(
+                removeTyVarDuplicates(tyvarlist1 @ getCONBINDTyVar(conlst, bindlist)), lid1, 
+                fixCONBIND(conlst, bindlist), 
+                infoDB)], 
+                zz,
+                infoTS)::fixSpecsWithTyVar(rest, bindlist)
+    |   fixSpecsWithTyVar(
+            Absyn.VALspec(ident, ty, info)::rest, bindlist) =
+        Absyn.VALspec(ident, setTyVar(ty, bindlist), info)::fixSpecsWithTyVar(rest, bindlist)
+    | fixSpecsWithTyVar(x::rest, bindlist) = x::fixSpecsWithTyVar(rest, bindlist)
 
     fun fixDecsWithTyVar([], bindlist) = []
     |    fixDecsWithTyVar(
@@ -3748,6 +3849,18 @@ let val Absyn.PROGRAM(_,_,interface as
                 removeTyVarDuplicates(tyvarlist @ getTyVar(ty, bindlist)), lid, 
                 setTyVar(ty, bindlist), infoTB)], 
                 infoTD)::fixDecsWithTyVar(rest, bindlist)
+    | fixDecsWithTyVar(
+        Absyn.DATAdec(
+                [Absyn.DATBIND(tyvarlist1, lid1, conlst, infoDB)], 
+                zz,
+                infoTS)::rest, bindlist) =
+        Absyn.DATAdec(
+            [Absyn.DATBIND(
+                removeTyVarDuplicates(tyvarlist1 @ getCONBINDTyVar(conlst, bindlist)), lid1, 
+                fixCONBIND(conlst, bindlist), 
+                infoDB)], 
+                zz,
+                infoTS)::fixDecsWithTyVar(rest, bindlist)
     |    fixDecsWithTyVar(x::rest, bindlist) = x::fixDecsWithTyVar(rest, bindlist)
 
 
@@ -3803,15 +3916,23 @@ let val Absyn.PROGRAM(_,_,interface as
     |    fixRELDecsWithTyVar(x::rest, bindlist) = x::fixRELDecsWithTyVar(rest, bindlist)
 
 
+    fun fixSpecsConstantsType([], dlist) = []
+    |   fixSpecsConstantsType(Absyn.VALspec(id, Absyn.CONSty([], longid, ii), info)::rest, dlist) = 
+        let 
+           val x = Absyn.VALspec(id, Absyn.CONSty(getDataBinding(longid, dlist), longid, ii), info)
+        in
+          x::fixSpecsConstantsType(rest, dlist)
+        end
+    |   fixSpecsConstantsType(x::rest, dlist) = x::fixSpecsConstantsType(rest, dlist)
+
     fun fixTypeVariables(specs, decs) = 
     let val bindlist = getTyBindings(specs, decs)
+        val _ = debug("fixTypeVariables: bindlist:"^L(bindlist)^"\n")
+        val (specs, decs) = ( fixRELSpecsWithTyVar(fixSpecsWithTyVar(specs, bindlist), bindlist), fixRELDecsWithTyVar(fixDecsWithTyVar(decs, bindlist),  bindlist) )
+        val datatypeLst = getDataBindings(specs, decs)
     in
     (
-        debug("fixTypeVariables: bindlist:"^L(bindlist)^"\n");
-        (
-        fixRELSpecsWithTyVar(fixSpecsWithTyVar(specs, bindlist), bindlist), 
-        fixRELDecsWithTyVar(fixDecsWithTyVar(decs, bindlist),    bindlist)
-        )
+        (fixSpecsConstantsType(specs, datatypeLst), decs)
     )
     end
     
@@ -3935,7 +4056,7 @@ let val Absyn.PROGRAM(_,_,interface as
             val aliasesDecs  = removeDecsSpecsDuplicates(uniqueDecs, uniqueSpecs(*aliasesSpecs*))
             val (specs', decs') = 
                 fixTypeVariables(removeSpecsDecsDuplicates(uniqueSpecs(*aliasesSpecs*), aliasesDecs),
-                                 aliasesDecs) 
+                                 aliasesDecs)
         in 
           debug ("buildInterfaceAndDecs - specs: "^L(specs)^", decs: "^L(decs)^"\n");                  
           (Absyn.INTERFACE({modid=modid, specs=specs', source=source}, infoI), decs') 
