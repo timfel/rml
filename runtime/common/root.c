@@ -50,6 +50,10 @@ RML_BEGIN_LABEL(RML__get_5fglobal_5froot)
       (i >= rml_global_roots_trail_size))           /* index bigger than our roots max */
     RML_TAILCALLK(rmlFC);
   
+  /* if is zero, it means it was not set, fail! */
+  if (!rml_global_roots_trail[i])
+    RML_TAILCALLK(rmlFC);
+
   rmlA0 = rml_global_roots_trail[i];
   
   RML_TAILCALLK(rmlSC);
