@@ -340,10 +340,6 @@ RML_BEGIN_LABEL(RML__real_5fsqrt)
 RML_END_LABEL
 
 /* real_str.c */
-static const RML_DEFSTRINGLIT(_RML_LIT_NEG_INF,4,"-inf");
-static const RML_DEFSTRINGLIT(_RML_LIT_POS_INF,3,"inf");
-static const RML_DEFSTRINGLIT(_RML_LIT_NAN,3,"NaN");
-
 RML_BEGIN_LABEL(RML__real_5fstring)
 {
   /* 64-bit (1+11+52) double: -d.[15 digits]E-[4 digits] = ~24 digits max.
@@ -352,13 +348,19 @@ RML_BEGIN_LABEL(RML__real_5fstring)
   struct rml_string *res;
   double r = rml_prim_get_real(rmlA0);
   // fprintf(stderr, "\nrealString(%g)\n", r);
-  if (isinf(r) && r < 0)
-    res = RML_REFSTRINGLIT(_RML_LIT_NEG_INF);
-  else if (isinf(r))
-    res = RML_REFSTRINGLIT(_RML_LIT_POS_INF);
-  else if (isnan(r))
-    res = RML_REFSTRINGLIT(_RML_LIT_NAN);
-  else {
+  if (isinf(r) && r < 0) {
+    res = rml_prim_mkstring(4, 0);
+    RML_CHECK_POINTER(res, RML__real_5fstring, "RML.realString");
+    strcpy(res->data, "-inf");  /* this also sets the ending '\0' */
+  } else if (isinf(r)) {
+    res = rml_prim_mkstring(3, 0);
+    RML_CHECK_POINTER(res, RML__real_5fstring, "RML.realString");
+    strcpy(res->data, "inf");  /* this also sets the ending '\0' */
+  } else if (isnan(r)) {
+    res = rml_prim_mkstring(3, 0);
+    RML_CHECK_POINTER(res, RML__real_5fstring, "RML.realString");
+    strcpy(res->data, "NaN");  /* this also sets the ending '\0' */
+  } else {
     char* endptr;
     int ix = snprintf(buffer, 32, "%.15g", r);
     long ignore;
@@ -374,11 +376,10 @@ RML_BEGIN_LABEL(RML__real_5fstring)
       buffer[ix++] = '0';
       buffer[ix] = '\0';
     }
-    res = rml_prim_mkstring(strlen(buffer), 0);
-    RML_CHECK_POINTER(res, RML__real_5fstring, "RML.realString");
-
-    strcpy(res->data, buffer);  /* this also sets the ending '\0' */
   }
+  res = rml_prim_mkstring(strlen(buffer), 0);
+  RML_CHECK_POINTER(res, RML__real_5fstring, "RML.realString");
+  strcpy(res->data, buffer);  /* this also sets the ending '\0' */
 
   rmlA0 = RML_TAGPTR(res);
   RML_TAILCALLK(rmlSC);
