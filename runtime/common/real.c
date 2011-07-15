@@ -376,10 +376,10 @@ RML_BEGIN_LABEL(RML__real_5fstring)
       buffer[ix++] = '0';
       buffer[ix] = '\0';
     }
+    res = rml_prim_mkstring(strlen(buffer), 0);
+    RML_CHECK_POINTER(res, RML__real_5fstring, "RML.realString");
+    strcpy(res->data, buffer);  /* this also sets the ending '\0' */
   }
-  res = rml_prim_mkstring(strlen(buffer), 0);
-  RML_CHECK_POINTER(res, RML__real_5fstring, "RML.realString");
-  strcpy(res->data, buffer);  /* this also sets the ending '\0' */
 
   rmlA0 = RML_TAGPTR(res);
   RML_TAILCALLK(rmlSC);
