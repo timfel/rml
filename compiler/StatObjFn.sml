@@ -280,6 +280,7 @@ functor StatObjFn(
       val VE = bindRel2(VE, "string_eq",                  "stringEq",              [tau_string, tau_string], [tau_bool])
       val VE = bindRel2(VE, "string_compare",             "stringCompare",         [tau_string, tau_string], [tau_int])
       val VE = bindRel2(VE, "string_append_list",         "stringAppendList",      [tau_string_list], [tau_string])
+      val VE = bindRel2(VE, "string_delimit_list",        "stringDelimitList",     [tau_string_list, tau_string], [tau_string])
       (* hash functions *)
       val VE = bindRel2(VE, "string_hash",                "stringHash",            [tau_string], [tau_int])
       val VE = bindRel2(VE, "string_hash_djb2",           "stringHashDjb2",        [tau_string], [tau_int])

@@ -207,6 +207,7 @@ functor TransEnvFn(structure Util : UTIL
       val te = extern2(te, "string_update_string_char", "stringUpdateStringChar")
       val te = extern2(te, "string_compare",            "stringCompare")
       val te = extern2(te, "string_append_list",        "stringAppendList")
+      val te = extern2(te, "string_delimit_list",       "stringDelimitList")
       val te = inline2(te, "string_equal",              "stringEqual",    mk_binary_inliner CPS.STRING_EQ)
       val te = inline2(te, "string_eq",                 "stringEq",       mk_binary_inliner CPS.STRING_EQ)
       (* hash functions *)

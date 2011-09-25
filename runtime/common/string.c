@@ -108,6 +108,66 @@ RML_BEGIN_LABEL(RML__string_5fappend_5flist)
 }
 RML_END_LABEL
 
+/* str_delimit_list.c */
+RML_BEGIN_LABEL(RML__string_5fdelimit_5flist)
+{
+  /* count the length of elements in the list */
+  rml_uint_t len_car = 0;
+  rml_uint_t len_cur = 0;
+  rml_uint_t len = 0;
+  rml_uint_t len_delimiter = 0;
+  rml_uint_t len_list = 0;
+  struct rml_string *str = 0;
+  void *lst = rmlA0;
+  
+  while( RML_GETHDR(lst) == RML_CONSHDR ) {
+    len += RML_HDRSTRLEN(RML_GETHDR(RML_CAR(lst)));
+    len_list++;
+    lst = RML_CDR(lst);
+  }
+
+  if (len == 0) /* if the list is empty, return empty string! */
+  {
+    /* allocate the string */
+    str = rml_prim_mkstring(len, 2);
+    RML_CHECK_POINTER(str, RML__string_5fappend_5flist, "RML.stringDelimitList");
+    str->data[0] = '\0';     /* set the end to 0 */
+    rmlA0 = RML_TAGPTR(str); /* set the result to the tagged pointer */
+    RML_TAILCALLK(rmlSC);    /* return from the function */
+  }
+
+  len_delimiter = RML_HDRSTRLEN(RML_GETHDR(rmlA1));
+  len = len + ((len_list - 1) * len_delimiter);
+  /* allocate the string */
+  str = rml_prim_mkstring(len, 2);
+  RML_CHECK_POINTER(str, RML__string_5fappend_5flist, "RML.stringDelimitList");
+
+  /* re-read the rmlA0 as it might have been moved by the GC */
+  lst = rmlA0;
+  while( RML_GETHDR(lst) == RML_CONSHDR ) {
+    void* car = RML_CAR(lst);
+    len_car = RML_HDRSTRLEN(RML_GETHDR(car));
+    
+    /* write the list string */
+    (void)memcpy(&str->data[len_cur], RML_STRINGDATA(car), len_car);
+
+    len_cur += len_car;
+    
+    /* write the delimiter string */
+    if ((--len_list) != 0) /* if not the last one! */
+    {
+      (void)memcpy(&str->data[len_cur], RML_STRINGDATA(rmlA1), len_delimiter);
+      len_cur += len_delimiter;
+    }
+    
+    lst = RML_CDR(lst);
+  }
+  str->data[len_cur] = '\0';
+  rmlA0 = RML_TAGPTR(str);
+  RML_TAILCALLK(rmlSC);
+}
+RML_END_LABEL
+
 
 /* str-int.c */
 RML_BEGIN_LABEL(RML__string_5fint)

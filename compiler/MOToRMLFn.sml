@@ -608,6 +608,7 @@ let val Absyn.PROGRAM(_,_,interface as
       "string_eq",                 "stringEq",
       "string_compare",            "stringCompare",
       "string_append_list",        "stringAppendList",
+      "string_delimit_list",        "stringDelimitList",
       "string_hash",               "stringHash",
       "string_hash_djb2",          "stringHashDjb2",
       "string_hash_sdbm",           "stringHashSdbm",
