@@ -416,9 +416,9 @@ STATIC_INLINE unsigned long rml_default_hash(unsigned char* str)
 #include <string.h>
 #define RML_PRIM_STRING_EQ(X,Y) RML_PRIM_MKBOOL(((X) == (Y))?1:(strcmp(RML_STRINGDATA(X), RML_STRINGDATA(Y))==0))
 /* hashes */
-#define RML_PRIM_STRING_HASH(X)       RML_PRIM_INT_ABS(RML_IMMEDIATE(RML_TAGFIXNUM((rml_uint_t)rml_default_hash(RML_STRINGDATA(X)))));
-#define RML_PRIM_STRING_HASH_DJB2(X)  RML_PRIM_INT_ABS(RML_IMMEDIATE(RML_TAGFIXNUM((rml_uint_t)rml_djb2_hash(RML_STRINGDATA(X)))));
-#define RML_PRIM_STRING_HASH_SDBM(X)  RML_PRIM_INT_ABS(RML_IMMEDIATE(RML_TAGFIXNUM((rml_uint_t)rml_sdbm_hash(RML_STRINGDATA(X)))));
+#define RML_PRIM_STRING_HASH(X)       RML_PRIM_INT_ABS(RML_IMMEDIATE(RML_TAGFIXNUM((rml_uint_t)rml_default_hash((unsigned char*)RML_STRINGDATA(X)))));
+#define RML_PRIM_STRING_HASH_DJB2(X)  RML_PRIM_INT_ABS(RML_IMMEDIATE(RML_TAGFIXNUM((rml_uint_t)rml_djb2_hash((unsigned char*)RML_STRINGDATA(X)))));
+#define RML_PRIM_STRING_HASH_SDBM(X)  RML_PRIM_INT_ABS(RML_IMMEDIATE(RML_TAGFIXNUM((rml_uint_t)rml_sdbm_hash((unsigned char*)RML_STRINGDATA(X)))));
 
 /* references */
 #define RML_PRIM_REF_EQ(X,Y)     ((X == Y) ? RML_TRUE : RML_FALSE)
