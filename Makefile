@@ -7,10 +7,16 @@ SUBDIRS = compiler etc runtime # examples
 default:	config.cache
 	$(MAKE) MAKETARGET=default all-subdirs
 
-all-subdirs:
-	-for dir in $(SUBDIRS); do \
-		(cd $$dir; $(MAKE) $(MAKETARGET); cd ..); \
-	done
+.PHONY: $(SUBDIRS)
+
+all-subdirs: $(SUBDIRS)
+
+compiler:
+	$(MAKE) -C $@ $(MAKETARGET)
+etc:
+	$(MAKE) -C $@ $(MAKETARGET)
+runtime:
+	$(MAKE) -C $@ $(MAKETARGET)
 
 configure:	config.cache
 	$(MAKE) MAKETARGET="-f Make.mk configure" all-subdirs
