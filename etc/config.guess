@@ -17,6 +17,7 @@ case `uname -s` in
     OPSYS=irix
     ARCH=mips
     ;;
+  FreeBSD)
   Linux)
     OPSYS=linux
     case `uname -m` in
