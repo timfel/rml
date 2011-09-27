@@ -18,6 +18,9 @@ case `uname -s` in
     ARCH=mips
     ;;
   FreeBSD)
+    OPSYS=linux
+    ARCH=x86
+    ;;
   Linux)
     OPSYS=linux
     case `uname -m` in
