@@ -6,6 +6,7 @@
 char rml_debug_enabled  = 0;
 char rml_trace_enabled  = 0;
 char rml_string_sharing = 0;
+char rml_stack_overflow = 0;
 
 /* p_nil.c */
 const struct rml_header rml_prim_nil  = { RML_NILHDR };

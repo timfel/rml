@@ -102,18 +102,32 @@ void rml_prim_motor(rml_labptr_t f)
       /*
        * turn on the trace if we're almost out of stack!
        */
-      if( (void**)rmlSP < rmlSPMIN )
-      rmlSPMIN = (void**)rmlSP;
+      if ( (void**)rmlSP < rmlSPMIN )
+        rmlSPMIN = (void**)rmlSP;
+
       if( (void**)rmlSP < &rml_stack[32*4] ) {
         rml_trace_enabled = 1;
       }
+
       /*
        * Add a small buffer zone at the stack bottom, to reduce
        * the risk of writes outside the stack bounds.
        */
-      if( (void**)rmlSP < &rml_stack[32] ) {
-        fprintf(stderr, "Stack overflow!\n");
+      if ( ((void**)rmlSP < &rml_stack[32]) || rml_stack_overflow ) {
+#ifdef RML_PLAIN // try to fail the function if we get a stack overflow!
+        // display message only once!
+        if (!rml_stack_overflow)
+          fprintf(stderr, "Stack overflow! Failing the current function stack chain until the stack overflow signal is caught!\n"); fflush(NULL);
+        // disable the trace as no longer is interesting!
+        rml_trace_enabled = 0;
+
+        /* fail until somebody flips rml_stack_overflow! */
+        rml_stack_overflow = 1;
+        f = RML_APPLY(RML_FETCH(rmlFC));
+#else
+        fprintf(stderr, "Stack overflow! Exiting ...\n"); fflush(NULL);
         rml_exit(1);
+#endif
       }
       /* printf("[sp: %d] ", (void**)rmlSP-&rml_stack[rml_stack_size]); */
 #ifdef RML_DEBUG_

@@ -233,6 +233,7 @@ extern char          rml_flag_no_stack_check;
 extern char          rml_debug_enabled;
 extern char          rml_trace_enabled;
 extern char          rml_string_sharing;
+extern char          rml_stack_overflow;
 
 /* adrpo added: look into p-gccore.c for more */
 /* the young region */
