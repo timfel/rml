@@ -58,6 +58,20 @@ RML_BEGIN_LABEL(RML__unique)
 }
 RML_END_LABEL
 
+RML_BEGIN_LABEL(RML__setStackOverflowSignal)
+{
+  char tmp = rml_stack_overflow;
+
+  rml_stack_overflow = (rmlA0==RML_FALSE)?0:1;
+
+  // fprintf(stderr, "-> RML__setStackOverflowSignal rml_stack_overflow = %d! before was: %d\n", (int)rml_stack_overflow, (int)tmp); fflush(NULL);
+
+  rmlA0 = tmp?RML_TRUE:RML_FALSE;
+
+  RML_TAILCALLK(rmlSC);
+}
+RML_END_LABEL
+
 void rmldb_var_print(void *p)
 {
     /* printf("[%p]", p); */

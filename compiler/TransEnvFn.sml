@@ -147,6 +147,7 @@ functor TransEnvFn(structure Util : UTIL
       val te = extern(te, "clock")
       val te = extern(te, "print")
       val te = extern(te, "tick")
+      val te = extern(te, "setStackOverflowSignal")
       val te = extern(te, "unique")
       val te = extern2(te, "enable_trace",  "enableTrace")
       val te = extern2(te, "disable_trace", "disableTrace")

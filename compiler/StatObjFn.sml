@@ -133,6 +133,7 @@ functor StatObjFn(
       val VE = bindRel(VE,  "clock", [], [tau_real])
       val VE = bindRel(VE,  "print", [tau_string], [])
       val VE = bindRel(VE,  "tick",  [], [tau_int])
+      val VE = bindRel(VE,  "setStackOverflowSignal",  [tau_bool], [tau_bool])
       val VE = bindRel(VE,  "unique",  [tau_int], [tau_int])
       val VE = bindRel2(VE,  "enable_trace",  "enableTrace",  [], [])
       val VE = bindRel2(VE,  "disable_trace", "disableTrace", [], [])

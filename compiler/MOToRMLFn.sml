@@ -646,6 +646,7 @@ let val Absyn.PROGRAM(_,_,interface as
       "unique", 
       "enable_trace",  "enableTrace",
       "disable_trace", "disableTrace",
+      "setStackOverflowSignal",
       (* debug *)
       "debug", "debug_print", "debug_show_depth", 
       "debug_push_in01", "debug_push_in02", "debug_push_in03", "debug_push_in04", "debug_push_in05", "debug_push_in06", 

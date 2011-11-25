@@ -342,6 +342,7 @@ extern RML_FORWARD_LABEL(RML__tick);
 extern RML_FORWARD_LABEL(RML__unique);
 extern RML_FORWARD_LABEL(RML__enable_5ftrace);
 extern RML_FORWARD_LABEL(RML__disable_5ftrace);
+extern RML_FORWARD_LABEL(RML__setStackOverflowSignal);
 /* java names */
 #define RML__enableTrace  RML__enable_5ftrace
 #define RML__disableTrace RML__disable_5ftrace

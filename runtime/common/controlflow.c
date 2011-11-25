@@ -65,6 +65,23 @@ void rml_gval_init(struct rml_gval *first)
 }
 
 
+/* p_once.c */
+RML_BEGIN_LABEL(rml_sclam_once)
+{
+    jmp_buf *there = (jmp_buf*)RML_FETCH(RML_OFFSET(rmlSC, 1));
+    longjmp(*there, 2);
+    return 0;
+}
+RML_END_LABEL
+
+RML_BEGIN_LABEL(rml_fclam_once)
+{
+    jmp_buf *there = (jmp_buf*)RML_FETCH(RML_OFFSET(rmlFC, 2));
+    longjmp(*there, 1);
+    return 0;
+}
+RML_END_LABEL
+
 #ifdef RML_DEBUG_
 typedef struct simulation
 {
@@ -105,7 +122,7 @@ void rml_prim_motor(rml_labptr_t f)
       if ( (void**)rmlSP < rmlSPMIN )
         rmlSPMIN = (void**)rmlSP;
 
-      if( (void**)rmlSP < &rml_stack[32*4] ) {
+      if( (void**)rmlSP < &rml_stack[32*6] ) {
         rml_trace_enabled = 1;
       }
 
@@ -113,7 +130,7 @@ void rml_prim_motor(rml_labptr_t f)
        * Add a small buffer zone at the stack bottom, to reduce
        * the risk of writes outside the stack bounds.
        */
-      if ( ((void**)rmlSP < &rml_stack[32]) || rml_stack_overflow ) {
+      if ( ((void**)rmlSP < &rml_stack[32*4]) || rml_stack_overflow ) {
 #ifdef RML_PLAIN // try to fail the function if we get a stack overflow!
         // display message only once!
         if (!rml_stack_overflow)
@@ -123,6 +140,8 @@ void rml_prim_motor(rml_labptr_t f)
 
         /* fail until somebody flips rml_stack_overflow! */
         rml_stack_overflow = 1;
+
+        /* call the function */
         f = RML_APPLY(RML_FETCH(rmlFC));
 #else
         fprintf(stderr, "Stack overflow! Exiting ...\n"); fflush(NULL);
@@ -171,23 +190,6 @@ void rml_prim_motor(rml_labptr_t f)
   } /* end if */
   /*NOTREACHED*/
 }
-
-/* p_once.c */
-RML_BEGIN_LABEL(rml_sclam_once)
-{
-    jmp_buf *there = (jmp_buf*)RML_FETCH(RML_OFFSET(rmlSC, 1));
-    longjmp(*there, 2);
-    return 0;
-}
-RML_END_LABEL
-
-RML_BEGIN_LABEL(rml_fclam_once)
-{
-    jmp_buf *there = (jmp_buf*)RML_FETCH(RML_OFFSET(rmlFC, 2));
-    longjmp(*there, 1);
-    return 0;
-}
-RML_END_LABEL
 
 int rml_prim_once(rml_labptr_t f)
 {
