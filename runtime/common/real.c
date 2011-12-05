@@ -504,8 +504,9 @@ RML_BEGIN_LABEL(RML__real_5fstring)
     rmlA0 = RML_REFSTRINGLIT(_RML_LIT_NAN);
   else {
     struct rml_string *res = dtostr(r);
+    /* fprintf(stderr, "REALsTRING: %g to %s...", r, res->data); */
     RML_CHECK_POINTER(res, RML__real_5fstring, "RML.realString");
-    rmlA0 = res;
+    rmlA0 = RML_TAGPTR(res);
   }
   RML_TAILCALLK(rmlSC);
 }
