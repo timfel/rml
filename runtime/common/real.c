@@ -339,49 +339,174 @@ RML_BEGIN_LABEL(RML__real_5fsqrt)
 }
 RML_END_LABEL
 
+#include "dtoa.c"
+
+#define	to_char(n)	((n) + '0')
+
+#define MAXEXPDIG 6
+
+static int
+exponent(char *p0, int expo)
+{
+	char *p, *t;
+	char expbuf[MAXEXPDIG];
+
+	p = p0;
+	*p++ = 'e';
+	if (expo < 0) {
+		expo = -expo;
+		*p++ = '-';
+	}
+	else
+		*p++ = '+';
+	t = expbuf + MAXEXPDIG;
+	if (expo > 9) {
+		do {
+			*--t = to_char(expo % 10);
+		} while ((expo /= 10) > 9);
+		*--t = to_char(expo);
+		for (; t < expbuf + MAXEXPDIG; *p++ = *t++)
+			;
+	}
+	else {
+		/*
+		 * Exponents for decimal floating point conversions
+		 * (%[eEgG]) must be at least two characters long,
+		 * whereas exponents for hexadecimal conversions can
+		 * be only one character long.
+		 */
+    *p++ = '0';
+		*p++ = to_char(expo);
+	}
+	return (p - p0);
+}
+
+/*
+ * Generate reals like %.16g but platform-independent
+ * Does not check for inf/NaN in the default mode since realString
+ * handles them in a more efficient manner (static data, no allocation)
+ */
+static struct rml_string* dtostr(double d)
+{
+  const int prec = 16 /* 1 more than mathematically relevant */;
+  int signflag,i,totalsz;
+  int expt,expsz=0,ndig;
+  char *cp,*cporig,*dtoaend;
+  char expbuf[MAXEXPDIG];
+  struct rml_string *retval;
+  char *res;
+  const int debug = 0;
+  *expbuf = 0;
+  cporig = dtoa(d,1,prec,&expt,&signflag,&dtoaend);
+  cp = cporig;
+	ndig = dtoaend - cp;
+  /*
+   * Allocate the string on GC'ed heap directly
+   * We just need to calculate the exact length of the string first :)
+   */
+  if (expt == 0) {
+    totalsz = signflag+2+ndig;
+  } else if (expt == ndig || (expt > 0 && expt < prec && expt > ndig)) {
+    totalsz = signflag+expt+2;
+  } else if (expt > 0 && expt < prec && expt > ndig) {
+    totalsz = signflag+expt+2;
+  } else if (expt > 0 && expt < prec) {
+    totalsz = signflag+ndig+1;
+  } else if (expt <= 0 && ndig+expt > -prec) {
+    totalsz = signflag-expt+ndig+2;
+  } else {
+    totalsz = signflag;
+    if (expt && ndig == 1) totalsz += ndig;
+    else if (expt == 1 || ndig == 1) totalsz += ndig+2;
+    else totalsz += ndig+1;
+    if (expt!=1) {
+      /* Yup, this is then used later ;) */
+      expsz = exponent(expbuf,expt == 0 ? expt : expt - 1);
+      totalsz += expsz;
+    }
+  }
+  retval = rml_prim_mkstring(totalsz,0);
+  res = retval->data;
+  *res = '\0';
+
+  if (signflag) *res++ = '-';
+  if (expt == 0) {
+    *res++ = '0';
+    *res++ = '.';
+    strcpy(res,cp);
+    res += ndig;
+  } else if (expt == ndig) {
+    strcpy(res,cp);
+    res += ndig;
+    *res++ = '.';
+    *res++ = '0';
+  } else if (expt > 0 && expt < prec && expt > ndig) {
+    strcpy(res,cp);
+    res += ndig;
+    for (i=ndig;i<expt;i++) {
+      *res++ = '0';
+    }
+    *res++ = '.';
+    *res++ = '0';
+  } else if (expt > 0 && expt < prec) {
+    for (i=0;i<expt;i++) {
+      *res++ = *cp++;
+    }
+    *res++ = '.';
+    strcpy(res,cp);
+    res += ndig-expt;
+  } else if (expt <= 0 && ndig+expt > -prec) {
+    *res++ = '0';
+    *res++ = '.';
+    for (i=0;i<-expt;i++)
+      *res++ = '0';
+    strcpy(res,cp);
+    res += ndig;
+  } else {
+    if (expt == 0) {
+      *res++ = '0';
+      *res++ = '.';
+    } else {
+      *res++ = *cp++;
+      if (expt && ndig > 1) *res++ = '.';
+      if (expt == 1 && ndig == 1) {
+        *res++ = '.';
+        *res++ = '0';
+      }
+    }
+    strcpy(res,cp);
+    res += ndig-1;
+    if (expt) {
+      strncpy(res,expbuf,expsz);
+      res += expsz;
+    }
+  }
+  *res = 0;
+  freedtoa(cporig);
+  return retval;
+}
+
+#undef MAXEXPDIG
+
+static const RML_DEFSTRINGLIT(_RML_LIT_NEG_INF,4,"-inf");
+static const RML_DEFSTRINGLIT(_RML_LIT_POS_INF,3,"inf");
+static const RML_DEFSTRINGLIT(_RML_LIT_NAN,3,"NaN");
+
 /* real_str.c */
 RML_BEGIN_LABEL(RML__real_5fstring)
 {
-  /* 64-bit (1+11+52) double: -d.[15 digits]E-[4 digits] = ~24 digits max.
-   * Add safety margin. */
-  static char buffer[32];
-  struct rml_string *res;
   double r = rml_prim_get_real(rmlA0);
-  // fprintf(stderr, "\nrealString(%g)\n", r);
-  if (isinf(r) && r < 0) {
-    res = rml_prim_mkstring(4, 0);
+  if (isinf(r) && r < 0)
+    rmlA0 = RML_REFSTRINGLIT(_RML_LIT_NEG_INF);
+  else if (isinf(r))
+    rmlA0 = RML_REFSTRINGLIT(_RML_LIT_POS_INF);
+  else if (isnan(r))
+    rmlA0 = RML_REFSTRINGLIT(_RML_LIT_NAN);
+  else {
+    struct rml_string *res = dtostr(r);
     RML_CHECK_POINTER(res, RML__real_5fstring, "RML.realString");
-    strcpy(res->data, "-inf");  /* this also sets the ending '\0' */
-  } else if (isinf(r)) {
-    res = rml_prim_mkstring(3, 0);
-    RML_CHECK_POINTER(res, RML__real_5fstring, "RML.realString");
-    strcpy(res->data, "inf");  /* this also sets the ending '\0' */
-  } else if (isnan(r)) {
-    res = rml_prim_mkstring(3, 0);
-    RML_CHECK_POINTER(res, RML__real_5fstring, "RML.realString");
-    strcpy(res->data, "NaN");  /* this also sets the ending '\0' */
-  } else {
-    char* endptr;
-    int ix = snprintf(buffer, 32, "%.15g", r);
-    long ignore;
-    if (ix < 0)
-      RML_TAILCALLK(rmlFC);
-    errno = 0;
-    /* If it looks like an integer, we need to append .0 so it looks like real */
-    ignore = strtol(buffer,&endptr,10);
-    if (errno == 0 && *endptr == '\0') {
-      if (ix > 30)
-        RML_TAILCALLK(rmlFC);
-      buffer[ix++] = '.';
-      buffer[ix++] = '0';
-      buffer[ix] = '\0';
-    }
-    res = rml_prim_mkstring(strlen(buffer), 0);
-    RML_CHECK_POINTER(res, RML__real_5fstring, "RML.realString");
-    strcpy(res->data, buffer);  /* this also sets the ending '\0' */
+    rmlA0 = res;
   }
-
-  rmlA0 = RML_TAGPTR(res);
   RML_TAILCALLK(rmlSC);
 }
 RML_END_LABEL
