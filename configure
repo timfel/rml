@@ -39,7 +39,7 @@ while [ "$#" != 0 ]; do
     --nosmlnj)
 	SMLCM=nosmlnj
 	MLLEX=nosmlnj
-	MLYACC=nomlsnj
+	MLYACC=nosmlnj
 	HEAP_SUFFIX=nosmlnj
 	;;
     --disable-debug)
