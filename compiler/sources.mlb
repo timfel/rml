@@ -27,6 +27,7 @@ local
       structure gs_1 = Char
       structure gs_1000 = CommandLine
       structure gs_1001 = CharVector
+      signature gs_5005 = INTEGER
    end
    local
       MANGLE.sig
@@ -540,6 +541,7 @@ local
       signature PARSER = gs_49
       signature PARSER_DATA = gs_50
       signature STREAM = gs_51
+      signature INTEGER = gs_5005
       structure String = gs_0
       signature TOKEN = gs_52
       structure Unsafe = gs_68
@@ -692,6 +694,7 @@ local
       structure Vector = gs_23
       structure Int = gs_15
       structure CharVector = gs_1001
+      signature INTEGER = gs_5005
       persistent.lex.sml
    in
       functor gs_116 = PERSISTENTLexFn
@@ -1715,6 +1718,7 @@ local
       structure Unsafe = gs_68
       structure Vector = gs_23
       structure Int = gs_15
+      signature INTEGER = gs_5005
       structure CharVector = gs_1001
       rml.lex.sml
    in
