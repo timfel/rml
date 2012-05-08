@@ -1,6 +1,6 @@
 # variables for Intel x86 / Linux / gcc
 CC=gcc
-CFLAGS=
+CFLAGS=-m64
 COFLAGS=-O2 -fomit-frame-pointer
 CPFLAGS=-fno-omit-frame-pointer -pg
 CGFLAGS=-g -DRML_DEBUG
