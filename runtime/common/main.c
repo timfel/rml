@@ -6,6 +6,7 @@
 #include <limits.h>
 #include <stdlib.h>
 #include "rml.h"
+#include <assert.h>
 
 void rml_show_help(char *program, FILE* file)
 {
@@ -104,6 +105,7 @@ int main(int argc, char **argv)
 #ifdef RML_DEBUG
   rmldb_execution_startup_type = RMLDB_STEP;
 #endif /* RML_DEBUG */
+  assert(sizeof(void*)==RML_SIZE_INT);
   for(++argv, --argc; argc > 0 && argv[0][0] == '-';) {
     char *arg = &argv[0][1];
     ++argv, --argc;
