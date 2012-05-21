@@ -31,7 +31,7 @@ install-rml:	rml.$(HEAP_SUFFIX)
 install-mlton:  rml
 	cp rml $(DESTDIR)$(PREFIX)/bin/rml
 	rm -f $(DESTDIR)$(PREFIX)/bin/rml.$(HEAP_SUFFIX)
-rml-mlton:
+rml-mlton: rml.lex.sml rml.grm.sml mod.lex.sml mod.grm.sml persistent.lex.sml persistent.grm.sml
 	mlton -verbose 3 -target self rml.mlb
 
 rml.lex.sml:	rml.lex
