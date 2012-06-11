@@ -9,7 +9,7 @@ all:	calc
 
 # MAIN PROGRAM
 
-CALCOBJS= main.o lexer.o parser.o yacclib.o assigntwotype.o
+CALCOBJS= main.o lexer.o parser.o assigntwotype.o
 CLEAN=calc calc.exe $(CALCOBJS) lexer.c parser.c parser.h assigntwotype.c assigntwotype.h
 
 calc: $(CALCOBJS)

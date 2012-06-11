@@ -3,10 +3,9 @@
 
 GOROOT=../../..
 SHELL = /bin/sh
-LDLIBS = -lfl
+LDLIBS = -lfl -lm
 CC = gcc
 CLEAN= calc $(CALCOBJS) lexer.c parser.c parser.h Assignment.c Assignment.h
-
 
 # EVERYTHING
 all:	calc

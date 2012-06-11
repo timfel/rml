@@ -1,14 +1,14 @@
 %{
 #include "parser.h"
-#include "yacclib.h"
 #include "rml.h"
 #include "assigntwotype.h"
 
 typedef void *rml_t;
 /* extern rml_t yylval; */
 
-int lex_icon();
-int lex_ident();
+int lex_icon(void);
+int lex_ident(void);
+int lex_rcon(void);
 
 %}
 
@@ -42,21 +42,21 @@ rcon       {rcon1}|{rcon2}
 
 %%
 
-int lex_icon()
+int lex_icon(void)
 {
   int x = atoi(yytext);
   yylval = (rml_t) mk_icon(atoi(yytext));
-  return T_INTCONST;        
+  return T_INTCONST;
 }
 
-int lex_rcon()
+int lex_rcon(void)
 {
   yylval=(rml_t) assigntwotype__REAL(mk_rcon(atof(yytext)));
   return T_REALCONST;
 }
 
-int lex_ident()
+int lex_ident(void)
 {
-        yylval = (rml_t) mk_scon(yytext);
-        return T_IDENT;
+  yylval = (rml_t) mk_scon(yytext);
+  return T_IDENT;
 }

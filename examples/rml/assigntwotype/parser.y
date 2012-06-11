@@ -1,6 +1,5 @@
 %{
 #include <stdio.h>
-#include "yacclib.h"
 #include "rml.h"
 #include "assigntwotype.h"
 
