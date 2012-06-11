@@ -2,6 +2,7 @@
 /* Main program for the small assignment evaluator */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "rml.h"
 #include "Assignment.h"
 

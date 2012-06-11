@@ -14,7 +14,7 @@ all:	calc
 
 # MAIN PROGRAM
 
-CALCOBJS= main.o lexer.o parser.o yacclib.o Assignment.o
+CALCOBJS= main.o lexer.o parser.o Assignment.o
 CLEAN= calc calc.exe $(CALCOBJS) lexer.c parser.c parser.h Assignment.c Assignment.h *~
 
 calc: $(CALCOBJS)
