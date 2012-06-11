@@ -2,5 +2,5 @@
 # Root Makefile for the examples hierarchy
 #
 GOROOT=..
-SUBDIRS=metamodelica rml 
+SUBDIRS=rml 
 include $(GOROOT)/etc/dispatch.mk
