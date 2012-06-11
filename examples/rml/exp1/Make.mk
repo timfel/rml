@@ -3,7 +3,7 @@ GOROOT=../../..
 LDLIBS=-lfl
 CLEAN=calc calc.exe $(CALCOBJS) lexer.c parser.c parser.h exp1.c exp1.h *~
 #uncomment this to have debugging
-RMLCFLAGS=-g -Wc,-g
+RMLCFLAGS=
 
 # EVERYTHING
 all:	calc
@@ -11,7 +11,7 @@ all:	calc
 
 # MAIN PROGRAM
 
-CALCOBJS= main.o lexer.o parser.o yacclib.o exp1.o
+CALCOBJS= main.o lexer.o parser.o exp1.o
 calc: $(CALCOBJS)
 	$(LINK.rml) -o calc $(CALCOBJS) $(LDLIBS)
 
