@@ -32,11 +32,12 @@ RML_BEGIN_LABEL(Parse__parse)
 RML_END_LABEL
 
 #ifdef BENCH
-RML_BEGIN_LABEL(RML__print)
+/*RML_BEGIN_LABEL(RML__print)
 {
     RML_TAILCALLK(rmlSC);
 }
 RML_END_LABEL
+*/
 #endif
 
 #endif	/* PLAIN || SWITCH */

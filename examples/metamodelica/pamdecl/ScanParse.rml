@@ -1,4 +1,0 @@
-module ScanParse:
-  with "Absyn.rml"
-  relation scanparse: () => Absyn.Prog
-end
