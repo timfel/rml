@@ -3,9 +3,9 @@ include ../../../config.cache
 
 
 GOROOT=../../..
-LDLIBS = -lfl -lrml
+LDLIBS = -lfl -lrml -lm
 
-CALCOBJS= main.o lexer.o parser.o yacclib.o exp2.o
+CALCOBJS= main.o lexer.o parser.o exp2.o
 CLEAN=calc $(CALCOBJS) lexer.c parser.c parser.h exp2.c exp2.h calc.exe *~
 
 # EVERYTHING
