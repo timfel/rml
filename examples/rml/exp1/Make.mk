@@ -1,6 +1,6 @@
 
 GOROOT=../../..
-LDLIBS=-lfl
+LDLIBS=-lfl -lm
 CLEAN=calc calc.exe $(CALCOBJS) lexer.c parser.c parser.h exp1.c exp1.h *~
 #uncomment this to have debugging
 #RMLCFLAGS=-g -Wc,-g
