@@ -1,2 +1,2 @@
 #!/usr/bin/sh
-./mf
+./mf 100

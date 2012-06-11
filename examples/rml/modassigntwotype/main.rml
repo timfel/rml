@@ -30,9 +30,9 @@ relation eval_loop:  Eval.Env => ()  =
 
 (*** INCOMPLETE!! *)
  rule  not Parse.parse => ast &
-        print("Syntax error in input line\n")
-         ---------------
-        eval_loop(env)
+       print("Syntax error in input line\n")
+       ---------------
+       eval_loop(env)
 end (* eval_loop *)
 
 (*

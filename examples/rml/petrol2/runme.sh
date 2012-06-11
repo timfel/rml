@@ -1,14 +1,14 @@
 #!/usr/bin/sh
-echo petrol generates from file testp/a.d
-cat testp/a.d
+echo petrol generates from file factorial.d
+cat factorial.d
 echo this C code
-./petrol testp/a.d
+./petrol factorial.d
 echo compiling from petrol to C
-./petrol testp/a.d > a.c
+./petrol factorial.d > a.c
 echo compiling from C to executable
 gcc -o a.exe a.c
 echo running the executable
-./a.exe
+echo 9 | ./a.exe
 echo delete garbage
 rm -f a.c a a.exe
 

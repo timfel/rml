@@ -1,3 +1,4 @@
+include ../../../config.cache
 #
 # Makefile for the mf example
 #

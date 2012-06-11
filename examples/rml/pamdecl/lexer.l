@@ -1,12 +1,9 @@
 %{
+#define YYSTYPE void*
 #include <stdlib.h>
 #include "parser.h"
 #include "rml.h"
-#include "yacclib.h"
 #include "absyn.h"
- 
-typedef void *rml_t;
-/* extern rml_t yylval; */
  
 int absyn_integer(char *s);
 int absyn_ident_or_keyword(char *s);
@@ -81,7 +78,7 @@ junk            .|\n
  
 int absyn_integer(char *s)
 {
-  yylval=(rml_t) Absyn__INTCONST(mk_icon(atoi(s)));
+  yylval=(void*) Absyn__INTCONST(mk_icon(atoi(s)));
   return T_CONST_INT;
 }
  
@@ -90,7 +87,7 @@ int absyn_integer(char *s)
  
 int absyn_real(char *s)
 {
-  yylval=(rml_t) Absyn__REALCONST(mk_rcon(atof(s)));
+  yylval=(void*) Absyn__REALCONST(mk_rcon(atof(s)));
   return T_CONST_REAL;
 }
  
@@ -130,6 +127,6 @@ int absyn_ident_or_keyword(char *s)
                 else
                         high = mid - 1;
         }
-        yylval = (rml_t) mk_scon(s);
+        yylval = (void*) mk_scon(s);
         return T_IDENT;
 }

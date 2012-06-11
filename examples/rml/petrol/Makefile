@@ -1,3 +1,4 @@
+include ../../../config.cache
 #
 # Makefile for the petrol example
 #
@@ -15,22 +16,22 @@ EXTRAO=	lexer.o parser.o parsutil.o
 EXTRAC=	parser.c parser.h y.tab.c y.tab.h
 EXTRARM=y.output ccall1.o ccall2.o
 BINARIES=petrol benchexe petrol.exe benchexe.exe
-CLEAN=	$(SRCO) $(EXTRAO) $(EXTRARM) $(BINARIES) $(EXTRAC) $(SRCC) $(SRCH) *~
+CLEAN=	$(SRCO) $(EXTRAO) $(EXTRARM) $(BINARIES) $(SRCC) $(SRCH) $(EXTRAC) *~
 ccall.c=$(ETCDIR)/ccall.c
 
 ALMOSTPETROL=	$(SRCO) $(EXTRAO)
 
 # default target
 petrol:	$(ALMOSTPETROL) ccall1.o
-	$(LINK.rml) -o petrol $(ALMOSTPETROL) ccall1.o -lfl -lm
+	$(LINK.rml) -o petrol $(ALMOSTPETROL) ccall1.o
 
 benchexe:	$(ALMOSTPETROL) ccall2.o
-	$(LINK.rml) -o benchexe $(ALMOSTPETROL) ccall2.o -lfl -lm
+	$(LINK.rml) -o benchexe $(ALMOSTPETROL) ccall2.o
 
 benchrun:	benchexe
 	$(RUN) ./benchexe -bench testd/big.d
 benchrun10:	benchexe
-	for i in 0 1 2 3 4 5 6 7 8 9; do $(RUN) ./benchexe -bench ../petrol/testd/big.d > /dev/null ; done
+	for i in 0 1 2 3 4 5 6 7 8 9; do $(RUN) ./benchexe -bench testd/big.d > /dev/null; done
 
 csources:	$(SRCC) $(EXTRAC)
 

@@ -4,9 +4,9 @@ include ../../../config.cache
 GOROOT=../../..
 
 LDLIBS = -lrml -lfl -lm
-CALCOBJS= main.o lexer.o gram.o yacclib.o absyn.o eval.o parse.o
+CALCOBJS= main.o lexer.o gram.o absyn.o eval.o parse.o
 CLEAN=calc $(CALCOBJS) lexer.c main.c main.h absyn.c absyn.h eval.c eval.h gram.c gram.h lexer.c *~ calc.exe
-CPPFLAGS=-DDEBUG -Dg -DEBUG -g -DLEXDEBUG=1 -DYYDEBUG=1
+CPPFLAGS=-DDEBUG 
 
 # EVERYTHING
 all:	calc

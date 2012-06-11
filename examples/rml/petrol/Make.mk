@@ -11,14 +11,12 @@ SRCC=	$(SRCRML:.rml=.c)
 SRCH=	$(SRCRML:.rml=.h)
 SRCO=	$(SRCRML:.rml=.o)
 
-EXTRAO=	lexer.o parser.o parsutil.o yacclib.o
+EXTRAO=	lexer.o parser.o parsutil.o 
 EXTRAC=	parser.c parser.h y.tab.c y.tab.h
 EXTRARM=y.output ccall1.o ccall2.o
 BINARIES=petrol benchexe petrol.exe benchexe.exe
 CLEAN=	$(SRCO) $(EXTRAO) $(EXTRARM) $(BINARIES) $(SRCC) $(SRCH) $(EXTRAC) *~
 ccall.c=$(ETCDIR)/ccall.c
-yacclib.h=$(ETCDIR)/yacclib.h
-yacclib.c=$(ETCDIR)/yacclib.c
 
 ALMOSTPETROL=	$(SRCO) $(EXTRAO)
 
@@ -32,7 +30,7 @@ benchexe:	$(ALMOSTPETROL) ccall2.o
 benchrun:	benchexe
 	$(RUN) ./benchexe -bench testd/big.d
 benchrun10:	benchexe
-	for i in 0 1 2 3 4 5 6 7 8 9; do $(RUN) ./benchexe -bench testd/big.d; done
+	for i in 0 1 2 3 4 5 6 7 8 9; do $(RUN) ./benchexe -bench testd/big.d > /dev/null; done
 
 csources:	$(SRCC) $(EXTRAC)
 
@@ -42,12 +40,9 @@ ccall1.o:	$(ccall.c)
 ccall2.o:	$(ccall.c)
 	$(COMPILE.rml) -DBENCH -o ccall2.o $(ccall.c)
 
-lexer.o:	$(yacclib.h) parsutil.h parser.h lexer.h
-parser.o:	parser.c $(yacclib.h) parsutil.h lexer.h
-parsutil.o:	$(yacclib.h) absyn.h parsutil.h
-
-yacclib.o:	$(yacclib.c) $(yacclib.h)
-	$(COMPILE.rml) $(yacclib.c)
+lexer.o:	parsutil.h parser.h lexer.h
+parser.o:	parser.c parsutil.h lexer.h
+parsutil.o:	absyn.h parsutil.h
 
 y.tab.c y.tab.h:	parser.y
 	$(YACC) -d parser.y

@@ -11,23 +11,21 @@ SRCC=	$(SRCRML:.rml=.c)
 SRCH=	$(SRCRML:.rml=.h)
 SRCO=	$(SRCRML:.rml=.o)
 
-EXTRAO=	lexer.o parser.o parsutil.o yacclib.o
+EXTRAO=	lexer.o parser.o parsutil.o 
 EXTRAC=	parser.c parser.h y.tab.c y.tab.h
 EXTRARM=y.output ccall1.o ccall2.o
 BINARIES=miniml benchexe miniml.exe benchexe.exe
 CLEAN=	$(SRCO) $(EXTRAO) $(EXTRARM) $(BINARIES) $(SRCC) $(SRCH) *~ $(EXTRAC)
 ccall.c=$(ETCDIR)/ccall.c
-yacclib.h=$(ETCDIR)/yacclib.h
-yacclib.c=$(ETCDIR)/yacclib.c
 
 ALMOSTML=	absyn.o scheme.o static.o types.o unify.o util.o $(EXTRAO)
 
 # default target
 miniml:	$(ALMOSTML) dynamic.o main1.o ccall1.o
-	$(LINK.rml) -o miniml $(ALMOSTML) dynamic.o main1.o ccall1.o
+	$(LINK.rml) -o miniml $(ALMOSTML) dynamic.o main1.o ccall1.o -lm
 
 benchexe:	$(ALMOSTML) main2.o ccall2.o
-	$(LINK.rml) -o benchexe $(ALMOSTML) main2.o ccall2.o
+	$(LINK.rml) -o benchexe $(ALMOSTML) main2.o ccall2.o -lm
 
 benchrun:	benchexe
 	$(RUN) ./benchexe -bench tests/big.ml
@@ -42,12 +40,9 @@ ccall1.o:	$(ccall.c)
 ccall2.o:	$(ccall.c)
 	$(COMPILE.rml) -DBENCH -o ccall2.o $(ccall.c)
 
-lexer.o:	$(yacclib.h) parsutil.h parser.h lexer.h
-parser.o:	parser.c $(yacclib.h) parsutil.h lexer.h
-parsutil.o:	$(yacclib.h) absyn.h parsutil.h
-
-yacclib.o:	$(yacclib.c) $(yacclib.h)
-	$(COMPILE.rml) $(yacclib.c)
+lexer.o:	parsutil.h parser.h lexer.h
+parser.o:	parser.c parsutil.h lexer.h
+parsutil.o:	absyn.h parsutil.h
 
 y.tab.c y.tab.h:	parser.y
 	$(YACC) -d parser.y

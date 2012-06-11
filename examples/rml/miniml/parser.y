@@ -3,7 +3,7 @@
 %{
 #include <stdarg.h>
 #include <stdio.h>
-#include "yacclib.h"
+#include "rml.h"
 #include "parsutil.h"
 #include "lexer.h"
 static void yyerror(const char*);

@@ -1,7 +1,7 @@
 %{
 /* lexer.l */
 #include "port/config.h"
-#include "yacclib.h"    /* error() */
+#include "rml.h"
 #include "parsutil.h"
 #include "parser.h"
 #include "lexutil.h"

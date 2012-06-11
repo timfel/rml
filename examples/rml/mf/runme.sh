@@ -1,8 +1,9 @@
 #!/bin/bash
 
 echo Running mini freja
-./mf
+./mf 100
 
 echo "
 
 "
+

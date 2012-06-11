@@ -6,7 +6,7 @@ include ../../../config.cache
 GOROOT = ../../..
  
 SHELL = /bin/sh
-LDLIBS = -lrml -lfl
+LDLIBS = -lrml -lfl -lm
 
  
 # EVERYTHING
@@ -14,12 +14,11 @@ all:    pamdecl
  
 # EXECUTABLE
  
-COMMONOBJS=yacclib.o
 VSLOBJS=main.o lexer.o parser.o scanparse.o absyn.o env.o eval.o
-CLEAN=pamdecl pamdecl.exe $(COMMONOBJS) $(VSLOBJS) main.c main.h lexer.c parser.c parser.h absyn.c absyn.h env.c env.h eval.c eval.h *~
+CLEAN=pamdecl pamdecl.exe $(VSLOBJS) main.c main.h lexer.c parser.c parser.h absyn.c absyn.h env.c env.h eval.c eval.h *~
  
-pamdecl: $(VSLOBJS) $(COMMONOBJS)
-	$(LINK.rml) $(VSLOBJS) $(COMMONOBJS) $(LDLIBS) -o pamdecl
+pamdecl: $(VSLOBJS) 
+	$(LINK.rml) $(VSLOBJS) $(LDLIBS) -o pamdecl
  
 # MAIN ROUTINE WRITTEN IN RML NOW
  
@@ -27,13 +26,7 @@ main.o: main.c
 main.c main.h: main.rml
 	$(COMPILE.rml) -c main.rml
  
-# YACCLIB
- 
-yacclib.o:  yacclib.c
-	$(COMPILE.rml) -c -o yacclib.o yacclib.c
- 
 # LEXER
- 
 lexer.o:  lexer.c parser.h absyn.h
 lexer.c:  lexer.l
 	flex -t -l lexer.l >lexer.c

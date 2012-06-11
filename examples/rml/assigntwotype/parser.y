@@ -3,9 +3,8 @@
 #include "rml.h"
 #include "assigntwotype.h"
 
-typedef void *rml_t;
-#define YYSTYPE rml_t
-extern rml_t absyntree;
+#define YYSTYPE void*
+extern void* absyntree;
 
 %}
 

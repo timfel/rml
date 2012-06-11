@@ -1,0 +1,12 @@
+module Hash:
+  
+  datatype ('value, 'key) hash = HASHTABLE of 
+                   ('value * 'key) list array * (* index table *)
+                   'value option array *        (* elements *)
+                   ('key => int)                (* hash function *)
+
+  val cache: int array option
+
+end
+
+val cache = NONE

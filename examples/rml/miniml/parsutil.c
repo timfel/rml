@@ -1,7 +1,7 @@
 /* parsutil.c */
 #include <stdio.h>
+#include <stdlib.h>
 #include "rml.h"
-#include "yacclib.h"
 #include "absyn.h"
 #include "parsutil.h"
 

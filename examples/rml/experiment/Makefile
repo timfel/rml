@@ -2,7 +2,7 @@ include ../../../config.cache
 
 GOROOT=../../..
 LDLIBS=-lfl
-CLEAN=calc calc.exe $(CALCOBJS) main.c main.h *~ *.rdb *.fol *.ast *.cps *.exe *.stackdump 
+CLEAN=calc calc.exe $(CALCOBJS) main.c main.h *~ *.rdb *.fol *.ast *.cps *.exe *.stackdump hash.c hash.h
 RMLCFLAGS=#-g -Wr,-East,-Ecps,-Efol
 
 # EVERYTHING

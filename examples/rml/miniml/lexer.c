@@ -4,7 +4,7 @@
 #include <string.h>	/* strcmp() strchr() */
 #include <stdlib.h>	/* atoi() atof() */
 #include <stdarg.h>
-#include "yacclib.h"	/* mk_icon() mk_rcon() mk_scon() */
+#include "rml.h"	/* enum bop */
 #include "parsutil.h"	/* enum bop */
 #include "parser.h"	/* tokens, yylval */
 #include "lexer.h"

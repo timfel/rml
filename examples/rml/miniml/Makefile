@@ -1,12 +1,13 @@
+include ../../../config.cache
 #
-# Makefile for the petrol example
+# Makefile for the miniml example
 #
 GOROOT=../../..
 ETCDIR=../../etc
 
 CPPFLAGS=-DLEXDEBUG=1 -DYYDEBUG=1 -I$(ETCDIR)
 
-SRCRML=	absyn.rml fcemit.rml fcode.rml flatten.rml main.rml static.rml tcode.rml types.rml
+SRCRML=	absyn.rml dynamic.rml main1.rml main2.rml scheme.rml static.rml types.rml unify.rml util.rml
 SRCC=	$(SRCRML:.rml=.c)
 SRCH=	$(SRCRML:.rml=.h)
 SRCO=	$(SRCRML:.rml=.o)
@@ -14,23 +15,23 @@ SRCO=	$(SRCRML:.rml=.o)
 EXTRAO=	lexer.o parser.o parsutil.o 
 EXTRAC=	parser.c parser.h y.tab.c y.tab.h
 EXTRARM=y.output ccall1.o ccall2.o
-BINARIES=petrol benchexe petrol.exe benchexe.exe
-CLEAN=	$(SRCO) $(EXTRAO) $(EXTRARM) $(BINARIES) $(EXTRAC) $(SRCC) $(SRCH) *~
+BINARIES=miniml benchexe miniml.exe benchexe.exe
+CLEAN=	$(SRCO) $(EXTRAO) $(EXTRARM) $(BINARIES) $(SRCC) $(SRCH) *~ $(EXTRAC)
 ccall.c=$(ETCDIR)/ccall.c
 
-ALMOSTPETROL=	$(SRCO) $(EXTRAO)
+ALMOSTML=	absyn.o scheme.o static.o types.o unify.o util.o $(EXTRAO)
 
 # default target
-petrol:	$(ALMOSTPETROL) ccall1.o
-	$(LINK.rml) -o petrol $(ALMOSTPETROL) ccall1.o -lfl -lm
+miniml:	$(ALMOSTML) dynamic.o main1.o ccall1.o
+	$(LINK.rml) -o miniml $(ALMOSTML) dynamic.o main1.o ccall1.o -lm
 
-benchexe:	$(ALMOSTPETROL) ccall2.o
-	$(LINK.rml) -o benchexe $(ALMOSTPETROL) ccall2.o -lfl -lm
+benchexe:	$(ALMOSTML) main2.o ccall2.o
+	$(LINK.rml) -o benchexe $(ALMOSTML) main2.o ccall2.o -lm
 
 benchrun:	benchexe
-	$(RUN) ./benchexe -bench testd/big.d
+	$(RUN) ./benchexe -bench tests/big.ml
 benchrun10:	benchexe
-	for i in 0 1 2 3 4 5 6 7 8 9; do $(RUN) ./benchexe -bench ../petrol/testd/big.d > /dev/null ; done
+	for i in 0 1 2 3 4 5 6 7 8 9; do $(RUN) ./benchexe -bench tests/big.ml; done
 
 csources:	$(SRCC) $(EXTRAC)
 

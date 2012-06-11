@@ -1,6 +1,6 @@
 %{
+#define YYSTYPE void*
 #include "gram.h"
-#include "yacclib.h"
 #include "rml.h"
 #include "absyn.h"
 

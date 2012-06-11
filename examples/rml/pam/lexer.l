@@ -1,10 +1,8 @@
 %{
+#define YYSTYPE void*
 #include "gram.h"
-#include "yacclib.h"
 #include "rml.h"
 #include "pam.h"
-
-typedef void *rml_t;
 
 int linenr = 1;
 int absyn_integer(char *s);
@@ -17,17 +15,17 @@ int absyn_ident_or_keyword(char *s);
 %x c_comment
 
 whitespace   [ \t]+
-newline   [\n]
+newline      [\n]
 letter       [a-zA-Z]
-ident           {letter}({letter}|{digit})*
+ident        {letter}({letter}|{digit})*
 digit        [0-9]
 digits       {digit}+
-icon       {digits}
+icon         {digits}
 /* Lex style lexical syntax of tokens in the PAM language */
 
 %%
 {whitespace} ;
-{newline} linenr++;
+{newline}    linenr++;
 {ident}      return absyn_ident_or_keyword(yytext); /* T_IDENT */
 {digits}     return absyn_integer(yytext);  /* T_INTCONST */
 
@@ -68,7 +66,7 @@ icon       {digits}
  
 int absyn_integer(char *s)
 {
-  yylval=(rml_t) Pam__INT(mk_icon(atoi(s)));
+  yylval=(void*) Pam__INT(mk_icon(atoi(s)));
   return T_INTCONST;
 }
  
@@ -110,6 +108,6 @@ int absyn_ident_or_keyword(char *s)
                 else
                         high = mid - 1;
         }
-        yylval = (rml_t) mk_scon(s);
+        yylval = (void*) mk_scon(s);
         return T_IDENT;
 }

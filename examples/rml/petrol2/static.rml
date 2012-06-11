@@ -111,18 +111,18 @@ relation elab_ty:  (Env, Absyn.Ty) => Types.Ty   =
 (* Elaborate right hand side of type declaration *)
 
 (* = id *)
-  rule  print "rule 1\n" & lookup(env, id) => TYPEbnd ty'
+  rule  (* print "rule 1\n" & *) lookup(env, id) => TYPEbnd ty'
         ----------------
         elab_ty(env, Absyn.NAME id) => ty'
 
 (* = ^typeexpr, e.g. ^ array [5] of int *)
-  rule  print "rule 2\n" & elab_ty(env, ty) => ty'
+  rule  (* print "rule 2\n" & *) elab_ty(env, ty) => ty'
         ----------------
         elab_ty(env, Absyn.PTR ty) => Types.PTR ty'
 
 
 (* = array[c] of ty , c is a constant expr, constliteral or constid *)
-  rule  print "rule 3\n" & elab_constant(env, c) => INTcon sz &
+  rule  (* print "rule 3\n" & *) elab_constant(env, c) => INTcon sz &
         elab_ty(env, ty) => ty'
         ----------------
         elab_ty(env, Absyn.ARR(c,ty)) => Types.ARR(sz,ty')

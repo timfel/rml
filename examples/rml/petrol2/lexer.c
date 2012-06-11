@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#include "yacclib.h"
+#include "rml.h"
 #include "parsutil.h"
 #include "parser.h"
 #include "lexer.h"

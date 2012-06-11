@@ -1,12 +1,10 @@
 %{
 #include <stdio.h>
-#include "yacclib.h"
 #include "rml.h"
 #include "pam.h"
 
-typedef void *rml_t;
-#define YYSTYPE rml_t
-extern rml_t absyntree;
+#define YYSTYPE void*
+extern void* absyntree;
 
 %}
 

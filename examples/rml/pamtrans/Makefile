@@ -12,7 +12,7 @@ all:    pamtrans
  
 # EXECUTABLE
  
-COMMONOBJS=yacclib.o
+COMMONOBJS=
 VSLOBJS=main.o lexer.o gram.o parse.o absyn.o mcode.o trans.o emit.o
 CLEAN=pamtrans pamtrans.exe $(COMMONOBJS) $(VSLOBJS) main.c main.h lexer.c parser.c parser.h gram.c gram.h absyn.c absyn.h emit.c emit.h mcode.c mcode.h trans.c trans.h *~ 
 
@@ -24,11 +24,6 @@ pamtrans: $(VSLOBJS) $(COMMONOBJS)
 main.o: main.c
 main.c main.h: main.rml
 	$(COMPILE.rml) main.rml
- 
-# YACCLIB
- 
-yacclib.o:  yacclib.c
-	$(COMPILE.rml) $(CFLAGS) -o yacclib.o yacclib.c
  
 # LEXER
  
