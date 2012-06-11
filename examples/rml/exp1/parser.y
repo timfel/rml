@@ -3,10 +3,9 @@
 #include "rml.h"
 #include "exp1.h"
 
-#define YYSTYPE rml_t
+#define YYSTYPE void*
 
-typedef void *rml_t;
-extern rml_t absyntree;
+extern void* absyntree;
 
 %}
 

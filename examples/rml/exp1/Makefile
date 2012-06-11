@@ -1,10 +1,11 @@
 include ../../../config.cache
 
 GOROOT=../../..
-LDLIBS=-lfl -lm
+LDLIBS=-lfl -lm #-lpthread
+
 CLEAN=calc calc.exe $(CALCOBJS) lexer.c parser.c parser.h exp1.c exp1.h *~
 #uncomment this to have debugging
-#RMLCFLAGS=-g -Wc,-g
+#RMLCFLAGS=-Wc,-g
 
 # EVERYTHING
 all:	calc

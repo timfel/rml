@@ -1,11 +1,10 @@
 %{
+#define YYSTYPE void*
 #include "parser.h"
 #include "rml.h"
 #include "exp1.h"
 
-typedef void *rml_t;
-
-rml_t absyn_integer(char *s);
+void* absyn_integer(char *s);
 
 %}
 
@@ -18,7 +17,7 @@ letters         {letter}+
 
 %%
 
-{digits}     { yylval=absyn_integer(yytext); return T_INTCONST;}
+{digits}     { yylval = absyn_integer(yytext); return T_INTCONST;}
 "+"          return T_ADD;
 "-"          return T_SUB;
 "*"          return T_MUL;
@@ -30,9 +29,9 @@ letters         {letter}+
 
 %%
 
-rml_t absyn_integer(char *s)
+void* absyn_integer(char *s)
 {
-  return (rml_t) mk_box1(exp1__INTconst_3dBOX1,mk_icon(atoi(s)));
+  return (void*) mk_box1(exp1__INTconst_3dBOX1,mk_icon(atoi(s)));
 }
 
 
