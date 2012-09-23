@@ -171,7 +171,7 @@ RML_BEGIN_LABEL(RML__array_5fsetnth)
     }
     */
     /* also check here if the array is not already in the trail */
-    for (idx = rml_array_trail_size; &rml_array_trail[idx] >= rmlATP; idx--)
+    for (idx = rml_array_trail_size-1; &rml_array_trail[idx] >= rmlATP; idx--)
     if (rml_array_trail[idx] == rmlA0) /* if found, do not add again */
     {
       rmlA0 = arr;
@@ -261,7 +261,7 @@ RML_BEGIN_LABEL(RML__array_5fupdate)
     }
     */
     /* also check here if the array is not alreay in the trail */
-    for (idx = rml_array_trail_size; &rml_array_trail[idx] >= rmlATP; idx--)
+    for (idx = rml_array_trail_size-1; &rml_array_trail[idx] >= rmlATP; idx--)
     if (rml_array_trail[idx] == rmlA0) /* if found, do not add again */
     {
       rmlA0 = arr;

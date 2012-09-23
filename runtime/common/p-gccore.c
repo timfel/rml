@@ -500,7 +500,8 @@ static void **rml_forward_all(rml_uint_t nliveargs, void **next, char *region_lo
   {
     void **ATP= rml_state_ATP;
     rml_sint_t cnt = &rml_array_trail[RML_ARRAY_TRAIL_SIZE] - ATP;
-    next = rml_forward_vec(ATP, (rml_uint_t)cnt, next, region_low, region_nbytes);
+    /* adrpo: is not needed to forward the entire arrays, only the elements pointing into the young generation! */
+    /* next = rml_forward_vec(ATP, (rml_uint_t)cnt, next, region_low, region_nbytes); */
     /* take all the arrays present in the trail and scan them for pointers into
      * the younger generation
      */
@@ -1233,6 +1234,145 @@ void *mk_box9(unsigned ctor, void *x0, void *x1, void *x2, void *x3, void *x4,
   return RML_TAGPTR(p);
 }
 
+void *mk_box10(unsigned ctor, void *x0, void *x1, void *x2, void *x3, void *x4,
+    void *x5, void *x6, void *x7, void *x8, void *x9) {
+  struct rml_struct *p = alloc_words(10);
+  p->header = RML_STRUCTHDR(9, ctor);
+  p->data[0] = x0;
+  p->data[1] = x1;
+  p->data[2] = x2;
+  p->data[3] = x3;
+  p->data[4] = x4;
+  p->data[5] = x5;
+  p->data[6] = x6;
+  p->data[7] = x7;
+  p->data[8] = x8;
+  p->data[9] = x9;
+  return RML_TAGPTR(p);
+}
+
+void *mk_box11(unsigned ctor, void *x0, void *x1, void *x2, void *x3, void *x4,
+    void *x5, void *x6, void *x7, void *x8, void *x9, void* x10) {
+  struct rml_struct *p = alloc_words(10);
+  p->header = RML_STRUCTHDR(9, ctor);
+  p->data[0] = x0;
+  p->data[1] = x1;
+  p->data[2] = x2;
+  p->data[3] = x3;
+  p->data[4] = x4;
+  p->data[5] = x5;
+  p->data[6] = x6;
+  p->data[7] = x7;
+  p->data[8] = x8;
+  p->data[9] = x9;
+  p->data[10] = x10;
+  return RML_TAGPTR(p);
+}
+
+void *mk_box12(unsigned ctor, void *x0, void *x1, void *x2, void *x3, void *x4,
+    void *x5, void *x6, void *x7, void *x8, void *x9, void* x10, void* x11) {
+  struct rml_struct *p = alloc_words(10);
+  p->header = RML_STRUCTHDR(9, ctor);
+  p->data[0] = x0;
+  p->data[1] = x1;
+  p->data[2] = x2;
+  p->data[3] = x3;
+  p->data[4] = x4;
+  p->data[5] = x5;
+  p->data[6] = x6;
+  p->data[7] = x7;
+  p->data[8] = x8;
+  p->data[9] = x9;
+  p->data[10] = x10;
+  p->data[11] = x11;
+  return RML_TAGPTR(p);
+}
+
+void *mk_box13(unsigned ctor, void *x0, void *x1, void *x2, void *x3, void *x4,
+    void *x5, void *x6, void *x7, void *x8, void *x9, void* x10, void* x11, void* x12) {
+  struct rml_struct *p = alloc_words(10);
+  p->header = RML_STRUCTHDR(9, ctor);
+  p->data[0] = x0;
+  p->data[1] = x1;
+  p->data[2] = x2;
+  p->data[3] = x3;
+  p->data[4] = x4;
+  p->data[5] = x5;
+  p->data[6] = x6;
+  p->data[7] = x7;
+  p->data[8] = x8;
+  p->data[9] = x9;
+  p->data[10] = x10;
+  p->data[11] = x11;
+  p->data[12] = x12;
+  return RML_TAGPTR(p);
+}
+
+void *mk_box14(unsigned ctor, void *x0, void *x1, void *x2, void *x3, void *x4,
+    void *x5, void *x6, void *x7, void *x8, void *x9, void* x10, void* x11, void* x12, void* x13) {
+  struct rml_struct *p = alloc_words(10);
+  p->header = RML_STRUCTHDR(9, ctor);
+  p->data[0] = x0;
+  p->data[1] = x1;
+  p->data[2] = x2;
+  p->data[3] = x3;
+  p->data[4] = x4;
+  p->data[5] = x5;
+  p->data[6] = x6;
+  p->data[7] = x7;
+  p->data[8] = x8;
+  p->data[9] = x9;
+  p->data[10] = x10;
+  p->data[11] = x11;
+  p->data[12] = x12;
+  p->data[13] = x13;
+  return RML_TAGPTR(p);
+}
+
+void *mk_box15(unsigned ctor, void *x0, void *x1, void *x2, void *x3, void *x4,
+    void *x5, void *x6, void *x7, void *x8, void *x9, void* x10, void* x11, void* x12, void* x13, void* x14) {
+  struct rml_struct *p = alloc_words(10);
+  p->header = RML_STRUCTHDR(9, ctor);
+  p->data[0] = x0;
+  p->data[1] = x1;
+  p->data[2] = x2;
+  p->data[3] = x3;
+  p->data[4] = x4;
+  p->data[5] = x5;
+  p->data[6] = x6;
+  p->data[7] = x7;
+  p->data[8] = x8;
+  p->data[9] = x9;
+  p->data[10] = x10;
+  p->data[11] = x11;
+  p->data[12] = x12;
+  p->data[13] = x13;
+  p->data[14] = x14;
+  return RML_TAGPTR(p);
+}
+
+void *mk_box16(unsigned ctor, void *x0, void *x1, void *x2, void *x3, void *x4,
+    void *x5, void *x6, void *x7, void *x8, void *x9, void* x10, void* x11, void* x12, void* x13, void* x14, void* x15) {
+  struct rml_struct *p = alloc_words(10);
+  p->header = RML_STRUCTHDR(9, ctor);
+  p->data[0] = x0;
+  p->data[1] = x1;
+  p->data[2] = x2;
+  p->data[3] = x3;
+  p->data[4] = x4;
+  p->data[5] = x5;
+  p->data[6] = x6;
+  p->data[7] = x7;
+  p->data[8] = x8;
+  p->data[9] = x9;
+  p->data[10] = x10;
+  p->data[11] = x11;
+  p->data[12] = x12;
+  p->data[13] = x13;
+  p->data[14] = x14;
+  p->data[15] = x15;
+  return RML_TAGPTR(p);
+}
 
 
 /* old stuff

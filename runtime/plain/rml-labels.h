@@ -59,7 +59,7 @@ extern void *rml_prim_gcalloc(rml_uint_t, rml_uint_t);
     if (x == NULL) { \
       rml_trace_enabled = 1; \
       fprintf(stderr, "NOT ENOUGH MEMORY function: %s address: %p trace: %d\n", \
-        LABEL_STRING, UNUSEDLABEL, rml_trace_enabled); fflush(stderr); RML_TAILCALLK(rmlFC); \
+        LABEL_STRING, UNUSEDLABEL, rml_trace_enabled); fflush(stderr); RML_TAILCALLK(rmlFC); fflush(stderr); \
     } \
     else { \
       (VAR) = x; \

@@ -488,9 +488,124 @@ static struct rml_string* dtostr(double d)
 
 #undef MAXEXPDIG
 
+#if defined(_MSC_VER)
+#include <float.h>
+#define isnan _isnan
+#define isinf !_finite
+#endif
+
 static const RML_DEFSTRINGLIT(_RML_LIT_NEG_INF,4,"-inf");
 static const RML_DEFSTRINGLIT(_RML_LIT_POS_INF,3,"inf");
 static const RML_DEFSTRINGLIT(_RML_LIT_NAN,3,"NaN");
+
+
+struct rml_string* _old_realString(double  r)
+{
+#if defined(__MINGW32__) || defined(_MSC_VER)
+	int expo;
+	int count;
+	int i;
+	int frac;
+  char buf[32], *q;
+  struct rml_string *str;
+
+  /* The reason for this code is that no printf f.p. conversion
+    * modifier does exactly what we want:
+    * %f doesn't generate exponents for large-magnitude numbers
+    * %e generates exponents even for small-magnitude numbers
+    * %g does use exponents when necessary, but also omits zero fractions
+    * %#g emits zero fractions, but also emits excessive trailing zeros
+    *
+    * As a workaround, use %g but scan the output and append ".0" if no
+    * fraction or exponent was emitted.
+    */
+  sprintf(buf, "%.15g", r);
+	expo = 0;
+	count = 0;
+	frac = 0;
+	for(q = buf; ;) {	/* make sure it doesn't look like an int */
+	char c = *q++;
+	if( isdigit(c) ) {
+		if (expo) count++;
+	    continue;
+	}
+
+	if( c == '\0' && ! expo && !frac) {	/* looks like int -- append ".0" */
+	    q[-1] = '.';
+	    q[0] = '0';
+	    q[1] = '\0';
+	    break;
+	}
+	else if (c == '\0')
+	{
+		/* This makes sure that the 1.0e-/+005 is rewritten to 1.0e-/+05 like in 
+		the cygwin version so that the testsuite works */ 
+		/* printf("buf:%s, q:%s, expo:%d, count:%d\n", buf, q, expo, count); */
+		if (expo && count >= 3 && q[-1-count] == '0') {
+			for(i=count; i>0; i--) {
+				q[-1-i] = q[-i];
+			}
+		}
+		break;
+	}
+
+	if( c == '-' || c == '+')
+	    continue;
+
+	if( c == 'e' ) {
+		expo = 1;
+		continue;
+	}
+
+	if (c == '.') frac = 1;
+    }
+
+    str = rml_prim_mkstring(strlen(buf), 0);
+    strcpy(str->data, buf);	/* this also sets the ending '\0' */
+    return str;
+
+#else /* Linux or other stuff */
+
+    char buf[32], *q;
+    struct rml_string *str;
+
+    /* The reason for this code is that no printf f.p. conversion
+     * modifier does exactly what we want:
+     * %f doesn't generate exponents for large-magnitude numbers
+     * %e generates exponents even for small-magnitude numbers
+     * %g does use exponents when necessary, but also omits zero fractions
+     * %#g emits zero fractions, but also emits excessive trailing zeros
+     *
+     * As a workaround, use %g but scan the output and append ".0" if no
+     * fraction or exponent was emitted.
+     */
+    sprintf(buf, "%.15g", r);
+    for(q = buf; ;) {	/* make sure it doesn't look like an int */
+	char c = *q++;
+	if( isdigit(c) )
+	    continue;
+	if( c == '\0' ) {	/* looks like int -- append ".0" */
+	    q[-1] = '.';
+	    q[0] = '0';
+	    q[1] = '\0';
+	    break;
+	}
+	if( c == '-' )
+	    continue;
+	/* If we get here we found
+	 * '.', indicating a fraction (ok),
+	 * 'e', indicating an exponent (ok),
+	 * or something else, probably indicating nan or inf (bad).
+	 * In either case, leave the string as-is.
+	 */
+	break;
+    }
+    str = rml_prim_mkstring(strlen(buf), 0);
+    strcpy(str->data, buf);	/* this also sets the ending '\0' */
+    return str;
+#endif
+}
+
 
 /* real_str.c */
 RML_BEGIN_LABEL(RML__real_5fstring)
@@ -503,7 +618,11 @@ RML_BEGIN_LABEL(RML__real_5fstring)
   else if (isnan(r))
     rmlA0 = RML_REFSTRINGLIT(_RML_LIT_NAN);
   else {
+#if defined(__MINGW32__) || defined(_MSC_VER)
+    struct rml_string *res = _old_realString(r);
+#else
     struct rml_string *res = dtostr(r);
+#endif
     /* fprintf(stderr, "REALsTRING: %g to %s...", r, res->data); */
     RML_CHECK_POINTER(res, RML__real_5fstring, "RML.realString");
     rmlA0 = RML_TAGPTR(res);
