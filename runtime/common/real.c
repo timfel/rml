@@ -499,7 +499,7 @@ static const RML_DEFSTRINGLIT(_RML_LIT_POS_INF,3,"inf");
 static const RML_DEFSTRINGLIT(_RML_LIT_NAN,3,"NaN");
 
 
-struct rml_string* _old_realString(double  r)
+struct rml_string* _rml_old_realString(double  r)
 {
 #if defined(__MINGW32__) || defined(_MSC_VER)
 	int expo;
@@ -619,7 +619,7 @@ RML_BEGIN_LABEL(RML__real_5fstring)
     rmlA0 = RML_REFSTRINGLIT(_RML_LIT_NAN);
   else {
 #if defined(__MINGW32__) || defined(_MSC_VER)
-    struct rml_string *res = _old_realString(r);
+    struct rml_string *res = _rml_old_realString(r);
 #else
     struct rml_string *res = dtostr(r);
 #endif
