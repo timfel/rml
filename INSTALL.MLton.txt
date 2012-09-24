@@ -1,25 +1,16 @@
 Compilation of RML frontent implemented in SML with the MLton compiler
 -----------------------------------------------------------------------
-Adrian Pop, adrpo@ida.liu.se, 2006-03-18
+Martin Sjölund, martin.sjolund@liu.se, 2012-09-24
 
+It is possible to compile entirely without the use of SML/NJ, if you have
+mlton installed. This results in a faster compiler.
 
-By default RML use SML/NJ for compilation but is possible 
-from 2006-03-15 to compile also using MLton compiler which
-generates a really faster compiler.
+./configure --nosmlnj
+make -C runtime
+make -C etc
+make -C compiler rml-mlton
+make -C etc install
+make -C runtime install
+make -C compiler install-mlton
 
-Just follow all the steps in INSTALL and then:
-
-To compile the SML part of the RML:
------------------------------------
-cd compiler
-compiler> mlton -verbose 3 -target self rml.mlb
-then just copy the rml executable in the 
-rml/arch-os-compiler/bin/
-and edit the 
-rml/arch-os-compiler/bin/rmlc 
-to call the executable instead of the rml script.
-
-If you run into problems send me an email.
-
-Enjoy,
-Adrian Pop/
+For more information, read INSTALL.txt, or send an email to adrian.pop@liu.se
