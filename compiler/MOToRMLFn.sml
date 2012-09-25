@@ -2708,12 +2708,14 @@ let val Absyn.PROGRAM(_,_,interface as
       | isPresent(id, Absyn.CONpat(longcon, info)) = false
       | isPresent(id, Absyn.STRUCTpat(ctor, pat_star, _, info)) = 
           isPresentStar(id, pat_star)
-      | isPresent(id, Absyn.BINDpat(var, pat, info)) = 
-          (Absyn.identName id = Absyn.identName var)
+      | isPresent(id, Absyn.BINDpat(var, pat, info)) = (* adpro: 2012-09-25 add check of the inside pattern too *)
+          (Absyn.identName id = Absyn.identName var) orelse isPresent(id, pat)
       | isPresent(id, Absyn.IDENTpat(id2, _, info)) = 
           (Absyn.identName id = Absyn.identName id2)
       | isPresent(id, Absyn.NAMEDpat(id2, pat, info)) = 
-          (Absyn.identName id = Absyn.identName id2) orelse isPresent(id, pat)
+          (* adpro: 2012-09-25 DO NOT CARE IF id is present as named pattern, i.e. X(id = ...)
+                    just check the damn pattern, not the name of the component *)
+          (* (Absyn.identName id = Absyn.identName id2) orelse *) isPresent(id, pat)
 
     fun getExpFromNarg(Absyn.NAMEDARG(NONE, Absyn.CREF(cr, i) , infoNamedArg)) = cr
     |    getExpFromNarg(Absyn.NAMEDARG(_, exp, i)) =
