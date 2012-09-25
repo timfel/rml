@@ -1237,7 +1237,7 @@ void *mk_box9(unsigned ctor, void *x0, void *x1, void *x2, void *x3, void *x4,
 void *mk_box10(unsigned ctor, void *x0, void *x1, void *x2, void *x3, void *x4,
     void *x5, void *x6, void *x7, void *x8, void *x9) {
   struct rml_struct *p = alloc_words(11);
-  p->header = RML_STRUCTHDR(9, ctor);
+  p->header = RML_STRUCTHDR(10, ctor);
   p->data[0] = x0;
   p->data[1] = x1;
   p->data[2] = x2;
@@ -1254,7 +1254,7 @@ void *mk_box10(unsigned ctor, void *x0, void *x1, void *x2, void *x3, void *x4,
 void *mk_box11(unsigned ctor, void *x0, void *x1, void *x2, void *x3, void *x4,
     void *x5, void *x6, void *x7, void *x8, void *x9, void* x10) {
   struct rml_struct *p = alloc_words(12);
-  p->header = RML_STRUCTHDR(9, ctor);
+  p->header = RML_STRUCTHDR(11, ctor);
   p->data[0] = x0;
   p->data[1] = x1;
   p->data[2] = x2;
@@ -1272,7 +1272,7 @@ void *mk_box11(unsigned ctor, void *x0, void *x1, void *x2, void *x3, void *x4,
 void *mk_box12(unsigned ctor, void *x0, void *x1, void *x2, void *x3, void *x4,
     void *x5, void *x6, void *x7, void *x8, void *x9, void* x10, void* x11) {
   struct rml_struct *p = alloc_words(13);
-  p->header = RML_STRUCTHDR(9, ctor);
+  p->header = RML_STRUCTHDR(12, ctor);
   p->data[0] = x0;
   p->data[1] = x1;
   p->data[2] = x2;
@@ -1291,7 +1291,7 @@ void *mk_box12(unsigned ctor, void *x0, void *x1, void *x2, void *x3, void *x4,
 void *mk_box13(unsigned ctor, void *x0, void *x1, void *x2, void *x3, void *x4,
     void *x5, void *x6, void *x7, void *x8, void *x9, void* x10, void* x11, void* x12) {
   struct rml_struct *p = alloc_words(14);
-  p->header = RML_STRUCTHDR(9, ctor);
+  p->header = RML_STRUCTHDR(13, ctor);
   p->data[0] = x0;
   p->data[1] = x1;
   p->data[2] = x2;
@@ -1311,7 +1311,7 @@ void *mk_box13(unsigned ctor, void *x0, void *x1, void *x2, void *x3, void *x4,
 void *mk_box14(unsigned ctor, void *x0, void *x1, void *x2, void *x3, void *x4,
     void *x5, void *x6, void *x7, void *x8, void *x9, void* x10, void* x11, void* x12, void* x13) {
   struct rml_struct *p = alloc_words(15);
-  p->header = RML_STRUCTHDR(9, ctor);
+  p->header = RML_STRUCTHDR(14, ctor);
   p->data[0] = x0;
   p->data[1] = x1;
   p->data[2] = x2;
@@ -1332,7 +1332,7 @@ void *mk_box14(unsigned ctor, void *x0, void *x1, void *x2, void *x3, void *x4,
 void *mk_box15(unsigned ctor, void *x0, void *x1, void *x2, void *x3, void *x4,
     void *x5, void *x6, void *x7, void *x8, void *x9, void* x10, void* x11, void* x12, void* x13, void* x14) {
   struct rml_struct *p = alloc_words(16);
-  p->header = RML_STRUCTHDR(9, ctor);
+  p->header = RML_STRUCTHDR(15, ctor);
   p->data[0] = x0;
   p->data[1] = x1;
   p->data[2] = x2;
@@ -1354,7 +1354,7 @@ void *mk_box15(unsigned ctor, void *x0, void *x1, void *x2, void *x3, void *x4,
 void *mk_box16(unsigned ctor, void *x0, void *x1, void *x2, void *x3, void *x4,
     void *x5, void *x6, void *x7, void *x8, void *x9, void* x10, void* x11, void* x12, void* x13, void* x14, void* x15) {
   struct rml_struct *p = alloc_words(17);
-  p->header = RML_STRUCTHDR(9, ctor);
+  p->header = RML_STRUCTHDR(16, ctor);
   p->data[0] = x0;
   p->data[1] = x1;
   p->data[2] = x2;
