@@ -27,17 +27,23 @@ functor PERSISTENTParseFn(structure Absyn : ABSYN
     val debugFlag = false
     fun debug s = if (debugFlag) then Util.outStdErr("PERSISTENTParseFn."^s) else ()  
 
-    fun openFile(file, fname) =  (* adrpo, try again 2 time if the first one was not a joy *)
+    fun openFile(file, fname) =  (* adrpo, try 10 to open the file *)
     ((TextIO.openIn file) handle exn => 
+     ((TextIO.openIn file) handle exn =>
+      ((TextIO.openIn file) handle exn =>
        ((TextIO.openIn file) handle exn =>
+        ((TextIO.openIn file) handle exn =>
          ((TextIO.openIn file) handle exn =>
           ((TextIO.openIn file) handle exn =>
+           ((TextIO.openIn file) handle exn =>
+            ((TextIO.openIn file) handle exn =>
+             ((TextIO.openIn file) handle exn =>
            (
              case exn of IO.Io({name, function, cause})
              => (bug(fname ^ " Error: name = " ^  name ^ " function: " ^ function ^ "! Could not open file: " ^ file);
                  case cause of OS.SysErr(s, _) 
                   => bug(fname ^ "Error: " ^ s ^ "! Could not open file: " ^ file);
-             raise exn)))))
+             raise exn)))))))))))
     )
 
     fun parse(startToken, file, repository, isInterface) =
