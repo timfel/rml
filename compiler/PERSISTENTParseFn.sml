@@ -27,32 +27,28 @@ functor PERSISTENTParseFn(structure Absyn : ABSYN
     val debugFlag = false
     fun debug s = if (debugFlag) then Util.outStdErr("PERSISTENTParseFn."^s) else ()  
 
+    fun openFile(file, fname) =  (* adrpo, try again 2 time if the first one was not a joy *)
+    ((TextIO.openIn file) handle exn => 
+       ((TextIO.openIn file) handle exn =>
+         ((TextIO.openIn file) handle exn =>
+          ((TextIO.openIn file) handle exn =>
+           (
+             case exn of IO.Io({name, function, cause})
+             => (bug(fname ^ " Error: name = " ^  name ^ " function: " ^ function ^ "! Could not open file: " ^ file);
+                 case cause of OS.SysErr(s, _) 
+                  => bug(fname ^ "Error: " ^ s ^ "! Could not open file: " ^ file);
+             raise exn)))))
+    )
+
     fun parse(startToken, file, repository, isInterface) =
       let
-         val is = (TextIO.openIn file)
-                    handle exn => (
-                                    case exn of 
-                                    IO.Io({name, function, cause})
-                                    => 
-                                    ( 
-                                     bug("parse Error: name = " ^ 
-                                         name ^ 
-                                         " function: " ^ 
-                                         function ^ 
-                                         "! Could not open file: " ^ file);
-                                     
-                                     case cause of
-                                     OS.SysErr(s, _) => 
-                                      bug("parse Error: " ^ s ^ "! Could not open file: " ^ file);
-                                      raise exn
-                                    ) 
-                                  )
+         val is = openFile(file, "parse")
       in 
        (let val (lexarg, inputf) = LexArgSimple.new(file, is)
         val pos = 2  (*XXX: ML-Lex*)
         val lexer = PERSISTENTParser.makeLexer inputf lexarg
-       val lexer = PERSISTENTParser.Stream.cons(startToken(pos,pos), lexer)
-       val (result,_) = 
+        val lexer = PERSISTENTParser.Stream.cons(startToken(pos,pos), lexer)
+        val (result,_) = 
       PERSISTENTParser.parse(
         0,
         lexer,
@@ -92,26 +88,9 @@ functor PERSISTENTParseFn(structure Absyn : ABSYN
       
     fun parse_normal(startToken, file) =
       let 
-         val is = (TextIO.openIn file)
-                    handle exn => (
-                                    case exn of 
-                                    IO.Io({name, function, cause})
-                                    => 
-                                    ( 
-                                     bug("parse_nomal Error: name = " ^ 
-                                         name ^ 
-                                         " function: " ^ 
-                                         function ^ 
-                                         "! Could not open file: " ^ file);
-                                     
-                                     case cause of
-                                     OS.SysErr(s, _) => 
-                                      bug("parse_normal Error: " ^ s ^ "! Could not open file: " ^ file);
-                                      raise exn
-                                    ) 
-                                  )
+         val is = openFile(file, "parse_normal")
       in
-  (let val (lexarg, inputf) = LexArgSimple.new(file, is)
+      (let val (lexarg, inputf) = LexArgSimple.new(file, is)
        val pos = 2  (*XXX: ML-Lex*)
        val lexer = PERSISTENTParser.makeLexer inputf lexarg
        val lexer = PERSISTENTParser.Stream.cons(startToken(pos,pos), lexer)
@@ -130,35 +109,26 @@ functor PERSISTENTParseFn(structure Absyn : ABSYN
       
 
     fun parseModule(file, repository) = 
-    let val start = Time.now()
-    val _ = debug("parseModule: "^file^" -> ")
+    let 
+    val _ = debug("parseModule: "^file^"\n")
     val result = parse(Tokens.START_MODULE, file, repository, false)
-    val stop = Time.now()
-    val interval = Time.- (stop, start)
-    val _ = debug("("^(Time.fmt 5 interval)^")\n")
   in
     result
   end
   
     fun parseInterface(file, repository) = 
-    let val start = Time.now()
-    val _ = debug("parseInterface: "^file^" -> ")
+    let 
+    val _ = debug("parseInterface: "^file^"\n")
     val result = parse(Tokens.START_INTERFACE, file, repository, true)
-    val stop = Time.now()
-    val interval = Time.- (stop, start)
-    val _ = debug("("^(Time.fmt 5 interval)^")\n")
   in
     result
   end
     
     fun parseSerializationInfo  file = 
-    let val start = Time.now()
-    val _ = debug("parseSerializationInfo: "^file^" -> ")
+    let 
+    val _ = debug("parseSerializationInfo: "^file^"\n")
     val Absyn.SERIALIZED(Absyn.SERIALIZE(srzInfo),_) = 
         parse_normal(Tokens.START_SERIALIZATION_INFO, file)
-    val stop = Time.now()
-    val interval = Time.- (stop, start)
-    val _ = debug("("^(Time.fmt 5 interval)^")\n")
   in
     srzInfo
   end
