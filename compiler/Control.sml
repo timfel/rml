@@ -335,13 +335,21 @@ structure Control: CONTROL =
 
   fun getTempFileName(file) =
   let
-     val tempFile = OS.FileSys.tmpName() 
-                     handle exn => (
-                                    case exn of 
-                                    OS.SysErr(s, _) => 
-                                      bug("getTempFileName Error: " ^ s ^ "! Could not create temporary file for file: " ^ file);
-                                      raise exn
-                                   )
+     val tempFile = OS.FileSys.tmpName() handle exn => 
+                    (OS.Process.sleep(Time.fromMicroseconds(2)); OS.FileSys.tmpName() handle exn => 
+                     (OS.Process.sleep(Time.fromMicroseconds(2)); OS.FileSys.tmpName() handle exn => 
+                      (OS.Process.sleep(Time.fromMicroseconds(2)); OS.FileSys.tmpName() handle exn => 
+                       (OS.Process.sleep(Time.fromMicroseconds(2)); OS.FileSys.tmpName() handle exn => 
+                        (OS.Process.sleep(Time.fromMicroseconds(2)); OS.FileSys.tmpName() handle exn => 
+                         (OS.Process.sleep(Time.fromMicroseconds(2)); OS.FileSys.tmpName() handle exn => 
+                          (OS.Process.sleep(Time.fromMicroseconds(2)); OS.FileSys.tmpName() handle exn => 
+                           (OS.Process.sleep(Time.fromMicroseconds(2)); OS.FileSys.tmpName() handle exn => 
+                            (OS.Process.sleep(Time.fromMicroseconds(2)); OS.FileSys.tmpName() handle exn => 
+                    (
+                      case exn of OS.SysErr(s, _) 
+                      => bug("getTempFileName Error: " ^ s ^ "! Could not create temporary file for file: " ^ file);
+                      raise exn
+                    ))))))))))
   in
     tempFile
   end

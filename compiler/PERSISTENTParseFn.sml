@@ -29,15 +29,15 @@ functor PERSISTENTParseFn(structure Absyn : ABSYN
 
     fun openFile(file, fname) =  (* adrpo, try 10 to open the file *)
     ((TextIO.openIn file) handle exn => 
-     ((TextIO.openIn file) handle exn =>
-      ((TextIO.openIn file) handle exn =>
-       ((TextIO.openIn file) handle exn =>
-        ((TextIO.openIn file) handle exn =>
-         ((TextIO.openIn file) handle exn =>
-          ((TextIO.openIn file) handle exn =>
-           ((TextIO.openIn file) handle exn =>
-            ((TextIO.openIn file) handle exn =>
-             ((TextIO.openIn file) handle exn =>
+     (OS.Process.sleep(Time.fromMicroseconds(2)); (TextIO.openIn file) handle exn =>
+      (OS.Process.sleep(Time.fromMicroseconds(2)); (TextIO.openIn file) handle exn =>
+       (OS.Process.sleep(Time.fromMicroseconds(2)); (TextIO.openIn file) handle exn =>
+        (OS.Process.sleep(Time.fromMicroseconds(2)); (TextIO.openIn file) handle exn =>
+         (OS.Process.sleep(Time.fromMicroseconds(2)); (TextIO.openIn file) handle exn =>
+          (OS.Process.sleep(Time.fromMicroseconds(2)); (TextIO.openIn file) handle exn =>
+           (OS.Process.sleep(Time.fromMicroseconds(2)); (TextIO.openIn file) handle exn =>
+            (OS.Process.sleep(Time.fromMicroseconds(2)); (TextIO.openIn file) handle exn =>
+             (OS.Process.sleep(Time.fromMicroseconds(2)); (TextIO.openIn file) handle exn =>
            (
              case exn of IO.Io({name, function, cause})
              => (bug(fname ^ " Error: name = " ^  name ^ " function: " ^ function ^ "! Could not open file: " ^ file);
