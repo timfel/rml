@@ -198,29 +198,29 @@ structure Control: CONTROL =
       
   fun fileNewer(file1, file2) = (* see if file1 is newer than file2 *)
     let val timeFile1 = (OS.FileSys.modTime(file1) handle exn => 
-                         (OS.Process.sleep(Time.fromMicroseconds(1500)); OS.FileSys.modTime(file1) handle exn => 
-                          (OS.Process.sleep(Time.fromMicroseconds(1500)); OS.FileSys.modTime(file1) handle exn => 
-                           (OS.Process.sleep(Time.fromMicroseconds(1500)); OS.FileSys.modTime(file1) handle exn => 
-                            (OS.Process.sleep(Time.fromMicroseconds(1500)); OS.FileSys.modTime(file1) handle exn => 
-                             (OS.Process.sleep(Time.fromMicroseconds(1500)); OS.FileSys.modTime(file1) handle exn => 
-                              (OS.Process.sleep(Time.fromMicroseconds(1500)); OS.FileSys.modTime(file1) handle exn => 
-                               (OS.Process.sleep(Time.fromMicroseconds(1500)); OS.FileSys.modTime(file1) handle exn => 
-                                (OS.Process.sleep(Time.fromMicroseconds(1500)); OS.FileSys.modTime(file1) handle exn => 
-                                 (OS.Process.sleep(Time.fromMicroseconds(1500)); OS.FileSys.modTime(file1) handle exn => 
+                         (OS.Process.sleep(Time.fromMicroseconds(3500)); OS.FileSys.modTime(file1) handle exn => 
+                          (OS.Process.sleep(Time.fromMicroseconds(3500)); OS.FileSys.modTime(file1) handle exn => 
+                           (OS.Process.sleep(Time.fromMicroseconds(3500)); OS.FileSys.modTime(file1) handle exn => 
+                            (OS.Process.sleep(Time.fromMicroseconds(3500)); OS.FileSys.modTime(file1) handle exn => 
+                             (OS.Process.sleep(Time.fromMicroseconds(3500)); OS.FileSys.modTime(file1) handle exn => 
+                              (OS.Process.sleep(Time.fromMicroseconds(3500)); OS.FileSys.modTime(file1) handle exn => 
+                               (OS.Process.sleep(Time.fromMicroseconds(3500)); OS.FileSys.modTime(file1) handle exn => 
+                                (OS.Process.sleep(Time.fromMicroseconds(3500)); OS.FileSys.modTime(file1) handle exn => 
+                                 (OS.Process.sleep(Time.fromMicroseconds(3500)); OS.FileSys.modTime(file1) handle exn => 
                                   (case exn of OS.SysErr(s, _) => 
                                    bug("fileNewer Error: " ^ s ^ "! Could not access file: " ^ file1);
                                    raise exn)
                                  ))))))))))
         val timeFile2 = (OS.FileSys.modTime(file2) handle exn => 
-                         (OS.Process.sleep(Time.fromMicroseconds(1500)); OS.FileSys.modTime(file2) handle exn => 
-                          (OS.Process.sleep(Time.fromMicroseconds(1500)); OS.FileSys.modTime(file2) handle exn => 
-                           (OS.Process.sleep(Time.fromMicroseconds(1500)); OS.FileSys.modTime(file2) handle exn => 
-                            (OS.Process.sleep(Time.fromMicroseconds(1500)); OS.FileSys.modTime(file2) handle exn => 
-                             (OS.Process.sleep(Time.fromMicroseconds(1500)); OS.FileSys.modTime(file2) handle exn => 
-                              (OS.Process.sleep(Time.fromMicroseconds(1500)); OS.FileSys.modTime(file2) handle exn => 
-                               (OS.Process.sleep(Time.fromMicroseconds(1500)); OS.FileSys.modTime(file2) handle exn => 
-                                (OS.Process.sleep(Time.fromMicroseconds(1500)); OS.FileSys.modTime(file2) handle exn => 
-                                 (OS.Process.sleep(Time.fromMicroseconds(1500)); OS.FileSys.modTime(file2) handle exn => 
+                         (OS.Process.sleep(Time.fromMicroseconds(3500)); OS.FileSys.modTime(file2) handle exn => 
+                          (OS.Process.sleep(Time.fromMicroseconds(3500)); OS.FileSys.modTime(file2) handle exn => 
+                           (OS.Process.sleep(Time.fromMicroseconds(3500)); OS.FileSys.modTime(file2) handle exn => 
+                            (OS.Process.sleep(Time.fromMicroseconds(3500)); OS.FileSys.modTime(file2) handle exn => 
+                             (OS.Process.sleep(Time.fromMicroseconds(3500)); OS.FileSys.modTime(file2) handle exn => 
+                              (OS.Process.sleep(Time.fromMicroseconds(3500)); OS.FileSys.modTime(file2) handle exn => 
+                               (OS.Process.sleep(Time.fromMicroseconds(3500)); OS.FileSys.modTime(file2) handle exn => 
+                                (OS.Process.sleep(Time.fromMicroseconds(3500)); OS.FileSys.modTime(file2) handle exn => 
+                                 (OS.Process.sleep(Time.fromMicroseconds(3500)); OS.FileSys.modTime(file2) handle exn => 
                                   (case exn of OS.SysErr(s, _) => 
                                    bug("fileNewer Error: " ^ s ^ "! Could not access file: " ^ file2);
                                    raise exn)
