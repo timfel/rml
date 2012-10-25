@@ -15,8 +15,16 @@ $GOROOT/etc/mkdirhier $DESTDIR$PREFIX/lib
 case "$TARGET" in
 x86-mingw32-gcc)
     SMLDIR=`$GOROOT/etc/which_dir sml.bat`
+	SMLDIR=$SMLNJ_HOME
+	# transform c:\a\b -> '/c/a/b'
+	SMLDIR=`echo $SMLDIR | sed 's/://g'`
+	SMLDIR=`echo $SMLDIR | sed 's|\\\|/|g'`
+	HEAPDIR=$PREFIX
+	HEAPDIR=`echo $HEAPDIR | sed 's|/||'`
+	HEAPDIR=`echo $HEAPDIR | sed 's|/|:/|'`
+	SMLDIR=/$SMLDIR/bin
     RUN="$SMLDIR/.run/run.x86-win32.exe"
-    (echo '#!/bin/sh'; echo exec $RUN @SMLquiet @SMLload=\"$PREFIX/lib/$APPNAME.$HEAP_SUFFIX\" '$*') > $DESTDIR$PREFIX/bin/$APPNAME
+    (echo '#!/bin/sh'; echo exec $RUN @SMLquiet @SMLload=\"$HEAPDIR/lib/$APPNAME.$HEAP_SUFFIX\" '$*') > $DESTDIR$PREFIX/bin/$APPNAME
     chmod +x $DESTDIR$PREFIX/bin/$APPNAME
     cp $APPNAME.$HEAP_SUFFIX $DESTDIR$PREFIX/lib    
      ;;

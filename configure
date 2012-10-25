@@ -155,11 +155,18 @@ echo PREFIX=$PREFIX >> ./config.cache
 echo DESTDIR=$DESTDIR >> ./config.cache
 case "$TARGET" in
   x86-mingw32-gcc)
-	SMLDIR=`etc/which_dir sml.bat`
+	#SMLDIR=`etc/which_dir sml.bat`
+	SMLDIR=$SMLNJ_HOME
+	# transform c:\a\b -> '/c/a/b'
+	SMLDIR=`echo $SMLDIR | sed 's/://g'`
+	SMLDIR=`echo $SMLDIR | sed 's|\\\|/|g'`
+	HEAPDIR=$SMLNJ_HOME
+	HEAPDIR=`echo $HEAPDIR | sed 's|\\\|/|g'`
+	SMLDIR=/$SMLDIR/bin
 	SMLRUN=$SMLDIR/.run/run.x86-win32.exe 
-	echo SMLCM=\`echo $SMLRUN @SMLload=$SMLDIR/.heap/sml\` >> ./config.cache
-	echo MLLEX=\`echo $SMLRUN @SMLload=$SMLDIR/.heap/ml-lex\` >> ./config.cache
-	echo MLYACC=\`echo $SMLRUN @SMLload=$SMLDIR/.heap/ml-yacc\` >> ./config.cache
+	echo SMLCM=\`echo \"$SMLRUN @SMLload=$HEAPDIR/bin/.heap/sml\"\` >> ./config.cache
+	echo MLLEX=\`echo \"$SMLRUN @SMLload=$HEAPDIR/bin/.heap/ml-lex\"\` >> ./config.cache
+	echo MLYACC=\`echo \"$SMLRUN @SMLload=$HEAPDIR/bin/.heap/ml-yacc\"\` >> ./config.cache
 	;;
   *)
 	echo SMLCM=$SMLCM   >> ./config.cache
