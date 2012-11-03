@@ -33,11 +33,11 @@ functor PERSISTENTParseFn(structure Absyn : ABSYN
       (OS.Process.sleep(Time.fromMicroseconds(3000)); (TextIO.openIn file) handle exn =>
        (OS.Process.sleep(Time.fromMicroseconds(3000)); (TextIO.openIn file) handle exn =>
         (OS.Process.sleep(Time.fromMicroseconds(3000)); (TextIO.openIn file) handle exn =>
-         (OS.Process.sleep(Time.fromMicroseconds(3000)); (TextIO.openIn file) handle exn =>
-          (OS.Process.sleep(Time.fromMicroseconds(3000)); (TextIO.openIn file) handle exn =>
-           (OS.Process.sleep(Time.fromMicroseconds(3000)); (TextIO.openIn file) handle exn =>
-            (OS.Process.sleep(Time.fromMicroseconds(3000)); (TextIO.openIn file) handle exn =>
-             (OS.Process.sleep(Time.fromMicroseconds(3000)); (TextIO.openIn file) handle exn =>
+         (OS.Process.sleep(Time.fromMicroseconds(300000)); (TextIO.openIn file) handle exn =>
+          (OS.Process.sleep(Time.fromMicroseconds(400000)); (TextIO.openIn file) handle exn =>
+           (OS.Process.sleep(Time.fromMicroseconds(500000)); (TextIO.openIn file) handle exn =>
+            (OS.Process.sleep(Time.fromMicroseconds(600000)); (TextIO.openIn file) handle exn =>
+             (OS.Process.sleep(Time.fromMicroseconds(700000)); (TextIO.openIn file) handle exn =>
            (
              case exn of IO.Io({name, function, cause})
              => (bug(fname ^ " Error: name = " ^  name ^ " function: " ^ function ^ "! Could not open file: " ^ file);

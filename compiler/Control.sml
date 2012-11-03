@@ -202,11 +202,11 @@ structure Control: CONTROL =
                           (OS.Process.sleep(Time.fromMicroseconds(3500)); OS.FileSys.modTime(file1) handle exn => 
                            (OS.Process.sleep(Time.fromMicroseconds(3500)); OS.FileSys.modTime(file1) handle exn => 
                             (OS.Process.sleep(Time.fromMicroseconds(3500)); OS.FileSys.modTime(file1) handle exn => 
-                             (OS.Process.sleep(Time.fromMicroseconds(3500)); OS.FileSys.modTime(file1) handle exn => 
-                              (OS.Process.sleep(Time.fromMicroseconds(3500)); OS.FileSys.modTime(file1) handle exn => 
-                               (OS.Process.sleep(Time.fromMicroseconds(3500)); OS.FileSys.modTime(file1) handle exn => 
-                                (OS.Process.sleep(Time.fromMicroseconds(3500)); OS.FileSys.modTime(file1) handle exn => 
-                                 (OS.Process.sleep(Time.fromMicroseconds(3500)); OS.FileSys.modTime(file1) handle exn => 
+                             (OS.Process.sleep(Time.fromMicroseconds(35000)); OS.FileSys.modTime(file1) handle exn => 
+                              (OS.Process.sleep(Time.fromMicroseconds(35000)); OS.FileSys.modTime(file1) handle exn => 
+                               (OS.Process.sleep(Time.fromMicroseconds(35000)); OS.FileSys.modTime(file1) handle exn => 
+                                (OS.Process.sleep(Time.fromMicroseconds(350000)); OS.FileSys.modTime(file1) handle exn => 
+                                 (OS.Process.sleep(Time.fromMicroseconds(350000)); OS.FileSys.modTime(file1) handle exn => 
                                   (case exn of OS.SysErr(s, _) => 
                                    bug("fileNewer Error: " ^ s ^ "! Could not access file: " ^ file1);
                                    raise exn)
@@ -215,12 +215,12 @@ structure Control: CONTROL =
                          (OS.Process.sleep(Time.fromMicroseconds(3500)); OS.FileSys.modTime(file2) handle exn => 
                           (OS.Process.sleep(Time.fromMicroseconds(3500)); OS.FileSys.modTime(file2) handle exn => 
                            (OS.Process.sleep(Time.fromMicroseconds(3500)); OS.FileSys.modTime(file2) handle exn => 
-                            (OS.Process.sleep(Time.fromMicroseconds(3500)); OS.FileSys.modTime(file2) handle exn => 
-                             (OS.Process.sleep(Time.fromMicroseconds(3500)); OS.FileSys.modTime(file2) handle exn => 
-                              (OS.Process.sleep(Time.fromMicroseconds(3500)); OS.FileSys.modTime(file2) handle exn => 
-                               (OS.Process.sleep(Time.fromMicroseconds(3500)); OS.FileSys.modTime(file2) handle exn => 
-                                (OS.Process.sleep(Time.fromMicroseconds(3500)); OS.FileSys.modTime(file2) handle exn => 
-                                 (OS.Process.sleep(Time.fromMicroseconds(3500)); OS.FileSys.modTime(file2) handle exn => 
+                            (OS.Process.sleep(Time.fromMicroseconds(35000)); OS.FileSys.modTime(file2) handle exn => 
+                             (OS.Process.sleep(Time.fromMicroseconds(35000)); OS.FileSys.modTime(file2) handle exn => 
+                              (OS.Process.sleep(Time.fromMicroseconds(35000)); OS.FileSys.modTime(file2) handle exn => 
+                               (OS.Process.sleep(Time.fromMicroseconds(350000)); OS.FileSys.modTime(file2) handle exn => 
+                                (OS.Process.sleep(Time.fromMicroseconds(350000)); OS.FileSys.modTime(file2) handle exn => 
+                                 (OS.Process.sleep(Time.fromMicroseconds(350000)); OS.FileSys.modTime(file2) handle exn => 
                                   (case exn of OS.SysErr(s, _) => 
                                    bug("fileNewer Error: " ^ s ^ "! Could not access file: " ^ file2);
                                    raise exn)
@@ -356,13 +356,13 @@ structure Control: CONTROL =
      val tempFile = OS.FileSys.tmpName() handle exn => 
                     (OS.Process.sleep(Time.fromMicroseconds(1400)); OS.FileSys.tmpName() handle exn => 
                      (OS.Process.sleep(Time.fromMicroseconds(1400)); OS.FileSys.tmpName() handle exn => 
-                      (OS.Process.sleep(Time.fromMicroseconds(1400)); OS.FileSys.tmpName() handle exn => 
-                       (OS.Process.sleep(Time.fromMicroseconds(1400)); OS.FileSys.tmpName() handle exn => 
-                        (OS.Process.sleep(Time.fromMicroseconds(1400)); OS.FileSys.tmpName() handle exn => 
-                         (OS.Process.sleep(Time.fromMicroseconds(1400)); OS.FileSys.tmpName() handle exn => 
-                          (OS.Process.sleep(Time.fromMicroseconds(1400)); OS.FileSys.tmpName() handle exn => 
-                           (OS.Process.sleep(Time.fromMicroseconds(1400)); OS.FileSys.tmpName() handle exn => 
-                            (OS.Process.sleep(Time.fromMicroseconds(1400)); OS.FileSys.tmpName() handle exn => 
+                      (OS.Process.sleep(Time.fromMicroseconds(14000)); OS.FileSys.tmpName() handle exn => 
+                       (OS.Process.sleep(Time.fromMicroseconds(14000)); OS.FileSys.tmpName() handle exn => 
+                        (OS.Process.sleep(Time.fromMicroseconds(14000)); OS.FileSys.tmpName() handle exn => 
+                         (OS.Process.sleep(Time.fromMicroseconds(14000)); OS.FileSys.tmpName() handle exn => 
+                          (OS.Process.sleep(Time.fromMicroseconds(140000)); OS.FileSys.tmpName() handle exn => 
+                           (OS.Process.sleep(Time.fromMicroseconds(140000)); OS.FileSys.tmpName() handle exn => 
+                            (OS.Process.sleep(Time.fromMicroseconds(140000)); OS.FileSys.tmpName() handle exn => 
                     (
                       case exn of OS.SysErr(s, _) 
                       => bug("getTempFileName Error: " ^ s ^ "! Could not create temporary file for file: " ^ file);
