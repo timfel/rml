@@ -618,7 +618,7 @@ RML_BEGIN_LABEL(RML__real_5fstring)
   else if (isnan(r))
     rmlA0 = RML_REFSTRINGLIT(_RML_LIT_NAN);
   else {
-#if defined(__MINGW32__) || defined(_MSC_VER)
+#if /* defined(__MINGW32__)  || */ defined(_MSC_VER)
     struct rml_string *res = _rml_old_realString(r);
 #else
     struct rml_string *res = dtostr(r);
