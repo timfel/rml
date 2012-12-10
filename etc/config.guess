@@ -24,11 +24,31 @@ case `uname -s` in
   Linux)
     OPSYS=linux
     case `uname -m` in
-      i[3456]86) ARCH=x86;;
       ppc*) ARCH=ppc;;
-      x86_64) ARCH=x86_64;;
+      i[3456]86|x86_64)
+          # We only know if the kernel is 32/64-bit. Now we ask the OS if it is running 32 or 64-bit executables.
+          if test "`getconf LONG_BIT`" = 32; then
+            ARCH=x86
+          else
+            ARCH=x86_64
+          fi
+        ;;
       *) exit 1;;
     esac
+    ;;
+  Darwin)
+    OPSYS=darwin
+    case `uname -m` in
+      ppc*) ARCH=ppc;;
+      i[3456]86|x86_64)
+          if test "`getconf LONG_BIT`" = 32; then
+            ARCH=x86
+          else
+            ARCH=x86_64
+          fi
+        ;;
+      *) exit 1;;
+     esac
     ;;
   OSF1)
     OPSYS=osf1
@@ -77,16 +97,6 @@ case `uname -s` in
       i[3456]86) ARCH=x86;;
       *) exit 1;;
     esac
-    ;;
-  Darwin)
-     OPSYS=darwin
-     OSX64=`sysctl hw | grep -q "^hw.cpu64bit_capable: 1\$" && echo _64`
-     case `uname -m` in
-       Power\ Macintosh) ARCH=ppc;;
-       i[3456]86) ARCH=x86$OSX64;;
-       x86_64) ARCH=x86_64;;
-       *) exit 1;;
-     esac
     ;;
   *) exit 1;;
 esac
