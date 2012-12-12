@@ -1,121 +1,126 @@
 (* code/switch.sml *)
 
 functor SwitchFn(
-	structure MakeString : MAKESTRING
-	structure Source : SOURCE
-	structure ConRep : CONREP
-	structure Mangle : MANGLE
-		   ) : SWITCH =
+  structure MakeString : MAKESTRING
+  structure Source : SOURCE
+  structure ConRep : CONREP
+  structure Mangle : MANGLE
+       ) : SWITCH =
   struct
 
-	structure Source    = Source
-    structure ConRep	= ConRep
-    structure Mangle	= Mangle
+  structure Source    = Source
+    structure ConRep  = ConRep
+    structure Mangle  = Mangle
 
-    datatype gvar_name	= SPgvn | FCgvn | SCgvn | ARGgvn of int
-    datatype gvar_scope	= INTRAgvs | INTERgvs
-    datatype gvar'	= GVARSTR of string | GVAR of {scope: gvar_scope, name: gvar_name}
+    datatype gvar_name  = SPgvn | FCgvn | SCgvn | ARGgvn of int
+    datatype gvar_scope  = INTRAgvs | INTERgvs
+    datatype gvar'  = GVARSTR of string | GVAR of {scope: gvar_scope, name: gvar_name}
 
-    type gvar		= gvar'
+    type gvar    = gvar'
     
-    datatype lvar	= LVAR of {tag:int, name:ConRep.longid}
+    datatype lvar  = LVAR of {tag:int, name:ConRep.longid}
 
-    datatype variable	= GLOvar of gvar
-			| LOCvar of lvar
+    datatype variable  = GLOvar of gvar
+      | LOCvar of lvar
 
-    datatype label	= LABEL of Mangle.name * ConRep.longid * ConRep.info
+    datatype label  = LABEL of Mangle.name * ConRep.longid * ConRep.info
 
-    datatype litname	= LITNAME of int
-    datatype litref	= INTlr of int
-			| HDRlr of {len: int, con: int}
-			| LABELlr of label
-			| EXTERNlr of label
-			| REALlr of litname
-			| STRINGlr of litname
-			| STRUCTlr of litname
-    datatype litdef	= REALld of real
-			| STRINGld of string
-			| STRUCTld of int * litref list
+    datatype litname  = LITNAME of int
+    datatype litref  = INTlr of int
+      | HDRlr of {len: int, con: int}
+      | LABELlr of label
+      | EXTERNlr of label
+      | REALlr of litname
+      | STRINGlr of litname
+      | STRUCTlr of litname
+    datatype litdef  = REALld of real
+      | STRINGld of string
+      | STRUCTld of int * litref list
 
-    datatype value	= VAR of variable
-			| LITERAL of litref
-			| OFFSET of value * int
-			| FETCH of value
-			| UNTAGPTR of value
-			| TAGPTR of value
-			| CALL of label * value list
+    datatype value  = VAR of variable
+      | LITERAL of litref
+      | OFFSET of value * int
+      | FETCH of value
+      | UNTAGPTR of value
+      | TAGPTR of value
+      | CALL of label * value list
 
-    datatype casetag	= INTct of int
-			| HDRct of {len: int, con: int}
-			| REALct of real
-			| STRINGct of string
+    datatype casetag  = INTct of int
+      | HDRct of {len: int, con: int}
+      | REALct of real
+      | STRINGct of string
 
     datatype gototarget = LOCALg of label
-			| EXTERNg of label
-			| VALUEg of value
+      | EXTERNg of label
+      | VALUEg of value
 
-    datatype gototype =	  FClk (* failure *) 
-						| SClk (* success *)
-						| NClk (* normal *)
-						| LClk (* label to shared state *)
-						| EClk (* external *)
-						
+    datatype gototype =    FClk (* failure *) 
+            | SClk (* success *)
+            | NClk (* normal *)
+            | LClk (* label to shared state *)
+            | EClk (* external *)
+            
 
-    datatype code'	= GOTO of gototarget * int * ConRep.longid * ConRep.info * gototype
-			| STORE of value * value * code
-			| BIND of variable option * value * code
-			| SWITCH of value * (casetag * code) list * code option
+    datatype code'  = GOTO of gototarget * int * ConRep.longid * ConRep.info * gototype
+      | STORE of value * value * code
+      | BIND of variable option * value * code
+      | SWITCH of value * (casetag * code) list * code option * lvar
 
-    and code		= CODE of {fvars: lvar list ref, code: code'}
+    and code    = CODE of {fvars: lvar list ref, code: code'}
 
-    datatype labdef	= LABDEF of {	
-					globalP	: bool,
-					label	: label,
-					varHP	: lvar,
-					nalloc	: int,
-					nargs	: int,
-					code	: code,
-					pos 	: ConRep.info }
+    datatype labdef = 
+      LABDEF of 
+      {
+        globalP : bool,
+        label   : label,
+        varHP   : lvar,
+        nalloc  : int,
+        nargs   : int,
+        nlocals : int,
+        code    : code,
+        pos    : ConRep.info
+      }
 
-	datatype position = POSITION of ConRep.info
+  datatype position = POSITION of ConRep.info
 
-    datatype module	= MODULE of {	modname	: string,
-					ctors	: (string * ConRep.conrep) list,
-					xmods	: string list,
-					xlabs	: label list,
-					xvals	: label list,
-					values	: (label * litref) list,
-					litdefs	: (litname * litdef) list,
-					labdefs	: labdef list,
-					source  : Source.source }
+    datatype module  = MODULE of {  modname  : string,
+          ctors  : (string * ConRep.conrep) list,
+          xmods  : string list,
+          xlabs  : label list,
+          xvals  : label list,
+          values  : (label * litref) list,
+          litdefs  : (litname * litdef) list,
+          labdefs  : labdef list,
+          source  : Source.source }
 
     fun gvarString(GVAR{scope,name}) =
       let fun gvs2str(INTRAgvs) = "intra"
-	    | gvs2str(INTERgvs) = "rml"
-	  fun gvn2str(SPgvn) = "SP"
-	    | gvn2str(FCgvn) = "FC"
-	    | gvn2str(SCgvn) = "SC"
-	    | gvn2str(ARGgvn i) = "A" ^ MakeString.icvt i
+      | gvs2str(INTERgvs) = "rml"
+    fun gvn2str(SPgvn) = "SP"
+      | gvn2str(FCgvn) = "FC"
+      | gvn2str(SCgvn) = "SC"
+      | gvn2str(ARGgvn i) = "A" ^ MakeString.icvt i
       in
-		gvs2str scope ^ gvn2str name
+    gvs2str scope ^ gvn2str name
       end
 
-    fun lvarString(LVAR{tag,name}) = "tmp" ^ (MakeString.icvt tag) ^ " " ^ ConRep.fixName(name)
+    fun lvarString(LVAR{tag,name}) = "tmp" ^ (MakeString.icvt tag)
+    fun lvarStringName(LVAR{tag,name}) = "tmp" ^ (MakeString.icvt tag) ^ " " ^ ConRep.fixName(name)
 
     fun prGoto(os, prLabel, prValue, target, _) = (* nargs ignored *)
       case target
-	of LOCALg label =>
-	    (TextIO.output(os, "\n\tgoto label__");
-	     prLabel os label;
-	     TextIO.output(os, ";"))
-	 | EXTERNg label =>
-	    (TextIO.output(os, "\n\ttheLabel = &");
-	     prLabel os label;
-	     TextIO.output(os, ";\n\tgoto epilogue;"))
-	 | VALUEg value =>
-	    (TextIO.output(os, "\n\ttheLabel = (const rml_label_t*)(");
-	     prValue os value;
-	     TextIO.output(os, ");\n\tgoto mask_dispatch;"))
+  of LOCALg label =>
+      (TextIO.output(os, "\n\tgoto label__");
+       prLabel os label;
+       TextIO.output(os, ";"))
+   | EXTERNg label =>
+      (TextIO.output(os, "\n\ttheLabel = &");
+       prLabel os label;
+       TextIO.output(os, ";\n\tgoto epilogue;"))
+   | VALUEg value =>
+      (TextIO.output(os, "\n\ttheLabel = (const rml_label_t*)(");
+       prValue os value;
+       TextIO.output(os, ");\n\tgoto mask_dispatch;"))
 
     fun mklab(str, name, info) = LABEL(Mangle.encode str, name, info)
 
@@ -123,83 +128,83 @@ functor SwitchFn(
     fun mkGOTO(target, nargs, name, pos, gototype) = mkcode(GOTO(target, nargs, name, pos, gototype))
     fun mkSTORE(v1,v2,c) = mkcode(STORE(v1,v2,c))
     fun mkBIND(xopt,v,c) = mkcode(BIND(xopt,v,c))
-    fun mkSWITCH(v,cases,def) = mkcode(SWITCH(v,cases,def))
+    fun mkSWITCH(v,cases,def,lv) = mkcode(SWITCH(v,cases,def,lv))
 
-    val intraSP		= GLOvar(GVAR{scope=INTRAgvs, name=SPgvn})
-    val intraFC		= GLOvar(GVAR{scope=INTRAgvs, name=FCgvn})
-    val intraSC		= GLOvar(GVAR{scope=INTRAgvs, name=SCgvn})
-    val intraArgs	=
-      Vector.fromList[	GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 0}),
-			GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 1}),
-			GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 2}),
-			GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 3}),
-			GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 4}),
-			GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 5}),
-			GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 6}),
-			GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 7}),
-			GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 8}),
-			GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 9}),
-			GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 10}),
-			GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 11}),
-			GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 12}),
-			GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 13}),
-			GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 14}),
-			GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 15}),
-			(* 2004-09-28 adrpo added 16 more parameters*)
-			GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 16}),
-			GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 17}),
-			GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 18}),
-			GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 19}),
-			GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 20}),
-			GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 21}),
-			GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 22}),
-			GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 23}),
-			GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 24}),
-			GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 25}),
-			GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 26}),
-			GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 27}),
-			GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 28}),
-			GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 29}),
-			GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 30}),
-			GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 31}) ]
+    val intraSP    = GLOvar(GVAR{scope=INTRAgvs, name=SPgvn})
+    val intraFC    = GLOvar(GVAR{scope=INTRAgvs, name=FCgvn})
+    val intraSC    = GLOvar(GVAR{scope=INTRAgvs, name=SCgvn})
+    val intraArgs  =
+      Vector.fromList[  GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 0}),
+      GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 1}),
+      GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 2}),
+      GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 3}),
+      GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 4}),
+      GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 5}),
+      GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 6}),
+      GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 7}),
+      GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 8}),
+      GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 9}),
+      GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 10}),
+      GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 11}),
+      GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 12}),
+      GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 13}),
+      GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 14}),
+      GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 15}),
+      (* 2004-09-28 adrpo added 16 more parameters*)
+      GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 16}),
+      GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 17}),
+      GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 18}),
+      GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 19}),
+      GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 20}),
+      GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 21}),
+      GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 22}),
+      GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 23}),
+      GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 24}),
+      GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 25}),
+      GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 26}),
+      GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 27}),
+      GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 28}),
+      GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 29}),
+      GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 30}),
+      GLOvar(GVAR{scope=INTRAgvs, name=ARGgvn 31}) ]
 
-    val interSP		= GLOvar(GVAR{scope=INTERgvs, name=SPgvn})
-    val interFC		= GLOvar(GVAR{scope=INTERgvs, name=FCgvn})
-    val interSC		= GLOvar(GVAR{scope=INTERgvs, name=SCgvn})
-    val interArgs	=
-      Vector.fromList[	GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 0}),
-			GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 1}),
-			GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 2}),
-			GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 3}),
-			GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 4}),
-			GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 5}),
-			GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 6}),
-			GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 7}),
-			GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 8}),
-			GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 9}),
-			GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 10}),
-			GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 11}),
-			GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 12}),
-			GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 13}),
-			GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 14}),
-			GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 15}),
-			(* 2004-09-28 adrpo added 16 more parameters*)
-			GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 16}),
-			GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 17}),
-			GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 18}),
-			GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 19}),
-			GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 20}),
-			GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 21}),
-			GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 22}),
-			GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 23}),
-			GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 24}),
-			GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 25}),
-			GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 26}),
-			GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 27}),
-			GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 28}),
-			GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 29}),
-			GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 30}),
-			GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 31}) ]
+    val interSP    = GLOvar(GVAR{scope=INTERgvs, name=SPgvn})
+    val interFC    = GLOvar(GVAR{scope=INTERgvs, name=FCgvn})
+    val interSC    = GLOvar(GVAR{scope=INTERgvs, name=SCgvn})
+    val interArgs  =
+      Vector.fromList[  GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 0}),
+      GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 1}),
+      GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 2}),
+      GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 3}),
+      GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 4}),
+      GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 5}),
+      GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 6}),
+      GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 7}),
+      GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 8}),
+      GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 9}),
+      GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 10}),
+      GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 11}),
+      GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 12}),
+      GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 13}),
+      GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 14}),
+      GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 15}),
+      (* 2004-09-28 adrpo added 16 more parameters*)
+      GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 16}),
+      GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 17}),
+      GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 18}),
+      GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 19}),
+      GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 20}),
+      GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 21}),
+      GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 22}),
+      GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 23}),
+      GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 24}),
+      GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 25}),
+      GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 26}),
+      GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 27}),
+      GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 28}),
+      GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 29}),
+      GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 30}),
+      GLOvar(GVAR{scope=INTERgvs, name=ARGgvn 31}) ]
 
     (* These internal names are NOT mangled *)
 

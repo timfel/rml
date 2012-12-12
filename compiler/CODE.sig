@@ -3,104 +3,113 @@
 signature CODE =
   sig
 
-	structure Source    : SOURCE
-    structure ConRep	: CONREP
-    structure Mangle	: MANGLE
+  structure Source    : SOURCE
+    structure ConRep  : CONREP
+    structure Mangle  : MANGLE
 
-    datatype gvar_name	= SPgvn | FCgvn | SCgvn | ARGgvn of int
-    datatype gvar_scope	= INTRAgvs | INTERgvs
-    datatype gvar'	= GVARSTR of string | GVAR of {scope: gvar_scope, name: gvar_name} 
+    datatype gvar_name  = SPgvn | FCgvn | SCgvn | ARGgvn of int
+    datatype gvar_scope  = INTRAgvs | INTERgvs
+    datatype gvar'  = GVARSTR of string | GVAR of {scope: gvar_scope, name: gvar_name} 
 
     eqtype gvar 
         
     sharing type gvar = gvar' 
     
-    datatype lvar	= LVAR of {tag:int, name:ConRep.longid}
+    datatype lvar  = LVAR of {tag:int, name:ConRep.longid}
 
-    datatype variable	= GLOvar of gvar
-			| LOCvar of lvar
+    datatype variable  = GLOvar of gvar | LOCvar of lvar
 
-    datatype label	= LABEL of Mangle.name * ConRep.longid * ConRep.info
+    datatype label  = LABEL of Mangle.name * ConRep.longid * ConRep.info
 
-    datatype litname	= LITNAME of int
-    datatype litref	= INTlr of int
-			| HDRlr of {len: int, con: int}
-			| LABELlr of label
-			| EXTERNlr of label
-			| REALlr of litname
-			| STRINGlr of litname
-			| STRUCTlr of litname
-    datatype litdef	= REALld of real
-			| STRINGld of string
-			| STRUCTld of int * litref list
+    datatype litname  = LITNAME of int
+    datatype litref  = INTlr of int
+      | HDRlr of {len: int, con: int}
+      | LABELlr of label
+      | EXTERNlr of label
+      | REALlr of litname
+      | STRINGlr of litname
+      | STRUCTlr of litname
+    datatype litdef  = REALld of real
+      | STRINGld of string
+      | STRUCTld of int * litref list
 
-    datatype value	= VAR of variable
-			| LITERAL of litref
-			| OFFSET of value * int
-			| FETCH of value
-			| UNTAGPTR of value
-			| TAGPTR of value
-			| CALL of label * value list
+    datatype value  = 
+        VAR of variable
+      | LITERAL of litref
+      | OFFSET of value * int
+      | FETCH of value
+      | UNTAGPTR of value
+      | TAGPTR of value
+      | CALL of label * value list
 
-    datatype casetag	= INTct of int
-			| HDRct of {len: int, con: int}
-			| REALct of real
-			| STRINGct of string
+    datatype casetag  = INTct of int
+      | HDRct of {len: int, con: int}
+      | REALct of real
+      | STRINGct of string
 
     datatype gototarget = LOCALg of label
-			| EXTERNg of label
-			| VALUEg of value
-			
-    datatype gototype =	  FClk (* failure *) 
-						| SClk (* success *)
-						| NClk (* normal *)
-						| LClk (* label to shared state *)
-						| EClk (* external *)
+      | EXTERNg of label
+      | VALUEg of value
+      
+    datatype gototype =    FClk (* failure *) 
+            | SClk (* success *)
+            | NClk (* normal *)
+            | LClk (* label to shared state *)
+            | EClk (* external *)
 
-    datatype code'	= GOTO of gototarget * int * ConRep.longid * ConRep.info * gototype
-			| STORE of value * value * code
-			| BIND of variable option * value * code
-			| SWITCH of value * (casetag * code) list * code option
+    datatype code'  = GOTO of gototarget * int * ConRep.longid * ConRep.info * gototype
+      | STORE of value * value * code
+      | BIND of variable option * value * code
+      | SWITCH of value * (casetag * code) list * code option * lvar (* lvar is used ONLY for special real and string cases *)
 
-    and code		= CODE of {fvars: lvar list ref, code: code'}
+    and code    = CODE of {fvars: lvar list ref, code: code'}
 
-    datatype labdef	= LABDEF of {	
-					globalP	: bool,			(* is this label global? *)
-					label	: label,		(* the label of this function *)
-					varHP	: lvar,			(* heap pointer *)
-					nalloc	: int,			(* how much to alloc for this label *)
-					nargs	: int,			(* how many arguments this label has *)
-					code	: code,			(* the code for this label *)
-					pos 	: ConRep.info } (* position in the primary file. used for debugging  *)
-					
-	datatype position = POSITION of ConRep.info
+    datatype labdef  = 
+       LABDEF of 
+       {
+         globalP : bool,       (* is this label global? *)
+         label   : label,      (* the label of this function *)
+         varHP   : lvar,       (* heap pointer *)
+         nalloc  : int,        (* how much to alloc for this label *)
+         nargs   : int,        (* how many arguments this label has *)
+         nlocals : int,        (* how many local variables are there *)
+         code    : code,       (* the code for this label *)
+         pos     : ConRep.info (* position in the primary file. used for debugging  *)
+       }
+    
+    datatype position = POSITION of ConRep.info
 
-    datatype module	= MODULE of {	modname	: string,
-					ctors	: (string * ConRep.conrep) list,
-					xmods	: string list,
-					xlabs	: label list,
-					xvals	: label list,
-					values	: (label * litref) list,
-					litdefs	: (litname * litdef) list,
-					labdefs	: labdef list,
-					source  : Source.source }
+    datatype module  = 
+       MODULE of 
+       {  
+         modname  : string,
+         ctors   : (string * ConRep.conrep) list,
+         xmods   : string list,
+         xlabs   : label list,
+         xvals   : label list,
+         values  : (label * litref) list,
+         litdefs : (litname * litdef) list,
+         labdefs : labdef list,
+         source  : Source.source 
+       }
 
-    val gvarString	: gvar -> string
-    val lvarString	: lvar -> string
+    val gvarString  : gvar -> string
+    val lvarString  : lvar -> string
+    val lvarStringName  : lvar -> string
 
-    val prGoto		: TextIO.outstream
-			* (TextIO.outstream -> label -> unit)
-			* (TextIO.outstream -> value -> unit)
-			* gototarget
-			* int
-			-> unit
+    val prGoto    : TextIO.outstream
+      * (TextIO.outstream -> label -> unit)
+      * (TextIO.outstream -> value -> unit)
+      * gototarget
+      * int
+      -> unit
 
     val mklab         : string * ConRep.longid * ConRep.info -> label
     
     val mkGOTO        : gototarget * int * ConRep.longid * ConRep.info * gototype -> code
     val mkSTORE       : value * value * code -> code
     val mkBIND        : variable option * value * code -> code
-    val mkSWITCH      : value * (casetag * code) list * code option -> code
+    val mkSWITCH      : value * (casetag * code) list * code option * lvar -> code
 
     val intraSP       : variable
     val intraFC       : variable

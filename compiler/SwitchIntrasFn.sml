@@ -38,7 +38,7 @@ functor SwitchIntrasFn(structure Util : UTIL
 	    code_intras(c, val_intras(v2, val_intras(v1, intras)))
 	 | Code.BIND(binding, v, c)	=>
 	    code_intras(c, val_intras(v, bind_intras(binding, intras)))
-	 | Code.SWITCH(value,cases,default)	=>
+	 | Code.SWITCH(value,cases,default,v)	=>
 	    List.foldl case_intras
 		       (defaultIntras(default, val_intras(value, intras)))
 		       cases

@@ -23,21 +23,24 @@ functor PlainFn(
 
     datatype variable  = GLOvar of gvar | LOCvar of lvar
 
-    datatype label  = LABEL of Mangle.name * ConRep.longid * ConRep.info
+    datatype label = LABEL of Mangle.name * ConRep.longid * ConRep.info
 
-    datatype litname  = LITNAME of int
-    datatype litref  = INTlr of int
+    datatype litname = LITNAME of int
+    datatype litref = 
+        INTlr of int
       | HDRlr of {len: int, con: int}
       | LABELlr of label
       | EXTERNlr of label
       | REALlr of litname
       | STRINGlr of litname
       | STRUCTlr of litname
-    datatype litdef  = REALld of real
+    datatype litdef  = 
+        REALld of real
       | STRINGld of string
       | STRUCTld of int * litref list
 
-    datatype value  = VAR of variable
+    datatype value  = 
+        VAR of variable
       | LITERAL of litref
       | OFFSET of value * int
       | FETCH of value
@@ -45,16 +48,19 @@ functor PlainFn(
       | TAGPTR of value
       | CALL of label * value list
 
-    datatype casetag  = INTct of int
+    datatype casetag  =  
+        INTct of int
       | HDRct of {len: int, con: int}
       | REALct of real
       | STRINGct of string
 
-    datatype gototarget = LOCALg of label
+    datatype gototarget = 
+        LOCALg of label
       | EXTERNg of label
       | VALUEg of value
 
-    datatype gototype =    FClk (* failure *) 
+    datatype gototype = 
+              FClk (* failure *) 
             | SClk (* success *)
             | NClk (* normal *)
             | LClk (* label to shared state *)
@@ -63,18 +69,22 @@ functor PlainFn(
     datatype code'  = GOTO of gototarget * int * ConRep.longid * ConRep.info * gototype
       | STORE of value * value * code
       | BIND of variable option * value * code
-      | SWITCH of value * (casetag * code) list * code option
+      | SWITCH of value * (casetag * code) list * code option * lvar
 
-    and code    = CODE of {fvars: lvar list ref, code: code'}
+    and code = CODE of {fvars: lvar list ref, code: code'}
 
-    datatype labdef  = LABDEF of {  
-          globalP  : bool,
-          label  : label,
-          varHP  : lvar,
-          nalloc  : int,
-          nargs  : int,
-          code  : code,
-          pos   : ConRep.info }
+    datatype labdef = 
+      LABDEF of 
+      {
+        globalP : bool,
+        label   : label,
+        varHP   : lvar,
+        nalloc  : int,
+        nargs   : int,
+        nlocals : int,
+        code    : code,
+        pos    : ConRep.info
+      }
 
     datatype position = POSITION of ConRep.info
 
@@ -86,22 +96,29 @@ functor PlainFn(
           values  : (label * litref) list,
           litdefs  : (litname * litdef) list,
           labdefs  : labdef list,
-          source  : Source.source    }
+          source  : Source.source }
     
     fun gvarString(GVARSTR name) = name
-    fun lvarString(LVAR{tag,name}) = "tmp" ^ (MakeString.icvt tag) ^ " " ^ ConRep.fixName(name)
+    fun lvarString(LVAR{tag,name}) = "tmp" ^ (MakeString.icvt tag)
+    fun lvarStringName(LVAR{tag,name}) = 
+     let val n = ConRep.fixName(name)
+     in
+       if n = ""
+       then "tmp" ^ (MakeString.icvt tag)
+       else "tmp" ^ (MakeString.icvt tag) ^ " " ^ n
+     end
 
     fun prGoto(os, prLabel, prValue, target, nargs) =
       let 
        fun continue() = 
          (TextIO.output(os, ","); TextIO.output(os, Int.toString nargs); TextIO.output(os, ");"))
        fun prGotoLabel label =
-         (TextIO.output(os, "\n\tRML_TAILCALLQ("); prLabel os label; continue())
+         (TextIO.output(os, "\n  RML_TAILCALLQ("); prLabel os label; continue())
       in
         case target
         of LOCALg label => prGotoLabel label
          | EXTERNg label => prGotoLabel label
-         | VALUEg value => (TextIO.output(os, "\n\tRML_TAILCALL("); prValue os value; continue())
+         | VALUEg value => (TextIO.output(os, "\n  RML_TAILCALL("); prValue os value; continue())
       end
 
     fun mklab(str, name, info) = LABEL(Mangle.encode str, name, info)
@@ -110,7 +127,7 @@ functor PlainFn(
     fun mkGOTO(target, nargs, name, pos, gototype) = mkcode(GOTO(target, nargs, name, pos, gototype))
     fun mkSTORE(v1,v2,c) = mkcode(STORE(v1,v2,c))
     fun mkBIND(xopt,v,c) = mkcode(BIND(xopt,v,c))
-    fun mkSWITCH(v,cases,def) = mkcode(SWITCH(v,cases,def))
+    fun mkSWITCH(v,cases,def,lv) = mkcode(SWITCH(v,cases,def,lv))
 
     val intraSP    = GLOvar(GVARSTR "rmlSP")
     val intraFC    = GLOvar(GVARSTR "rmlFC")

@@ -55,13 +55,12 @@ let
 
     val code_labdefs = ref([]:Code.labdef list)
     fun zap_labdefs() = code_labdefs := []
-    fun push_labdef(globalP, label, varHP, nalloc, nargs, code, pos) =
+    fun push_labdef(globalP, label, varHP, nalloc, nargs, nlocals, code, pos) =
       let val labdef = 
-        Code.LABDEF{
-          globalP=globalP, label=label, varHP=varHP, 
-          nalloc=nalloc, nargs=nargs, code=code, pos=pos}
+        Code.LABDEF{globalP=globalP, label=label, varHP=varHP, nalloc=nalloc, 
+                    nargs=nargs, nlocals=nlocals, code=code, pos=pos}
       in
-    code_labdefs := labdef :: !code_labdefs
+        code_labdefs := labdef :: !code_labdefs
       end
     fun get_labdefs() = let val labdefs = !code_labdefs in zap_labdefs(); labdefs end
 
@@ -138,7 +137,7 @@ let
       Code.EXTERNlr lab
     end
 
-    (* translate a CPS variable to a local Code variable *)
+  (* translate a CPS variable to a local Code variable *)
   fun mkID(name) = CPS.mkID(name)
 
     fun new_lvar(name) = Code.LVAR{ tag=Util.tick(), name=mkID(name) }
@@ -304,7 +303,7 @@ let
         val varAP = trans_var(CPS.newVar(mkID("AP")))
         in
         push_labdef(
-          false, lab, varHP, size_exp body, length formals,
+          false, lab, varHP, size_exp body, length formals, 0,
           Code.mkBIND(SOME varAP, lk2ap kind,
             fetch_fvars(varAP, nfvars, rev(!fvars),
               pop_fvars(varSP, varAP, nfvars+1,
@@ -408,7 +407,7 @@ let
       and formals = !fvars @ bvars
       and lab = mkShortLabel((CPS.longIdentName name)^"_label"^(MakeString.icvt tag), name, pos)
       in
-        push_labdef(false, lab, varHP, size_exp body, length formals,
+        push_labdef(false, lab, varHP, size_exp body, length formals, 0,
           Code.mkBIND(SOME varSP, Code.VAR Code.intraSP,
           bind_proc_args(
           formals,
@@ -444,13 +443,18 @@ let
           Code.mkBIND(SOME(trans_var var), value,
             trans_exp(exp, valSP, offSP, valHP, offHP)))
      | CPS.SWITCHe(_,[],NONE) => bug "trans_exp': SWITCH(_,[],NONE)"
-     | CPS.SWITCHe(_,[],SOME exp) => trans_exp(exp,valSP,offSP,valHP,offHP)
+     | CPS.SWITCHe(_,[],SOME exp) => 
+         trans_exp(exp,valSP,offSP,valHP,offHP)
      | CPS.SWITCHe(te, cases, default)  =>
-      trans_te(te, valSP, offSP, 
-        fn(te',offSP) =>
-          Code.mkSWITCH(te',
-            map (trans_case valSP offSP valHP offHP) cases,
-              transDefault(default, valSP, offSP, valHP, offHP)))
+        let val lv = new_lvar("SWITCH_LOCAL")
+        in
+        trans_te(te, valSP, offSP, 
+          fn(te',offSP) =>
+            Code.mkSWITCH(te',
+              map (trans_case valSP offSP valHP offHP) cases,
+              transDefault(default, valSP, offSP, valHP, offHP),
+              lv))
+        end
 
     and transDefault(SOME exp, valSP, offSP, valHP, offHP) = SOME(trans_exp(exp, valSP, offSP, valHP, offHP))
       | transDefault(NONE, _, _, _, _) = NONE
@@ -478,23 +482,23 @@ let
       if !uses = 0 
       then 
       (
-    warnAt(pos, "unused function: "^(trans_longid name)^".")
+        warnAt(pos, "unused function: "^(trans_longid name)^".")
       )
       else
-    let val varHP = new_lvar("HP")
-      and varSP = trans_var(CPS.newVar(mkID("SP")))
-      and lab = Code.mklab(trans_longid name, name, pos)
-    in
-      push_labdef(
-      !uses < 0, lab, varHP, size_exp body, length v_tvs,
-      Code.mkBIND(SOME(trans_var v_sc), Code.VAR Code.intraSC,
-        Code.mkBIND(SOME(trans_var v_fc), Code.VAR Code.intraFC,
-          Code.mkBIND(SOME varSP, Code.VAR Code.intraSP,
-          bind_proc_args(v_tvs,
-            trans_exp(body,
-              Code.VAR varSP, 0,
-                Code.VAR(Code.LOCvar varHP), 0))))), pos)
-    end
+      let val varHP = new_lvar("HP")
+          and varSP = trans_var(CPS.newVar(mkID("SP")))
+          and lab = Code.mklab(trans_longid name, name, pos)
+      in
+        push_labdef(
+          !uses < 0, lab, varHP, size_exp body, length v_tvs, 0, 
+          Code.mkBIND(SOME(trans_var v_sc), Code.VAR Code.intraSC,
+            Code.mkBIND(SOME(trans_var v_fc), Code.VAR Code.intraFC,
+              Code.mkBIND(SOME varSP, Code.VAR Code.intraSP,
+                bind_proc_args(v_tvs,
+                trans_exp(body,
+                  Code.VAR varSP, 0,
+                  Code.VAR(Code.LOCvar varHP), 0))))), pos)
+      end
 
     fun trans_ctor(longid,rep) = (trans_longid longid, rep)
     

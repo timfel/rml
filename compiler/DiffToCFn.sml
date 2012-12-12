@@ -68,7 +68,7 @@ functor DiffToCFn(structure Code : SWITCH
      output(os, "\
 \}\n"))
 
-    fun prLabBody os (Code.LABDEF{label,varHP,nalloc,nargs,code,...}, tagno) =
+    fun prLabBody os (Code.LABDEF{label,varHP,nalloc,nargs,nlocals,code,...}, tagno) =
       (output(os, "CASE(TAG(");
        CodeToC.prInt os tagno;
        output(os, "))\n");
