@@ -68,7 +68,7 @@ functor PlainToCFn(structure Util : UTIL
       then (output(os, "  void "); printLocalVars(os, lvars, "*"); output(os, ";\n"))
       else ();
       if List.length(dvars) > 0
-      then (output(os, "  double "); printLocalVars(os, lvars, ""); output(os, ";\n"))
+      then (output(os, "  double "); printLocalVars(os, dvars, ""); output(os, ";\n"))
       else ()
     end
 

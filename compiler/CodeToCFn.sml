@@ -297,7 +297,7 @@ functor CodeToCFn(structure MakeString : MAKESTRING
       | prCode' os (Code.SWITCH(v, cases as ((Code.REALct _,_)::_), default, dvar)) =
         let 
         in
-          output(os, "\n  "); prLVar os dvar; output(os, " = "); output(os, " = rml_prim_get_real("); prVal os v; output(os, ";\n  ");
+          output(os, "\n  "); prLVar os dvar; output(os, " = rml_prim_get_real("); prVal os v; output(os, ");\n  ");
           List.app (prRealCase os dvar) cases;  
           output(os, "{");
           prRealDefault os default;  
