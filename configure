@@ -119,7 +119,7 @@ if [ -z "$SMLCM" ]; then
   fi
   echo ./configure: SMLCM is $SMLCM
   case "$TARGET" in
-  x86-cygwin-gcc|x86-mingw32-gcc)
+  x86-cygwin-gcc|x86-mingw32-gcc|x86_64-mingw32-gcc)
 	HEAP_SUFFIX=x86-win32
 	;;
   *)
@@ -154,7 +154,7 @@ echo TARGET=$TARGET > ./config.cache
 echo PREFIX=$PREFIX >> ./config.cache
 echo DESTDIR=$DESTDIR >> ./config.cache
 case "$TARGET" in
-  x86-mingw32-gcc)
+  x86-mingw32-gcc|x86_64-mingw32-gcc)
 	#SMLDIR=`etc/which_dir sml.bat`
 	SMLDIR=$SMLNJ_HOME
 	# transform c:\a\b -> '/c/a/b'

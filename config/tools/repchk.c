@@ -12,7 +12,11 @@
 #include <setjmp.h>
 #endif
 
+#if defined(_WIN64)
+typedef unsigned long long myulong;	/* <sys/types.h> often defines "ulong" .. */
+#else
 typedef unsigned long myulong;	/* <sys/types.h> often defines "ulong" .. */
+#endif
 
 void fatal(char *fmt, ...)
 {
@@ -36,6 +40,7 @@ struct word_type {
 } word_types[] = {
     { "int",	sizeof(int),	sizeof(int*),	ALIGN(int),	OFF2DBL(int)	},
     { "long",	sizeof(long),	sizeof(long*),	ALIGN(long),	OFF2DBL(long)	},
+    { "long long",	sizeof(long long),	sizeof(long long*),	ALIGN(long long),	OFF2DBL(long long)	},
 };
 
 unsigned find_word_type(void)
@@ -152,7 +157,11 @@ void check_doubles(unsigned wty, unsigned *dbl_pad, unsigned *dbl_strict)
 #else
     /* construct a word- but possibly not double-aligned address */
     word_aligned_ptr = (double*) ((myulong)blob | word_size);
+#if defined(__MINGW32__) || defined(__MINGW64__)
+    signal(SIGSEGV, onbus);
+#else
     signal(SIGBUS, onbus);
+#endif
     if( setjmp(catch) == 0 ) {
 	add(word_aligned_ptr+0, word_aligned_ptr+1, word_aligned_ptr+2);
 	*dbl_strict = 0;
