@@ -103,20 +103,28 @@
  *	(nbytes << (10-RML_LOG2_SIZE_INT)) + ((1 << 10) + 5)
  * which only requires 2 arithmetic operations (shift; add).
  */
+
 #define RML_UNBOUNDHDR		(0x401)
 #define RML_BOUNDHDR		(0x402)
-#define RML_STRINGHDR(nbytes)	(((nbytes)<<(10-RML_LOG2_SIZE_INT))+((1<<10)+5))
-#define RML_HDRISSTRING(hdr)	(((hdr) & ((1<<(10-RML_LOG2_SIZE_INT))-1)) == 5)
-#define RML_HDRSTRLEN(hdr)	(((hdr) >> (10-RML_LOG2_SIZE_INT)) - RML_SIZE_INT)
+
+#define RML_STRINGHDR(nbytes)   ((((rml_uint_t)nbytes)<<(3))+((1<<(3+RML_LOG2_SIZE_INT))+5))
+#define RML_HDRISSTRING(hdr)    (((hdr) & (7)) == 5)
+#define RML_HDRSTRLEN(hdr)          (((hdr) >> (3)) - RML_SIZE_INT)
+#define RML_HDRSTRINGSLOTS(hdr) (hdr >> (3+RML_LOG2_SIZE_INT))
+
 #define RML_REALHDR		(((RML_SIZE_DBL/RML_SIZE_INT) << 10) + 9)
+
 #define RML_STRUCTHDR(slots,ctor) (((slots) << 10) + (((ctor) & 255) << 2))
 #define RML_HDRISSTRUCT(hdr)	(!((hdr) & 3))
 #define RML_HDRCTOR(hdr)	(((hdr) >> 2) & 255)
-#define RML_NILHDR		RML_STRUCTHDR(0,0)
-#define RML_CONSHDR		RML_STRUCTHDR(2,1)
-#define RML_HDRSLOTS(hdr)	((hdr) >> 10)
+#define RML_HDRSLOTS(hdr)	((RML_HDRISSTRING(hdr)) ? (RML_HDRSTRINGSLOTS(hdr)) : ((hdr) >> 10))
+
 #define RML_HDRHASPTRS(hdr)	(!((hdr) & 1))
 #define RML_HDRISFORWARD(hdr)	(((hdr) & 3) == 3)
+
+#define RML_NILHDR		RML_STRUCTHDR(0,0)
+#define RML_CONSHDR		RML_STRUCTHDR(2,1)
+
 #define RML_NONEHDR		RML_STRUCTHDR(0,0)
 #define RML_SOMEHDR		RML_STRUCTHDR(1,1)
 

@@ -557,7 +557,7 @@ static void **rml_collect(void **scan, char *region_low, rml_uint_t region_nbyte
   /* compute the transitive closure of the copied roots */
   while (scan < next) {
     rml_uint_t hdr = *(rml_uint_t*)scan;
-    rml_uint_t slots= RML_HDRSLOTS(hdr);
+    rml_uint_t slots = RML_HDRSLOTS(hdr);
     ++scan; /* since slots doesn't include the header itself */
     if ( RML_HDRHASPTRS(hdr))
       next = rml_forward_vec(scan, slots, next, region_low, region_nbytes);
@@ -1071,8 +1071,8 @@ void *mk_rcon(double d) {
 
 void *mk_scon_string_sharing(const char *s) {
   rml_uint_t nbytes = strlen(s);
-  rml_uint_t header= RML_STRINGHDR(nbytes);
-  rml_uint_t nwords= RML_HDRSLOTS(header) + 1;
+  rml_uint_t header = RML_STRINGHDR(nbytes);
+  rml_uint_t nwords = RML_HDRSLOTS(header) + 1;
   if (!rml_string_cache_index) /* no string in the cache */
   {
     struct rml_string *p = alloc_words(nwords);
@@ -1112,8 +1112,8 @@ void *mk_scon_string_sharing(const char *s) {
 
 void *mk_scon_no_string_sharing(const char *s) {
   rml_uint_t nbytes = strlen(s);
-  rml_uint_t header= RML_STRINGHDR(nbytes);
-  rml_uint_t nwords= RML_HDRSLOTS(header) + 1;
+  rml_uint_t header = RML_STRINGHDR(nbytes);
+  rml_uint_t nwords = RML_HDRSLOTS(header) + 1;
   struct rml_string *p = alloc_words(nwords);
   p->header = header;
   memcpy(p->data, s, nbytes+1); /* including terminating '\0' */

@@ -366,6 +366,7 @@ RML_BEGIN_LABEL(RML__list_5fappend_5funsafe)
 {
   void *lst, *tmp;
   rml_uint_t idx = 0;
+  struct rml_struct *p = NULL;
   lst = rmlA0;
 
   if (rml_trace_enabled)
@@ -395,7 +396,7 @@ RML_BEGIN_LABEL(RML__list_5fappend_5funsafe)
       lst = tmp; /* move to next element */
   }
 
-  struct rml_struct *p = RML_UNTAGPTR(lst);
+  p = RML_UNTAGPTR(lst);
   /* set the cdr of the last element in the first list to the first element in the second list */
   p->data[1] = rmlA1;
   for (idx = rml_array_trail_size; &rml_array_trail[idx] >= rmlATP; idx--)
