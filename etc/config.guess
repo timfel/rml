@@ -93,8 +93,13 @@ case `uname -s` in
     ;;
   MINGW32_*)
     OPSYS=mingw32
-    case `gcc -dumpmachine` in
+    if [ "$CC" = "" ] 
+    then
+      CC=gcc
+    fi
+    case `$CC -dumpmachine` in
       mingw32) ARCH=x86;;
+      i686*) ARCH=x86;;
       x86_64*) ARCH=x86_64;;
       *) exit 1;;
     esac

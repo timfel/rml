@@ -161,7 +161,7 @@ case "$TARGET" in
 	SMLDIR=`echo $SMLDIR | sed 's/://g'`
 	SMLDIR=`echo $SMLDIR | sed 's|\\\|/|g'`
 	HEAPDIR=$SMLNJ_HOME
-	HEAPDIR=`echo $HEAPDIR | sed 's|\\\|/|g'`
+	# HEAPDIR=`echo $HEAPDIR | sed 's|\\\|/|g'`
 	SMLDIR=/$SMLDIR/bin
 	SMLRUN=$SMLDIR/.run/run.x86-win32.exe 
 	echo SMLCM=\`echo \"$SMLRUN @SMLload=$HEAPDIR/bin/.heap/sml\"\` >> ./config.cache
