@@ -69,13 +69,15 @@ int rmldb_debug_start()
   /* stop and ask for commands here; this is a good time to set breakpoints */
   rmldb_init();
 #endif /* defined(RML_DEBUG) */
+  return 0;
 }
 
 int rmldb_debug_end()
 {
 #ifdef RML_DEBUG
-    rmldb_end(); /* cleanup the debugger */
+  rmldb_end(); /* cleanup the debugger */
 #endif /* RML_DEBUG */
+  return 0;
 }
 
 static unsigned long my_atoul(const char *nptr)

@@ -323,45 +323,6 @@ RML_BEGIN_LABEL(RML__list_5fvector)
 }
 RML_END_LABEL
 
-/* not working yet! */
-RML_BEGIN_LABEL(RML__list_5fmap)
-{
-    rml_uint_t nelts;
-    void *lst = rmlA0;
-    void *function = rmlA1;
-
-    /* count the number of elements in the first list */
-    nelts = 0;
-    while( RML_GETHDR(lst) == RML_CONSHDR ) {
-      lst = RML_CDR(lst);
-      ++nelts;
-    }
-    /* call the relation, to build the second list  */
-    if( nelts == 0 )
-    { /* do nothing, return nil */ }
-    else 
-    {
-        void **chunk = (void**)rml_prim_alloc(3*nelts, 2);
-        RML_CHECK_POINTER(chunk, RML__list_5fmap, "RML.listMap");
-
-        lst = rmlA0;
-        rmlA0 = RML_TAGPTR(chunk);
-        do {
-            chunk[0] = RML_IMMEDIATE(RML_CONSHDR);
-            rmlA0 = RML_CAR(lst); /* element */;
-            RML_TAILCALL(rmlA1 /* fn */,1);
-            chunk[1] = rmlA0;
-            chunk[2] = RML_TAGPTR(chunk + 3);
-            lst = RML_CDR(lst);
-            chunk += 3;
-        } while( --nelts != 0 );
-    }
-
-    /* return resulting list */
-    RML_TAILCALLK(rmlSC);
-}
-RML_END_LABEL
-
 RML_BEGIN_LABEL(RML__list_5fappend_5funsafe)
 {
   void *lst, *tmp;

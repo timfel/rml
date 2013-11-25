@@ -22,7 +22,7 @@ void *rml_prim_mkreal(double d)
 #ifdef  RML_DBL_STRICT
 double rml_prim_get_real(void *p)
 {
-  union rml_double_as_words u;
+  union rml_double_as_words u = {0};
   u.data[0] = RML_REALDATA(p)[0];
   u.data[1] = RML_REALDATA(p)[1];
   return u.d;
@@ -33,7 +33,7 @@ double rml_prim_get_real(void *p)
 #ifdef  RML_DBL_STRICT
 void rml_prim_set_real(struct rml_real *p, double d)
 {
-  union rml_double_as_words u;
+  union rml_double_as_words u = {0};
   u.d = d;
   p->data[0] = u.data[0];
   p->data[1] = u.data[1];
@@ -395,7 +395,6 @@ static struct rml_string* dtostr(double d)
   char expbuf[MAXEXPDIG];
   struct rml_string *retval;
   char *res;
-  const int debug = 0;
   *expbuf = 0;
   cporig = dtoa(d,1,prec,&expt,&signflag,&dtoaend);
   cp = cporig;

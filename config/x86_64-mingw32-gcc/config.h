@@ -6,9 +6,8 @@ typedef unsigned long long rml_uint_t;
 #define RML_LOG2_SIZE_INT 3
 #define RML_SIZE_INT 8
 #define RML_SIZE_DBL 8
-/*
-#define RML_DBL_PAD
-#define RML_DBL_STRICT *//* conservative assumption */
+/* #define RML_DBL_PAD */
+#define RML_DBL_STRICT /* conservative assumption */
 /* end of repchk-generated section */
 
 #define	RML_CLOCK_ANSIC

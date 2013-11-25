@@ -527,7 +527,7 @@ RML_END_LABEL
 RML_BEGIN_LABEL(RML__string_5fhash)
 {
   char *str = RML_STRINGDATA(rmlA0);
-  rml_uint_t hash = (rml_uint_t)rml_default_hash(str);
+  rml_uint_t hash = (rml_uint_t)rml_default_hash((unsigned char*)str);
   rmlA0 = RML_PRIM_INT_ABS(RML_IMMEDIATE(RML_TAGFIXNUM(hash)));
   RML_TAILCALLK(rmlSC);
 }
@@ -536,7 +536,7 @@ RML_END_LABEL
 RML_BEGIN_LABEL(RML__string_5fhash_5fsdbm)
 {
   char *str = RML_STRINGDATA(rmlA0);
-  rml_uint_t hash = (rml_uint_t)rml_sdbm_hash(str);
+  rml_uint_t hash = (rml_uint_t)rml_sdbm_hash((unsigned char*)str);
   rmlA0 = RML_PRIM_INT_ABS(RML_IMMEDIATE(RML_TAGFIXNUM(hash)));
   RML_TAILCALLK(rmlSC);
 }
@@ -545,8 +545,10 @@ RML_END_LABEL
 RML_BEGIN_LABEL(RML__string_5fhash_5fdjb2)
 {
   char *str = RML_STRINGDATA(rmlA0);
-  rml_uint_t hash = (rml_uint_t)rml_djb2_hash(str);
+  rml_uint_t hash = (rml_uint_t)rml_djb2_hash((unsigned char*)str);
   rmlA0 = RML_PRIM_INT_ABS(RML_IMMEDIATE(RML_TAGFIXNUM(hash)));
   RML_TAILCALLK(rmlSC);
 }
 RML_END_LABEL
+
+

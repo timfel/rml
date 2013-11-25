@@ -128,7 +128,7 @@ rml_prim_hash_tail_recur:
   
   if( RML_HDRISSTRING(phdr) ) 
   {
-    return hash + (long long unsigned)rml_djb2_hash(RML_STRINGDATA(p));
+    return hash + (long long unsigned)rml_djb2_hash((unsigned char*)RML_STRINGDATA(p));
   }
   
   if( RML_HDRISSTRUCT(phdr) ) 

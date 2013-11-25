@@ -62,3 +62,8 @@ static RML_BEGIN_MODULE(RML_GLUE(module__,LABEL))
 /* memory allocation */
 extern void rml_prim_gc(rml_uint_t, rml_uint_t);
 #define RML_ALLOC(VAR,NWORDS,NARGS,TAGLABEL) do{(VAR)=(void*)rml_young_next;if((rml_young_next=(void**)(VAR)+(NWORDS))>=rml_young_limit){gc_nwords=(NWORDS);gc_nargs=(NARGS);switch_tag=TAGLABEL;goto collect;}}while(0)
+
+#define RML_CHECK_POINTER(VAR, UNUSEDLABEL, LABEL_STRING) 
+
+
+

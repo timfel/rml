@@ -84,6 +84,7 @@ int rmldb_range_cmp(rmldb_range_db_t *r1, rmldb_range_db_t *r2)
 	if (t1s == t2s && t1e == t2e) return RMLDB_RANGE_EQ;
 	if (t1s > t2s) return RMLDB_RANGE_GT;
 	if (t1s < t2s) return RMLDB_RANGE_LT;
+  return 0;
 }
 
 /* ---- components ---- */
@@ -171,6 +172,8 @@ extern rmldb_type_t* rmldb_make_rmldb_type(rmldb_tyKind_t kind, void* component)
 	case RMLDB_eCONSty:  rmldb_type_node->component.c = (rmldb_CONSty_t*)component; break;
 	case RMLDB_eTUPLEty: rmldb_type_node->component.t = (rmldb_TUPLEty_t*)component; break;
 	case RMLDB_eRELty:   rmldb_type_node->component.r = (rmldb_RELty_t*)component; break;
+  default:
+    break;
 	}
     rmldb_type_node->name = 0;
 	rmldb_type_node->depth = 0;

@@ -165,8 +165,11 @@ RML_BEGIN_LABEL(RML__int_5fstring)
 {
     char buf[32];
     struct rml_string *str;
-
+#if defined(__MINGW64__) || (defined(_WIN64) && defined(_MSC_VER))
+    (void)sprintf(buf, "%I64d", (long long)RML_UNTAGFIXNUM(rmlA0));
+#else
     (void)sprintf(buf, "%ld", (long)RML_UNTAGFIXNUM(rmlA0));
+#endif
     
     str = rml_prim_mkstring(strlen(buf), 0);
     RML_CHECK_POINTER(str, RML__int_5fstring, "RML.intString");

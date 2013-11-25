@@ -462,7 +462,7 @@ struct rml_xgcstate {
 
 void rml_user_gc_callback(struct rml_xgcstate *s, void **vec, rml_uint_t nelts) {
   if (rml_flag_gclog && !rml_flag_bench) {
-    fprintf(stderr, " [rml_user_gc called roots=%lu]", nelts);
+    fprintf(stderr, " [rml_user_gc called roots=%lu]", (long unsigned)nelts);
   }
   s->next = rml_forward_vec(vec, nelts, s->next, s->region_low, s->region_nbytes);
 }
@@ -470,7 +470,7 @@ void rml_user_gc_callback(struct rml_xgcstate *s, void **vec, rml_uint_t nelts) 
 /* global root data */
 void rml_roots_gc_callback(struct rml_xgcstate *s, void **vec, rml_uint_t nelts) {
   if (rml_flag_gclog && !rml_flag_bench) {
-    fprintf(stderr, " [rml_roots_gc called roots=%lu]", nelts);
+    fprintf(stderr, " [rml_roots_gc called roots=%lu]", (long unsigned)nelts);
   }
   s->next = rml_forward_vec(vec, nelts, s->next, s->region_low, s->region_nbytes);
 }
@@ -587,8 +587,8 @@ static void **rml_collect(void **scan, char *region_low, rml_uint_t region_nbyte
 static void* rml_major_collection(rml_uint_t nwords, rml_uint_t nliveargs) 
 {
   void **next =0, **scan = 0, **rr = 0; 
-  long current_inuse = 0;
-  long used_before = (long)(rml_current_next - rml_current_region);
+  rml_uint_t current_inuse = 0;
+  rml_uint_t used_before = (rml_uint_t)(rml_current_next - rml_current_region);
 
   ++rml_majorgc_count;
   if (rml_flag_gclog && !rml_flag_bench) 
@@ -614,8 +614,8 @@ static void* rml_major_collection(rml_uint_t nwords, rml_uint_t nliveargs)
    * see if we have enough space to add 
    * external C heap data + the young gen + what we need to allocate now (nwords)
    */
-    if (((long)rml_c_heap_region_total_size + (long)nwords + (long)rml_young_size)
-        < ((long)rml_older_size - ((long)rml_current_next - (long)rml_current_region)))
+    if (((rml_uint_t)rml_c_heap_region_total_size + (rml_uint_t)nwords + (rml_uint_t)rml_young_size)
+        < ((rml_uint_t)rml_older_size - ((rml_uint_t)rml_current_next - (rml_uint_t)rml_current_region)))
     {
       /* we have enough space */
       if (rml_flag_gclog && !rml_flag_bench) 

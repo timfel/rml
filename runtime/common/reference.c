@@ -25,9 +25,7 @@ RML_END_LABEL
 RML_BEGIN_LABEL(RML__reference_5fupdate)
 {
 #ifndef NON_DESTRUCTIVE_ARRAY_IMPLEMENTATION
-  rml_uint_t nelts = 0;
   void *arr = rmlA0;
-  void *data;
   rml_uint_t idx = 0;
   rml_uint_t i = (rml_uint_t)RML_UNTAGFIXNUM(rmlA1) - 1;
   if( i >= RML_HDRSLOTS(RML_GETHDR(arr)) ) 
@@ -117,9 +115,7 @@ RML_END_LABEL
 RML_BEGIN_LABEL(RML__reference_5fsetnth)
 {
 #ifndef NON_DESTRUCTIVE_ARRAY_IMPLEMENTATION
-  rml_uint_t nelts = 0;
   void *arr = rmlA0;
-  void *data;
   rml_uint_t idx = 0;
   rml_uint_t i = (rml_uint_t)RML_UNTAGFIXNUM(rmlA1);
   if( i >= RML_HDRSLOTS(RML_GETHDR(arr)) ) 
@@ -234,7 +230,7 @@ RML_BEGIN_LABEL(RML__reference_5fshare)
 
   /* if we have a, b in the share do not add it */
   for (idx = rml_share_trail_size; &rml_share_trail[idx][2] >= rmlSTP; idx--)
-    if ( rml_share_trail[idx][1] == a && rml_share_trail[idx][2] == b )
+    if ( rml_share_trail[idx][0] == a && rml_share_trail[idx][1] == b )
       RML_TAILCALLK(rmlSC);
 
   /* store the equal references to be shared */
