@@ -507,10 +507,8 @@ struct rml_string* _rml_old_realString(double  r)
    * Add safety margin in case some C runtime is trigger happy. */
   struct rml_string *str;
   char buffer[32];
-  modelica_string res;
   char* endptr;
-  int ix;
-  ix =  = snprintf(buffer, 32, "%.15g", r);
+  int ix = snprintf(buffer, 32, "%.15g", r);
   /* If it looks like an integer, we need to append .0 so it looks like real */
   endptr = buffer;
   while (isdigit(*endptr)) endptr++;
