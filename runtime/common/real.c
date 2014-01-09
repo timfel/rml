@@ -505,7 +505,7 @@ struct rml_string* _rml_old_realString(double  r)
    *
    * 64-bit (1+11+52) double: -d.[15 digits]E-[4 digits] = ~24 digits max.
    * Add safety margin in case some C runtime is trigger happy. */
-  rml_string *str;
+  struct rml_string *str;
   char buffer[32];
   modelica_string res;
   char* endptr;
