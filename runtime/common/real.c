@@ -519,7 +519,7 @@ struct rml_string* _rml_old_realString(double  r)
   } else if ('E' == *endptr) {
     *endptr = 'e';
   }
-  str = rml_prim_mkstring(strlen(buf), 0);
+  str = rml_prim_mkstring(strlen(buffer), 0);
   strcpy(str->data, buffer);	/* this also sets the ending '\0' */
   return str;
 }
