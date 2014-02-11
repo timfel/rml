@@ -16,10 +16,10 @@ typedef unsigned long rml_uint_t;
 #define rml_longjmp	longjmp
 
 #ifdef	RML_PLAIN
-#define RML_YOUNG_SIZE	(72*1024)
+#define RML_YOUNG_SIZE	(512*1024)
 #endif
 #ifdef	RML_SWITCH
-#define RML_YOUNG_SIZE	(72*1024)
+#define RML_YOUNG_SIZE	(512*1024)
 #endif
 
 #ifdef	RML_PLAIN
