@@ -397,8 +397,11 @@ structure Ty : TY =
             *)
            let val TYNAME{modid=modid1,tycon=tycon1,...} = t1
                val TYNAME{modid=modid2,tycon=tycon2,...} = t2
+               fun compareTyNames("char", "int") = true
+               |   compareTyNames("int", "char") = true
+               |   compareTyNames(tn1, tn2) = tycon1 = tycon2
            in
-             (modid1 = modid2) andalso (tycon1 = tycon2)
+             (modid1 = modid2) andalso compareTyNames(tycon1, tycon2)
            end
           in
            if tynameEq(t1, t2) 
