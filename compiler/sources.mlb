@@ -295,13 +295,6 @@ local
    local
       signature FOL = gs_33
       structure TextIO = gs_5
-      FOL_OPTIM.sig
-   in
-      signature gs_35 = FOL_OPTIM
-   end
-   local
-      signature FOL = gs_33
-      structure TextIO = gs_5
       FOL_PRINT.sig
    in
       signature gs_36 = FOL_PRINT
@@ -338,6 +331,14 @@ local
       CACHE.sig
    in
       signature gs_41 = CACHE
+   end
+   local
+      signature FOL = gs_33
+      signature CONTROL = gs_18
+      structure TextIO = gs_5
+      FOL_OPTIM.sig
+   in
+      signature gs_35 = FOL_OPTIM
    end
    local
       signature ABSYNTOFOL = gs_37
@@ -1902,6 +1903,9 @@ local
       structure List = gs_14
       structure String = gs_0
       signature UTIL = gs_3
+      structure TextIO = gs_5
+      structure Control = gs_128
+      signature CONTROL = gs_18
       FOLOptimFn.sml
    in
       functor gs_213 = FOLOptimFn
@@ -1911,6 +1915,8 @@ local
       structure FOLPrint = gs_212
       structure FOLUnify = gs_202
       structure Util = gs_12
+      structure Control = gs_128
+      signature CONTROL = gs_18
       FOLOptim.sml
    in
       structure gs_214 = FOLOptim

@@ -5,5 +5,6 @@ signature FOL_PRINT =
 
     structure FOL	: FOL
     val printModule	: TextIO.outstream * FOL.module -> unit
+    val printConj	: TextIO.outstream * FOL.module * FOL.conj -> unit
 
   end (* signature FOL_PRINT *)

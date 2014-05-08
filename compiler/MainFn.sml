@@ -172,6 +172,7 @@ functor MainFn(
        sayErr "-E{no-}cps\n  do {not} dump the cps representation to file.cps; default to 'no'\n";
        sayErr "-E{no-}fol\n  do {not} dump the fol representation to file.fol and file.optim.fol; default to 'no'\n";
        sayErr "-E{no-}rdb\n  do {not} dump the program database representation to file.rdb; default to 'no'; activated when -fdebug is used\n";
+       sayErr "-E{no-}unify\n do {not} emit the unifications performed on standard error\n";
        sayErr "-E{plain,diff,mask,sml}\n  generates code for the specified runtime; default to 'plain'\n";
        sayErr "-W{no-}show-warnings\n  disables/enables showing of warnings; default to 'no-show-warnings'\n";
        sayErr "-f{no-}implicit-let\n  should implicit let be allowed? x = y instead of let x = y; x shoud be unbound; default to 'no'\n";
@@ -229,6 +230,8 @@ functor MainFn(
        | "-Eno-cps"  => Control.emitCps := false
        | "-Erdb"     => Control.emitRdb := true
        | "-Eno-rdb"  => Control.emitRdb := false
+       | "-Eunify"    => Control.emitUnif := true
+       | "-Eno-unify" => Control.emitUnif := false
        | "-Ofol"     => optFol := true
        | "-Ono-fol"  => optFol := false
        | "-Ocps"     => optCps := true

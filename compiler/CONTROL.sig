@@ -35,6 +35,10 @@ signature CONTROL =
   (* flag to emit the CPS form or not *)
   val emitCps   : bool ref
 
+  (* flag to output unifications to standard error *)
+  val emitUnif : bool ref
+
+
   (* flag that specifies if only typecheck should be performed, no codegen *)
   val onlyTypeCheck : bool ref
   

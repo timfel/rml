@@ -3,11 +3,29 @@
 functor FOLOptimFn(structure Util : UTIL
 		   structure FOLPrint : FOL_PRINT
 		   structure FOLUnify : FOL_UNIFY
+       structure Control : CONTROL
 		   sharing type FOLPrint.FOL.module = FOLUnify.FOL.module
+       sharing type FOLPrint.FOL.conj = FOLUnify.FOL.conj
 		     ) : FOL_OPTIM =
   struct
 
     structure FOL = FOLUnify.FOL
+
+    val moduleRef = ref []
+
+    fun prConjs(c1, c2) = 
+    if !Control.emitUnif
+    then
+    let val module::_ = !moduleRef
+    in
+      TextIO.output(TextIO.stdErr, "Unifying:\n");
+      TextIO.output(TextIO.stdErr, "statement1:\n");
+      FOLPrint.printConj(TextIO.stdErr, module, c1);
+      TextIO.output(TextIO.stdErr, "\nstatement2:\n");
+      FOLPrint.printConj(TextIO.stdErr, module, c2);
+      TextIO.output(TextIO.stdErr, "\n")
+    end
+    else ()
 
     fun bug s = Util.bug("FOLOptim."^s)
 
@@ -183,13 +201,13 @@ functor FOLOptimFn(structure Util : UTIL
 			d1 as FOL.ANDTHEN(c1a,d1b as FOL.ANDTHEN(c1a',d1b',infoD1B), infoD1), 
 			d2 as FOL.ANDTHEN(c2a as FOL.NOT(c2a',infoC2A), d2b, infoD2), infOrElse) =
         if FOLUnify.unifyConjs(c1a', c2a')
-        then mkAndThen(c1a, mkCond(c1a', d1b', d2b, infoD1B), infOrElse)
+        then (prConjs(c1a', c2a'); mkAndThen(c1a, mkCond(c1a', d1b', d2b, infoD1B), infOrElse))
         else FOL.ORELSE(d1, d2, infOrElse)
      | mkOrElse(
 			d1 as FOL.ANDTHEN(c2a as FOL.NOT(c2a', infoC2),d2b, infoD1), 
 			d2 as FOL.ANDTHEN(c1a,d1b as FOL.ANDTHEN(c1a',d1b', infoD1B), infoD2), infOrElse) =
         if FOLUnify.unifyConjs(c1a', c2a')
-        then mkAndThen(c1a, mkCond(c1a', d1b', d2b, infOrElse), infOrElse)
+        then (prConjs(c1a', c2a'); mkAndThen(c1a, mkCond(c1a', d1b', d2b, infOrElse), infOrElse))
         else FOL.ORELSE(d1, d2, infOrElse)       
      | mkOrElse(d1, d2, infOrElse) = 
       case d1
@@ -198,18 +216,18 @@ functor FOLOptimFn(structure Util : UTIL
 			(case d2
 			   of FOL.ANDTHEN(c2a,d2b, iD2) =>
 				(if FOLUnify.unifyConjs(c1a, c2a)
-				 then mkAndThen(c1a, mkOrElse(d1b, d2b, iD2), iD1)
+				 then (prConjs(c1a, c2a); mkAndThen(c1a, mkOrElse(d1b, d2b, iD2), iD1))
 				 else
 				   case c1a
 					of FOL.NOT(c1a', iC1A') =>
 					if FOLUnify.unifyConjs(c1a', c2a) 
-					then mkCond(c1a', d2b, d1b, infOrElse)
+					then (prConjs(c1a', c2a); mkCond(c1a', d2b, d1b, infOrElse))
 					else FOL.ORELSE(d1, d2, infOrElse)
 				  | _ =>
 					 case c2a
 					   of FOL.NOT(c2a', iC2A') =>
 					   if FOLUnify.unifyConjs(c2a', c1a) 
-					   then mkCond(c1a, d1b, d2b, infOrElse)
+					   then (prConjs(c2a', c1a); mkCond(c1a, d1b, d2b, infOrElse))
 					   else FOL.ORELSE(d1, d2, infOrElse)
 					| _ => FOL.ORELSE(d1, d2, infOrElse))
 		| _ => FOL.ORELSE(d1, d2, infOrElse))
@@ -239,11 +257,17 @@ functor FOLOptimFn(structure Util : UTIL
     fun normModule(FOL.MODULE(exports, declarations, source)) = FOL.MODULE(exports, map normDec declarations, source)
  
     fun optimize(SOME os, m) =
-	  let val m = normModule m
+	  let val _ = moduleRef := [m]
+        val m = normModule m
 	      val _ = FOLPrint.printModule(os, m)
 	  in
 	    m
 	  end
-      | optimize(NONE, m) = normModule m
+    | optimize(NONE, m) = 
+       let val _ = moduleRef := [m]
+           val m = normModule m
+       in
+         m
+       end
 
   end (* functor FOLOptimFn *)

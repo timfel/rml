@@ -3,4 +3,5 @@
 structure FOLOptim =
   FOLOptimFn(structure Util = Util
 	     structure FOLPrint = FOLPrint
-	     structure FOLUnify = FOLUnify);
+	     structure FOLUnify = FOLUnify
+       structure Control = Control);

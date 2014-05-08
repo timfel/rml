@@ -44,6 +44,9 @@ structure Control: CONTROL =
     (* flag to emit the CPS form or not *)
     val emitCps = ref false
 
+    (* flag to output unifications to standard error *)
+    val emitUnif = ref false
+
     (* flag that specifies if only typecheck should be performed, no codegen *)
     val onlyTypeCheck = ref false       
 
