@@ -11,7 +11,7 @@ functor FOLOptimFn(structure Util : UTIL
 
     structure FOL = FOLUnify.FOL
 
-    val moduleRef = ref []
+    val moduleRef : FOL.module list ref = ref []
 
     fun prConjs(c1, c2) = 
     if !Control.emitUnif
