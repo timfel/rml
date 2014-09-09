@@ -312,6 +312,7 @@ functor TransEnvFn(structure Util : UTIL
                               CON{rep=ConRep.BOX{arity=2,tag=1,name=mkLongId("RML", "cons")}, 
                               nrcons=2})
       
+      val te = inline2(te, "list_empty", "listEmpty", mk_unary_inliner CPS.LIST_EMPTY)
       val te = extern2(te, "list_append",              "listAppend")
       val te = extern2(te, "list_delete",              "listDelete")
       val te = extern2(te, "list_length",              "listLength")

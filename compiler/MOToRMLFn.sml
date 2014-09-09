@@ -533,6 +533,7 @@ let val Absyn.PROGRAM(_,_,interface as
       "int_bit_rshift",  "intBitRShift",
       
       (* lists *)
+      "list_empty",              "listEmpty",
       "list_append",             "listAppend",
       "list_delete",             "listDelete",
       "list_length",             "listLength",

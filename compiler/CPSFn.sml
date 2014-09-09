@@ -20,6 +20,7 @@ functor CPSFn(
 			          | STRINGcon of string
 
     datatype unop  = FETCH of int
+                           |  LIST_EMPTY
                            |  BOOL_NOT 
                            |  INT_NEG    | INT_ABS 
                            |  INT_BIT_NOT 

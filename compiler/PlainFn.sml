@@ -177,6 +177,8 @@ functor PlainFn(
     val primUNWIND = LABEL(Mangle.NAME "rml_prim_unwind", ConRep.dummyLongIdent, ConRep.dummyInfo)
     
     val primEQUAL = LABEL(Mangle.NAME "rml_prim_equal", ConRep.dummyLongIdent, ConRep.dummyInfo)
+
+    val primLIST_EMPTY = LABEL(Mangle.NAME "RML_PRIM_LIST_EMPTY", ConRep.dummyLongIdent, ConRep.dummyInfo)
     
     val primBOOL_NOT = LABEL(Mangle.NAME "RML_PRIM_BOOL_NOT", ConRep.dummyLongIdent, ConRep.dummyInfo)
     val primINT_NEG = LABEL(Mangle.NAME "RML_PRIM_INT_NEG", ConRep.dummyLongIdent, ConRep.dummyInfo)

@@ -61,6 +61,7 @@ functor CPSPrintFn(structure MakeString : MAKESTRING
        PP.emit(pp, PP.END))
 
     fun unary(CPS.FETCH off)        = "fetch "^(MakeString.icvt off)
+      | unary(CPS.LIST_EMPTY)       = "listEmpty"
       | unary(CPS.BOOL_NOT)         = "bool_not"
       | unary(CPS.INT_NEG)          = "int_neg"
       | unary(CPS.INT_ABS)          = "int_abs"

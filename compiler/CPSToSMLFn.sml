@@ -57,6 +57,7 @@ functor CPSToSMLFn(structure CPS : CPS) : CPSTOSML =
       | prConst(os, CPS.STRINGcon s) = (output(os, "rml.STRING "); prString(os, s))
 
     fun unopToStr(CPS.FETCH i) = "rml.prim_fetch"^(Int.toString i)
+      | unopToStr(CPS.LIST_EMPTY) = "rml.prim_list_empty"
       | unopToStr(CPS.BOOL_NOT) = "rml.prim_bool_not"
       | unopToStr(CPS.INT_NEG) = "rml.prim_int_neg"
       | unopToStr(CPS.INT_ABS) = "rml.prim_int_abs"

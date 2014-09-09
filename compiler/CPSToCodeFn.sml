@@ -230,6 +230,7 @@ let
       in
       case unop
         of CPS.FETCH off         => Code.FETCH(mkOFFSET(Code.UNTAGPTR te, off))
+         | CPS.LIST_EMPTY        => call Code.primLIST_EMPTY
          | CPS.BOOL_NOT          => call Code.primBOOL_NOT
          | CPS.INT_NEG          => call Code.primINT_NEG
          | CPS.INT_ABS          => call Code.primINT_ABS

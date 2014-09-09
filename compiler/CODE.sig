@@ -125,6 +125,8 @@ signature CODE =
     val primUNWIND           : label
     
     val primEQUAL            : label
+
+    val primLIST_EMPTY       : label
     
     val primBOOL_NOT         : label
     val primINT_NEG          : label

@@ -204,6 +204,7 @@ functor StatObjFn(
       (* lists *)
       val VE = bindCon(VE, "cons",Ty.REL([tau_alpha,tau_alpha_list],[tau_alpha_list],NONE))
       val VE = bindCon(VE, "nil",tau_alpha_list)
+      val VE = bindRel2(VE, "list_empty",     "listEmpty", [tau_alpha_list], [tau_bool])
       
       val VE = bindRel2(VE, "list_append",             "listAppend",           [tau_alpha_list, tau_alpha_list], [tau_alpha_list])
       val VE = bindRel2(VE, "list_delete",             "listDelete",           [tau_alpha_list, tau_int], [tau_alpha_list])
