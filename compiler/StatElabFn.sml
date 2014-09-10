@@ -79,6 +79,8 @@ struct
 
     fun sayIdWarning(msg, name, Absyn.INFO(left, right)) = sayWarning(msg^name, left, right)
 
+    fun sayFileWarning(msg, Absyn.INFO(left, right)) = sayWarning(msg, left, right)
+
     (* Print plain error messages *)
     fun sayErr s = TextIO.output(TextIO.stdErr, s)
 
@@ -184,6 +186,21 @@ struct
     fun tyvarRigid tyvar = Ty.RIGID(Absyn.identName tyvar)
     fun sameTyvar tyvar tyvar' = Absyn.identEqual(tyvar, tyvar')
 
+    fun isPresent(env, id) =
+    let
+    in
+      case IdentDict.find'(env, id) of 
+        NONE => false
+      | SOME(id',_) => true
+    end
+
+    fun getMETEVE(env, id) =
+    let
+    in
+      case IdentDict.find'(env, id) of
+       SOME(id', StatObj.MODSTR{TE,VE,...}) => (env, TE, VE)
+    end
+
     (* Verify that the identifier isn't bound *)
     fun assert_unbound(env, id, kind) =
       case IdentDict.find'(env, id) of 
@@ -282,7 +299,7 @@ fun elab_module(os, main_module, repository) =
     fun fetchModuleId(Absyn.INTERFACE({modid,...},_)) = Absyn.identName(modid)
             
     (* Annotate "with" specifications and declarations with actual interfaces *)
-    fun annotate_with(file, ri, mainModuleID) =
+    fun annotate_with(file, ri, mainModuleID, checkMain) =
       let val _ = debug("annotate_with: " ^ file ^ "\n");
           val module = 
             let val entryRML = Cache.getCacheEntry(repository, Cache.rmlCache, file)
@@ -298,32 +315,40 @@ fun elab_module(os, main_module, repository) =
       val Absyn.MODULE(i as Absyn.INTERFACE({specs,source,...}, _), _, _) = module
       in
         ri := i;
-        List.app (fn spec => annotate_with_spec(mainModuleID, spec)) specs 
+        List.app (fn spec => annotate_with_spec(mainModuleID, spec, source, checkMain)) specs 
       end
 
-    and annotate_with_spec (mainModuleID, Absyn.WITHspec(file, ri, _)) = 
+    and annotate_with_spec (mainModuleID, Absyn.WITHspec(file, ri, info), source, checkMain) = 
         let val currentModuleID = fetchModuleId(!ri);
         in 
-          if true (*(currentModuleID <> mainModuleID)*) (* filter out current module to get rid of circular imports! *)
-          then annotate_with(file, ri, mainModuleID)
-          else (debug("Not loading interface ann_with_spec: " ^ file ^ "\n"))
+          if (currentModuleID <> mainModuleID) (* filter out current module to get rid of circular imports! *)
+          then annotate_with(file, ri, mainModuleID, checkMain)
+          else 
+          if not checkMain
+          then annotate_with(file, ri, mainModuleID, checkMain)
+          else 
+          let val oldSource = !currentSource
+              val _ = currentSource := source;
+          in
+             sayFileWarning("Circular dependency via public import: " ^ currentModuleID, info);
+             currentSource := oldSource;
+             ()
+          end 
         end
-      | annotate_with_spec (mainModuleID, _) = ()
+      | annotate_with_spec (mainModuleID, _, _, _) = ()
 
-    fun annotate_with_dec (mainModuleID, Absyn.WITHdec(file, ri, _)) = 
-        let val currentModuleID = fetchModuleId(!ri);
+    fun annotate_with_dec (mainModuleID, Absyn.WITHdec(file, ri, info), source) = 
+        let 
         in 
-          if true (*(currentModuleID <> mainModuleID)*) (* filter out current module to get rid of circular imports! *)
-          then annotate_with(file, ri, mainModuleID)
-          else ((debug("Not loading interface ann_with_dec: " ^ file ^ "\n")))
+          annotate_with(file, ri, mainModuleID, false)
         end 
-      | annotate_with_dec (mainModuleID,_) = ()
+      | annotate_with_dec (mainModuleID, _, _) = ()
 
-    fun annotate_module(Absyn.MODULE(Absyn.INTERFACE({specs,...}, _), decs, _), mainModuleID) =
+    fun annotate_module(Absyn.MODULE(Absyn.INTERFACE({specs,source,...}, _), decs, _), mainModuleID) =
     let
     in
-      List.app (fn spec => annotate_with_spec(mainModuleID, spec)) specs;
-      List.app (fn dec => annotate_with_dec(mainModuleID, dec)) decs 
+      List.app (fn spec => annotate_with_spec(mainModuleID, spec, source, true)) specs;
+      List.app (fn dec => annotate_with_dec(mainModuleID, dec, source)) decs 
     end
       
     (* returns the named arguments from a type sequence *)
@@ -584,23 +609,32 @@ fun elab_module(os, main_module, repository) =
            checkNotCon(!currentSource, VE_outer, var);
            checkNotCon(StatObj.sourceInit, StatObj.VE_init, var))
 
+    fun hasNoParent([], _) = true
+    |   hasNoParent(x::rest, id) =
+        let val b = Absyn.identName(x) <> id
+        in
+          b andalso hasNoParent(rest, id)
+        end
+
     (* Elaborate a sequence of specifications *)
-    fun elab_specs(ME, TE, VE, modid, specs) =
+    fun elab_specs(ME, TE, VE, modid, specs, parentsIds) =
     let 
-       val _ = debug("elab_specs\n") 
+       val _ = debug("elab_specs of "^(Absyn.identName modid)^"\n")
        fun elab(ME, TE, VE, []) = (ME,TE,VE)
        |   elab(ME, TE, VE, Absyn.WITHspec(file, interface, _)::specs) =
-             if true (*( mainModuleIDENT <> fetchModuleId(!interface) )*) (* filter out same interface! *)
+             if hasNoParent(!parentsIds, fetchModuleId(!interface)) (* filter out same interface! *)
              then
                let 
-                 val (_,TE',VE',modid') = elab_interface(ME, !interface)
+                 val _ = parentsIds := modid::(!parentsIds);
+                 val (ME,TE',VE',modid') = elab_interface(ME, !interface, parentsIds)
                  val Absyn.INTERFACE({source=source',...}, _) = !interface
                  val modstr = StatObj.MODSTR{TE=TE', VE=VE', source=source'}
                  val ME' = IdentDict.insert(ME, modid', modstr)
                in
                  elab(ME', TE, VE, specs)
                end
-             else ( debug("Not loading interface elab_specs: " ^ file ^ "\n"); (ME,TE,VE) )
+             else ( debug("Not loading interface elab_specs: " ^ file ^ "\n"); 
+                    elab(ME, TE, VE, specs) )
        |   elab(ME, TE, VE, Absyn.ABSTYPEspec(eq, tyvarseq, tycon, _)::specs) =
              let 
                val _ = assert_unbound_tycon(TE, tycon)
@@ -659,18 +693,30 @@ fun elab_module(os, main_module, repository) =
     end
 
     (* Elaborate an interface *)
-    and elab_interface(ME, Absyn.INTERFACE({modid,specs,source}, _)) =
+    and elab_interface(ME, Absyn.INTERFACE({modid,specs,source}, _), parentsIds) =
     let 
-       val _ = debug("elab_interface of "^(Absyn.identName modid)^"\n")
-       val _ = assert_unbound_modid(ME, modid)
+       fun parents(parentsIds) = 
+       let
+           fun pr(id) = (Absyn.identName id) ^ " "
+           val lst = map pr (!parentsIds)
+           val str = concat lst
+       in
+         str
+       end
+       val _ = debug("elab_interface of " ^ (Absyn.identName modid) ^ " parents: " ^ parents(parentsIds) ^ "\n")
+       (* val _ = assert_unbound_modid(ME, modid) *)
        fun elab() =
              let 
                val (ME',TE,VE) = 
-                 elab_specs(StatObj.ME_init, 
-                            IdentDict.empty, 
-                            IdentDict.empty,
-                            modid, 
-                            specs)
+                   if isPresent(ME, modid)
+                   then getMETEVE(ME, modid)
+                   else
+                     elab_specs(ME, 
+                                IdentDict.empty, 
+                                IdentDict.empty,
+                                modid, 
+                                specs,
+                                parentsIds)
        in
          (ME',TE,VE,modid)
        end
@@ -1831,7 +1877,8 @@ fun elab_module(os, main_module, repository) =
         val _ = debug("elab_decs\n") 
         fun elab(ME, TE, VE, []) = (ME,TE,VE)
         | elab(ME, TE, VE, Absyn.WITHdec(_, interface, _)::decs) =
-        let val (_,TE',VE',modid') = elab_interface(ME, !interface)
+        let val parentsIds : Absyn.ident list ref = ref []
+            val (ME,TE',VE',modid') = elab_interface(ME, !interface, parentsIds)
             val Absyn.INTERFACE({source=source',...}, _) = !interface
             val modstr = StatObj.MODSTR{TE=TE', VE=VE', source=source'}
             val ME' = IdentDict.insert(ME, modid', modstr)
@@ -1945,10 +1992,12 @@ fun elab_module(os, main_module, repository) =
       
       fun elab() =
       let 
+        val parentsIds : Absyn.ident list ref = ref []
+        (* val _ = parentsIds := modid::(!parentsIds); *)
         val _ = debug("elab: " ^ Absyn.identName(modid) ^ "\n")
         val _ = annotate_module(main_module, Absyn.identName(modid))
         val _ = debug("elab module annotated: " ^ Absyn.identName(modid) ^ "\n")
-        val (ME,TE,VE,modid) = elab_interface(StatObj.ME_init, main_interface) (* elaborates the specifications *)
+        val (ME,TE,VE,modid) = elab_interface(StatObj.ME_init, main_interface, parentsIds) (* elaborates the specifications *)
         val VE' = IdentDict.fold(onlycon, IdentDict.empty, VE)
         val (ME',TE',VE'') = elab_decs(os, ME, TE, VE', modid, decs)
         val _ = check_specs(TE', VE, VE'', specs)

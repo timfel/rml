@@ -529,7 +529,7 @@ functor FrontEndFn(
     val entrySRZ = Cache.getCacheEntry(repository, Cache.srzCache, file)
     val entryMOD = Cache.getCacheEntry(repository, Cache.modCache, file)
     val translateNeeded : string list ref = ref []
-    val _ = alreadyLoaded = ref []
+    (* val _ = alreadyLoaded = ref [] *)
     val isSRZ = ref false 
     fun apply (f,r,loadInterfaceOnly) = 
       let val  module = loadSerializedMODFile((prefix, fileName, ext), repository, loadInterfaceOnly);
@@ -764,7 +764,12 @@ functor FrontEndFn(
           (* print the AST if required by -East *)
           val _ = doAst((prefix, fileName, ext), astModule)
           (* check the module = static elaboration *)
-          val _ = checkModule((prefix, fileName, ext), astModule, repository)
+          val _ = 
+          let 
+          in 
+             debug ("loadMODFile: Checking module: "^fileName^"\n");
+             checkModule((prefix, fileName, ext), astModule, repository)
+          end
         in
           if !Control.onlyTypeCheck 
           then NONE 
