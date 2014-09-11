@@ -64,7 +64,6 @@ struct
     fun printOs(SOME(os), s) = TextIO.output(os, s)
     |   printOs(NONE, s) = ()
 
-
     (* Print plain error messages *)
     fun sayWarning s = TextIO.output(TextIO.stdErr, s)
 
@@ -78,8 +77,6 @@ struct
     fun sayWarning(msg, left, right) = sayWarning'(!currentSource, msg, left, right)
 
     fun sayIdWarning(msg, name, Absyn.INFO(left, right)) = sayWarning(msg^name, left, right)
-
-    fun sayFileWarning(msg, Absyn.INFO(left, right)) = sayWarning(msg, left, right)
 
     (* Print plain error messages *)
     fun sayErr s = TextIO.output(TextIO.stdErr, s)
@@ -115,6 +112,16 @@ struct
           sayError(msg, left, right);
           raise StaticElaborationError
         )
+    
+    val circularityDetected : bool ref = ref false;
+     
+    fun errorReportAndSet(msg, left, right) =
+        (
+          sayError(msg, left, right);
+          circularityDetected := true
+        )
+    
+    fun sayFileError(msg, Absyn.INFO(left, right)) = errorReportAndSet(msg, left, right)
 
     fun idError(msg, name, ctxInfo) =
         (
@@ -185,21 +192,6 @@ struct
     (* some stuff.. *)
     fun tyvarRigid tyvar = Ty.RIGID(Absyn.identName tyvar)
     fun sameTyvar tyvar tyvar' = Absyn.identEqual(tyvar, tyvar')
-
-    fun isPresent(env, id) =
-    let
-    in
-      case IdentDict.find'(env, id) of 
-        NONE => false
-      | SOME(id',_) => true
-    end
-
-    fun getMETEVE(env, id) =
-    let
-    in
-      case IdentDict.find'(env, id) of
-       SOME(id', StatObj.MODSTR{TE,VE,...}) => (env, TE, VE)
-    end
 
     (* Verify that the identifier isn't bound *)
     fun assert_unbound(env, id, kind) =
@@ -315,7 +307,8 @@ fun elab_module(os, main_module, repository) =
       val Absyn.MODULE(i as Absyn.INTERFACE({specs,source,...}, _), _, _) = module
       in
         ri := i;
-        List.app (fn spec => annotate_with_spec(mainModuleID, spec, source, checkMain)) specs 
+        List.app (fn spec => annotate_with_spec(mainModuleID, spec, source, checkMain)) specs;
+        if (!circularityDetected) then raise StaticElaborationError else ()
       end
 
     and annotate_with_spec (mainModuleID, Absyn.WITHspec(file, ri, info), source, checkMain) = 
@@ -330,9 +323,8 @@ fun elab_module(os, main_module, repository) =
           let val oldSource = !currentSource
               val _ = currentSource := source;
           in
-             sayFileWarning("Circular dependency via public import: " ^ currentModuleID, info);
-             currentSource := oldSource;
-             ()
+             sayFileError("Circular dependency via public import: " ^ currentModuleID, info);
+             currentSource := oldSource
           end 
         end
       | annotate_with_spec (mainModuleID, _, _, _) = ()
@@ -622,19 +614,18 @@ fun elab_module(os, main_module, repository) =
        val _ = debug("elab_specs of "^(Absyn.identName modid)^"\n")
        fun elab(ME, TE, VE, []) = (ME,TE,VE)
        |   elab(ME, TE, VE, Absyn.WITHspec(file, interface, _)::specs) =
-             if hasNoParent(!parentsIds, fetchModuleId(!interface)) (* filter out same interface! *)
+             if  true (* (mainModuleIDENT <> fetchModuleId(!interface)) *) (* filter out same interface! *)
              then
                let 
                  val _ = parentsIds := modid::(!parentsIds);
-                 val (ME,TE',VE',modid') = elab_interface(ME, !interface, parentsIds)
+                 val (_, TE',VE',modid') = elab_interface(ME, !interface, parentsIds)
                  val Absyn.INTERFACE({source=source',...}, _) = !interface
                  val modstr = StatObj.MODSTR{TE=TE', VE=VE', source=source'}
                  val ME' = IdentDict.insert(ME, modid', modstr)
                in
                  elab(ME', TE, VE, specs)
                end
-             else ( debug("Not loading interface elab_specs: " ^ file ^ "\n"); 
-                    elab(ME, TE, VE, specs) )
+             else raise StaticElaborationError (* debug("Not loading interface elab_specs: " ^ file ^ "\n"); elab(ME, TE, VE, specs) *)
        |   elab(ME, TE, VE, Absyn.ABSTYPEspec(eq, tyvarseq, tycon, _)::specs) =
              let 
                val _ = assert_unbound_tycon(TE, tycon)
@@ -704,14 +695,11 @@ fun elab_module(os, main_module, repository) =
          str
        end
        val _ = debug("elab_interface of " ^ (Absyn.identName modid) ^ " parents: " ^ parents(parentsIds) ^ "\n")
-       (* val _ = assert_unbound_modid(ME, modid) *)
+       val _ = assert_unbound_modid(ME, modid)
        fun elab() =
              let 
                val (ME',TE,VE) = 
-                   if isPresent(ME, modid)
-                   then getMETEVE(ME, modid)
-                   else
-                     elab_specs(ME, 
+                     elab_specs(StatObj.ME_init, 
                                 IdentDict.empty, 
                                 IdentDict.empty,
                                 modid, 
@@ -1099,7 +1087,7 @@ fun elab_module(os, main_module, repository) =
                               sayTyErr(explain,"while elaborating pattern", "", ctxInfo)
                         | StaticElaborationError => () (* already explained *)
                         | _ => strayExnBug(exn, "", ctxInfo));
-                       raise StaticElaborationError)                    
+                       raise StaticElaborationError)
           in
             (VE'_pat, res_tau)
           end
@@ -1878,7 +1866,7 @@ fun elab_module(os, main_module, repository) =
         fun elab(ME, TE, VE, []) = (ME,TE,VE)
         | elab(ME, TE, VE, Absyn.WITHdec(_, interface, _)::decs) =
         let val parentsIds : Absyn.ident list ref = ref []
-            val (ME,TE',VE',modid') = elab_interface(ME, !interface, parentsIds)
+            val (_,TE',VE',modid') = elab_interface(ME, !interface, parentsIds)
             val Absyn.INTERFACE({source=source',...}, _) = !interface
             val modstr = StatObj.MODSTR{TE=TE', VE=VE', source=source'}
             val ME' = IdentDict.insert(ME, modid', modstr)
